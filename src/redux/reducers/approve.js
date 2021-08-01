@@ -1,30 +1,26 @@
 /* eslint-disable import/no-anonymous-default-export */
-const assetState = {
+const approveState = {
     isAdd: false,
-    isUpload: false,
+    isAddDetail: false,
     isUpdate: false,
-    isSubmit: false,
     isGet: false,
-    getStock: false,
-    stockDetail: false,
-    isDetail: false,
     isDelete: false,
     isLoading: false,
     isError: false,
     alertMsg: '',
-    dataAsset: [],
-    dataStock: [],
-    detailStock: [],
+    dataApprove: [],
+    dataName: [],
     alertM: '',
     alertUpload: [],
     page: {},
     isExport: false,
+    detailApp: [],
     link: ''
 };
 
-export default (state=assetState, action) => {
+export default (state=approveState, action) => {
         switch(action.type){
-            case 'GET_ASSET_PENDING': {
+            case 'GET_APPROVE_PENDING': {
                 return {
                     ...state,
                     isGet: false,
@@ -32,18 +28,18 @@ export default (state=assetState, action) => {
                     alertMsg: 'Waiting ...'
                 };
             }
-            case 'GET_ASSET_FULFILLED': {
+            case 'GET_APPROVE_FULFILLED': {
                 return {
                     ...state,
                     isLoading: false,
                     isError: false,
                     isGet: true,
-                    dataAsset: action.payload.data.result.rows,
-                    alertMsg: 'get asset Succesfully',
+                    dataApprove: action.payload.data.result.rows,
+                    alertMsg: 'get approve Succesfully',
                     page: action.payload.data.pageInfo
                 };
             }
-            case 'GET_ASSET_REJECTED': {
+            case 'GET_APPROVE_REJECTED': {
                 return {
                     ...state,
                     isLoading: false,
@@ -52,144 +48,162 @@ export default (state=assetState, action) => {
                     alertMsg: "Unable connect to server"
                 };
             }
-            case 'GET_STOCK_PENDING': {
+            case 'GET_DETAIL_PENDING': {
                 return {
                     ...state,
-                    getStock: false,
+                    isGet: false,
                     isLoading: true,
                     alertMsg: 'Waiting ...'
                 };
             }
-            case 'GET_STOCK_FULFILLED': {
+            case 'GET_DETAIL_FULFILLED': {
                 return {
                     ...state,
                     isLoading: false,
                     isError: false,
-                    getStock: true,
-                    dataStock: action.payload.data.result.rows,
-                    alertMsg: 'get stock Succesfully',
-                    page: action.payload.data.pageInfo
+                    isGet: true,
+                    detailApp: action.payload.data.result,
+                    alertMsg: 'get detail approve Succesfully',
                 };
             }
-            case 'GET_STOCK_REJECTED': {
+            case 'GET_DETAIL_REJECTED': {
                 return {
                     ...state,
                     isLoading: false,
-                    getStock: false,
+                    isGet: false,
                     isError: true,
                     alertMsg: "Unable connect to server"
                 };
             }
-            case 'DETAIL_STOCK_PENDING': {
+            case 'GET_NAME_PENDING': {
                 return {
                     ...state,
-                    stockDetail: false,
+                    isGet: false,
                     isLoading: true,
                     alertMsg: 'Waiting ...'
                 };
             }
-            case 'DETAIL_STOCK_FULFILLED': {
+            case 'GET_NAME_FULFILLED': {
                 return {
                     ...state,
                     isLoading: false,
                     isError: false,
-                    stockDetail: true,
-                    detailStock: action.payload.data.result,
-                    alertMsg: 'get stock Succesfully',
+                    isGet: true,
+                    dataName: action.payload.data.result.rows,
+                    alertMsg: 'get approve Succesfully',
                 };
             }
-            case 'DETAIL_STOCK_REJECTED': {
+            case 'GET_NAME_REJECTED': {
                 return {
                     ...state,
                     isLoading: false,
-                    stockDetail: false,
+                    isGet: false,
                     isError: true,
                     alertMsg: "Unable connect to server"
                 };
             }
-            case 'UPDATE_ASSET_PENDING': {
+            case 'CREATE_APPROVE_PENDING': {
                 return {
                     ...state,
-                    isUpdate: false,
                     isLoading: true,
                     alertMsg: 'Waiting ...'
                 };
             }
-            case 'UPDATE_ASSET_FULFILLED': {
+            case 'CREATE_APPROVE_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: false,
+                    isAddDetail: true,
+                    alertMsg: 'add approve Succesfully'
+                };
+            }
+            case 'CREATE_APPROVE_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isAddDetail: false,
+                    isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'CREATE_NAME_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'CREATE_NAME_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: false,
+                    isAdd: true,
+                    alertMsg: 'add approve Succesfully'
+                };
+            }
+            case 'CREATE_NAME_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'DELETE_APPROVE_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'DELETE_APPROVE_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: false,
+                    isDelete: true,
+                    alertMsg: 'delete approve Succesfully',
+                };
+            }
+            case 'DELETE_APPROVE_REJECTED': {
+                return {
+                    ...state,
+                    isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'UPDATE_APPROVE_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'UPDATE_APPROVE_FULFILLED': {
                 return {
                     ...state,
                     isLoading: false,
                     isError: false,
                     isUpdate: true,
+                    alertMsg: 'delete approve Succesfully',
                 };
             }
-            case 'UPDATE_ASSET_REJECTED': {
+            case 'UPDATE_APPROVE_REJECTED': {
                 return {
                     ...state,
-                    isLoading: false,
+                    isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'RESET_APPROVE': {
+                return {
+                    ...state,
+                    isError: false,
                     isUpdate: false,
-                    isError: true,
-                    alertMsg: "Unable connect to server"
-                };
-            }
-            case 'SUBMIT_STOCK_PENDING': {
-                return {
-                    ...state,
-                    isSubmit: false,
-                    isLoading: true,
-                    alertMsg: 'Waiting ...'
-                };
-            }
-            case 'SUBMIT_STOCK_FULFILLED': {
-                return {
-                    ...state,
-                    isLoading: false,
-                    isError: false,
-                    isSubmit: true,
-                };
-            }
-            case 'SUBMIT_STOCK_REJECTED': {
-                return {
-                    ...state,
-                    isLoading: false,
-                    isSubmit: false,
-                    isError: true,
-                    alertMsg: "Unable connect to server"
-                };
-            }
-            case 'NEXT_DATA_ASSET_PENDING': {
-                return {
-                    ...state,
-                    isGet: false,
-                    isLoading: true,
-                    alertMsg: 'Waiting ...'
-                };
-            }
-            case 'NEXT_DATA_ASSET_FULFILLED': {
-                return {
-                    ...state,
-                    isLoading: false,
-                    isError: false,
-                    isGet: true,
-                    dataAsset: action.payload.data.result.rows,
-                    alertMsg: 'add depo Succesfully',
-                    page: action.payload.data.pageInfo
-                };
-            }
-            case 'NEXT_DATA_ASSET_REJECTED': {
-                return {
-                    ...state,
-                    isLoading: false,
                     isAdd: false,
-                    isError: true,
-                    alertMsg: "Unable connect to server"
-                };
-            }
-            case 'RESET_ASSET': {
-                return {
-                    ...state,
-                    isError: false,
-                    isUpload: false,
+                    isDelete: false,
                     isGet: false,
                     isExport: false
                 }

@@ -1,3 +1,4 @@
+/* eslint-disable import/no-anonymous-default-export */
 import http from '../../helpers/http'
 import qs from 'qs'
 

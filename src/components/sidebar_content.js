@@ -37,7 +37,7 @@ const styles = {
   content: {
     padding: "16px",
     // height: "60%",
-    backgroundColor: "#A01E2A"
+    backgroundColor: "#9A1353"
   }
 };
 

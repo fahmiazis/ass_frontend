@@ -9,7 +9,7 @@ const styles = {
   },
   header: {
     backgroundColor: "white",
-    color: "#D83022",
+    color: "#9A1353",
     // padding: "16px",
     // paddingLeft: "10px",
     fontSize: "1.5em",

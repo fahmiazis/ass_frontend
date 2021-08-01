@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/alt-text */
 import React, { Component } from 'react'
 import Sidebar from '../components/Sidebar'
 import addPicture from '../assets/img/add.png'
@@ -18,6 +19,8 @@ export default class Home extends Component {
     }
 
     render() {
+        const level = localStorage.getItem('level')
+        const names = localStorage.getItem('name')
         return (
             <div className="bodyHome">
                 <div className="leftHome">
@@ -32,7 +35,7 @@ export default class Home extends Component {
                         <div></div>
                         <div className="akun">
                             <VscAccount size={30} className="mr-2" />
-                            <text>Super Admin</text>
+                            <text>{level === '1' ? 'Super Admin' : names}</text>
                         </div>
                     </div>
                     <div>

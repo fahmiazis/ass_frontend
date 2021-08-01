@@ -199,6 +199,7 @@ class Pengadaan extends Component {
     render() {
         const {dataPeng, isLoading, isError, dataApp, dataDoc} = this.props.pengadaan
         const level = localStorage.getItem('level')
+        const names = localStorage.getItem('name')
         return (
             <>
             <div className="bodyHome">
@@ -210,7 +211,7 @@ class Pengadaan extends Component {
                         <div></div>
                         <div className="akun">
                             <VscAccount size={30} className="mr-2" />
-                            <text>Super Admin</text>
+                            <text>{level === '1' ? 'Super Admin' : names}</text>
                         </div>
                     </div>
                     <div>

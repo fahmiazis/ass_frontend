@@ -1,30 +1,26 @@
 /* eslint-disable import/no-anonymous-default-export */
-const assetState = {
+const setujuState = {
     isAdd: false,
-    isUpload: false,
-    isUpdate: false,
-    isSubmit: false,
     isGet: false,
-    getStock: false,
-    stockDetail: false,
-    isDetail: false,
-    isDelete: false,
+    isGetApp: false,
+    isGetData: false,
     isLoading: false,
     isError: false,
+    approve: false,
     alertMsg: '',
-    dataAsset: [],
-    dataStock: [],
-    detailStock: [],
-    alertM: '',
-    alertUpload: [],
+    isSubmitEks: false,
+    isSubmitTax: false,
+    isSubmitFinal: false,
+    isSubmitPurch: false,
+    dataDis: [],
+    noDis: [],
     page: {},
-    isExport: false,
-    link: ''
+    disApp: {}
 };
 
-export default (state=assetState, action) => {
+export default (state=setujuState, action) => {
         switch(action.type){
-            case 'GET_ASSET_PENDING': {
+            case 'SUBMIT_SETDIS_PENDING': {
                 return {
                     ...state,
                     isGet: false,
@@ -32,18 +28,16 @@ export default (state=assetState, action) => {
                     alertMsg: 'Waiting ...'
                 };
             }
-            case 'GET_ASSET_FULFILLED': {
+            case 'SUBMIT_SETDIS_FULFILLED': {
                 return {
                     ...state,
                     isLoading: false,
                     isError: false,
                     isGet: true,
-                    dataAsset: action.payload.data.result.rows,
-                    alertMsg: 'get asset Succesfully',
-                    page: action.payload.data.pageInfo
+                    alertMsg: 'submit persetujuan disposal Succesfully',
                 };
             }
-            case 'GET_ASSET_REJECTED': {
+            case 'SUBMIT_SETDIS_REJECTED': {
                 return {
                     ...state,
                     isLoading: false,
@@ -52,146 +46,186 @@ export default (state=assetState, action) => {
                     alertMsg: "Unable connect to server"
                 };
             }
-            case 'GET_STOCK_PENDING': {
+            case 'SUBMIT_EKSEKUSI_PENDING': {
                 return {
                     ...state,
-                    getStock: false,
+                    isSubmitEks: false,
                     isLoading: true,
                     alertMsg: 'Waiting ...'
                 };
             }
-            case 'GET_STOCK_FULFILLED': {
+            case 'SUBMIT_EKSEKUSI_FULFILLED': {
                 return {
                     ...state,
                     isLoading: false,
                     isError: false,
-                    getStock: true,
-                    dataStock: action.payload.data.result.rows,
-                    alertMsg: 'get stock Succesfully',
-                    page: action.payload.data.pageInfo
+                    isSubmitEks: true,
+                    alertMsg: 'submit eksekusi disposal Succesfully',
                 };
             }
-            case 'GET_STOCK_REJECTED': {
+            case 'SUBMIT_EKSEKUSI_REJECTED': {
                 return {
                     ...state,
                     isLoading: false,
-                    getStock: false,
+                    isSubmitEks: false,
                     isError: true,
                     alertMsg: "Unable connect to server"
                 };
             }
-            case 'DETAIL_STOCK_PENDING': {
+            case 'SUBMIT_TAXFIN_PENDING': {
                 return {
                     ...state,
-                    stockDetail: false,
+                    isSubmitTax: false,
                     isLoading: true,
                     alertMsg: 'Waiting ...'
                 };
             }
-            case 'DETAIL_STOCK_FULFILLED': {
+            case 'SUBMIT_TAXFIN_FULFILLED': {
                 return {
                     ...state,
                     isLoading: false,
                     isError: false,
-                    stockDetail: true,
-                    detailStock: action.payload.data.result,
-                    alertMsg: 'get stock Succesfully',
+                    isSubmitTax: true,
+                    alertMsg: 'submit eksekusi disposal Succesfully',
                 };
             }
-            case 'DETAIL_STOCK_REJECTED': {
+            case 'SUBMIT_TAXFIN_REJECTED': {
                 return {
                     ...state,
                     isLoading: false,
-                    stockDetail: false,
+                    isSubmitTax: false,
                     isError: true,
                     alertMsg: "Unable connect to server"
                 };
             }
-            case 'UPDATE_ASSET_PENDING': {
+            case 'SUBMIT_FINAL_PENDING': {
                 return {
                     ...state,
-                    isUpdate: false,
+                    isSubmitFinal: false,
                     isLoading: true,
                     alertMsg: 'Waiting ...'
                 };
             }
-            case 'UPDATE_ASSET_FULFILLED': {
+            case 'SUBMIT_FINAL_FULFILLED': {
                 return {
                     ...state,
                     isLoading: false,
                     isError: false,
-                    isUpdate: true,
+                    isSubmitFinal: true,
+                    alertMsg: 'submit eksekusi disposal Succesfully',
                 };
             }
-            case 'UPDATE_ASSET_REJECTED': {
+            case 'SUBMIT_FINAL_REJECTED': {
                 return {
                     ...state,
                     isLoading: false,
-                    isUpdate: false,
+                    isSubmitFinal: false,
                     isError: true,
                     alertMsg: "Unable connect to server"
                 };
             }
-            case 'SUBMIT_STOCK_PENDING': {
+            case 'SUBMIT_PURCH_PENDING': {
                 return {
                     ...state,
-                    isSubmit: false,
+                    isSubmitPurch: false,
                     isLoading: true,
                     alertMsg: 'Waiting ...'
                 };
             }
-            case 'SUBMIT_STOCK_FULFILLED': {
+            case 'SUBMIT_PURCH_FULFILLED': {
                 return {
                     ...state,
                     isLoading: false,
                     isError: false,
-                    isSubmit: true,
+                    isSubmitPurch: true,
+                    alertMsg: 'submit purch disposal Succesfully',
                 };
             }
-            case 'SUBMIT_STOCK_REJECTED': {
+            case 'SUBMIT_PURCH_REJECTED': {
                 return {
                     ...state,
                     isLoading: false,
-                    isSubmit: false,
+                    isSubmitPurch: false,
                     isError: true,
                     alertMsg: "Unable connect to server"
                 };
             }
-            case 'NEXT_DATA_ASSET_PENDING': {
+            case 'GET_SETDIS_PENDING': {
                 return {
                     ...state,
-                    isGet: false,
+                    isGetData: false,
                     isLoading: true,
                     alertMsg: 'Waiting ...'
                 };
             }
-            case 'NEXT_DATA_ASSET_FULFILLED': {
+            case 'GET_SETDIS_FULFILLED': {
                 return {
                     ...state,
                     isLoading: false,
-                    isError: false,
-                    isGet: true,
-                    dataAsset: action.payload.data.result.rows,
-                    alertMsg: 'add depo Succesfully',
-                    page: action.payload.data.pageInfo
+                    isGetData: true,
+                    dataDis: action.payload.data.result.rows,
+                    alertMsg: 'get disposal Succesfully',
+                    page: action.payload.data.pageInfo,
+                    noDis: action.payload.data.noDis
                 };
             }
-            case 'NEXT_DATA_ASSET_REJECTED': {
+            case 'GET_SETDIS_REJECTED': {
                 return {
                     ...state,
+                    isError: true,
                     isLoading: false,
-                    isAdd: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'GET_APPSET_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'GET_APPSET_FULFILLED': {
+                return {
+                    ...state,
+                    isGetApp: true,
+                    disApp: action.payload.data.result,
+                    alertMsg: 'get approve setdisposal Succesfully',
+                };
+            }
+            case 'GET_APPSET_REJECTED': {
+                return {
+                    ...state,
                     isError: true,
                     alertMsg: "Unable connect to server"
                 };
             }
-            case 'RESET_ASSET': {
+            case 'APPROVE_SETDIS_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'APPROVE_SETDIS_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    approve: true,
+                    alertMsg: 'add disposal Succesfully',
+                };
+            }
+            case 'APPROVE_SETDIS_REJECTED': {
+                return {
+                    ...state,
+                    isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'RESET': {
                 return {
                     ...state,
                     isError: false,
-                    isUpload: false,
-                    isGet: false,
-                    isExport: false
+                    isGet: false
                 }
             }
             default: {

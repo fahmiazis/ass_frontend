@@ -170,7 +170,7 @@ class Disposal extends Component {
     openProsesModalDoc = async () => {
         const token = localStorage.getItem('token')
         const { dataRinci } = this.state
-        await this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'pengajuan')
+        await this.props.getDocumentDis(token, dataRinci.no_asset)
         this.closeProsesModalDoc()
         this.openRinciAdmin()
     }
@@ -224,7 +224,7 @@ class Disposal extends Component {
         const { dataDis } = this.props.disposal
         const detail = []
         for (let i = 0; i < dataDis.length; i++) {
-            if (dataDis[i].no_disposal === value) {
+            if (dataDis[i].status_app === value) {
                 detail.push(dataDis[i])
             }
         }
@@ -242,21 +242,6 @@ class Disposal extends Component {
 
     openModalDis = () => {
         this.setState({formDis: !this.state.formDis})
-    }
-
-    DownloadTemplate = () => {
-        axios({
-            url: `${REACT_APP_BACKEND_URL}/masters/dokumen.xlsx`,
-            method: 'GET',
-            responseType: 'blob',
-        }).then((response) => {
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', "dokumen.xlsx");
-            document.body.appendChild(link);
-            link.click();
-        });
     }
 
     dropDown = () => {
@@ -313,6 +298,12 @@ class Disposal extends Component {
         }
     }
 
+    goFormSet = async (val) => {
+        const token = localStorage.getItem('token')
+        await this.props.getSetDisposal(token, 100, "", 1, val, 'persetujuan')
+        this.props.history.push('/formset')
+    }
+
     onChangeHandler = e => {
         const {size, type} = e.target.files[0]
         if (size >= 5120000) {
@@ -354,7 +345,7 @@ class Disposal extends Component {
                 this.props.resetDis()
              }, 1000)
              setTimeout(() => {
-                this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'pengajuan')
+                this.props.getDocumentDis(token, dataRinci.no_asset)
              }, 1100)
         }
     }
@@ -368,19 +359,8 @@ class Disposal extends Component {
         }
     }
 
-    goSetDispos = async () => {
-        const token = localStorage.getItem("token")
-        await this.props.submitSetDisposal(token)
-        this.getDataDisposal()
-    }
-
     componentDidMount() {
-        const level = localStorage.getItem('level')
-        if (level === "5" ) {
-            this.getDataAsset()
-        } else {
-            this.getDataDisposal()
-        }
+        this.getDataDisposal()
     }
 
     getDataAsset = async (value) => {
@@ -397,9 +377,8 @@ class Disposal extends Component {
         const { page } = this.props.disposal
         const search = value === undefined ? '' : this.state.search
         const limit = value === undefined ? this.state.limit : value.limit
-        await this.props.getDisposal(token, limit, search, page.currentPage, 2)
-        await this.props.getNameApprove(token)
-        this.setState({limit: value === undefined ? 10 : value.limit})
+        await this.props.getDisposal(token, limit, search, page.currentPage, 3, 'persetujuan')
+        this.setState({limit: value === undefined ? 12 : value.limit})
     }
 
     menuButtonClick(ev) {
@@ -417,10 +396,8 @@ class Disposal extends Component {
         this.getDataAsset()
     }
 
-    addSell = async (value) => {
+    deleteDisposal = async (value) => {
         const token = localStorage.getItem("token")
-        await this.props.addSell(token, value)
-        this.getDataAsset()
     }
 
     render() {
@@ -487,7 +464,7 @@ class Disposal extends Component {
                             </Alert>
                             <div className={style.bodyDashboard}>
                                 <div className={style.headMaster}> 
-                                    <div className={style.titleDashboard}>Disposal Asset</div>
+                                    <div className={style.titleDashboard}>Persetujuan Disposal Asset</div>
                                 </div>
                                 <div className={style.secEmail}>
                                     {level === '5' ? (
@@ -496,26 +473,22 @@ class Disposal extends Component {
                                             <button onClick={this.goCartDispos} className="btnGoCart"><FaCartPlus size={60} className="green ml-2" /></button>
                                         </div>
                                     ) : (
-                                        <div className={style.headEmail}>
-                                            {/* <Button color="success" size="lg" onClick={this.openModalDis}>Open Form</Button> */}
-                                            <Button onClick={this.goSetDispos} color="info" size="lg" className="btnGoCart">Submit</Button>
+                                        <div className={style.secHeadDashboard}>
+                                            <div>
+                                                <text>Show: </text>
+                                                <ButtonDropdown className={style.drop} isOpen={dropOpen} toggle={this.dropDown}>
+                                                <DropdownToggle caret color="light">
+                                                    {this.state.limit}
+                                                </DropdownToggle>
+                                                <DropdownMenu>
+                                                <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 10, search: ''})}>10</DropdownItem>
+                                                    <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 20, search: ''})}>20</DropdownItem>
+                                                    <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 50, search: ''})}>50</DropdownItem>
+                                                </DropdownMenu>
+                                                </ButtonDropdown>
+                                                <text className={style.textEntries}>entries</text>
+                                            </div>
                                         </div>
-                                        // <div className={style.secHeadDashboard}>
-                                        //     <div>
-                                        //         <text>Show: </text>
-                                        //         <ButtonDropdown className={style.drop} isOpen={dropOpen} toggle={this.dropDown}>
-                                        //         <DropdownToggle caret color="light">
-                                        //             {this.state.limit}
-                                        //         </DropdownToggle>
-                                        //         <DropdownMenu>
-                                        //         <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 10, search: ''})}>10</DropdownItem>
-                                        //             <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 20, search: ''})}>20</DropdownItem>
-                                        //             <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 50, search: ''})}>50</DropdownItem>
-                                        //         </DropdownMenu>
-                                        //         </ButtonDropdown>
-                                        //         <text className={style.textEntries}>entries</text>
-                                        //     </div>
-                                        // </div>
                                     )}
                                     <div className={style.searchEmail}>
                                         <text>Search: </text>
@@ -529,74 +502,22 @@ class Disposal extends Component {
                                         </Input>
                                     </div>
                                 </div>
-                                {level === '5' ? (
-                                    this.props.asset.isGet === false ? (
-                                        <div></div>
-                                    ) : (
-                                        <Row className="bodyDispos">
-                                        {dataAsset.length !== 0 && dataAsset.map(item => {
-                                            return (
-                                                <div className="bodyCard">
-                                                    <button className="btnDispos" disabled={item.status === '1' ? true : false} onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}>
-                                                        <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="imgCard" />
-                                                        <div className="txtDoc mb-2">
-                                                            {item.nama_asset}
-                                                        </div>
-                                                        <Row className="mb-2">
-                                                            <Col md={4}>
-                                                            No Asset
-                                                            </Col>
-                                                            <Col md={8} className="txtDoc">
-                                                            : {item.no_asset}
-                                                            </Col>
-                                                        </Row>
-                                                        <Row className="mb-2">
-                                                            <Col md={4}>
-                                                            No Doc
-                                                            </Col>
-                                                            <Col md={8} className="txtDoc">
-                                                            : {item.no_doc}
-                                                            </Col>
-                                                        </Row>
-                                                    </button>
-                                                    {item.status === '1' ? (
-                                                        <Row className="footCard">
-                                                            <Col md={12} xl={12}>
-                                                                <Button disabled className="btnSell" color="secondary">On Process</Button>
-                                                            </Col>
-                                                        </Row>
-                                                    ) : (
-                                                        <Row className="footCard">
-                                                            <Col md={6} xl={6}>
-                                                                <Button className="btnSell" color="warning" onClick={() => this.addSell(item.id)}>Sell</Button>
-                                                            </Col>
-                                                            <Col md={6} xl={6}>
-                                                                <Button className="btnSell" color="info" onClick={() => this.addDisposal(item.id)}>Dispose</Button>
-                                                            </Col>
-                                                        </Row>
-                                                    )}
-                                                </div>
-                                            )
-                                        })}
-                                        </Row>
-                                    )
-                                ) : (
-                                    this.props.disposal.isGet === false ? (
+                                    {this.props.disposal.isGet === false ? (
                                         <div></div>
                                     ) : (
                                         <Row className="bodyDispos">
                                         {noDis.length !== 0 && noDis.map(x => {
                                             return (
                                                 <div className="bodyCard">
-                                                    <img src={dataDis.find(({no_disposal}) => no_disposal === x).no_asset === '4100000150' ? b : dataDis.find(({no_disposal}) => no_disposal === x).no_asset === '4300001770' ? e : placeholder} className="imgCard" />
+                                                    <img src={dataDis.find(({status_app}) => status_app === x).no_asset === '4100000150' ? b : dataDis.find(({status_app}) => status_app === x).no_asset === '4300001770' ? e : placeholder} className="imgCard" />
                                                     
-                                                    {dataDis.find(({no_disposal}) => no_disposal === x).nilai_jual === '0' ? 
+                                                    {dataDis.find(({status_app}) => status_app === x).nilai_jual === '0' ? 
                                                      (
                                                         <Button size="sm" color="success" className="labelBut">Pemusnahan</Button>
                                                      ) : (
                                                          <div></div>
                                                      )}
-                                                     {dataDis.find(({no_disposal}) => no_disposal === x).nilai_jual !== '0' ?
+                                                     {dataDis.find(({status_app}) => status_app === x).nilai_jual !== '0' ?
                                                      (
                                                         <Button size="sm" color="warning" className="labelBut">Penjualan</Button>
                                                      ) : (
@@ -612,15 +533,15 @@ class Disposal extends Component {
                                                             Kode Plant
                                                             </Col>
                                                             <Col md={6} className="txtDoc">
-                                                            : {dataDis.find(({no_disposal}) => no_disposal === x).kode_plant}
+                                                            : {dataDis.find(({status_app}) => status_app === x).kode_plant}
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">
                                                             <Col md={6} className="txtDoc">
-                                                            Area
+                                                        2    Area
                                                             </Col>
                                                             <Col md={6} className="txtDoc">
-                                                            : {dataDis.find(({no_disposal}) => no_disposal === x).area}
+                                                            : {dataDis.find(({status_app}) => status_app === x).area}
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">
@@ -628,20 +549,20 @@ class Disposal extends Component {
                                                             No Disposal
                                                             </Col>
                                                             <Col md={6} className="txtDoc">
-                                                            : D{dataDis.find(({no_disposal}) => no_disposal === x).no_disposal}
+                                                            : D{dataDis.find(({status_app}) => status_app === x).status_app}
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">
                                                             <Col md={6} className="txtDoc">
                                                             Status Approval
                                                             </Col>
-                                                            {dataDis.find(({no_disposal}) => no_disposal === x).appForm.find(({status}) => status === 0) !== undefined ? (
+                                                            {dataDis.find(({status_app}) => status_app === x).appForm.find(({status}) => status === 0) !== undefined ? (
                                                                 <Col md={6} className="txtDoc">
-                                                                : Reject {dataDis.find(({no_disposal}) => no_disposal === x).appForm.find(({status}) => status === 0).jabatan}
+                                                                : Reject {dataDis.find(({status_app}) => status_app === x).appForm.find(({status}) => status === 0).jabatan}
                                                                 </Col>
-                                                            ) : dataDis.find(({no_disposal}) => no_disposal === x).appForm.find(({status}) => status === 1) !== undefined ? (
+                                                            ) : dataDis.find(({status_app}) => status_app === x).appForm.find(({status}) => status === 1) !== undefined ? (
                                                                 <Col md={6} className="txtDoc">
-                                                                : Approve {dataDis.find(({no_disposal}) => no_disposal === x).appForm.find(({status}) => status === 1).jabatan}
+                                                                : Approve {dataDis.find(({status_app}) => status_app === x).appForm.find(({status}) => status === 1).jabatan}
                                                                 </Col>
                                                             ) : (
                                                                 <Col md={6} className="txtDoc">
@@ -653,15 +574,14 @@ class Disposal extends Component {
                                                     </div>
                                                     <Row className="footCard mb-3 mt-3">
                                                         <Col md={12} xl={12}>
-                                                            <Button className="btnSell" color="primary" onClick={() => this.getDetailDisposal(x)}>Proses</Button>
+                                                            <Button className="btnSell" color="primary" onClick={() => this.goFormSet(x)}>Proses</Button>
                                                         </Col>
                                                     </Row>
                                                 </div>
                                             )
                                         })}
                                         </Row>
-                                    )
-                                )}
+                                    )}
                                 <div>
                                     <div className={style.infoPageEmail}>
                                         <text>Showing {level === '5' ? page.currentPage : pages.currentPage} of {level === '5' ? page.pages : pages.pages} pages</text>
@@ -1343,8 +1263,7 @@ const mapDispatchToProps = {
     rejectDocDis: disposal.rejectDocDis,
     showDokumen: pengadaan.showDokumen,
     resetDis: disposal.reset,
-    submitSetDisposal: setuju.submitSetDisposal,
-    addSell: disposal.addSell
+    getSetDisposal: setuju.getSetDisposal
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Disposal)

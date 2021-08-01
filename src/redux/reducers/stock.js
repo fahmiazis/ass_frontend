@@ -1,102 +1,216 @@
 /* eslint-disable import/no-anonymous-default-export */
-const pengState = {
-    isGet: false,
-    isLoading: false,
-    isError: false,
+const stockState = {
+    isAdd: false,
     isUpload: false,
     isUpdate: false,
+    isSubmit: false,
+    isGet: false,
+    isApprove: false,
+    isReject: false,
+    isGetApp: false,
+    getStock: false,
+    stockDetail: false,
+    isDetail: false,
+    isDelete: false,
+    isLoading: false,
+    isError: false,
     alertMsg: '',
-    dataPeng: [],
-    dataApp: [],
-    dataDoc: [],
-    dataShow: '',
-    isShow: false
-}
+    dataAsset: [],
+    dataStock: [],
+    detailStock: [],
+    alertM: '',
+    pict: [],
+    alertUpload: [],
+    page: {},
+    isExport: false,
+    link: '',
+    stockApp: {},
+};
 
-export default (state=pengState, action) => {
+export default (state=stockState, action) => {
     switch(action.type){
-        case 'GET_PENGADAAN_PENDING': {
+        case 'GET_STOCK_PENDING': {
             return {
                 ...state,
-                isGet: false,
+                getStock: false,
                 isLoading: true,
                 alertMsg: 'Waiting ...'
             };
         }
-        case 'GET_PENGADAAN_FULFILLED': {
+        case 'GET_STOCK_FULFILLED': {
             return {
                 ...state,
                 isLoading: false,
                 isError: false,
-                isGet: true,
-                dataPeng: action.payload.data.result,
-                alertMsg: 'get pengadaan Succesfully',
+                getStock: true,
+                dataStock: action.payload.data.result.rows,
+                alertMsg: 'get stock Succesfully',
+                page: action.payload.data.pageInfo
             };
         }
-        case 'GET_PENGADAAN_REJECTED': {
+        case 'GET_STOCK_REJECTED': {
             return {
                 ...state,
                 isLoading: false,
-                isGet: false,
+                getStock: false,
                 isError: true,
                 alertMsg: "Unable connect to server"
             };
         }
-        case 'GET_APPROVEIO_PENDING': {
+        case 'DETAIL_STOCK_PENDING': {
             return {
                 ...state,
-                isGet: false,
+                stockDetail: false,
                 isLoading: true,
                 alertMsg: 'Waiting ...'
             };
         }
-        case 'GET_APPROVEIO_FULFILLED': {
+        case 'DETAIL_STOCK_FULFILLED': {
             return {
                 ...state,
                 isLoading: false,
                 isError: false,
-                isGet: true,
-                dataApp: action.payload.data.result,
-                alertMsg: 'get approve io Succesfully',
+                stockDetail: true,
+                detailStock: action.payload.data.result,
+                pict: action.payload.data.pict,
+                alertMsg: 'get stock Succesfully',
             };
         }
-        case 'GET_APPROVEIO_REJECTED': {
+        case 'DETAIL_STOCK_REJECTED': {
             return {
                 ...state,
                 isLoading: false,
-                isGet: false,
+                stockDetail: false,
                 isError: true,
                 alertMsg: "Unable connect to server"
             };
         }
-        case 'GET_DOCIO_PENDING': {
+        case 'SUBMIT_STOCK_PENDING': {
             return {
                 ...state,
-                isGet: false,
+                isSubmit: false,
                 isLoading: true,
                 alertMsg: 'Waiting ...'
             };
         }
-        case 'GET_DOCIO_FULFILLED': {
+        case 'SUBMIT_STOCK_FULFILLED': {
             return {
                 ...state,
                 isLoading: false,
                 isError: false,
-                isGet: true,
-                dataDoc: action.payload.data.result,
-                alertMsg: 'get document io Succesfully',
+                isSubmit: true,
             };
         }
-        case 'GET_DOCIO_REJECTED': {
+        case 'SUBMIT_STOCK_REJECTED': {
             return {
                 ...state,
                 isLoading: false,
-                isGet: false,
+                isSubmit: false,
                 isError: true,
                 alertMsg: "Unable connect to server"
             };
         }
-        case 'UPLOAD_DOCIO_PENDING': {
+        case 'APPROVE_STOCK_PENDING': {
+            return {
+                ...state,
+                isApprove: false,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'APPROVE_STOCK_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: false,
+                isApprove: true,
+            };
+        }
+        case 'APPROVE_STOCK_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isApprove: false,
+                isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'REJECT_STOCK_PENDING': {
+            return {
+                ...state,
+                isReject: false,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'REJECT_STOCK_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: false,
+                isReject: true,
+            };
+        }
+        case 'REJECT_STOCK_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isReject: false,
+                isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'GET_APPSTOCK_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'GET_APPSTOCK_FULFILLED': {
+            return {
+                ...state,
+                isGetApp: true,
+                stockApp: action.payload.data.result,
+                isLoading: false,
+                alertMsg: 'get approve disposal Succesfully',
+            };
+        }
+        case 'GET_APPSTOCK_REJECTED': {
+            return {
+                ...state,
+                isError: true,
+                isLoading: false,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'DELETE_STOCK_PENDING': {
+            return {
+                ...state,
+                isDelete: false,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'DELETE_STOCK_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: false,
+                isDelete: true,
+                alertMsg: 'delete stock Succesfully',
+            };
+        }
+        case 'DELETE_STOCK_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isDelete: false,
+                isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'UPLOAD_PICTURE_PENDING': {
             return {
                 ...state,
                 isUpload: false,
@@ -104,16 +218,16 @@ export default (state=pengState, action) => {
                 alertMsg: 'Waiting ...'
             };
         }
-        case 'UPLOAD_DOCIO_FULFILLED': {
+        case 'UPLOAD_PICTURE_FULFILLED': {
             return {
                 ...state,
                 isLoading: false,
                 isError: false,
                 isUpload: true,
-                alertMsg: 'upload document succesfully',
+                alertMsg: 'upload image stock Succesfully',
             };
         }
-        case 'UPLOAD_DOCIO_REJECTED': {
+        case 'UPLOAD_PICTURE_REJECTED': {
             return {
                 ...state,
                 isLoading: false,
@@ -122,93 +236,14 @@ export default (state=pengState, action) => {
                 alertMsg: "Unable connect to server"
             };
         }
-        case 'APPROVE_DOCIO_PENDING': {
+        case 'RESET_STOCK': {
             return {
                 ...state,
-                isUpdate: false,
-                isLoading: true,
-                alertMsg: 'Waiting ...'
-            };
-        }
-        case 'APPROVE_DOCIO_FULFILLED': {
-            return {
-                ...state,
-                isLoading: false,
                 isError: false,
-                isUpdate: true,
-                alertMsg: 'upload document succesfully',
-            };
-        }
-        case 'APPROVE_DOCIO_REJECTED': {
-            return {
-                ...state,
-                isLoading: false,
-                isUpdate: false,
-                isError: true,
-                alertMsg: "Unable connect to server"
-            };
-        }
-        case 'REJECT_DOCIO_PENDING': {
-            return {
-                ...state,
-                isUpdate: false,
-                isLoading: true,
-                alertMsg: 'Waiting ...'
-            };
-        }
-        case 'REJECT_DOCIO_FULFILLED': {
-            return {
-                ...state,
-                isLoading: false,
-                isError: false,
-                isUpdate: true,
-                alertMsg: 'upload document succesfully',
-            };
-        }
-        case 'REJECT_DOCIO_REJECTED': {
-            return {
-                ...state,
-                isLoading: false,
-                isUpdate: false,
-                isError: true,
-                alertMsg: "Unable connect to server"
-            };
-        }
-        case 'SHOW_PENDING': {
-            return {
-                ...state,
-                isShow: false,
-                isLoading: true,
-                alertMsg: 'Waiting ...'
-            };
-        }
-        case 'SHOW_FULFILLED': {
-            return {
-                ...state,
-                isLoading: false,
-                isError: false,
-                isShow: true,
-                dataShow: action.payload.config.url,
-                alertMsg: 'upload document succesfully',
-            };
-        }
-        case 'SHOW_REJECTED': {
-            return {
-                ...state,
-                isLoading: false,
-                isShow: false,
-                isError: true,
-                alertMsg: "Unable connect to server"
-            };
-        }
-        case 'RESET': {
-            return {
-                ...state,
-                isLoading: false,
-                isError: false,
+                isDelete: false,
                 isUpload: false,
-                isUpdate: false,
                 isGet: false,
+                isExport: false
             }
         }
         default: {

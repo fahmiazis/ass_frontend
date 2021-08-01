@@ -29,13 +29,19 @@ import f from "../assets/img/f.png"
 import g from "../assets/img/g.png"
 const {REACT_APP_BACKEND_URL} = process.env
 
+const dokumenSchema = Yup.object().shape({
+    nama_dokumen: Yup.string().required(),
+    jenis_dokumen: Yup.string().required(),
+    divisi: Yup.string().required(),
+});
+
 const disposalSchema = Yup.object().shape({
     merk: Yup.string().validateSync(""),
     keterangan: Yup.string().required('must be filled'),
     nilai_jual: Yup.string().required()
 })
 
-class CartDisposal extends Component {
+class EditDisposal extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -77,7 +83,7 @@ class CartDisposal extends Component {
     }
 
     showAlert = () => {
-        this.setState({alert: true})
+        this.setState({alert: true, modalEdit: false, modalAdd: false, modalUpload: false })
        
          setTimeout(() => {
             this.setState({
@@ -114,12 +120,6 @@ class CartDisposal extends Component {
         const { dataRinci } = this.state
         await this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'pengajuan')
         this.closeProsesModalDoc()
-    }
-
-    prosesRinci = async () => {
-        const token = localStorage.getItem('token')
-        await this.props.getKeterangan(token)
-        this.openModalRinci()
     }
 
     openModalRinci = () => {
@@ -174,6 +174,7 @@ class CartDisposal extends Component {
         } else if (isUpload) {
             setTimeout(() => {
                 this.props.resetError()
+                this.setState({modalUpload: false})
              }, 1000)
              setTimeout(() => {
                 this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'pengajuan')
@@ -183,27 +184,6 @@ class CartDisposal extends Component {
             setTimeout(() => {
                 this.getDataDisposal()
              }, 1000)
-        }
-    }
-
-    submitDis = async () => {
-        const token = localStorage.getItem('token')
-        const { dataDis } = this.props.disposal
-        const cek = []
-        for (let i = 0; i < dataDis.length; i++) {
-            if (dataDis[i].keterangan === null || dataDis[i].nilai_jual === null ) {
-                cek.push(dataDis[i].keterangan)              
-            }
-        }
-        if (cek.length > 0) {
-            this.setState({alertSubmit: true})
-            setTimeout(() => {
-                this.setState({
-                    alertSubmit: false
-                })
-            }, 10000)
-        } else {
-            await this.props.submitDisposal(token)
         }
     }
 
@@ -220,8 +200,7 @@ class CartDisposal extends Component {
 
     getDataDisposal = async () => {
         const token = localStorage.getItem('token')
-        await this.props.getDisposal(token)
-        // await this.props.getKeterangan(token)
+        await this.props.getDisposal(token, 10, '',  1, 2)
     }
 
     menuButtonClick(ev) {
@@ -236,13 +215,13 @@ class CartDisposal extends Component {
     updateDataDis = async (value) => {
         const token = localStorage.getItem('token')
         const { dataRinci } = this.state
-        await this.props.updateDisposal(token, dataRinci.id, value, 'disposal')
+        await this.props.updateDisposal(token, dataRinci.id, value)
         this.getDataDisposal()
     }
 
     render() {
         const {isOpen, dropOpen, dropOpenNum, detail, alert, upload, errMsg, dataRinci} = this.state
-        const {dataDis, isGet, alertM, alertMsg, alertUpload, page, dataDoc, dataKet} = this.props.disposal
+        const {dataDis, isGet, alertM, alertMsg, alertUpload, page, dataDoc} = this.props.disposal
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
 
@@ -297,50 +276,41 @@ class CartDisposal extends Component {
                                     })}
                                 </Alert>
                                 <div className={style.headMaster}>
-                                    <div className={style.titleDashboard1}>Cart Disposal</div>
+                                    <div className={style.titleDashboard1}>Edit Pengajuan Disposal</div>
                                 </div>
                                 <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit}>
                                     <div>Lengkapi rincian data asset yang ingin diajukan</div>
                                 </Alert>
-                                <Row className="cartDisposal">
-                                    {dataDis.length === 0 ? (
+                                <Row className="cartDisposal2">
+                                    {isGet === false || dataDis.length === 0 ? (
                                         <Col md={8} xl={8} sm={12}>
                                             <div className="txtDisposEmpty">Disposal Data is empty</div>
                                         </Col>
                                     ) : (
-                                        <Col md={8} xl={8} sm={12} className="mb-5 mt-5">
+                                        <Col md={12} xl={12} sm={12} className="mb-5 mt-5">
                                         {dataDis.length !== 0 && dataDis.map(item => {
                                             return (
-                                                <div className="cart">
+                                                <div className="cart1">
                                                     <div className="navCart">
                                                         <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="cartImg" />
-                                                        <Button className="labelBut" color="warning" size="sm">{item.nilai_jual === '0' ? 'Pemusnahan' : 'Penjualan'}</Button>
                                                         <div className="txtCart">
                                                             <div>
-                                                                <div className="nameCart">{item.nama_asset}</div>
-                                                                <div className="noCart">No asset {item.no_asset}</div>
+                                                                <div className="nameCart mb-3">{item.nama_asset}</div>
+                                                                <div className="noCart mb-3">No asset : {item.no_asset}</div>
+                                                                <div className="noCart mb-3">No disposal : D{item.no_disposal}</div>
+                                                                <div className="noCart mb-3">{item.keterangan}</div>
                                                             </div>
-                                                            <Button color="primary" onClick={() => this.prosesRinci(this.setState({dataRinci: item}))}>Rincian</Button>
                                                         </div>
                                                     </div>
                                                     <div className="footCart">
-                                                        <div><FaTrash size={20} onClick={() => this.deleteItem(item.no_asset)} className="txtError"/></div>
+                                                        <Button color="primary" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}>Rincian</Button>
+                                                        <div></div>
                                                     </div>
                                                 </div>
                                             )
                                         })}
                                     </Col>
                                     )}
-                                    <Col md={4} xl={4} sm={12} className="mt-5">
-                                        <div className="sideSum">
-                                            <div className="titSum">Disposal summary</div>
-                                            <div className="txtSum">
-                                                <div className="totalSum">Total Item</div>
-                                                <div className="angkaSum">{dataDis.length}</div>
-                                            </div>
-                                            <button className="btnSum" disabled={dataDis.length === 0 ? true : false } onClick={() => this.submitDis()}>Submit</button>
-                                        </div>
-                                    </Col>
                                 </Row>
                             </div>
                         </div>
@@ -348,12 +318,9 @@ class CartDisposal extends Component {
                 </Sidebar>
                 <Modal isOpen={this.state.modalRinci} toggle={this.openModalRinci} size="xl">
                     <ModalHeader>
-                        Rincian {dataRinci.nilai_jual === '0' ? 'Pemusnahan' : 'Penjualan'} Asset
+                        Rincian
                     </ModalHeader>
                     <ModalBody>
-                        <Alert color="danger" className={style.alertWrong} isOpen={alert}>
-                            <div>{alertM}</div>
-                        </Alert>
                         <div className="mainRinci">
                             <div className="leftRinci">
                                 <img src={dataRinci.no_asset === '4100000150' ? b : dataRinci.no_asset === '4300001770' ? e : placeholder} className="imgRinci" />
@@ -378,8 +345,8 @@ class CartDisposal extends Component {
                             <Formik
                             initialValues = {{
                                 keterangan: dataRinci.keterangan === null ? '' : dataRinci.keterangan,
-                                nilai_jual: dataRinci.nilai_jual === null ? '-' : dataRinci.nilai_jual,
-                                merk: dataRinci.merk === null ? '' : dataRinci.merk
+                                nilai_jual: dataRinci.nilai_jual,
+                                merk: dataRinci.merk
                             }}
                             validationSchema = {disposalSchema}
                             onSubmit={(values) => {this.updateDataDis(values)}}
@@ -434,7 +401,7 @@ class CartDisposal extends Component {
                                                 value={values.nilai_jual} 
                                                 onBlur={handleBlur("nilai_jual")}
                                                 onChange={handleChange("nilai_jual")}
-                                                disabled
+                                                disabled={dataRinci.nilai_jual === '0' ? true : false}
                                                 />
                                             </Col>
                                         </Row>
@@ -443,19 +410,13 @@ class CartDisposal extends Component {
                                         ) : null}
                                         <Row>
                                             <Col md={3}>Keterangan</Col>
-                                            <Col md={9}>:  <select
-                                                className="inputRinci"
+                                            <Col md={9}>:  <input
+                                                className="inputRinci" 
+                                                type="text" 
                                                 value={values.keterangan} 
                                                 onBlur={handleBlur("keterangan")}
                                                 onChange={handleChange("keterangan")}
-                                                >
-                                                    <option>-Pilih Keterangan-</option>
-                                                    {dataKet.length !== 0 && dataKet.map(item => {
-                                                        return (
-                                                            <option value={item.nama}>{item.nama}</option>
-                                                        )
-                                                    })}
-                                                </select>
+                                                />
                                             </Col>
                                         </Row>
                                         {errors.keterangan ? (
@@ -558,8 +519,7 @@ const mapDispatchToProps = {
     deleteDisposal: disposal.deleteDisposal,
     updateDisposal: disposal.updateDisposal,
     getDocumentDis: disposal.getDocumentDis,
-    uploadDocumentDis: disposal.uploadDocumentDis,
-    getKeterangan: disposal.getKeterangan
+    uploadDocumentDis: disposal.uploadDocumentDis
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(CartDisposal)
+export default connect(mapStateToProps, mapDispatchToProps)(EditDisposal)

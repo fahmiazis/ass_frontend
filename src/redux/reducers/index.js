@@ -5,9 +5,12 @@ import auth from './auth'
 import depo from './depo'
 import user from './user'
 import asset from './asset'
+import approve from './approve'
 import email from './email'
+import setuju from './setuju'
 import dokumen from './dokumen'
 import disposal from './disposal'
+import stock from './stock'
 
 export default combineReducers({
   pengadaan,
@@ -17,5 +20,8 @@ export default combineReducers({
   asset,
   email,
   dokumen,
-  disposal
+  disposal,
+  approve,
+  setuju,
+  stock
 })

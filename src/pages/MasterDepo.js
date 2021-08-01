@@ -483,7 +483,7 @@ class MasterDepo extends Component {
                     validationSchema={depoSchema}
                     onSubmit={(values) => {this.addDepo(values)}}
                     >
-                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                    {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
                     <div className={style.bodyDepo}>
                     <ModalBody className={style.addDepo}>
                         <div className="col-md-6">

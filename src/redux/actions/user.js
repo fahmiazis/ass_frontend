@@ -35,6 +35,10 @@ export default {
         type: 'DELETE_USER',
         payload: http(token).delete(`/user/delete/${id}`)
     }),
+    getRole: (token) => ({
+        type: 'GET_ROLE',
+        payload: http(token).get(`/user/role/get`)
+    }),
     resetError: () => ({
         type: 'RESET'
     })

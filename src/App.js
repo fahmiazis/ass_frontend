@@ -9,7 +9,10 @@ import Login from './pages/Login'
 import Home from './pages/Home'
 import Pengadaan from './pages/Pengadaan'
 import Asset from './pages/Asset'
+import Approve from './pages/Approve'
 import Disposal from './pages/Disposal'
+import FormPersetujuanDis from './pages/FormPersetujuanDis'
+import PersetujuanDis from './pages/PersetujuanDis'
 import Report from './pages/Report'
 import Stock from './pages/Stock'
 import MasterDepo from './pages/MasterDepo'
@@ -17,7 +20,12 @@ import MasterUser from './pages/MasterUser'
 import MasterEmail from './pages/MasterEmail'
 import MasterDokumen from './pages/MasterDokumen'
 import CartDisposal from './pages/CartDisposal'
+import EditDisposal from './pages/EditDisposal'
+import EksekusiDis from './pages/EksekusiDis'
 import Sidebar from './components/Sidebar'
+import TaxFinDisposal from './pages/TaxFinDisposal'
+import MonitoringDisposal from './pages/MonitoringDisposal'
+import PurchDisposal from './pages/PurchDisposal'
 
 class App extends Component {
 
@@ -65,6 +73,30 @@ class App extends Component {
                 </PrivateRoute>
                 <PrivateRoute path='/cart'>
                     <CartDisposal />
+                </PrivateRoute>
+                <PrivateRoute path='/editdis'>
+                    <EditDisposal />
+                </PrivateRoute>
+                <PrivateRoute path='/approve'>
+                    <Approve />
+                </PrivateRoute>
+                <PrivateRoute path='/formset'>
+                    <FormPersetujuanDis />
+                </PrivateRoute>
+                <PrivateRoute path='/setdis'>
+                    <PersetujuanDis />
+                </PrivateRoute>
+                <PrivateRoute path='/eksdis'>
+                    <EksekusiDis />
+                </PrivateRoute>
+                <PrivateRoute path='/taxfin'>
+                    <TaxFinDisposal />
+                </PrivateRoute>
+                <PrivateRoute path='/mondis'>
+                    <MonitoringDisposal />
+                </PrivateRoute>
+                <PrivateRoute path='/purchdis'>
+                    <PurchDisposal />
                 </PrivateRoute>
             </Switch>
         </BrowserRouter>

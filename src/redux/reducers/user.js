@@ -4,6 +4,7 @@ const userState = {
     isUpload: false,
     isUpdate: false,
     isGet: false,
+    isGetRole: false,
     isDetail: false,
     isDelete: false,
     token: '',
@@ -11,6 +12,7 @@ const userState = {
     isError: false,
     alertMsg: '',
     dataUser: [],
+    dataRole: [],
     detailUser: {},
     alertM: '',
     alertUpload: [],
@@ -96,7 +98,32 @@ export default (state=userState, action) => {
                 return {
                     ...state,
                     isLoading: false,
-                    isAdd: false,
+                    isGet: false,
+                    isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'GET_ROLE_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'GET_ROLE_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: false,
+                    isGetRole: true,
+                    dataRole: action.payload.data.result,
+                    alertMsg: 'get user Succesfully',
+                };
+            }
+            case 'GET_ROLE_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
                     isError: true,
                     alertMsg: "Unable connect to server"
                 };

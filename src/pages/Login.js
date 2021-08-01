@@ -1,11 +1,12 @@
 import React, { Component } from 'react'
-import img from '../assets/img/image.png'
-import logo from '../assets/img/logo.png'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
-import {Form, Button, Alert} from 'react-bootstrap'
-import {connect} from "react-redux"
 import auth from '../redux/actions/auth'
+import {connect} from 'react-redux'
+import { Input, Container, Form, Alert } from 'reactstrap'
+import logo from '../assets/img/logo.png'
+import style from '../assets/css/input.module.css'
+import { AiOutlineCopyrightCircle } from "react-icons/ai"
 
 const loginSchema = Yup.object().shape({
     username: Yup.string().required('must be filled'),
@@ -22,73 +23,76 @@ class Login extends Component {
         }
     }
 
+    componentDidUpdate() {
+        const {isLogin} = this.props.auth
+        if (isLogin) {
+            this.props.history.push('/')
+            this.props.resetError()
+        }
+    }
+
+    // componentDidMount(){
+    //     if (localStorage.getItem('token')) {
+    //         this.props.setToken(localStorage.getItem('token'))
+    //         this.props.history.push('/')  
+    //     }
+    // }
+
     render() {
         const {isError} = this.props.auth
         return (
-            <div className="body-Login">
-                <div className="leftSide">
-                    <img src={img} className="img-back" />
-                    <div className="sideInfo">
-                        <div className="bigTitle">PT. Pinus Merah Abadi</div>
-                        <div className="mt-3">
-                            <div className="textBjk">Being a good quality of food and beverage company through out</div>
-                            <div className="textBjk">a wide and established distribution network</div>
-                            <div className="textBjk">and get respect from customers.</div>
-                        </div>
-                    </div>
-                </div>
-                    <Formik
-                    initialValues={{ username: '', password: ''}}
-                    validationSchema={loginSchema}
-                    onSubmit={(values, { resetForm }) => {this.login(values); resetForm({ values: '' })}}>
-                    {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
-                        <div className="rightSide">
-                        <img src={logo} className="logoLogin" />
-                        <text className="titleLogin">Welcome Back</text>
-                        <Form className="formLogin">
-                            { isError ? (
-                                <Alert variant="danger" className="alertWrong">
-                                    username or password invalid !
-                                </Alert>
-                            ): (
-                                <div></div>
-                            )}
-                            <Form.Group className="mb-4">
-                                <Form.Label className="labelLogin">Username</Form.Label>
-                                <Form.Control 
-                                size="lg" 
-                                type="name" 
-                                placeholder="Username" 
-                                onChange={handleChange("username")}
-                                onBlur={handleBlur("username")}
-                                value={values.username}
-                                />
-                                {errors.username ? (
-                                    <text className="txtError">{errors.username}</text>
-                                ) : null}
-                            </Form.Group>
-                            <Form.Group>
-                                <Form.Label className="labelLogin">Password</Form.Label>
-                                <Form.Control 
-                                size="lg" 
-                                type="password" 
-                                placeholder="Password" 
-                                onChange={handleChange("password")}
-                                onBlur={handleBlur("password")}
-                                value={values.password}
-                                />
-                                {errors.password ? (
-                                    <text className="txtError">{errors.password}</text>
-                                ) : null}
-                            </Form.Group>
-                        </Form>
-                        <div className="txtInfo"><text className="textForgot">Forgot your password?</text> <text className="textPic">Contact your pic</text></div>
-                        <Button variant="danger" size="lg" className="btnLogin" onClick={handleSubmit}>Login</Button>
-                        <div className="footLogin"><text>Don't have an account?</text> <text className="textForgot">Contact your pic</text></div>
-                        </div>
+            <>
+            <Formik
+                initialValues={{ username: '', password: ''}}
+                validationSchema={loginSchema}
+                onSubmit={(values, { resetForm }) => {this.login(values); resetForm({ values: '' })}}>
+                {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                <Form className={style.bodyLogin}>
+                    { isError ? (
+                        <Alert color="danger" className={style.alertWrong}>
+                            username or password invalid !
+                        </Alert>
+                    ): (
+                        <div></div>
                     )}
-                    </Formik>
-            </div>
+                    <div className={style.imgLogin}>
+                        <img src={logo} alt='logo' className={style.imgBig} />
+                    </div>
+                        <div className={style.form}>
+                            <div className={style.textLogin}>Please login with your account</div>
+                            <div>
+                            <input 
+                            className={style.input1}
+                            placeholder='User Name'
+                            type='name' 
+                            onChange= {handleChange('username')}
+                            onBlur= {handleBlur('username')}
+                            value={values.username}
+                            />
+                            </div>
+                            {errors.username ? (
+                                <text className={style.txtError}>{errors.username}</text>
+                            ) : null}
+                            <div>
+                            <input
+                            className={style.input2}
+                            placeholder='Password'
+                            type='password'
+                            onChange= {handleChange('password')}
+                            onBlur= {handleBlur('password')}
+                            value={values.password}
+                            />
+                            </div>
+                            {errors.password ? (
+                                <text className={style.txtError}>{errors.password}</text>
+                            ) : null}
+                            <button onClick={handleSubmit} className={style.button}>LOGIN</button>
+                        </div>
+                        {/* <div className='icon mt-4'><AiOutlineCopyrightCircle size={18} className="mr-3" />IT-PMA 2019</div> */}
+                </Form>
+                )}
+                </Formik>
+            </>
         )
     }
 }
