@@ -524,7 +524,7 @@ class Disposal extends Component {
                                                          <div></div>
                                                      )}
                                                     {/* <button className="btnDispos" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}></button> */}
-                                                    <div className="btnDispos ml-2">
+                                                    <div className="ml-2">
                                                         <div className="txtDoc mb-2">
                                                             Pengajuan Disposal Asset
                                                         </div>
@@ -538,7 +538,7 @@ class Disposal extends Component {
                                                         </Row>
                                                         <Row className="mb-2">
                                                             <Col md={6} className="txtDoc">
-                                                        2    Area
+                                                            Area
                                                             </Col>
                                                             <Col md={6} className="txtDoc">
                                                             : {dataDis.find(({status_app}) => status_app === x).area}

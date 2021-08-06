@@ -25,7 +25,7 @@ export default {
     }),
     updateDisposal: (token, id, data, tipe) => ({
         type: 'UPDATE_DISPOSAL',
-        payload: http(token).patch(`/disposal/update/${id}/${tipe === undefined ? '' : tipe}`, qs.stringify(data))
+        payload: http(token).patch(`/disposal/update/${id}/${tipe === undefined ? 'king' : tipe}`, qs.stringify(data))
     }),
     submitDisposal: (token) => ({
         type: 'SUBMIT_DISPOSAL',

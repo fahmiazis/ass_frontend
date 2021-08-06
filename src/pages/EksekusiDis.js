@@ -30,18 +30,10 @@ import d from "../assets/img/d.jpg"
 import e from "../assets/img/e.jpg"
 import f from "../assets/img/f.png"
 import g from "../assets/img/g.png"
-const {REACT_APP_BACKEND_URL} = process.env
-
-const dokumenSchema = Yup.object().shape({
-    nama_dokumen: Yup.string().required(),
-    jenis_dokumen: Yup.string().required(),
-    divisi: Yup.string().required(),
-});
+const {REACT_APP_BACKEND_URL, REACT_APP_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
-    merk: Yup.string().validateSync(""),
-    keterangan: Yup.string().required('must be filled'),
-    nilai_jual: Yup.string().required()
+    doc_sap: Yup.string().required('must be filled')
 })
 
 class EksekusiDisposal extends Component {
@@ -87,13 +79,17 @@ class EksekusiDisposal extends Component {
     }
 
     showAlert = () => {
-        this.setState({alert: true, modalEdit: false, modalAdd: false, modalUpload: false })
+        this.setState({alert: true})
        
          setTimeout(() => {
             this.setState({
                 alert: false
             })
          }, 10000)
+    }
+
+    goReport = () => {
+        this.props.history.push('/report')
     }
 
     showDokumen = async (value) => {
@@ -131,7 +127,6 @@ class EksekusiDisposal extends Component {
 
     closeProsesModalDoc = () => {
         this.setState({openModalDoc: !this.state.openModalDoc})
-        this.setState({modalRinci: !this.state.modalRinci})
     }
 
     openProsesModalDoc = async (value) => {
@@ -185,12 +180,24 @@ class EksekusiDisposal extends Component {
 
     submitEksDis = async (value) => {
         const token = localStorage.getItem('token')
-        await this.props.submitEksDisposal(token, value)
+        const level = localStorage.getItem('level')
+        if (value.nilai_jual === '0' && value.doc_sap === null && level === '2') {
+            this.setState({alertSubmit: true})
+       
+            setTimeout(() => {
+               this.setState({
+                   alertSubmit: false
+               })
+            }, 10000)
+        } else {
+            await this.props.submitEksDisposal(token, value.no_asset)
+        }
         this.getDataDisposal()
     }
 
     componentDidUpdate() {
         const {isError, isGet, isUpload, isSubmit} = this.props.disposal
+        const error = this.props.setuju.isError
         const token = localStorage.getItem('token')
         const {dataRinci} = this.state
         if (isError) {
@@ -209,6 +216,9 @@ class EksekusiDisposal extends Component {
             setTimeout(() => {
                 this.getDataDisposal()
              }, 1000)
+        } else if (error) {
+            this.props.resetSetuju()
+            this.showAlert()
         }
     }
 
@@ -241,6 +251,7 @@ class EksekusiDisposal extends Component {
     render() {
         const {isOpen, dropOpen, dropOpenNum, detail, alert, upload, errMsg, dataRinci} = this.state
         const {dataDis, isGet, alertM, alertMsg, alertUpload, page, dataDoc} = this.props.disposal
+        const msgAlert = this.props.setuju.alertM
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
 
@@ -285,20 +296,14 @@ class EksekusiDisposal extends Component {
                     <MaterialTitlePanel title={contentHeader}>
                         <div className={style.backgroundLogo}>
                             <div className={style.bodyDashboard}>
-                                <Alert color="danger" className={style.alertWrong} isOpen={alert}>
-                                    <div>{alertMsg}</div>
-                                    <div>{alertM}</div>
-                                    {alertUpload !== undefined && alertUpload.map(item => {
-                                        return (
-                                            <div>{item}</div>
-                                        )
-                                    })}
-                                </Alert>
                                 <div className={style.headMaster}>
                                     <div className={style.titleDashboard1}>Disposal Eksekusi</div>
                                 </div>
                                 <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit}>
-                                    <div>Lengkapi rincian data asset yang ingin diajukan</div>
+                                    <div>Lengkapi no dokumen SAP sebelum submit</div>
+                                </Alert>
+                                <Alert color="danger" className={style.alertWrong} isOpen={alert}>
+                                    <div>{msgAlert}</div>
                                 </Alert>
                                 <Row className="cartDisposal2">
                                     {dataDis.length === 0 ? (
@@ -312,13 +317,14 @@ class EksekusiDisposal extends Component {
                                                 <div className="cart1">
                                                     <div className="navCart">
                                                         <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="cartImg" />
+                                                        <Button className="labelBut" color="warning" size="sm">{item.nilai_jual === '0' ? 'Pemusnahan' : 'Penjualan'}</Button>
                                                         <div className="txtCart">
                                                             <div>
                                                                 <div className="nameCart mb-3">{item.nama_asset}</div>
                                                                 <div className="noCart mb-3">No asset : {item.no_asset}</div>
                                                                 <div className="noCart mb-3">No disposal : D{item.no_disposal}</div>
                                                                 <div className="noCart mb-3">{item.keterangan}</div>
-                                                                <Button color="success" onClick={() => this.submitEksDis(item.no_asset)}>Submit</Button>
+                                                                <Button color="success" onClick={() => this.submitEksDis(item)}>Submit</Button>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -446,6 +452,7 @@ class EksekusiDisposal extends Component {
                 <ModalBody>
                     <div className="mainRinci">
                         <div className="leftRinci">
+                            <Button color="success" onClick={this.goReport}>Show Report</Button>
                             <img src={dataRinci.no_asset === '4100000150' ? b : dataRinci.no_asset === '4300001770' ? e : placeholder} className="imgRinci" />
                             <div className="secImgSmall">
                                 <button className="btnSmallImg">
@@ -467,9 +474,9 @@ class EksekusiDisposal extends Component {
                         </div>
                         <Formik
                         initialValues = {{
-                            keterangan: dataRinci.keterangan === null ? '' : dataRinci.keterangan,
-                            nilai_jual: dataRinci.nilai_jual,
-                            merk: dataRinci.merk
+                            doc_sap: dataRinci.doc_sap === null ? '' : dataRinci.doc_sap,
+                            keterangan: dataRinci.keterangan,
+                            nilai_jual: dataRinci.nilai_jual
                         }}
                         validationSchema = {disposalSchema}
                         onSubmit={(values) => {this.updateDataDis(values)}}
@@ -478,26 +485,21 @@ class EksekusiDisposal extends Component {
                             <div className="rightRinci">
                                 <div>
                                     <div className="titRinci">{dataRinci.nama_asset}</div>
-                                    <Row className="mb-2">
+                                    <Row className="mb-2 rowRinci">
                                         <Col md={3}>No Asset</Col>
-                                        <Col md={9}>:  <input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
                                     </Row>
-                                    <Row className="mb-2">
+                                    <Row className="mb-2 rowRinci">
                                         <Col md={3}>Merk / Type</Col>
-                                        <Col md={9}>:  <input
+                                        <Col md={9} className="colRinci">:  <Input
                                             type= "text" 
                                             className="inputRinci"
-                                            value={values.merk}
-                                            onBlur={handleBlur("merk")}
-                                            onChange={handleChange("merk")}
+                                            value={dataRinci.merk}
                                             disabled
                                             />
                                         </Col>
                                     </Row>
-                                    {errors.merk ? (
-                                        <text className={style.txtError}>{errors.merk}</text>
-                                    ) : null}
-                                    <Row className="mb-2">
+                                    <Row className="mb-2 rowRinci">
                                         <Col md={3}>Kategori</Col>
                                         <Col md={9} className="katCheck">: 
                                             <div className="katCheck">
@@ -506,53 +508,53 @@ class EksekusiDisposal extends Component {
                                             </div>
                                         </Col>
                                     </Row>
-                                    <Row className="mb-2">
+                                    <Row className="mb-2 rowRinci">
                                         <Col md={3}>Status Area</Col>
-                                        <Col md={9}>:  <input className="inputRinci" value={dataRinci.status_depo} disabled /></Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.status_depo} disabled /></Col>
                                     </Row>
-                                    <Row className="mb-2">
+                                    <Row className="mb-2 rowRinci">
                                         <Col md={3}>Cost Center</Col>
-                                        <Col md={9}>:  <input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
                                     </Row>
-                                    <Row className="mb-2">
+                                    <Row className="mb-2 rowRinci">
                                         <Col md={3}>Nilai Buku</Col>
-                                        <Col md={9}>:  <input className="inputRinci" disabled /></Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" disabled /></Col>
                                     </Row>
-                                    <Row className="mb-2">
+                                    <Row className="mb-2 rowRinci">
                                         <Col md={3}>Nilai Jual</Col>
-                                        <Col md={9}>:  <input 
+                                        <Col md={9} className="colRinci">:  <Input 
                                             className="inputRinci" 
-                                            value={values.nilai_jual} 
-                                            onBlur={handleBlur("nilai_jual")}
-                                            onChange={handleChange("nilai_jual")}
+                                            value={dataRinci.nilai_jual} 
                                             disabled
                                             />
                                         </Col>
                                     </Row>
-                                    {errors.nilai_jual ? (
-                                        <text className={style.txtError}>{errors.nilai_jual}</text>
-                                    ) : null}
-                                    <Row className="mb-2">
+                                    <Row className="mb-2 rowRinci">
                                         <Col md={3}>Keterangan</Col>
-                                        <Col md={9}>:  <input
+                                        <Col md={9} className="colRinci">:  <Input
                                             className="inputRinci" 
-                                            type="text" 
-                                            value={values.keterangan} 
-                                            onBlur={handleBlur("keterangan")}
-                                            onChange={handleChange("keterangan")}
+                                            type="textarea" 
+                                            value={dataRinci.keterangan} 
                                             disabled
                                             />
                                         </Col>
                                     </Row>
-                                    {errors.keterangan ? (
-                                        <text className={style.txtError}>{errors.keterangan}</text>
-                                    ) : null}
-                                    {level === '2' ? (
+                                    {level === '2' && dataRinci.nilai_jual === '0' ? (
                                         <div>
                                             <Row className="mb-5">
                                                 <Col md={3}>No Doc SAP</Col>
-                                                <Col md={9}>:  <input className="inputRinci"/></Col>
+                                                <Col md={9} className="colRinci">:  <Input 
+                                                className="inputRinci"
+                                                type="text"
+                                                value={values.doc_sap}
+                                                onChange={handleChange("doc_sap")}
+                                                onBlur={handleBlur("doc_sap")}
+                                                />
+                                                </Col>
                                             </Row>
+                                            {errors.doc_sap ? (
+                                                <text className={style.txtError}>{errors.doc_sap}</text>
+                                            ) : null}
                                         </div>
                                     ) : (
                                         <Row></Row>
@@ -585,6 +587,7 @@ const mapDispatchToProps = {
     getDisposal: disposal.getDisposal,
     submitDisposal: disposal.submitDisposal,
     resetError: disposal.reset,
+    resetSetuju: setuju.resetSetuju,
     deleteDisposal: disposal.deleteDisposal,
     updateDisposal: disposal.updateDisposal,
     getDocumentDis: disposal.getDocumentDis,

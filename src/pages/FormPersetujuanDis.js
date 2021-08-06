@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/no-distracting-elements */
 import React, { Component } from 'react'
-import { NavbarBrand, Row, Col, Table, Button, Modal, ModalBody, ModalFooter, Container, Alert, ModalHeader } from 'reactstrap'
+import { NavbarBrand, Row, Col, Table, Button, Modal, ModalBody, ModalFooter, Container, Alert, Spinner, ModalHeader } from 'reactstrap'
 import style from '../assets/css/input.module.css'
 import { AiOutlineClose, AiOutlineCheck } from 'react-icons/ai'
 import { BsCircle } from 'react-icons/bs'
@@ -321,6 +321,16 @@ class PersetujuanDis extends Component {
                     </Button>
                 </ModalFooter>
             </Modal>
+            <Modal isOpen={this.props.setuju.isLoading ? true: false} size="sm">
+                        <ModalBody>
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <Spinner />
+                                <div sucUpdate>Waiting....</div>
+                            </div>
+                        </div>
+                        </ModalBody>
+                </Modal>
             </>
         )
     }

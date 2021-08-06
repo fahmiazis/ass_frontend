@@ -69,6 +69,7 @@ export default (state=setujuState, action) => {
                     isLoading: false,
                     isSubmitEks: false,
                     isError: true,
+                    alertM: action.payload.response.data.message,
                     alertMsg: "Unable connect to server"
                 };
             }
@@ -147,7 +148,8 @@ export default (state=setujuState, action) => {
                     isLoading: false,
                     isSubmitPurch: false,
                     isError: true,
-                    alertMsg: "Unable connect to server"
+                    alertMsg: "Unable connect to server",
+                    alertM: action.payload.response.data.message
                 };
             }
             case 'GET_SETDIS_PENDING': {
@@ -188,6 +190,7 @@ export default (state=setujuState, action) => {
                 return {
                     ...state,
                     isGetApp: true,
+                    isLoading: false,
                     disApp: action.payload.data.result,
                     alertMsg: 'get approve setdisposal Succesfully',
                 };
@@ -217,11 +220,12 @@ export default (state=setujuState, action) => {
             case 'APPROVE_SETDIS_REJECTED': {
                 return {
                     ...state,
+                    isLoading: false,
                     isError: true,
                     alertMsg: "Unable connect to server"
                 };
             }
-            case 'RESET': {
+            case 'RESET_SETUJU': {
                 return {
                     ...state,
                     isError: false,

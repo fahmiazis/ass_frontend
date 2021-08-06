@@ -581,7 +581,7 @@ class Disposal extends Component {
                                         </Row>
                                     )
                                 ) : (
-                                    this.props.disposal.isGet === false ? (
+                                    noDis.length === 0 ? (
                                         <div></div>
                                     ) : (
                                         <Row className="bodyDispos">
@@ -602,8 +602,7 @@ class Disposal extends Component {
                                                      ) : (
                                                          <div></div>
                                                      )}
-                                                    {/* <button className="btnDispos" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}></button> */}
-                                                    <div className="btnDispos ml-2">
+                                                    <div className="ml-2">
                                                         <div className="txtDoc mb-2">
                                                             Pengajuan Disposal Asset
                                                         </div>

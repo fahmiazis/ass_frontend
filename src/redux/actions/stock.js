@@ -34,5 +34,12 @@ export default {
     uploadPicture: (token, id, data) => ({
         type: 'UPLOAD_PICTURE',
         payload: http(token).post(`/stock/img/${id}`, data)
+    }),
+    getStatus: (token, fisik, kondisi) => ({
+        type: 'GET_STATUS',
+        payload: http(token).get(`/stock/status/get?fisik=${fisik === undefined ? '' : fisik}&kondisi=${kondisi === undefined ? '' : kondisi}`)
+    }),
+    resetStock: () => ({
+        type: 'RESET_STOCK'
     })
 }

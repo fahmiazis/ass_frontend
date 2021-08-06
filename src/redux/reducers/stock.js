@@ -14,6 +14,7 @@ const stockState = {
     isDelete: false,
     isLoading: false,
     isError: false,
+    isGetStatus: false,
     alertMsg: '',
     dataAsset: [],
     dataStock: [],
@@ -25,6 +26,7 @@ const stockState = {
     isExport: false,
     link: '',
     stockApp: {},
+    dataStatus: []
 };
 
 export default (state=stockState, action) => {
@@ -107,7 +109,8 @@ export default (state=stockState, action) => {
                 isLoading: false,
                 isSubmit: false,
                 isError: true,
-                alertMsg: "Unable connect to server"
+                alertMsg: "Unable connect to server",
+                alertM: action.payload.response.data.message
             };
         }
         case 'APPROVE_STOCK_PENDING': {
@@ -233,6 +236,30 @@ export default (state=stockState, action) => {
                 isLoading: false,
                 isUpload: false,
                 isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'GET_STATUS_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'GET_STATUS_FULFILLED': {
+            return {
+                ...state,
+                isGetStatus: true,
+                dataStatus: action.payload.data.result,
+                isLoading: false,
+                alertMsg: 'get status stock Succesfully',
+            };
+        }
+        case 'GET_STATUS_REJECTED': {
+            return {
+                ...state,
+                isError: true,
+                isLoading: false,
                 alertMsg: "Unable connect to server"
             };
         }

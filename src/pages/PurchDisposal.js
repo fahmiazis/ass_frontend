@@ -130,6 +130,13 @@ class PurchDisposal extends Component {
         this.setState({modalRinci: !this.state.modalRinci})
     }
 
+    openProsesModalDoc = async () => {
+        const token = localStorage.getItem('token')
+        const { dataRinci } = this.state
+        await this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'pengajuan')
+        this.closeProsesModalDoc()
+    }
+
     openProsesDoc = async (value) => {
         const token = localStorage.getItem('token')
         await this.props.getDocumentDis(token, value.no_asset, 'disposal', 'purch')
@@ -180,6 +187,7 @@ class PurchDisposal extends Component {
 
     componentDidUpdate() {
         const {isError, isGet, isUpload, isSubmit} = this.props.disposal
+        const error = this.props.setuju.isError
         const token = localStorage.getItem('token')
         const level = localStorage.getItem('level')
         const {dataRinci} = this.state
@@ -192,17 +200,16 @@ class PurchDisposal extends Component {
                 this.setState({modalUpload: false})
              }, 1000)
              setTimeout(() => {
-                if (level === '3') {
-                    this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'tax')
-                } else if (level === '4') {
-                    this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'finance')
-                }
+                this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'purch')
              }, 1100)
         } else if (isSubmit) {
             this.props.resetError()
             setTimeout(() => {
                 this.getDataDisposal()
              }, 1000)
+        } else if (error) {
+            this.props.resetSetuju()
+            this.showAlert()
         }
     }
 
@@ -241,6 +248,7 @@ class PurchDisposal extends Component {
     render() {
         const {isOpen, dropOpen, dropOpenNum, detail, alert, upload, errMsg, dataRinci} = this.state
         const {dataDis, isGet, alertM, alertMsg, alertUpload, page, dataDoc} = this.props.disposal
+        const msgAlert = this.props.setuju.alertM
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
 
@@ -286,15 +294,14 @@ class PurchDisposal extends Component {
                         <div className={style.backgroundLogo}>
                             {level === '6' ? (
                                 <div className={style.bodyDashboard}>
-                                <Alert color="danger" className={style.alertWrong} isOpen={alert}>
-                                    <div>{alertMsg}</div>
-                                    <div>{alertM}</div>
-                                </Alert>
                                 <div className={style.headMaster}>
                                     <div className={style.titleDashboard1}>Purchasing Disposal</div>
                                 </div>
                                 <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit}>
-                                    <div>Lengkapi rincian data asset terlebih dahulu</div>
+                                    <div>Lengkapi nilai jual asset terlebih dahulu</div>
+                                </Alert>
+                                <Alert color="danger" className={style.alertWrong} isOpen={alert}>
+                                    <div>{msgAlert}</div>
                                 </Alert>
                                 <Row className="cartDisposal2">
                                     {dataDis.length === 0 ? (
@@ -308,6 +315,7 @@ class PurchDisposal extends Component {
                                                 <div className="cart1">
                                                     <div className="navCart">
                                                         <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="cartImg" />
+                                                        <Button size="sm" color="warning" className="labelBut">Penjualan</Button>
                                                         <div className="txtCart">
                                                             <div>
                                                                 <div className="nameCart mb-3">{item.nama_asset}</div>
@@ -453,13 +461,13 @@ class PurchDisposal extends Component {
                                     <div className="titRinci">{dataRinci.nama_asset}</div>
                                     <Row className="mb-2">
                                         <Col md={3}>No Asset</Col>
-                                        <Col md={9}>:  <input className="inputRinci gray" value={dataRinci.no_asset} disabled /></Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
                                     </Row>
                                     <Row className="mb-2">
                                         <Col md={3}>Merk / Type</Col>
-                                        <Col md={9}>:  <input
+                                        <Col md={9} className="colRinci">:  <Input
                                             type= "text" 
-                                            className="inputRinci gray"
+                                            className="inputRinci"
                                             value={values.merk}
                                             onBlur={handleBlur("merk")}
                                             onChange={handleChange("merk")}
@@ -481,19 +489,19 @@ class PurchDisposal extends Component {
                                     </Row>
                                     <Row className="mb-2">
                                         <Col md={3}>Status Area</Col>
-                                        <Col md={9}>:  <input className="inputRinci gray" value={dataRinci.status_depo} disabled /></Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.status_depo} disabled /></Col>
                                     </Row>
                                     <Row className="mb-2">
                                         <Col md={3}>Cost Center</Col>
-                                        <Col md={9}>:  <input className="inputRinci gray" value={dataRinci.cost_center} disabled /></Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
                                     </Row>
                                     <Row className="mb-2">
                                         <Col md={3}>Nilai Buku</Col>
-                                        <Col md={9}>:  <input className="inputRinci gray" disabled /></Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" disabled /></Col>
                                     </Row>
                                     <Row className="mb-2">
                                         <Col md={3}>Nilai Jual</Col>
-                                        <Col md={9}>:  <input 
+                                        <Col md={9} className="colRinci">:  <Input 
                                             className="inputRinci" 
                                             value={values.nilai_jual} 
                                             onBlur={handleBlur("nilai_jual")}
@@ -506,8 +514,8 @@ class PurchDisposal extends Component {
                                     ) : null}
                                     <Row className="mb-2">
                                         <Col md={3}>Keterangan</Col>
-                                        <Col md={9}>:  <input
-                                            className="inputRinci gray" 
+                                        <Col md={9} className="colRinci">:  <Input
+                                            className="inputRinci" 
                                             type="text" 
                                             value={values.keterangan} 
                                             onBlur={handleBlur("keterangan")}
@@ -523,7 +531,7 @@ class PurchDisposal extends Component {
                                     <div className="footRinci1">
                                         <Button className="btnFootRinci1" size="md" color="primary" onClick={handleSubmit}>Save</Button>
                                         <Button className="btnFootRinci1" size="md" color="success" onClick={() => this.openProsesDoc(dataRinci)}>Upload Doc</Button>
-                                        <Button className="btnFootRinci1" size="md" color="secondary" onClick={() => this.openModalRinci()}>Close</Button>
+                                        <Button className="btnFootRinci1" size="md" color="warning" onClick={() => this.openProsesModalDoc()}>Doc Area</Button>
                                     </div>
                             </div>
                         )}
@@ -551,6 +559,7 @@ const mapDispatchToProps = {
     getDocumentDis: disposal.getDocumentDis,
     uploadDocumentDis: disposal.uploadDocumentDis,
     submitPurch: setuju.submitPurchDisposal,
+    resetSetuju: setuju.resetSetuju
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(PurchDisposal)

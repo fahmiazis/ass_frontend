@@ -31,8 +31,19 @@ import g from "../assets/img/g.png"
 
 const disposalSchema = Yup.object().shape({
     merk: Yup.string().validateSync(""),
-    keterangan: Yup.string().required('must be filled'),
-    nilai_jual: Yup.string().required()
+})
+
+const taxSchema = Yup.object().shape({
+    no_fp: Yup.string().required('must be filled')
+})
+
+const finSchema = Yup.object().shape({
+    nominal: Yup.string().required('must be filled'),
+    no_sap: Yup.string().required('must be filled')
+})
+
+const assetSchema = Yup.object().shape({
+    no_fp: Yup.string().required('must be filled')
 })
 
 class TaxFinDisposal extends Component {
@@ -88,14 +99,43 @@ class TaxFinDisposal extends Component {
 
     submitTaxFinDisposal = async (value) => {
         const token = localStorage.getItem('token')
-        await this.props.submitTaxFin(token, value.no_asset)
-        this.getDataDisposal()
+        const level = localStorage.getItem('level')
+        if (value.no_fp === null && level === '3') {
+            this.setState({alertSubmit: true})
+       
+            setTimeout(() => {
+               this.setState({
+                   alertSubmit: false
+               })
+            }, 10000)
+        } else if ((value.no_sap === null || value.nominal === null) && level === '4') {
+            this.setState({alertSubmit: true})
+       
+            setTimeout(() => {
+               this.setState({
+                   alertSubmit: false
+               })
+            }, 10000)
+        } else {
+            await this.props.submitTaxFin(token, value.no_asset)
+            this.getDataDisposal()
+        }
     }
 
     submitFinalDisposal = async (value) => {
         const token = localStorage.getItem('token')
-        await this.props.submitFinal(token, value.no_asset)
-        this.getDataDisposal()
+        if (value.doc_sap === null || value.doc_sap === '') {
+            this.setState({alertSubmit: true})
+       
+            setTimeout(() => {
+               this.setState({
+                   alertSubmit: false
+               })
+            }, 10000)
+        } else {
+            await this.props.submitFinal(token, value.no_asset)
+            this.getDataDisposal()
+        }
     }
 
     onChangeUpload = e => {
@@ -235,10 +275,20 @@ class TaxFinDisposal extends Component {
 
     updateDataDis = async (value) => {
         const token = localStorage.getItem('token')
+        const level = localStorage.getItem('level')
         const { dataRinci } = this.state
-        await this.props.updateDisposal(token, dataRinci.id, value)
-        this.getDataDisposal()
+        if (level === '3') {
+            await this.props.updateDisposal(token, dataRinci.id, value, 'taxDis')
+            this.getDataDisposal()   
+        } else if (level === '4') {
+            await this.props.updateDisposal(token, dataRinci.id, value, 'financeDis')
+            this.getDataDisposal()
+        } else {
+            await this.props.updateDisposal(token, dataRinci.id, value)
+            this.getDataDisposal()
+        }
     }
+
     render() {
         const {isOpen, dropOpen, dropOpenNum, detail, alert, upload, errMsg, dataRinci} = this.state
         const {dataDis, isGet, alertM, alertMsg, alertUpload, page, dataDoc} = this.props.disposal
@@ -290,20 +340,15 @@ class TaxFinDisposal extends Component {
                                 <Alert color="danger" className={style.alertWrong} isOpen={alert}>
                                     <div>{alertMsg}</div>
                                     <div>{alertM}</div>
-                                    {alertUpload !== undefined && alertUpload.map(item => {
-                                        return (
-                                            <div>{item}</div>
-                                        )
-                                    })}
                                 </Alert>
                                 <div className={style.headMaster}>
                                     <div className={style.titleDashboard1}>Tax Disposal</div>
                                 </div>
                                 <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit}>
-                                    <div>Lengkapi rincian data asset yang ingin diajukan</div>
+                                    <div>Lengkapi data asset terlebih dahulu</div>
                                 </Alert>
                                 <Row className="cartDisposal2">
-                                    {isGet === false || dataDis.length === 0 ? (
+                                    {dataDis.length === 0 ? (
                                         <Col md={8} xl={8} sm={12}>
                                             <div className="txtDisposEmpty">Tidak ada data disposal</div>
                                         </Col>
@@ -314,6 +359,7 @@ class TaxFinDisposal extends Component {
                                                 <div className="cart1">
                                                     <div className="navCart">
                                                         <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="cartImg" />
+                                                        <Button className="labelBut" color="warning" size="sm">{item.nilai_jual === '0' ? 'Pemusnahan' : 'Penjualan'}</Button>
                                                         <div className="txtCart">
                                                             <div>
                                                                 <div className="nameCart mb-3">{item.nama_asset}</div>
@@ -340,20 +386,15 @@ class TaxFinDisposal extends Component {
                                 <Alert color="danger" className={style.alertWrong} isOpen={alert}>
                                     <div>{alertMsg}</div>
                                     <div>{alertM}</div>
-                                    {alertUpload !== undefined && alertUpload.map(item => {
-                                        return (
-                                            <div>{item}</div>
-                                        )
-                                    })}
                                 </Alert>
                                 <div className={style.headMaster}>
                                     <div className={style.titleDashboard1}>Finance Disposal</div>
                                 </div>
                                 <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit}>
-                                    <div>Lengkapi rincian data asset yang ingin diajukan</div>
+                                    <div>Lengkapi data asset terlebih dahulu</div>
                                 </Alert>
                                 <Row className="cartDisposal2">
-                                    {isGet === false || dataDis.length === 0 ? (
+                                    {dataDis.length === 0 ? (
                                         <Col md={8} xl={8} sm={12}>
                                             <div className="txtDisposEmpty">Tidak ada data disposal</div>
                                         </Col>
@@ -364,6 +405,7 @@ class TaxFinDisposal extends Component {
                                                 <div className="cart1">
                                                     <div className="navCart">
                                                         <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="cartImg" />
+                                                        <Button className="labelBut" color="warning" size="sm">{item.nilai_jual === '0' ? 'Pemusnahan' : 'Penjualan'}</Button>
                                                         <div className="txtCart">
                                                             <div>
                                                                 <div className="nameCart mb-3">{item.nama_asset}</div>
@@ -390,20 +432,15 @@ class TaxFinDisposal extends Component {
                                 <Alert color="danger" className={style.alertWrong} isOpen={alert}>
                                     <div>{alertMsg}</div>
                                     <div>{alertM}</div>
-                                    {alertUpload !== undefined && alertUpload.map(item => {
-                                        return (
-                                            <div>{item}</div>
-                                        )
-                                    })}
                                 </Alert>
                                 <div className={style.headMaster}>
                                     <div className={style.titleDashboard1}>Finance & Tax Disposal</div>
                                 </div>
                                 <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit}>
-                                    <div>Lengkapi rincian data asset yang ingin diajukan</div>
+                                    <div>Lengkapi data asset terlebih dahulu</div>
                                 </Alert>
                                 <Row className="cartDisposal2">
-                                    {isGet === false || dataDis.length === 0 ? (
+                                    {dataDis.length === 0 ? (
                                         <Col md={8} xl={8} sm={12}>
                                             <div className="txtDisposEmpty">Tidak ada data disposal</div>
                                         </Col>
@@ -414,6 +451,7 @@ class TaxFinDisposal extends Component {
                                                 <div className="cart1">
                                                     <div className="navCart">
                                                         <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="cartImg" />
+                                                        <Button className="labelBut" color="warning" size="sm">{item.nilai_jual === '0' ? 'Pemusnahan' : 'Penjualan'}</Button>
                                                         <div className="txtCart">
                                                             <div>
                                                                 <div className="nameCart mb-3">{item.nama_asset}</div>
@@ -522,6 +560,9 @@ class TaxFinDisposal extends Component {
                     Rincian
                 </ModalHeader>
                 <ModalBody>
+                    <Alert color="danger" className={style.alertWrong} isOpen={alert}>
+                        <div>{alertM}</div>
+                    </Alert>
                     <div className="mainRinci">
                         <div className="leftRinci">
                             <img src={dataRinci.no_asset === '4100000150' ? b : dataRinci.no_asset === '4300001770' ? e : placeholder} className="imgRinci" />
@@ -547,22 +588,26 @@ class TaxFinDisposal extends Component {
                         initialValues = {{
                             keterangan: dataRinci.keterangan === null ? '' : dataRinci.keterangan,
                             nilai_jual: dataRinci.nilai_jual,
-                            merk: dataRinci.merk
+                            merk: dataRinci.merk,
+                            no_sap: dataRinci.no_sap === null ? '' : dataRinci.no_sap,
+                            nominal: dataRinci.nominal === null ? '' : dataRinci.nominal,
+                            doc_sap: dataRinci.doc_sap === null ? '' : dataRinci.doc_sap,
+                            no_fp: dataRinci.no_fp === null ? '' : dataRinci.no_fp
                         }}
-                        validationSchema = {disposalSchema}
+                        validationSchema = {level === '2' ? assetSchema : level === '3' ? taxSchema : level === '4' ? finSchema : disposalSchema}
                         onSubmit={(values) => {this.updateDataDis(values)}}
                         >
                         {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
                             <div className="rightRinci">
                                 <div>
                                     <div className="titRinci">{dataRinci.nama_asset}</div>
-                                    <Row className="mb-2">
+                                    <Row className="mb-2 rowRinci">
                                         <Col md={3}>No Asset</Col>
-                                        <Col md={9}>:  <input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
                                     </Row>
-                                    <Row className="mb-2">
+                                    <Row className="mb-2 rowRinci">
                                         <Col md={3}>Merk / Type</Col>
-                                        <Col md={9}>:  <input
+                                        <Col md={9} className="colRinci">:  <Input
                                             type= "text" 
                                             className="inputRinci"
                                             value={values.merk}
@@ -575,7 +620,7 @@ class TaxFinDisposal extends Component {
                                     {errors.merk ? (
                                         <text className={style.txtError}>{errors.merk}</text>
                                     ) : null}
-                                    <Row className="mb-2">
+                                    <Row className="mb-2 rowRinci">
                                         <Col md={3}>Kategori</Col>
                                         <Col md={9} className="katCheck">: 
                                             <div className="katCheck">
@@ -584,21 +629,21 @@ class TaxFinDisposal extends Component {
                                             </div>
                                         </Col>
                                     </Row>
-                                    <Row className="mb-2">
+                                    <Row className="mb-2 rowRinci">
                                         <Col md={3}>Status Area</Col>
-                                        <Col md={9}>:  <input className="inputRinci" value={dataRinci.status_depo} disabled /></Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.status_depo} disabled /></Col>
                                     </Row>
-                                    <Row className="mb-2">
+                                    <Row className="mb-2 rowRinci">
                                         <Col md={3}>Cost Center</Col>
-                                        <Col md={9}>:  <input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
                                     </Row>
-                                    <Row className="mb-2">
+                                    <Row className="mb-2 rowRinci">
                                         <Col md={3}>Nilai Buku</Col>
-                                        <Col md={9}>:  <input className="inputRinci" disabled /></Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" disabled /></Col>
                                     </Row>
-                                    <Row className="mb-2">
+                                    <Row className="mb-2 rowRinci">
                                         <Col md={3}>Nilai Jual</Col>
-                                        <Col md={9}>:  <input 
+                                        <Col md={9} className="colRinci">:  <Input 
                                             className="inputRinci" 
                                             value={values.nilai_jual} 
                                             onBlur={handleBlur("nilai_jual")}
@@ -610,9 +655,9 @@ class TaxFinDisposal extends Component {
                                     {errors.nilai_jual ? (
                                         <text className={style.txtError}>{errors.nilai_jual}</text>
                                     ) : null}
-                                    <Row className="mb-2">
+                                    <Row className="mb-2 rowRinci">
                                         <Col md={3}>Keterangan</Col>
-                                        <Col md={9}>:  <input
+                                        <Col md={9} className="colRinci">:  <Input
                                             className="inputRinci" 
                                             type="text" 
                                             value={values.keterangan} 
@@ -627,39 +672,79 @@ class TaxFinDisposal extends Component {
                                     ) : null}
                                     {level === '2' ? (
                                         <div>
-                                            <Row className="mb-2">
+                                            <Row className="mb-2 rowRinci">
                                                 <Col md={3}>No Doc Finance</Col>
-                                                <Col md={9}>:  <input className="inputRinci" disabled/></Col>
+                                                <Col md={9} className="colRinci">:  <Input className="inputRinci" value = {dataRinci.no_sap} disabled/></Col>
                                             </Row>
-                                            <Row className="mb-2">
+                                            <Row className="mb-2 rowRinci">
                                                 <Col md={3}>Nominal Penjualan</Col>
-                                                <Col md={9}>:  <input className="inputRinci" disabled/></Col>
+                                                <Col md={9} className="colRinci">:  <Input className="inputRinci" value = {dataRinci.nominal} disabled/></Col>
                                             </Row>
-                                            <Row className="mb-2">
+                                            <Row className="mb-2 rowRinci">
                                                 <Col md={3}>Faktur Pajak</Col>
-                                                <Col md={9}>:  <input className="inputRinci" disabled/></Col>
+                                                <Col md={9} className="colRinci">:  <Input className="inputRinci" value = {dataRinci.no_fp} disabled/></Col>
                                             </Row>
-                                            <Row className="mb-5">
+                                            <Row className="mb-5 rowRinci">
                                                 <Col md={3}>No Doc SAP</Col>
-                                                <Col md={9}>:  <input className="inputRinci" disabled/></Col>
+                                                <Col md={9} className="colRinci">:  <Input
+                                                    type="text" 
+                                                    className="inputRinci" 
+                                                    value={values.doc_sap} 
+                                                    onBlur={handleBlur("doc_sap")}
+                                                    onChange={handleChange("doc_sap")}
+                                                    />
+                                                </Col>
                                             </Row>
+                                            {errors.doc_sap ? (
+                                                <text className={style.txtError}>{errors.doc_sap}</text>
+                                            ) : null}
                                         </div>
                                     ) : level === '3' ? (
                                         <div>
-                                            <Row>
+                                            <Row className="mb-5 rowRinci">
                                                 <Col md={3}>Faktur Pajak</Col>
-                                                <Col md={9}>:  <input className="inputRinci" /></Col>
+                                                <Col md={9} className="colRinci">:  <Input 
+                                                    type="text" 
+                                                    className="inputRinci" 
+                                                    value={values.no_fp} 
+                                                    onBlur={handleBlur("no_fp")}
+                                                    onChange={handleChange("no_fp")}
+                                                    />
+                                                </Col>
+                                                {errors.no_fp ? (
+                                                    <text className={style.txtError}>{errors.no_fp}</text>
+                                                ) : null}
                                             </Row>
                                         </div>
                                     ) : level === '4' ? (
                                         <div>
-                                            <Row className="mb-2">
-                                            <Col md={3}>No Doc Finance</Col>
-                                            <Col md={9}>:  <input className="inputRinci" /></Col>
+                                            <Row className="mb-2 rowRinci">
+                                                <Col md={3}>No Doc Finance</Col>
+                                                <Col md={9} className="colRinci">:  <Input 
+                                                    type="text" 
+                                                    className="inputRinci" 
+                                                    value={values.no_sap} 
+                                                    onBlur={handleBlur("no_sap")}
+                                                    onChange={handleChange("no_sap")}
+                                                    />
+                                                </Col>
                                             </Row>
-                                            <Row className="mb-2">
+                                            {errors.no_sap ? (
+                                                <text className={style.txtError}>{errors.no_sap}</text>
+                                            ) : null}
+                                            <Row className="mb-5 rowRinci">
                                                 <Col md={3}>Nominal Penjualan</Col>
-                                                <Col md={9}>:  <input className="inputRinci" /></Col>
+                                                <Col md={9} className="colRinci">:  <Input 
+                                                    type="text" 
+                                                    className="inputRinci" 
+                                                    value={values.nominal} 
+                                                    onBlur={handleBlur("nominal")}
+                                                    onChange={handleChange("nominal")}
+                                                    />
+                                                </Col>
+                                                {errors.nominal ? (
+                                                    <text className={style.txtError}>{errors.nominal}</text>
+                                                ) : null}
                                             </Row>
                                         </div>
                                     ) : (

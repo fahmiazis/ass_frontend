@@ -757,3 +757,6 @@
 .transBtn {
     padding: 2% !important;
 }
+.rowRinci {
+    align-items: center;
+}

@@ -33,5 +33,8 @@ export default {
     submitPurchDisposal: (token, no) => ({
         type: 'SUBMIT_PURCH',
         payload: http(token).patch(`/disposal/purch/submit/${no}`)
+    }),
+    resetSetuju: () => ({
+        type: 'RESET_SETUJU'
     })
 }
