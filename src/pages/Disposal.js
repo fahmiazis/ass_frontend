@@ -1,16 +1,11 @@
 /* eslint-disable jsx-a11y/no-distracting-elements */
 /* eslint-disable jsx-a11y/alt-text */
 import React, { Component } from 'react'
-import { Container, Collapse, Nav, Navbar,
-    NavbarToggler, NavbarBrand, NavItem, NavLink,
-    UncontrolledDropdown, DropdownToggle, DropdownMenu, Dropdown,
-    DropdownItem, Table, ButtonDropdown, Input, Button, Col,
-    Alert, Spinner, Row} from 'reactstrap'
-import logo from "../assets/img/logo.png"
+import { Container, NavbarBrand, Table, Input, Button, Col,
+    Alert, Spinner, Row, Modal, ModalBody, ModalHeader, ModalFooter} from 'reactstrap'
 import style from '../assets/css/input.module.css'
-import {Modal} from 'react-bootstrap'
 import {FaSearch, FaUserCircle, FaBars, FaCartPlus} from 'react-icons/fa'
-import {BsCircle, BsDashCircleFill, BsFillCircleFill} from 'react-icons/bs'
+import {BsCircle} from 'react-icons/bs'
 import { AiOutlineCheck, AiOutlineClose} from 'react-icons/ai'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
@@ -23,18 +18,13 @@ import moment from 'moment'
 import auth from '../redux/actions/auth'
 import setuju from '../redux/actions/setuju'
 import {default as axios} from 'axios'
-import Sidebar from "../components/Header";
-import MaterialTitlePanel from "../components/material_title_panel";
-import SidebarContent from "../components/sidebar_content";
+import Sidebar from "../components/Header"
+import MaterialTitlePanel from "../components/material_title_panel"
+import SidebarContent from "../components/sidebar_content"
 import placeholder from  "../assets/img/placeholder.png"
 import disposal from '../redux/actions/disposal'
-import a from "../assets/img/a.jpg"
 import b from "../assets/img/b.jpg"
-import c from "../assets/img/c.jpg"
-import d from "../assets/img/d.jpg"
 import e from "../assets/img/e.jpg"
-import f from "../assets/img/f.png"
-import g from "../assets/img/g.png"
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -95,14 +85,14 @@ class Disposal extends Component {
             openApproveDis: false,
             openRejectDis: false,
             fileName: {},
-            dataApp: {}
+            dataApp: {},
+            img: ''
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
     }
 
     getApproveDis = async (value) => {
-        this.setState({nama: value.nama})
         const token = localStorage.getItem('token')
         await this.props.getApproveDisposal(token, value.no, value.nama)
     }
@@ -131,7 +121,6 @@ class Disposal extends Component {
 
     closeProsesModalDoc = () => {
         this.setState({openModalDoc: !this.state.openModalDoc})
-        this.setState({formDis: !this.state.formDis})
     }
 
     openModalApproveDis = () => {
@@ -172,7 +161,6 @@ class Disposal extends Component {
         const { dataRinci } = this.state
         await this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'pengajuan')
         this.closeProsesModalDoc()
-        this.openRinciAdmin()
     }
 
 
@@ -328,7 +316,7 @@ class Disposal extends Component {
 
     componentDidUpdate() {
         const {isError, isUpload, isExport} = this.props.asset
-        const {isAdd, isDelete, isAppDoc, isRejDoc} = this.props.disposal
+        const {isAdd, isAppDoc, isRejDoc} = this.props.disposal
         const token = localStorage.getItem('token')
         const { dataRinci } = this.state
         if (isError) {
@@ -424,11 +412,10 @@ class Disposal extends Component {
     }
 
     render() {
-        const {isOpen, dropOpen, dropApp, dropOpenNum, detail, alert, upload, errMsg, detailDis} = this.state
+        const {alert, upload, errMsg, detailDis} = this.state
         const {dataAsset, alertM, alertMsg, alertUpload, page} = this.props.asset
         const pages = this.props.disposal.page 
         const { dataDis, noDis, dataDoc, disApp } = this.props.disposal
-        const { dataName } = this.props.approve
         const {dataRinci} = this.state
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
@@ -492,30 +479,12 @@ class Disposal extends Component {
                                 <div className={style.secEmail}>
                                     {level === '5' ? (
                                         <div className={style.headEmail}>
-                                            {/* <Button color="success" size="lg" onClick={this.openModalDis}>Open Form</Button> */}
                                             <button onClick={this.goCartDispos} className="btnGoCart"><FaCartPlus size={60} className="green ml-2" /></button>
                                         </div>
                                     ) : (
                                         <div className={style.headEmail}>
-                                            {/* <Button color="success" size="lg" onClick={this.openModalDis}>Open Form</Button> */}
                                             <Button onClick={this.goSetDispos} color="info" size="lg" className="btnGoCart">Submit</Button>
                                         </div>
-                                        // <div className={style.secHeadDashboard}>
-                                        //     <div>
-                                        //         <text>Show: </text>
-                                        //         <ButtonDropdown className={style.drop} isOpen={dropOpen} toggle={this.dropDown}>
-                                        //         <DropdownToggle caret color="light">
-                                        //             {this.state.limit}
-                                        //         </DropdownToggle>
-                                        //         <DropdownMenu>
-                                        //         <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 10, search: ''})}>10</DropdownItem>
-                                        //             <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 20, search: ''})}>20</DropdownItem>
-                                        //             <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 50, search: ''})}>50</DropdownItem>
-                                        //         </DropdownMenu>
-                                        //         </ButtonDropdown>
-                                        //         <text className={style.textEntries}>entries</text>
-                                        //     </div>
-                                        // </div>
                                     )}
                                     <div className={style.searchEmail}>
                                         <text>Search: </text>
@@ -537,8 +506,8 @@ class Disposal extends Component {
                                         {dataAsset.length !== 0 && dataAsset.map(item => {
                                             return (
                                                 <div className="bodyCard">
-                                                    <button className="btnDispos" disabled={item.status === '1' ? true : false} onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}>
-                                                        <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="imgCard" />
+                                                    <button className="btnDispos" disabled={item.status === '1' ? true : false} onClick={() => this.openModalRinci(this.setState({dataRinci: item, img: item.pict.length > 0 ? item.pict[0].path : ''}))}>
+                                                        <img src={item.pict.length > 0 ? `${REACT_APP_BACKEND_URL}/${item.pict[0].path}` : placeholder} className="imgCard" />
                                                         <div className="txtDoc mb-2">
                                                             {item.nama_asset}
                                                         </div>
@@ -652,7 +621,7 @@ class Disposal extends Component {
                                                     </div>
                                                     <Row className="footCard mb-3 mt-3">
                                                         <Col md={12} xl={12}>
-                                                            <Button className="btnSell" color="primary" onClick={() => this.getDetailDisposal(x)}>Proses</Button>
+                                                            <Button className="btnSell" color="primary" onClick={() => {this.getDetailDisposal(x); this.getApproveDis({nama: 'disposal pengajuan', no: dataDis.find(({no_disposal}) => no_disposal === x).no_disposal})}}>Proses</Button>
                                                         </Col>
                                                     </Row>
                                                 </div>
@@ -682,27 +651,30 @@ class Disposal extends Component {
                         </div>
                     </MaterialTitlePanel>
                 </Sidebar>
-                <Modal show={this.props.asset.isLoading ? true: false} size="sm">
-                        <Modal.Body>
+                <Modal isOpen={this.props.asset.isLoading ? true: false} size="sm">
+                        <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>
                                 <Spinner />
                                 <div sucUpdate>Waiting....</div>
                             </div>
                         </div>
-                        </Modal.Body>
+                        </ModalBody>
                 </Modal>
-                <Modal show={this.props.disposal.isAdd ? true: false} size="sm">
-                        <Modal.Body>
+                <Modal isOpen={this.props.disposal.isAdd ? true: false} size="sm">
+                        <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>
                                 <div sucUpdate>Berhasil menambahkan item disposal</div>
                             </div>
                         </div>
-                        </Modal.Body>
+                        </ModalBody>
                 </Modal>
-                <Modal show={this.state.formDis} onHide={this.openModalDis} size="xl">
-                    <Modal.Body>
+                <Modal isOpen={this.state.formDis} toggle={this.openModalDis} size="xl">
+                    <Alert color="danger" className={style.alertWrong} isOpen={detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true}>
+                        <div>Data Penjualan Asset Sedang Dilengkapi oleh divisi purchasing</div>
+                    </Alert>
+                    <ModalBody>
                         <div className="preDis">
                             <text>PT. Pinus Merah Abadi</text>
                             <text></text>
@@ -768,40 +740,25 @@ class Disposal extends Component {
                             </tbody>
                         </Table>
                         <div className="mb-3">Demikianlah hal yang kami sampaikan, atas perhatiannya kami mengucapkan terima kasih</div>
-                    </Modal.Body>
+                    </ModalBody>
                     <hr />
                     <div className="modalFoot ml-3">
-                        {level === '1' ? (
-                            <div>
-                                <text>Pilih Approval: </text>
-                                <ButtonDropdown className={style.drop} isOpen={dropApp} toggle={this.dropApp}>
-                                <DropdownToggle caret color="light">
-                                    {this.state.nama}
-                                </DropdownToggle>
-                                <DropdownMenu>
-                                    {dataName.length !== 0 && dataName.map(item => {
-                                        return (
-                                            <DropdownItem className={style.item} onClick={() => this.getApproveDis({nama: item.name, no: detailDis[0] !== undefined && detailDis[0].no_disposal})} >{item.name}</DropdownItem>
-                                        )
-                                    })}
-                                </DropdownMenu>
-                                </ButtonDropdown>
-                            </div>
-                        ) : (
-                            <Button color="primary" onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})}>Preview</Button>
-                        )}
+                        <Button color="primary" onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})}>Preview</Button>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="danger" onClick={this.openModalReject}>
+                            <Button className="mr-2" color="danger" disabled={detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true} onClick={this.openModalReject}>
                                 Reject
                             </Button>
-                            <Button color="success" onClick={this.openModalApprove}>
+                            <Button color="success" onClick={this.openModalApprove} disabled={detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true}>
                                 Approve
                             </Button>
                         </div>
                     </div>
                 </Modal>
-                <Modal show={this.state.preview} onHide={this.openPreview} size="xl">
-                    <Modal.Body>
+                <Modal isOpen={this.state.preview} toggle={this.openPreview} size="xl">
+                    <Alert color="danger" className={style.alertWrong} isOpen={detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true}>
+                        <div>Data Penjualan Asset Sedang Dilengkapi oleh divisi purchasing</div>
+                    </Alert>
+                    <ModalBody>
                         <div>PT. Pinus Merah Abadi</div>
                         <div className="modalDis">
                             <text className="titleModDis">Form Pengajuan Disposal Asset</text>
@@ -952,7 +909,7 @@ class Disposal extends Component {
                                </tr>
                            </tbody>
                        </Table>
-                    </Modal.Body>
+                    </ModalBody>
                     <hr />
                     <div className="modalFoot ml-3">
                         <div></div>
@@ -966,30 +923,35 @@ class Disposal extends Component {
                         </div>
                     </div>
                 </Modal>
-                <Modal show={this.state.modalRinci} onHide={this.openModalRinci} size="xl">
-                    <Modal.Header>
+                <Modal isOpen={this.state.modalRinci} toggle={this.openModalRinci} size="xl">
+                    <ModalHeader>
                         Rincian
-                    </Modal.Header>
-                    <Modal.Body>
+                    </ModalHeader>
+                    <ModalBody>
                         <div className="mainRinci">
                             <div className="leftRinci">
-                                <img src={dataRinci.no_asset === '4100000150' ? b : dataRinci.no_asset === '4300001770' ? e : placeholder} className="imgRinci" />
+                                <img src={this.state.img === '' ? placeholder : `${REACT_APP_BACKEND_URL}/${this.state.img}`} className="imgRinci" />
                                 <div className="secImgSmall">
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? b : dataRinci.no_asset === '4300001770' ? e : placeholder} className="imgSmallRinci" />
-                                    </button>
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? a : dataRinci.no_asset === '4300001770' ? d : placeholder} className="imgSmallRinci" />
-                                    </button>
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? c : dataRinci.no_asset === '4300001770' ? f : placeholder} className="imgSmallRinci" />
-                                    </button>
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? a : dataRinci.no_asset === '4300001770' ? g : placeholder} className="imgSmallRinci" />
-                                    </button>
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? c : dataRinci.no_asset === '4300001770' ? d : placeholder} className="imgSmallRinci" />
-                                    </button>
+                                    {dataRinci.pict !== undefined ? (
+                                        dataRinci.pict.length > 0 ? (
+                                            dataRinci.pict.map(item => {
+                                                return (
+                                                    <button className="btnSmallImg" onClick={() => this.setState({img: item.path})}>
+                                                        <img src={`${REACT_APP_BACKEND_URL}/${item.path}`} className="imgSmallRinci" />
+                                                    </button>
+                                                )
+                                            })
+                                        ) : (
+                                            <button className="btnSmallImg">
+                                                <img src={placeholder} className="imgSmallRinci" />
+                                            </button>
+                                        ) 
+                                    ) : (
+                                        <button className="btnSmallImg">
+                                            <img src={placeholder} className="imgSmallRinci" />
+                                        </button>
+                                    )
+                                    }
                                 </div>
                             </div>
                             <div className="rightRinci">
@@ -1014,32 +976,37 @@ class Disposal extends Component {
                                 </div>
                             </div>
                         </div>
-                    </Modal.Body>
+                    </ModalBody>
                 </Modal>
-                <Modal show={this.state.rinciAdmin} onHide={this.openRinciAdmin} size="xl">
-                    <Modal.Header>
+                <Modal isOpen={this.state.rinciAdmin} toggle={this.openRinciAdmin} size="xl">
+                    <ModalHeader>
                         Rincian
-                    </Modal.Header>
-                    <Modal.Body>
+                    </ModalHeader>
+                    <ModalBody>
                         <div className="mainRinci">
                             <div className="leftRinci">
-                                <img src={dataRinci.no_asset === '4100000150' ? b : dataRinci.no_asset === '4300001770' ? e : placeholder} className="imgRinci" />
+                            <img src={this.state.img === '' ? placeholder : `${REACT_APP_BACKEND_URL}/${this.state.img}`} className="imgRinci" />
                                 <div className="secImgSmall">
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? b : dataRinci.no_asset === '4300001770' ? e : placeholder} className="imgSmallRinci" />
-                                    </button>
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? a : dataRinci.no_asset === '4300001770' ? d : placeholder} className="imgSmallRinci" />
-                                    </button>
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? c : dataRinci.no_asset === '4300001770' ? f : placeholder} className="imgSmallRinci" />
-                                    </button>
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? a : dataRinci.no_asset === '4300001770' ? g : placeholder} className="imgSmallRinci" />
-                                    </button>
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? c : dataRinci.no_asset === '4300001770' ? d : placeholder} className="imgSmallRinci" />
-                                    </button>
+                                    {dataRinci.pict !== undefined ? (
+                                        dataRinci.pict.length > 0 ? (
+                                            dataRinci.pict.map(item => {
+                                                return (
+                                                    <button className="btnSmallImg" onClick={() => this.setState({img: item.path})}>
+                                                        <img src={`${REACT_APP_BACKEND_URL}/${item.path}`} className="imgSmallRinci" />
+                                                    </button>
+                                                )
+                                            })
+                                        ) : (
+                                            <button className="btnSmallImg">
+                                                <img src={placeholder} className="imgSmallRinci" />
+                                            </button>
+                                        ) 
+                                    ) : (
+                                        <button className="btnSmallImg">
+                                            <img src={placeholder} className="imgSmallRinci" />
+                                        </button>
+                                    )
+                                    }
                                 </div>
                             </div>
                             <Formik
@@ -1132,13 +1099,13 @@ class Disposal extends Component {
                             )}
                             </Formik>
                         </div>
-                    </Modal.Body>
+                    </ModalBody>
                 </Modal>
-                <Modal size="xl" show={this.state.openModalDoc} onHide={this.closeProsesModalDoc}>
-                <Modal.Header>
+                <Modal size="xl" isOpen={this.state.openModalDoc} toggle={this.closeProsesModalDoc}>
+                <ModalHeader>
                    Kelengkapan Dokumen
-                </Modal.Header>
-                <Modal.Body>
+                </ModalHeader>
+                <ModalBody>
                     <Container>
                         <Alert color="danger" className="alertWrong" isOpen={this.state.upload}>
                             <div>{this.state.errMsg}</div>
@@ -1169,18 +1136,18 @@ class Disposal extends Component {
                             )
                         })}
                     </Container>
-                </Modal.Body>
-                <Modal.Footer>
+                </ModalBody>
+                <ModalFooter>
                     <Button className="mr-2" color="secondary" onClick={this.closeProsesModalDoc}>
                             Close
                         </Button>
                         <Button color="primary" onClick={this.closeProsesModalDoc}>
                             Save 
                     </Button>
-                </Modal.Footer>
+                </ModalFooter>
             </Modal>
-            <Modal show={this.state.openReject} onHide={this.openModalReject} centered={true}>
-                    <Modal.Body>
+            <Modal isOpen={this.state.openReject} toggle={this.openModalReject} centered={true}>
+                    <ModalBody>
                     <Formik
                     initialValues={{
                     alasan: "",
@@ -1214,10 +1181,10 @@ class Disposal extends Component {
                         </div>
                         )}
                         </Formik>
-                    </Modal.Body>
+                    </ModalBody>
                 </Modal>
-                <Modal show={this.state.openApprove} onHide={this.openModalApprove} centered={true}>
-                    <Modal.Body>
+                <Modal isOpen={this.state.openApprove} toggle={this.openModalApprove} centered={true}>
+                    <ModalBody>
                         <div className={style.modalApprove}>
                             <div>
                                 <text>
@@ -1232,11 +1199,11 @@ class Disposal extends Component {
                                 <Button color="secondary" onClick={this.openModalApprove}>Tidak</Button>
                             </div>
                         </div>
-                    </Modal.Body>
+                    </ModalBody>
                 </Modal>
-                <Modal show={this.state.openPdf} size="xl" onHide={this.openModalPdf} centered={true}>
-                <Modal.Header>Dokumen</Modal.Header>
-                    <Modal.Body>
+                <Modal isOpen={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
+                <ModalHeader>Dokumen</ModalHeader>
+                    <ModalBody>
                         <div className={style.readPdf}>
                             <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
                         </div>
@@ -1254,10 +1221,10 @@ class Disposal extends Component {
                                 </div>
                             )}
                         </div>
-                    </Modal.Body>
+                    </ModalBody>
                 </Modal>
-                <Modal show={this.state.openApproveDis} onHide={this.openModalApproveDis} centered={true}>
-                    <Modal.Body>
+                <Modal isOpen={this.state.openApproveDis} toggle={this.openModalApproveDis} centered={true}>
+                    <ModalBody>
                         <div className={style.modalApprove}>
                             <div>
                                 <text>
@@ -1272,10 +1239,10 @@ class Disposal extends Component {
                                 <Button color="secondary" onClick={this.openModalApproveDis}>Tidak</Button>
                             </div>
                         </div>
-                    </Modal.Body>
+                    </ModalBody>
                 </Modal>
-                <Modal show={this.state.openRejectDis} onHide={this.openModalRejectDis} centered={true}>
-                    <Modal.Body>
+                <Modal isOpen={this.state.openRejectDis} toggle={this.openModalRejectDis} centered={true}>
+                    <ModalBody>
                     <Formik
                     initialValues={{
                     alasan: "",
@@ -1309,7 +1276,7 @@ class Disposal extends Component {
                         </div>
                         )}
                         </Formik>
-                    </Modal.Body>
+                    </ModalBody>
                 </Modal>
             </>
         )

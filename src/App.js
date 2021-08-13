@@ -26,6 +26,7 @@ import Sidebar from './components/Sidebar'
 import TaxFinDisposal from './pages/TaxFinDisposal'
 import MonitoringDisposal from './pages/MonitoringDisposal'
 import PurchDisposal from './pages/PurchDisposal'
+import Mutasi from './pages/Mutasi'
 
 class App extends Component {
 
@@ -97,6 +98,9 @@ class App extends Component {
                 </PrivateRoute>
                 <PrivateRoute path='/purchdis'>
                     <PurchDisposal />
+                </PrivateRoute>
+                <PrivateRoute path='/mutasi'>
+                    <Mutasi />
                 </PrivateRoute>
             </Switch>
         </BrowserRouter>

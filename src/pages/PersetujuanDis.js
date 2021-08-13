@@ -546,10 +546,10 @@ class Disposal extends Component {
                                                         </Row>
                                                         <Row className="mb-2">
                                                             <Col md={6} className="txtDoc">
-                                                            No Disposal
+                                                            No Persetujuan
                                                             </Col>
                                                             <Col md={6} className="txtDoc">
-                                                            : D{dataDis.find(({status_app}) => status_app === x).status_app}
+                                                            : {dataDis.find(({status_app}) => status_app === x).status_app}
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">

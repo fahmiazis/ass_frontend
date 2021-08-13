@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-distracting-elements */
 import React, { Component } from 'react'
 import { Container, Collapse, Nav, Navbar,
     NavbarToggler, NavbarBrand, NavItem, NavLink,
@@ -267,7 +268,7 @@ class MasterDepo extends Component {
     }
 
     render() {
-        const {isOpen, dropOpen, dropOpenNum, detail, alert, upload, errMsg} = this.state
+        const {dropOpen, detail, upload, errMsg} = this.state
         const {dataDepo, isGet, alertM, alertMsg, alertUpload, page} = this.props.depo
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')

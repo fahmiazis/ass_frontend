@@ -76,6 +76,7 @@ class Stock extends Component {
     submitStock = async () => {
         const token = localStorage.getItem('token')
         await this.props.submitStock(token)
+        this.getDataAsset()
     }
 
     uploadPicture = e => {
@@ -238,6 +239,14 @@ class Stock extends Component {
         await this.props.getStockAll(token)
     }
 
+    onSearch = async (e) => {
+        this.setState({search: e.target.value})
+        const token = localStorage.getItem("token")
+        if(e.key === 'Enter'){
+            await this.props.getAsset(token, 10, e.target.value, 1)
+        }
+    }
+
     updateAsset = async (value) => {
         const token = localStorage.getItem("token")
         const { dataRinci, fisik, kondisi } = this.state
@@ -261,6 +270,22 @@ class Stock extends Component {
             this.getDataList()
         } else {
             this.getDataStock()
+        }
+    }
+
+    updateNewAsset = async (value) => {
+        const token = localStorage.getItem("token")
+        const data = {
+            [value.target.name]: value.target.value
+        }
+        if (value.target.name === 'lokasi' || value.target.name === 'keterangan' || value.target.name === 'merk') {
+            if (value.key === 'Enter') {
+                await this.props.updateAsset(token, value.item.id, data)
+                this.getDataAsset()
+            }
+        } else {
+            await this.props.updateAsset(token, value.item.id, data)
+            this.getDataAsset()
         }
     }
 
@@ -439,23 +464,104 @@ class Stock extends Component {
                                                     <th>KONDISI</th>
                                                     <th>STATUS ASET</th>
                                                     <th>KETERANGAN</th>
+                                                    <th>Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {dataAsset.length !== 0 && dataAsset.map(item => {
                                                     return (
-                                                    <tr onClick={() => this.openModalEdit(this.setState({dataRinci: item}))}>
+                                                    // <tr onClick={() => this.openModalEdit(this.setState({dataRinci: item}))}>
+                                                    <tr>
                                                         <th scope="row">{(dataAsset.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</th>
                                                         <td>{item.no_asset}</td>
                                                         <td>{item.nama_asset}</td>
-                                                        <td>{item.merk}</td>
+                                                        {/* <td>{item.merk}</td> */}
+                                                        <td>
+                                                            <Input
+                                                            type= "text"
+                                                            name="merk"
+                                                            className="inputRinci"
+                                                            defaultValue={item.merk}
+                                                            onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
+                                                            onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
+                                                            />
+                                                        </td>
                                                         <td>{item.satuan}</td>
                                                         <td>{item.unit}</td>
-                                                        <td>{item.lokasi}</td>
-                                                        <td>{item.status_fisik}</td>
-                                                        <td>{item.kondisi}</td>
-                                                        <td>{item.grouping}</td>
-                                                        <td>{item.keterangan}</td>
+                                                        {/* <td>{item.lokasi}</td> */}
+                                                        <td>
+                                                            <Input
+                                                            type= "text"
+                                                            name="lokasi"
+                                                            className="inputRinci"
+                                                            defaultValue={item.lokasi}
+                                                            onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
+                                                            onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
+                                                            />
+                                                        </td>
+                                                        {/* <td>{item.status_fisik}</td> */}
+                                                        <td>
+                                                            <Input 
+                                                            type="select"
+                                                            className="inputRinci"
+                                                            name="status_fisik"
+                                                            value={item.status_fisik} 
+                                                            onChange={e => {this.updateNewAsset({item: item, target: e.target}); this.selectStatus(e.target.value, this.state.kondisi)} }
+                                                            >
+                                                                <option>-Pilih Status Fisik-</option>
+                                                                <option value="ada">Ada</option>
+                                                                <option value="tidak ada">Tidak Ada</option>
+                                                            </Input>
+                                                        </td>
+                                                        {/* <td>{item.kondisi}</td> */}
+                                                        <td>
+                                                            <Input 
+                                                            type="select"
+                                                            name="kondisi"
+                                                            className="inputRinci"
+                                                            value={item.kondisi} 
+                                                            onChange={e => {this.updateNewAsset({item: item, target: e.target}); this.selectStatus(this.state.fisik, e.target.value)} }
+                                                            >
+                                                                <option>-Pilih Kondisi-</option>
+                                                                <option value="baik">Baik</option>
+                                                                <option value="rusak">Rusak</option>
+                                                                <option value="">-</option>
+                                                            </Input>
+                                                        </td>
+                                                        {/* <td>{item.grouping}</td> */}
+                                                        <td>
+                                                            <Input 
+                                                            type="select"
+                                                            className="inputRinci"
+                                                            name="grouping"
+                                                            value={item.grouping}
+                                                            defaultValue={item.grouping}
+                                                            onChange={e => this.updateNewAsset({item: item, target: e.target})}
+                                                            >
+                                                                <option>{item.grouping === null || '' ? "-Pilih Status Aset-" : item.grouping}</option>
+                                                                {dataStatus.length > 0 && dataStatus.map(x => {
+                                                                    return (
+                                                                        x.status === item.grouping ? (
+                                                                            <div></div>
+                                                                        ) : (
+                                                                            <option value={x.status}>{x.status}</option>
+                                                                        )
+                                                                    )
+                                                                })}
+                                                            </Input>
+                                                        </td>
+                                                        {/* <td>{item.keterangan}</td> */}
+                                                        <td>
+                                                            <Input
+                                                            type= "text"
+                                                            name="keterangan"
+                                                            className="inputRinci"
+                                                            defaultValue={item.keterangan}
+                                                            onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
+                                                            onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
+                                                            />
+                                                        </td>
+                                                        <td><Button color="primary" onClick={() => this.openModalEdit(this.setState({dataRinci: item}))}>Rincian</Button></td>
                                                     </tr>
                                                     )})}
                                             </tbody>
@@ -513,7 +619,7 @@ class Stock extends Component {
                                                             </div>
                                                             <Row className="footCard mb-3 mt-3">
                                                                 <Col md={12} xl={12} className="colFoot">
-                                                                    <Button className="btnSell" color="primary" onClick={() => this.getDetailStock(item)}>Proses</Button>
+                                                                    <Button className="btnSell" color="primary" onClick={() => {this.getDetailStock(item); this.getApproveStock({nama: 'stock opname', no: item.no_stock})}}>Proses</Button>
                                                                     <Button className="btnSell ml-2" color="danger" onClick={() => this.deleteStock(item)}>Delete</Button>
                                                                 </Col>
                                                             </Row>
@@ -812,6 +918,8 @@ class Stock extends Component {
                                         <th>LOKASI</th>
                                         <th>GROUPING</th>
                                         <th>KETERANGAN</th>
+                                        <th>NOTES</th>
+                                        <th>ACTION</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -828,6 +936,14 @@ class Stock extends Component {
                                             <td>{item.lokasi}</td>
                                             <td>{item.grouping}</td>
                                             <td>{item.keterangan}</td>
+                                            <td>
+                                                <Input
+                                                type= "text"
+                                                className="inputRinci"
+                                                defaultValue=""
+                                                />
+                                            </td>
+                                            <td><Button>Update</Button></td>
                                         </tr>
                                         )})}
                                 </tbody>
@@ -836,26 +952,7 @@ class Stock extends Component {
                         )}
                     </ModalBody>
                     <div className="modalFoot ml-3">
-                        {level === '1' || level === '2' ? (
-                            <div>
-                                <text>Pilih Approval: </text>
-                                <ButtonDropdown className={style.drop} isOpen={dropApp} toggle={this.dropApp}>
-                                <DropdownToggle caret color="light">
-                                    {this.state.nama}
-                                </DropdownToggle>
-                                <DropdownMenu>
-                                    {dataName.length !== 0 && dataName.map(item => {
-                                        return (
-                                            <DropdownItem className={style.item} onClick={() => this.getApproveStock({nama: item.name, no: dataItem.no_stock})}>{item.name}</DropdownItem>
-                                        )
-                                    })}
-                                </DropdownMenu>
-                                </ButtonDropdown>
-                                <Button color="primary" className="ml-3" onClick={() => this.openPreview(dataItem.no_stock)}>Preview</Button>
-                            </div>
-                        ) : (
-                            <Button color="primary"  onClick={() => this.openPreview(dataItem.no_stock)}>Preview</Button>
-                        )}
+                        <Button color="primary"  onClick={() => this.openPreview(dataItem.no_stock)}>Preview</Button>
                         <div className="btnFoot">
                             <Button className="mr-2" color="danger" onClick={this.openModalReject}>
                                 Reject
