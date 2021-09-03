@@ -531,6 +531,7 @@ class Approve extends Component {
                                 >
                                     <option>-Pilih Sebagai-</option>
                                     <option value="pembuat">Pembuat</option>
+                                    <option value="penerima">Penerima</option>
                                     <option value="pemeriksa">Pemeriksa</option>
                                     <option value="penyetuju">Penyetuju</option>
                                 </Input>

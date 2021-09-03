@@ -1,20 +1,19 @@
 /* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable jsx-a11y/no-distracting-elements */
 import React, { Component } from 'react'
-import {NavbarBrand, UncontrolledDropdown, DropdownToggle, DropdownMenu, Dropdown,
-    DropdownItem, Table, ButtonDropdown, Input, Button, Row, Col,
+import {NavbarBrand, Input, Button, Row, Col,
     Modal, ModalHeader, ModalBody, ModalFooter, Container, Alert, Spinner} from 'reactstrap'
-import logo from "../assets/img/logo.png"
 import style from '../assets/css/input.module.css'
-import {FaSearch, FaUserCircle, FaBars, FaTrash} from 'react-icons/fa'
-import {AiOutlineFileExcel, AiFillCheckCircle,  AiOutlineCheck, AiOutlineClose} from 'react-icons/ai'
-import {BsCircle, BsDashCircleFill, BsFillCircleFill} from 'react-icons/bs'
+import {FaUserCircle, FaBars} from 'react-icons/fa'
+import {AiOutlineCheck, AiOutlineClose} from 'react-icons/ai'
+import {BsCircle} from 'react-icons/bs'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
 import disposal from '../redux/actions/disposal'
 import setuju from '../redux/actions/setuju'
 import {connect} from 'react-redux'
 import moment from 'moment'
+import Pdf from "../components/Pdf"
 import auth from '../redux/actions/auth'
 import {default as axios} from 'axios'
 import Sidebar from "../components/Header";
@@ -28,6 +27,7 @@ import d from "../assets/img/d.jpg"
 import e from "../assets/img/e.jpg"
 import f from "../assets/img/f.png"
 import g from "../assets/img/g.png"
+const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
     merk: Yup.string().validateSync(""),
@@ -81,7 +81,8 @@ class TaxFinDisposal extends Component {
             modalRinci: false,
             dataRinci: {},
             openModalDoc: false,
-            alertSubmit: false
+            alertSubmit: false,
+            openPdf: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -95,6 +96,20 @@ class TaxFinDisposal extends Component {
                 alert: false
             })
          }, 10000)
+    }
+
+    showDokumen = async (value) => {
+        const token = localStorage.getItem('token')
+        await this.props.showDokumen(token, value.id)
+        this.setState({date: value.updatedAt, idDoc: value.id, fileName: value})
+        const {isShow} = this.props.pengadaan
+        if (isShow) {
+            this.openModalPdf()
+        }
+    }
+
+    openModalPdf = () => {
+        this.setState({openPdf: !this.state.openPdf})
     }
 
     submitTaxFinDisposal = async (value) => {
@@ -216,7 +231,7 @@ class TaxFinDisposal extends Component {
     }
 
     componentDidUpdate() {
-        const {isError, isGet, isUpload, isSubmit} = this.props.disposal
+        const {isError, isUpload, isSubmit} = this.props.disposal
         const token = localStorage.getItem('token')
         const level = localStorage.getItem('level')
         const {dataRinci} = this.state
@@ -290,8 +305,8 @@ class TaxFinDisposal extends Component {
     }
 
     render() {
-        const {isOpen, dropOpen, dropOpenNum, detail, alert, upload, errMsg, dataRinci} = this.state
-        const {dataDis, isGet, alertM, alertMsg, alertUpload, page, dataDoc} = this.props.disposal
+        const {alert, dataRinci} = this.state
+        const {dataDis, alertM, alertMsg, dataDoc} = this.props.disposal
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
 
@@ -775,6 +790,28 @@ class TaxFinDisposal extends Component {
                     </div>
                 </ModalBody>
             </Modal>
+            <Modal show={this.state.openPdf} size="xl" onHide={this.openModalPdf} centered={true}>
+                <Modal.Header>Dokumen</Modal.Header>
+                    <Modal.Body>
+                        <div className={style.readPdf}>
+                            <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
+                        </div>
+                        <hr/>
+                        <div className={style.foot}>
+                            <div>
+                                <Button color="success">Download</Button>
+                            </div>
+                        {level === '5' ? (
+                            <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                            ) : (
+                                <div>
+                                    <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
+                                    <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
+                                </div>
+                            )}
+                        </div>
+                    </Modal.Body>
+                </Modal>
         </>
         )
     }

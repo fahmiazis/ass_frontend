@@ -67,7 +67,8 @@ class Stock extends Component {
             view: 'card',
             fisik: '',
             kondisi: '',
-            alert: false
+            alert: false,
+            submitPre: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -216,9 +217,9 @@ class Stock extends Component {
     getDataAsset = async (value) => {
         const token = localStorage.getItem("token")
         const { page } = this.props.asset
-        const search = value === undefined ? '' : this.state.search
+        const search = value === undefined ? '' : value.search
         const limit = value === undefined ? this.state.limit : value.limit
-        await this.props.getAsset(token, limit, search, page.currentPage)
+        await this.props.getAsset(token, limit, search, page.currentPage, 'asset')
         await this.props.getDetailDepo(token, 1)
         this.setState({limit: value === undefined ? 10 : value.limit})
     }
@@ -237,6 +238,17 @@ class Stock extends Component {
         const token = localStorage.getItem("token")
         await this.props.getDepo(token, 400, '', 1)
         await this.props.getStockAll(token)
+    }
+
+    modalSubmitPre = () => {
+        this.setState({submitPre: !this.state.submitPre})
+    }
+
+    prosesSubmitPre = async () => {
+        const token = localStorage.getItem("token")
+        const { page } = this.props.asset
+        await this.props.getAsset(token, 1000, '', page.currentPage, 'asset')
+        this.modalSubmitPre()
     }
 
     onSearch = async (e) => {
@@ -304,11 +316,9 @@ class Stock extends Component {
         const names = localStorage.getItem('name')
         const {dataRinci, dropApp, dataItem} = this.state
         const { detailDepo, dataDepo } = this.props.depo
-        const { dataName } = this.props.approve
         const {dataAsset, alertUpload, page} = this.props.asset
         const { dataStock, detailStock, stockApp, dataStatus, alertM, alertMsg } = this.props.stock
         const pages = this.props.depo.page
-        const { dataDis, noDis, dataDoc, disApp } = this.props.disposal
 
         const contentHeader =  (
             <div className={style.navbar}>
@@ -360,8 +370,7 @@ class Stock extends Component {
                             <div className={style.secEmail}>
                                     {level === '5' ? (
                                         <div className={style.headEmail}>
-                                            {/* <Button color="success" size="lg" onClick={this.openModalDis}>Open Form</Button> */}
-                                            <Button onClick={this.submitStock} color="info" size="lg" className="btnGoCart">Submit</Button>
+                                            <Button onClick={this.prosesSubmitPre} color="info" size="lg" className="btnGoCart">Submit</Button>
                                         </div>
                                     ) : (
                                         <div className={style.headEmail}>
@@ -464,6 +473,7 @@ class Stock extends Component {
                                                     <th>KONDISI</th>
                                                     <th>STATUS ASET</th>
                                                     <th>KETERANGAN</th>
+                                                    <th>Picture</th>
                                                     <th>Action</th>
                                                 </tr>
                                             </thead>
@@ -561,6 +571,15 @@ class Stock extends Component {
                                                             onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                             />
                                                         </td>
+                                                        <td>
+                                                            {item.pict === undefined || item.pict.length === 0 ? 
+                                                            <Input type="file" onChange={this.uploadPicture} onClick={() => this.setState({dataRinci: item})}>Upload</Input> : 
+                                                            <div className="">
+                                                                <text>Picture</text>
+                                                                <Input type="file" onChange={this.uploadPicture} onClick={() => this.setState({dataRinci: item})}>Upload</Input>
+                                                            </div>
+                                                            }
+                                                        </td>
                                                         <td><Button color="primary" onClick={() => this.openModalEdit(this.setState({dataRinci: item}))}>Rincian</Button></td>
                                                     </tr>
                                                     )})}
@@ -577,7 +596,7 @@ class Stock extends Component {
                                                 {dataStock.length !== 0 && dataStock.map(item => {
                                                     return (
                                                         <div className="bodyCard">
-                                                            <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="imgCard" />
+                                                            <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="imgCard1" />
                                                             <Button size="sm" color="success" className="labelBut">Stock Opname</Button>
                                                             {/* <button className="btnDispos" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}></button> */}
                                                             <div className="btnDispos ml-2">
@@ -918,8 +937,6 @@ class Stock extends Component {
                                         <th>LOKASI</th>
                                         <th>GROUPING</th>
                                         <th>KETERANGAN</th>
-                                        <th>NOTES</th>
-                                        <th>ACTION</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -936,14 +953,6 @@ class Stock extends Component {
                                             <td>{item.lokasi}</td>
                                             <td>{item.grouping}</td>
                                             <td>{item.keterangan}</td>
-                                            <td>
-                                                <Input
-                                                type= "text"
-                                                className="inputRinci"
-                                                defaultValue=""
-                                                />
-                                            </td>
-                                            <td><Button>Update</Button></td>
                                         </tr>
                                         )})}
                                 </tbody>
@@ -1213,6 +1222,103 @@ class Stock extends Component {
                             </div>
                         </div>
                     </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.submitPre} toggle={this.modalSubmitPre} size="xl">
+                    <ModalHeader>
+                        Rincian
+                    </ModalHeader>
+                    <ModalBody>
+                        <div>
+                            <div className="stockTitle">kertas kerja opname aset kantor</div>
+                            <div className="ptStock">pt. pinus merah abadi</div>
+                            <Row className="ptStock inputStock">
+                                <Col md={3} xl={3} sm={3}>kantor pusat/cabang</Col>
+                                <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={dataAsset.length > 0 ? dataAsset[0].area : ''} className="ml-3"  /></Col>
+                            </Row>
+                            <Row className="ptStock inputStock">
+                                <Col md={3} xl={3} sm={3}>depo/cp</Col>
+                                <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={dataAsset.length > 0 ? dataAsset[0].area : ''} className="ml-3" /></Col>
+                            </Row>
+                            <Row className="ptStock inputStock">
+                                <Col md={3} xl={3} sm={3}>opname per tanggal</Col>
+                                <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={moment().format('LL')} className="ml-3"  /></Col>
+                            </Row>
+                        </div>
+                        {dataAsset.length === 0 ? (
+                            <div className={style.tableDashboard}>
+                                <Table bordered responsive hover className={style.tab}>
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>NO. ASET</th>
+                                            <th>DESKRIPSI</th>
+                                            <th>MERK</th>
+                                            <th>SATUAN</th>
+                                            <th>UNIT</th>
+                                            <th>KONDISI</th>
+                                            <th>LOKASI</th>
+                                            <th>GROUPING</th>
+                                            <th>KETERANGAN</th>
+                                        </tr>
+                                    </thead>
+                                </Table>
+                                <div className={style.spin}>
+                                        <Spinner type="grow" color="primary"/>
+                                        <Spinner type="grow" className="mr-3 ml-3" color="success"/>
+                                        <Spinner type="grow" color="warning"/>
+                                        <Spinner type="grow" className="mr-3 ml-3" color="danger"/>
+                                        <Spinner type="grow" color="info"/>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className={style.tableDashboard}>
+                            <Table bordered responsive hover className={style.tab}>
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>NO. ASET</th>
+                                        <th>DESKRIPSI</th>
+                                        <th>MERK</th>
+                                        <th>SATUAN</th>
+                                        <th>UNIT</th>
+                                        <th>KONDISI</th>
+                                        <th>LOKASI</th>
+                                        <th>GROUPING</th>
+                                        <th>KETERANGAN</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {dataAsset.length !== 0 && dataAsset.map(item => {
+                                        return (
+                                        <tr onClick={() => this.openModalEdit(this.setState({dataRinci: item}))}>
+                                            <th scope="row">{(dataAsset.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</th>
+                                            <td>{item.no_asset}</td>
+                                            <td>{item.deskripsi}</td>
+                                            <td>{item.merk}</td>
+                                            <td>{item.satuan}</td>
+                                            <td>{item.unit}</td>
+                                            <td>{item.kondisi}</td>
+                                            <td>{item.lokasi}</td>
+                                            <td>{item.grouping}</td>
+                                            <td>{item.keterangan}</td>
+                                        </tr>
+                                        )})}
+                                </tbody>
+                            </Table>
+                        </div>
+                        )}
+                    </ModalBody>
+                    <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
+                        <div>{alertM}</div>
+                    </Alert>
+                    <div className="modalFoot ml-3">
+                        <div></div>
+                        <div className="btnFoot">
+                            <Button className="mr-2" color="success" onClick={this.submitStock}>
+                                Submit
+                            </Button>
+                        </div>
+                    </div>
                 </Modal>
             </>
         )

@@ -104,7 +104,6 @@ class EksekusiDisposal extends Component {
 
     openModalPdf = () => {
         this.setState({openPdf: !this.state.openPdf})
-        this.setState({openModalDoc: !this.state.openModalDoc})
     }
 
     onChangeUpload = e => {

@@ -27,6 +27,9 @@ import TaxFinDisposal from './pages/TaxFinDisposal'
 import MonitoringDisposal from './pages/MonitoringDisposal'
 import PurchDisposal from './pages/PurchDisposal'
 import Mutasi from './pages/Mutasi'
+import CartMutasi from './pages/CartMutasi'
+import NavStock from './pages/NavStock'
+import NavDisposal from './pages/NavDisposal'
 
 class App extends Component {
 
@@ -101,6 +104,15 @@ class App extends Component {
                 </PrivateRoute>
                 <PrivateRoute path='/mutasi'>
                     <Mutasi />
+                </PrivateRoute>
+                <PrivateRoute path='/cartmut'>
+                    <CartMutasi />
+                </PrivateRoute>
+                <PrivateRoute path='/navstock'>
+                    <NavStock />
+                </PrivateRoute>
+                <PrivateRoute path='/navdis'>
+                    <NavDisposal />
                 </PrivateRoute>
             </Switch>
         </BrowserRouter>

@@ -70,7 +70,8 @@ class CartDisposal extends Component {
             modalRinci: false,
             dataRinci: {},
             openModalDoc: false,
-            alertSubmit: false
+            alertSubmit: false,
+            limImage: 20000000
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -89,7 +90,7 @@ class CartDisposal extends Component {
     onChangeUpload = e => {
         const {size, type} = e.target.files[0]
         this.setState({fileUpload: e.target.files[0]})
-        if (size >= 20000000) {
+        if (size >= this.state.limImage) {
             this.setState({errMsg: "Maximum upload size 20 MB"})
             this.uploadAlert()
         } else if (type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && type !== 'application/vnd.ms-excel' && type !== 'application/pdf' && type !== 'application/x-7z-compressed' && type !== 'application/vnd.rar' && type !== 'application/zip' && type !== 'application/x-zip-compressed' && type !== 'application/octet-stream' && type !== 'multipart/x-zip' && type !== 'application/x-rar-compressed') {
@@ -313,7 +314,7 @@ class CartDisposal extends Component {
                                             return (
                                                 <div className="cart">
                                                     <div className="navCart">
-                                                        <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="cartImg" />
+                                                        <img src={item.pict.length > 0 ? `${REACT_APP_BACKEND_URL}/${item.pict[0].path}` : placeholder} className="cartImg" />
                                                         <Button className="labelBut" color="warning" size="sm">{item.nilai_jual === '0' ? 'Pemusnahan' : 'Penjualan'}</Button>
                                                         <div className="txtCart">
                                                             <div>
@@ -356,23 +357,28 @@ class CartDisposal extends Component {
                         </Alert>
                         <div className="mainRinci">
                             <div className="leftRinci">
-                                <img src={dataRinci.no_asset === '4100000150' ? b : dataRinci.no_asset === '4300001770' ? e : placeholder} className="imgRinci" />
+                                <img src={dataRinci.pict === undefined || dataRinci.pict.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${dataRinci.pict[dataRinci.pict.length - 1].path}`} className="imgRinci" />
                                 <div className="secImgSmall">
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? b : dataRinci.no_asset === '4300001770' ? e : placeholder} className="imgSmallRinci" />
-                                    </button>
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? a : dataRinci.no_asset === '4300001770' ? d : placeholder} className="imgSmallRinci" />
-                                    </button>
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? c : dataRinci.no_asset === '4300001770' ? f : placeholder} className="imgSmallRinci" />
-                                    </button>
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? a : dataRinci.no_asset === '4300001770' ? g : placeholder} className="imgSmallRinci" />
-                                    </button>
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? c : dataRinci.no_asset === '4300001770' ? d : placeholder} className="imgSmallRinci" />
-                                    </button>
+                                    {dataRinci.pict !== undefined ? (
+                                        dataRinci.pict.length > 0 ? (
+                                            dataRinci.pict.map(item => {
+                                                return (
+                                                    <button className="btnSmallImg" onClick={() => this.setState({img: item.path})}>
+                                                        <img src={`${REACT_APP_BACKEND_URL}/${item.path}`} className="imgSmallRinci" />
+                                                    </button>
+                                                )
+                                            })
+                                        ) : (
+                                            <button className="btnSmallImg">
+                                                <img src={placeholder} className="imgSmallRinci" />
+                                            </button>
+                                        ) 
+                                    ) : (
+                                        <button className="btnSmallImg">
+                                            <img src={placeholder} className="imgSmallRinci" />
+                                        </button>
+                                    )
+                                    }
                                 </div>
                             </div>
                             <Formik
@@ -388,13 +394,13 @@ class CartDisposal extends Component {
                                 <div className="rightRinci">
                                     <div>
                                         <div className="titRinci">{dataRinci.nama_asset}</div>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>No Asset</Col>
-                                            <Col md={9}>:  <input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
                                         </Row>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Merk / Type</Col>
-                                            <Col md={9}>:  <input
+                                            <Col md={9} className="colRinci">:  <Input
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.merk}
@@ -410,26 +416,26 @@ class CartDisposal extends Component {
                                             <Col md={3}>Kategori</Col>
                                             <Col md={9} className="katCheck">: 
                                                 <div className="katCheck">
-                                                    <div className="ml-2"><input type="checkbox"/> IT</div>
-                                                    <div className="ml-3"><input type="checkbox"/> Non IT</div>
+                                                    <div className="ml-2"><input type="checkbox" checked={dataRinci.kategori === 'IT' ? true : false}/> IT</div>
+                                                    <div className="ml-3"><input type="checkbox" checked={dataRinci.kategori === 'NON IT' ? true : false}/> Non IT</div>
                                                 </div>
                                             </Col>
                                         </Row>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Status Area</Col>
-                                            <Col md={9}>:  <input className="inputRinci" value={dataRinci.status_depo} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.status_depo} disabled /></Col>
                                         </Row>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Cost Center</Col>
-                                            <Col md={9}>:  <input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
                                         </Row>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Nilai Buku</Col>
-                                            <Col md={9}>:  <input className="inputRinci" disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku} disabled /></Col>
                                         </Row>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Nilai Jual</Col>
-                                            <Col md={9}>:  <input 
+                                            <Col md={9} className="colRinci">:  <Input 
                                                 className="inputRinci" 
                                                 value={values.nilai_jual} 
                                                 onBlur={handleBlur("nilai_jual")}
@@ -441,10 +447,11 @@ class CartDisposal extends Component {
                                         {errors.nilai_jual ? (
                                             <text className={style.txtError}>{errors.nilai_jual}</text>
                                         ) : null}
-                                        <Row>
+                                        <Row className="mb-4 rowRinci">
                                             <Col md={3}>Keterangan</Col>
-                                            <Col md={9}>:  <select
+                                            <Col md={9} className="colRinci">:  <Input
                                                 className="inputRinci"
+                                                type="select"
                                                 value={values.keterangan} 
                                                 onBlur={handleBlur("keterangan")}
                                                 onChange={handleChange("keterangan")}
@@ -455,7 +462,7 @@ class CartDisposal extends Component {
                                                             <option value={item.nama}>{item.nama}</option>
                                                         )
                                                     })}
-                                                </select>
+                                                </Input>
                                             </Col>
                                         </Row>
                                         {errors.keterangan ? (
@@ -508,23 +515,25 @@ class CartDisposal extends Component {
                                                 <BsCircle size={20} />
                                             )}
                                             <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
-                                            <div>
+                                            <div className="colDoc">
                                                 <input
                                                 className="ml-4"
                                                 type="file"
                                                 onClick={() => this.setState({detail: x})}
                                                 onChange={this.onChangeUpload}
                                                 />
+                                                <text className="txtError ml-4">Maximum file upload is 20 Mb</text>
                                             </div>
                                         </Col>
                                     ) : (
-                                        <Col md={6} lg={6} >
+                                        <Col md={6} lg={6} className="colDoc">
                                             <input
                                             className="ml-4"
                                             type="file"
                                             onClick={() => this.setState({detail: x})}
                                             onChange={this.onChangeUpload}
                                             />
+                                            <text className="txtError ml-4">Maximum file upload is 20 Mb</text>
                                         </Col>
                                     )}
                                 </Row>
@@ -534,10 +543,10 @@ class CartDisposal extends Component {
                 </ModalBody>
                 <ModalFooter>
                     <Button className="mr-2" color="secondary" onClick={this.closeProsesModalDoc}>
-                            Close
-                        </Button>
-                        <Button color="primary" onClick={this.closeProsesModalDoc}>
-                            Save 
+                        Close
+                    </Button>
+                    <Button color="primary" onClick={this.closeProsesModalDoc}>
+                        Save 
                     </Button>
                 </ModalFooter>
             </Modal>

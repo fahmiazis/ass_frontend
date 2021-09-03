@@ -6,7 +6,7 @@ import { Container, NavbarBrand, Table, Input, Button, Col,
 import style from '../assets/css/input.module.css'
 import {FaSearch, FaUserCircle, FaBars, FaCartPlus} from 'react-icons/fa'
 import {BsCircle} from 'react-icons/bs'
-import { AiOutlineCheck, AiOutlineClose} from 'react-icons/ai'
+import { AiOutlineCheck, AiOutlineClose, AiFillCheckCircle} from 'react-icons/ai'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
 import Pdf from "../components/Pdf"
@@ -86,7 +86,9 @@ class Disposal extends Component {
             openRejectDis: false,
             fileName: {},
             dataApp: {},
-            img: ''
+            img: '',
+            limImage: 20000,
+            submitPre: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -132,12 +134,14 @@ class Disposal extends Component {
 
     openModalReject = () => {
         this.setState({openReject: !this.state.openReject})
-        this.openModalDis()
     }
 
     openModalApprove = () => {
         this.setState({openApprove: !this.state.openApprove})
-        this.openModalDis()
+    }
+
+    modalSubmitPre = () => {
+        this.setState({submitPre: !this.state.submitPre})
     }
 
     approveDokumen = async () => {
@@ -167,12 +171,14 @@ class Disposal extends Component {
     approveDisposal = async (value) => {
         const token = localStorage.getItem('token')
         await this.props.approveDisposal(token, value)
+        this.openModalApprove()
         this.getDataDisposal()
     }
 
     rejectDisposal = async (value) => {
         const token = localStorage.getItem('token')
         await this.props.rejectDisposal(token, value.no, value.value)
+        this.openModalReject()
         this.getDataDisposal()
     }
 
@@ -274,7 +280,6 @@ class Disposal extends Component {
 
     openModalPdf = () => {
         this.setState({openPdf: !this.state.openPdf})
-        this.setState({openModalDoc: !this.state.openModalDoc})
     }
 
     addDokumen = async (values) => {
@@ -316,7 +321,7 @@ class Disposal extends Component {
 
     componentDidUpdate() {
         const {isError, isUpload, isExport} = this.props.asset
-        const {isAdd, isAppDoc, isRejDoc} = this.props.disposal
+        const {isAdd, isAppDoc, isRejDoc, approve, reject, rejReject, rejApprove} = this.props.disposal
         const token = localStorage.getItem('token')
         const { dataRinci } = this.state
         if (isError) {
@@ -344,6 +349,20 @@ class Disposal extends Component {
              setTimeout(() => {
                 this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'pengajuan')
              }, 1100)
+        } else if (reject) {
+            this.openConfirm(this.setState({confirm: 'reject'}))
+            this.props.resAppRej()
+        } else if (approve) {
+            this.openConfirm(this.setState({confirm: 'approve'}))
+            this.props.resAppRej()
+        } else if (rejReject) {
+            this.openConfirm(this.setState({confirm: 'rejReject'}))
+            this.openModalReject()
+            this.props.resAppRej()
+        } else if (rejApprove) {
+            this.openConfirm(this.setState({confirm: 'rejApprove'}))
+            this.openModalApprove()
+            this.props.resAppRej()
         }
     }
 
@@ -359,6 +378,7 @@ class Disposal extends Component {
     goSetDispos = async () => {
         const token = localStorage.getItem("token")
         await this.props.submitSetDisposal(token)
+        this.modalSubmitPre()
         this.getDataDisposal()
     }
 
@@ -376,7 +396,7 @@ class Disposal extends Component {
         const { page } = this.props.asset
         const search = value === undefined ? '' : this.state.search
         const limit = value === undefined ? this.state.limit : value.limit
-        await this.props.getAsset(token, limit, search, page.currentPage)
+        await this.props.getAsset(token, limit, search, page.currentPage, 'disposal')
         this.setState({limit: value === undefined ? 12 : value.limit})
     }
 
@@ -388,6 +408,13 @@ class Disposal extends Component {
         await this.props.getDisposal(token, limit, search, page.currentPage, 2)
         await this.props.getNameApprove(token)
         this.setState({limit: value === undefined ? 10 : value.limit})
+    }
+
+    getSubmitDisposal = async (value) => {
+        const token = localStorage.getItem("token")
+        const { page } = this.props.disposal
+        await this.props.getSubmitDisposal(token, 1000, '', page.currentPage, 9)
+        this.modalSubmitPre()
     }
 
     menuButtonClick(ev) {
@@ -415,7 +442,7 @@ class Disposal extends Component {
         const {alert, upload, errMsg, detailDis} = this.state
         const {dataAsset, alertM, alertMsg, alertUpload, page} = this.props.asset
         const pages = this.props.disposal.page 
-        const { dataDis, noDis, dataDoc, disApp } = this.props.disposal
+        const { dataDis, noDis, dataDoc, disApp, dataSubmit } = this.props.disposal
         const {dataRinci} = this.state
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
@@ -483,7 +510,7 @@ class Disposal extends Component {
                                         </div>
                                     ) : (
                                         <div className={style.headEmail}>
-                                            <Button onClick={this.goSetDispos} color="info" size="lg" className="btnGoCart">Submit</Button>
+                                            <Button onClick={this.getSubmitDisposal} color="info" size="lg" className="btnGoCart">Submit</Button>
                                         </div>
                                     )}
                                     <div className={style.searchEmail}>
@@ -512,7 +539,7 @@ class Disposal extends Component {
                                                             {item.nama_asset}
                                                         </div>
                                                         <Row className="mb-2">
-                                                            <Col md={4}>
+                                                            <Col md={4} className="txtDoc">
                                                             No Asset
                                                             </Col>
                                                             <Col md={8} className="txtDoc">
@@ -520,27 +547,33 @@ class Disposal extends Component {
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">
-                                                            <Col md={4}>
-                                                            No Doc
-                                                            </Col>
-                                                            <Col md={8} className="txtDoc">
-                                                            : {item.no_doc}
-                                                            </Col>
-                                                        </Row>
+                                                                <Col md={4} className="txtDoc">Nilai Buku</Col>
+                                                                <Col md={8} className="txtDoc">: {item.nilai_buku}</Col>
+                                                            </Row>
+                                                            <Row className="mb-2">
+                                                                <Col md={4} className="txtDoc">Kategori</Col>
+                                                                <Col md={8} className="txtDoc">: {item.kategori}</Col>
+                                                            </Row>
                                                     </button>
                                                     {item.status === '1' ? (
                                                         <Row className="footCard">
                                                             <Col md={12} xl={12}>
-                                                                <Button disabled className="btnSell" color="secondary">On Process</Button>
+                                                                <Button disabled className="btnSell" color="secondary">On Process Disposal</Button>
+                                                            </Col>
+                                                        </Row>
+                                                    ) : item.status === '11' ? (
+                                                        <Row className="footCard">
+                                                            <Col md={12} xl={12}>
+                                                                <Button disabled className="btnSell" color="secondary">On Proses Mutasi</Button>
                                                             </Col>
                                                         </Row>
                                                     ) : (
                                                         <Row className="footCard">
                                                             <Col md={6} xl={6}>
-                                                                <Button className="btnSell" color="warning" onClick={() => this.addSell(item.id)}>Sell</Button>
+                                                                <Button className="btnSell" color="warning" onClick={() => this.addSell(item.no_asset)}>Sell</Button>
                                                             </Col>
                                                             <Col md={6} xl={6}>
-                                                                <Button className="btnSell" color="info" onClick={() => this.addDisposal(item.id)}>Dispose</Button>
+                                                                <Button className="btnSell" color="info" onClick={() => this.addDisposal(item.no_asset)}>Dispose</Button>
                                                             </Col>
                                                         </Row>
                                                     )}
@@ -550,14 +583,14 @@ class Disposal extends Component {
                                         </Row>
                                     )
                                 ) : (
-                                    noDis.length === 0 ? (
+                                    noDis === undefined ? (
                                         <div></div>
                                     ) : (
                                         <Row className="bodyDispos">
                                         {noDis.length !== 0 && noDis.map(x => {
                                             return (
                                                 <div className="bodyCard">
-                                                    <img src={dataDis.find(({no_disposal}) => no_disposal === x).no_asset === '4100000150' ? b : dataDis.find(({no_disposal}) => no_disposal === x).no_asset === '4300001770' ? e : placeholder} className="imgCard" />
+                                                    <img src={dataDis.find(({no_disposal}) => no_disposal === x).no_asset === '4100000150' ? b : dataDis.find(({no_disposal}) => no_disposal === x).no_asset === '4300001770' ? e : placeholder} className="imgCard1" />
                                                     
                                                     {dataDis.find(({no_disposal}) => no_disposal === x).nilai_jual === '0' ? 
                                                      (
@@ -632,7 +665,11 @@ class Disposal extends Component {
                                 )}
                                 <div>
                                     <div className={style.infoPageEmail}>
-                                        <text>Showing {level === '5' ? page.currentPage : pages.currentPage} of {level === '5' ? page.pages : pages.pages} pages</text>
+                                        {level === '5' ? (
+                                            <text>Showing {page.currentPage} of {page.pages} pages</text>
+                                        ) : (
+                                            <text>Showing {pages === undefined ? 1 : pages.currentPage} of {pages === undefined ? 1 : pages.pages} pages</text>
+                                        )}
                                         <div className={style.pageButton}>
                                             {level === '5' ? (
                                                 <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
@@ -651,7 +688,17 @@ class Disposal extends Component {
                         </div>
                     </MaterialTitlePanel>
                 </Sidebar>
-                <Modal isOpen={this.props.asset.isLoading ? true: false} size="sm">
+                <Modal isOpen={this.props.asset.isLoading && level === '5' ? true: false} size="sm">
+                        <ModalBody>
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <Spinner />
+                                <div sucUpdate>Waiting....</div>
+                            </div>
+                        </div>
+                        </ModalBody>
+                </Modal>
+                <Modal isOpen={this.props.disposal.isLoading ? true: false} size="sm">
                         <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>
@@ -838,7 +885,7 @@ class Disposal extends Component {
                                                     {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
                                                         return (
                                                             <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
                                                                 <div>{item.nama === null ? "-" : item.nama}</div>
                                                             </th>
                                                         )
@@ -863,7 +910,7 @@ class Disposal extends Component {
                                                     {disApp.pemeriksa !== undefined && disApp.pemeriksa.map(item => {
                                                         return (
                                                             <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
                                                                 <div>{item.nama === null ? "-" : item.nama}</div>
                                                             </th>
                                                         )
@@ -888,7 +935,7 @@ class Disposal extends Component {
                                                     {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
                                                         return (
                                                             <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
                                                                 <div>{item.nama === null ? "-" : item.nama}</div>
                                                             </th>
                                                         )
@@ -969,10 +1016,18 @@ class Disposal extends Component {
                                         <div className="titSmallRinci">Kode Plant</div>
                                         <div className="txtAreaRinci">{dataRinci.kode_plant}</div>
                                     </div>
+                                    <div className="secSmallRinci">
+                                        <div className="titSmallRinci">Nilai Buku</div>
+                                        <div className="txtAreaRinci">{dataRinci.nilai_buku}</div>
+                                    </div>
+                                    <div className="secSmallRinci">
+                                        <div className="titSmallRinci">Kategori</div>
+                                        <div className="txtAreaRinci">{dataRinci.kategori}</div>
+                                    </div>
                                 </div>
                                 <div className="footRinci">
                                     <Button className="btnFootRinci" size="lg" color="warning">Sell</Button>
-                                    <Button className="btnFootRinci" size="lg" color="info" onClick={() => this.addDisposal(dataRinci.id)}>Dispose</Button>
+                                    <Button className="btnFootRinci" size="lg" color="info" onClick={() => this.addDisposal(dataRinci.no_asset)}>Dispose</Button>
                                 </div>
                             </div>
                         </div>
@@ -1022,13 +1077,13 @@ class Disposal extends Component {
                                 <div className="rightRinci">
                                     <div>
                                         <div className="titRinci">{dataRinci.nama_asset}</div>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>No Asset</Col>
-                                            <Col md={9}>:  <input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
                                         </Row>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Merk / Type</Col>
-                                            <Col md={9}>:  <input
+                                            <Col md={9} className="colRinci">:  <Input
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.merk}
@@ -1049,21 +1104,21 @@ class Disposal extends Component {
                                                 </div>
                                             </Col>
                                         </Row>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Status Area</Col>
-                                            <Col md={9}>:  <input className="inputRinci" value={dataRinci.status_depo} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.status_depo} disabled /></Col>
                                         </Row>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Cost Center</Col>
-                                            <Col md={9}>:  <input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
                                         </Row>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Nilai Buku</Col>
-                                            <Col md={9}>:  <input className="inputRinci" disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" disabled /></Col>
                                         </Row>
-                                        <Row className="mb-2">
-                                            <Col md={3}>Nilai Jual</Col>
-                                            <Col md={9}>:  <input 
+                                        <Row className="mb-2 rowRinci">
+                                            <Col  md={3}>Nilai Jual</Col>
+                                            <Col md={9} className="colRinci">:  <Input 
                                                 className="inputRinci" 
                                                 value={values.nilai_jual} 
                                                 onBlur={handleBlur("nilai_jual")}
@@ -1075,9 +1130,9 @@ class Disposal extends Component {
                                         {errors.nilai_jual ? (
                                             <text className={style.txtError}>{errors.nilai_jual}</text>
                                         ) : null}
-                                        <Row>
+                                        <Row className="mb-4 rowRinci">
                                             <Col md={3}>Keterangan</Col>
-                                            <Col md={9}>:  <input
+                                            <Col md={9} className="colRinci">:  <Input
                                                 className="inputRinci" 
                                                 type="text" 
                                                 value={values.keterangan} 
@@ -1278,6 +1333,121 @@ class Disposal extends Component {
                         </Formik>
                     </ModalBody>
                 </Modal>
+                <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="sm">
+                    <ModalBody>
+                        {this.state.confirm === 'edit' ? (
+                        <div className={style.cekUpdate}>
+                            <AiFillCheckCircle size={80} className={style.green} />
+                            <div className={[style.sucUpdate, style.green]}>Berhasil Update Dokumen</div>
+                        </div>
+                        ) : this.state.confirm === 'add' ? (
+                            <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Menambah Dokumen</div>
+                            </div>
+                        ) : this.state.confirm === 'approve' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Approve Dokumen</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'reject' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Reject Dokumen</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'rejApprove' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Approve Dokumen</div>
+                                <div className="errApprove mt-2">{this.props.disposal.alertM === undefined ? '' : this.props.disposal.alertM}</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'rejReject' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Reject Dokumen</div>
+                                <div className="errApprove mt-2">{this.props.disposal.alertM === undefined ? '' : this.props.disposal.alertM}</div>
+                            </div>
+                            </div>
+                        ) : (
+                            <div></div>
+                        )}
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.submitPre} toggle={this.modalSubmitPre} size="xl">
+                    <ModalBody>
+                    <div className="bodyPer">
+                            <div>PT. Pinus Merah Abadi</div>
+                            <div className="modalDis">
+                                <text className="titleModDis">Persetujuan Disposal Asset</text>
+                            </div>
+                            <div className="mb-2"><text className="txtTrans">Bandung</text>, {moment().format('DD MMMM YYYY ')}</div>
+                            <Row>
+                                <Col md={2} className="mb-3">
+                                Hal : Persetujuan Disposal Asset
+                                </Col>
+                            </Row>
+                            <div>Kepada Yth.</div>
+                            <div className="mb-3">Bpk. Erwin Lesmana</div>
+                            <div className="mb-3">Dengan Hormat,</div>
+                            <div>Sehubungan dengan surat permohonan disposal aset area PMA terlampir</div>
+                            <div className="mb-3">Dengan ini kami mohon persetujuan untuk melakukan disposal aset dengan perincian sbb :</div>
+                            <Table striped bordered responsive hover className="tableDis mb-3">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nomor Aset / Inventaris</th>
+                                        <th>Area (Cabang/Depo/CP)</th>
+                                        <th>Nama Barang</th>
+                                        <th>Nilai Buku</th>
+                                        <th>Nilai Jual</th>
+                                        <th>Tanggal Perolehan</th>
+                                        <th>Keterangan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {dataSubmit.length !== 0 ? dataSubmit.map(item => {
+                                        return (
+                                            <tr>
+                                                <th scope="row">{dataSubmit.indexOf(item) + 1}</th>
+                                                <td>{item.no_asset}</td>
+                                                <td>{item.area}</td>
+                                                <td>{item.nama_asset}</td>
+                                                <td>{item.nilai_buku}</td>
+                                                <td>{item.nilai_jual}</td>
+                                                <td>{item.createdAt}</td>
+                                                <td>{item.keterangan}</td>
+                                            </tr>
+                                        )
+                                    }) : (
+                                        <tr>
+                                            <th scope="row">1</th>
+                                            <td> </td>
+                                            <td> </td>
+                                            <td> </td>
+                                            <td> </td>
+                                            <td> </td>
+                                            <td> </td>
+                                            <td> </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </Table>
+                            <div className="mb-3">Demikian hal yang dapat kami sampaikan perihal persetujuan disposal aset, atas perhatiannya kami mengucapkan terima kasih.</div>
+                            <div className="btnFoot">
+                                <Button className="mr-2" color="success" onClick={this.goSetDispos}>
+                                    Submit
+                                </Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                </Modal>
             </>
         )
     }
@@ -1310,7 +1480,9 @@ const mapDispatchToProps = {
     showDokumen: pengadaan.showDokumen,
     resetDis: disposal.reset,
     submitSetDisposal: setuju.submitSetDisposal,
-    addSell: disposal.addSell
+    addSell: disposal.addSell,
+    resAppRej: disposal.resAppRej,
+    getSubmitDisposal: disposal.getSubmitDisposal
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Disposal)

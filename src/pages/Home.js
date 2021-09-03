@@ -3,6 +3,7 @@ import React, { Component } from 'react'
 import Sidebar from '../components/Sidebar'
 import addPicture from '../assets/img/add.png'
 import disposPicture from '../assets/img/disposal.png'
+import mutasiPicture from '../assets/img/mutasi1.png'
 import repPicture from '../assets/img/report.png'
 import stockPicture from '../assets/img/stock.svg'
 import {VscAccount} from 'react-icons/vsc'
@@ -42,28 +43,28 @@ export default class Home extends Component {
                         <div className="titHome">Welcome to web asset</div>
                         <div className="txtChoose">Please select an option</div>
                         <div className="mainBody">
-                            <button className="cardHome" onClick={this.goPengadaan}>
+                            <button className="cardHome1" onClick={this.goPengadaan}>
                                 <img src={addPicture} className="picHome" />
                                 <div className="titCard">
                                     Pengadaan Asset
                                 </div>
                             </button>
-                            <button className="cardHome1" onClick={() => this.goRoute('disposal')}>
+                            <button className="cardHome1" onClick={() => this.goRoute('navdis')}>
                                 <img src={disposPicture} className="picHome" />
                                 <div className="titCard">
                                     Disposal Asset
                                 </div>
                             </button>
-                            <button className="cardHome1" onClick={() => this.goRoute('stock')}>
+                            <button className="cardHome1" onClick={() => this.goRoute('navstock')}>
                                 <img src={stockPicture} className="picHome1" />
                                 <div className="titCard">
                                     Stock Opname Asset
                                 </div>
                             </button>
-                            <button className="cardHome1" onClick={() => this.goRoute('report')}>
-                                <img src={repPicture} className="picHome" />
-                                <div className="titCard">
-                                    Report
+                            <button className="cardHome1" onClick={() => this.goRoute('mutasi')}>
+                                <img src={mutasiPicture} className="picHome" />
+                                <div className="titCard mt-4">
+                                    Mutasi
                                 </div>
                             </button>
                         </div>

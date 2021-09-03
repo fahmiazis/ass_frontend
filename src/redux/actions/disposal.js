@@ -7,17 +7,21 @@ export default {
         type: 'GET_DISPOSAL',
         payload: http(token).get(`/disposal/get?limit=${limit === undefined ? 10 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&status=${status === undefined ? 1 : status}&tipe=${tipe === undefined ? 'disposal' : tipe}`)
     }),
+    getSubmitDisposal: (token, limit, search, page, status, tipe) => ({
+        type: 'GET_SUBMIT_DISPOSAL',
+        payload: http(token).get(`/disposal/get?limit=${limit === undefined ? 10 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&status=${status === undefined ? 1 : status}&tipe=${tipe === undefined ? 'disposal' : tipe}`)
+    }),
     getDetailDisposal: (token, nomor) => ({
         type: 'DETAIL_DISPOSAL',
         payload: http(token).get(`/disposal/detail/${nomor}`)
     }),
-    addDisposal: (token, id) => ({
+    addDisposal: (token, no) => ({
         type: 'ADD_DISPOSAL',
-        payload: http(token).post(`/disposal/add/${id}`)
+        payload: http(token).post(`/disposal/add/${no}`)
     }),
-    addSell: (token, id) => ({
+    addSell: (token, no) => ({
         type: 'ADD_DISPOSAL',
-        payload: http(token).post(`/disposal/sell/${id}`)
+        payload: http(token).post(`/disposal/sell/${no}`)
     }),
     deleteDisposal: (token, asset) => ({
         type: 'DELETE_DISPOSAL',
@@ -65,5 +69,8 @@ export default {
     }),
     reset: () => ({
         type: 'RESET_DISPOSAL'
+    }),
+    resAppRej: () => ({
+        type: 'RESET_APPREJ'
     })
 }

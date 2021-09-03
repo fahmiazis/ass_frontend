@@ -15,15 +15,19 @@ const disposalState = {
     isGetDoc: false,
     isRejDoc: false,
     isAppDoc: false,
+    isGetSub: false,
     alertMsg: '',
     dataDis: [],
     noDis: [],
     alertM: '',
     dataDoc: [],
+    dataSubmit: [],
     page: {},
     disApp: {},
     dataKet: [],
     getKet: false,
+    rejReject: false,
+    rejApprove: false,
     isExport: false,
     link: ''
 };
@@ -50,6 +54,31 @@ export default (state=disposalState, action) => {
                 };
             }
             case 'GET_DISPOSAL_REJECTED': {
+                return {
+                    ...state,
+                    isError: true,
+                    isLoading: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'GET_SUBMIT_DISPOSAL_PENDING': {
+                return {
+                    ...state,
+                    isGet: false,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'GET_SUBMIT_DISPOSAL_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isGetSub: true,
+                    dataSubmit: action.payload.data.result.rows,
+                    alertMsg: 'get disposal Succesfully',
+                };
+            }
+            case 'GET_SUBMIT_DISPOSAL_REJECTED': {
                 return {
                     ...state,
                     isError: true,
@@ -91,6 +120,7 @@ export default (state=disposalState, action) => {
             case 'GET_APPDIS_FULFILLED': {
                 return {
                     ...state,
+                    isLoading: false,
                     isGetApp: true,
                     disApp: action.payload.data.result,
                     alertMsg: 'get approve disposal Succesfully',
@@ -99,6 +129,7 @@ export default (state=disposalState, action) => {
             case 'GET_APPDIS_REJECTED': {
                 return {
                     ...state,
+                    isLoading: false,
                     isError: true,
                     alertMsg: "Unable connect to server"
                 };
@@ -123,6 +154,7 @@ export default (state=disposalState, action) => {
                 return {
                     ...state,
                     isAdd: false,
+                    isLoading: false,
                     isError: true,
                     alertMsg: "Unable connect to server"
                 };
@@ -193,6 +225,7 @@ export default (state=disposalState, action) => {
             case 'SUBMIT_DISPOSAL_REJECTED': {
                 return {
                     ...state,
+                    isLoading: false,
                     isError: true,
                     alertMsg: "Unable connect to server"
                 };
@@ -215,8 +248,10 @@ export default (state=disposalState, action) => {
             case 'APPROVE_DIS_REJECTED': {
                 return {
                     ...state,
-                    isError: true,
-                    alertMsg: "Unable connect to server"
+                    isLoading: false,
+                    rejApprove: true,
+                    alertMsg: "Unable connect to server",
+                    alertM: action.payload.response.data.message
                 };
             }
             case 'REJECT_DIS_PENDING': {
@@ -237,8 +272,10 @@ export default (state=disposalState, action) => {
             case 'REJECT_DIS_REJECTED': {
                 return {
                     ...state,
-                    isError: true,
-                    alertMsg: "Unable connect to server"
+                    rejReject: true,
+                    isLoading: false,
+                    alertMsg: "Unable connect to server",
+                    alertM: action.payload.response.data.message
                 };
             }
             case 'GET_DOCDIS_PENDING': {
@@ -262,6 +299,7 @@ export default (state=disposalState, action) => {
                 return {
                     ...state,
                     isLoading: false,
+                    isError: true,
                     alertMsg: "Unable connect to server"
                 };
             }
@@ -284,6 +322,7 @@ export default (state=disposalState, action) => {
                 return {
                     ...state,
                     isError: true,
+                    isLoading: false,
                     alertMsg: "Unable connect to server"
                 };
             }
@@ -305,6 +344,7 @@ export default (state=disposalState, action) => {
             case 'APPROVE_DOCDIS_REJECTED': {
                 return {
                     ...state,
+                    isLoading: false,
                     isError: true,
                     alertMsg: "Unable connect to server"
                 };
@@ -328,6 +368,7 @@ export default (state=disposalState, action) => {
                 return {
                     ...state,
                     isError: true,
+                    isLoading: false,
                     alertMsg: "Unable connect to server"
                 };
             }
@@ -342,7 +383,16 @@ export default (state=disposalState, action) => {
                     isSubmit: false,
                     isAdd: false,
                     isExport: false,
-                    isDelete: false
+                    isDelete: false,
+                }
+            }
+            case 'RESET_APPREJ': {
+                return {
+                    ...state,
+                    approve: false,
+                    reject: false,
+                    rejReject: false,
+                    rejApprove: false,
                 }
             }
             default: {

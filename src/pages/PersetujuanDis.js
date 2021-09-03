@@ -502,14 +502,14 @@ class Disposal extends Component {
                                         </Input>
                                     </div>
                                 </div>
-                                    {this.props.disposal.isGet === false ? (
+                                    {this.props.disposal.isGet === false || noDis === undefined ? (
                                         <div></div>
                                     ) : (
                                         <Row className="bodyDispos">
                                         {noDis.length !== 0 && noDis.map(x => {
                                             return (
                                                 <div className="bodyCard">
-                                                    <img src={dataDis.find(({status_app}) => status_app === x).no_asset === '4100000150' ? b : dataDis.find(({status_app}) => status_app === x).no_asset === '4300001770' ? e : placeholder} className="imgCard" />
+                                                    <img src={dataDis.find(({status_app}) => status_app === x).no_asset === '4100000150' ? b : dataDis.find(({status_app}) => status_app === x).no_asset === '4300001770' ? e : placeholder} className="imgCard1" />
                                                     
                                                     {dataDis.find(({status_app}) => status_app === x).nilai_jual === '0' ? 
                                                      (
@@ -526,7 +526,7 @@ class Disposal extends Component {
                                                     {/* <button className="btnDispos" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}></button> */}
                                                     <div className="ml-2">
                                                         <div className="txtDoc mb-2">
-                                                            Pengajuan Disposal Asset
+                                                            Persetujuan Disposal Asset
                                                         </div>
                                                         <Row className="mb-2">
                                                             <Col md={6} className="txtDoc">
