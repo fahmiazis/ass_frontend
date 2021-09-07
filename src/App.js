@@ -30,6 +30,7 @@ import Mutasi from './pages/Mutasi'
 import CartMutasi from './pages/CartMutasi'
 import NavStock from './pages/NavStock'
 import NavDisposal from './pages/NavDisposal'
+import ReportStock from './pages/ReportStock'
 
 class App extends Component {
 
@@ -113,6 +114,9 @@ class App extends Component {
                 </PrivateRoute>
                 <PrivateRoute path='/navdis'>
                     <NavDisposal />
+                </PrivateRoute>
+                <PrivateRoute path='/repstock'>
+                    <ReportStock />
                 </PrivateRoute>
             </Switch>
         </BrowserRouter>

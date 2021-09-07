@@ -34,33 +34,48 @@ export default class NavDisposal extends Component {
                     <div>
                         <div className="titHome">Disposal menu</div>
                         <div className="txtChoose">Please select an option disposal</div>
-                        <Row className="mainBody">
-                            <button className="cardNav1" onClick={() => this.goRoute('disposal')}>
-                                <div className="titCard">
-                                    Pengajuan disposal
-                                </div>
-                            </button>
-                            <button className="cardNav1" onClick={() => this.goRoute('setdis')}>
-                                <div className="titCard">
-                                    Persetujuan disposal
-                                </div>
-                            </button>
-                            <button className="cardNav1" onClick={() => this.goRoute('eksdis')}>
-                                <div className="titCard">
-                                    Eksekusi disposal
-                                </div>
-                            </button>
-                            <button className="cardNav1" onClick={() => this.goRoute('taxfin')}>
-                                <div className="titCard">
-                                    Tax & Finance
-                                </div>
-                            </button>
-                            <button className="cardNav1" onClick={() => this.goRoute('report')}>
-                                <div className="titCard">
-                                    Report disposal
-                                </div>
-                            </button>
-                        </Row>
+                        {level === '6' ? (
+                            <Row className="mainBody">
+                                <button className="cardNav1" onClick={() => this.goRoute('purchdis')}>
+                                    <div className="titCard">
+                                        Purchasing disposal
+                                    </div>
+                                </button>
+                            </Row>
+                        ) : (
+                            <Row className="mainBody">
+                                <button className="cardNav1" onClick={() => this.goRoute('disposal')}>
+                                    <div className="titCard">
+                                        Pengajuan disposal
+                                    </div>
+                                </button>
+                                <button className="cardNav1" onClick={() => this.goRoute('setdis')}>
+                                    <div className="titCard">
+                                        Persetujuan disposal
+                                    </div>
+                                </button>
+                                <button className="cardNav1" onClick={() => this.goRoute('eksdis')}>
+                                    <div className="titCard">
+                                        Eksekusi disposal
+                                    </div>
+                                </button>
+                                <button className="cardNav1" onClick={() => this.goRoute('taxfin')}>
+                                    <div className="titCard">
+                                        Tax & Finance disposal
+                                    </div>
+                                </button>
+                                <button className="cardNav1" onClick={() => this.goRoute('purchdis')}>
+                                    <div className="titCard">
+                                        Purchasing disposal
+                                    </div>
+                                </button>
+                                <button className="cardNav1" onClick={() => this.goRoute('report')}>
+                                    <div className="titCard">
+                                        Report disposal
+                                    </div>
+                                </button>
+                            </Row>
+                        )}
                     </div>
                 </div>
             </div>

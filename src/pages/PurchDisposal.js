@@ -13,8 +13,10 @@ import {Formik} from 'formik'
 import * as Yup from 'yup'
 import disposal from '../redux/actions/disposal'
 import setuju from '../redux/actions/setuju'
+import pengadaan from '../redux/actions/pengadaan'
 import {connect} from 'react-redux'
 import moment from 'moment'
+import Pdf from "../components/Pdf"
 import auth from '../redux/actions/auth'
 import {default as axios} from 'axios'
 import Sidebar from "../components/Header";
@@ -28,6 +30,7 @@ import d from "../assets/img/d.jpg"
 import e from "../assets/img/e.jpg"
 import f from "../assets/img/f.png"
 import g from "../assets/img/g.png"
+const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
     merk: Yup.string().validateSync(""),
@@ -84,6 +87,20 @@ class PurchDisposal extends Component {
                 alert: false
             })
          }, 10000)
+    }
+
+    showDokumen = async (value) => {
+        const token = localStorage.getItem('token')
+        await this.props.showDokumen(token, value.id)
+        this.setState({date: value.updatedAt, idDoc: value.id, fileName: value})
+        const {isShow} = this.props.pengadaan
+        if (isShow) {
+            this.openModalPdf()
+        }
+    }
+
+    openModalPdf = () => {
+        this.setState({openPdf: !this.state.openPdf})
     }
 
     submitPurchDisposal = async (value) => {
@@ -482,8 +499,8 @@ class PurchDisposal extends Component {
                                         <Col md={3}>Kategori</Col>
                                         <Col md={9} className="katCheck">: 
                                             <div className="katCheck">
-                                                <div className="ml-2"><input type="checkbox" disabled/> IT</div>
-                                                <div className="ml-3"><input type="checkbox" disabled/> Non IT</div>
+                                                <div className="ml-2"><input type="checkbox" checked={dataRinci.kategori === 'IT' ? true : false}/> IT</div>
+                                                <div className="ml-3"><input type="checkbox" checked={dataRinci.kategori === 'NON IT' ? true : false}/> Non IT</div>
                                             </div>
                                         </Col>
                                     </Row>
@@ -539,6 +556,26 @@ class PurchDisposal extends Component {
                     </div>
                 </ModalBody>
             </Modal>
+            <Modal isOpen={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
+                <ModalHeader>Dokumen</ModalHeader>
+                    <ModalBody>
+                        <div className={style.readPdf}>
+                            <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
+                        </div>
+                        <hr/>
+                        <div className={style.foot}>
+                            <div>
+                                <Button color="success">Download</Button>
+                            </div>
+                        {level === '5' ? (
+                            <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                            ) : (
+                                <div>
+                                </div>
+                            )}
+                        </div>
+                    </ModalBody>
+                </Modal>
         </>
         )
     }
@@ -546,7 +583,8 @@ class PurchDisposal extends Component {
 
 const mapStateToProps = state => ({
     disposal: state.disposal,
-    setuju: state.setuju
+    setuju: state.setuju,
+    pengadaan: state.pengadaan
 })
 
 const mapDispatchToProps = {
@@ -559,7 +597,8 @@ const mapDispatchToProps = {
     getDocumentDis: disposal.getDocumentDis,
     uploadDocumentDis: disposal.uploadDocumentDis,
     submitPurch: setuju.submitPurchDisposal,
-    resetSetuju: setuju.resetSetuju
+    resetSetuju: setuju.resetSetuju,
+    showDokumen: pengadaan.showDokumen,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(PurchDisposal)
