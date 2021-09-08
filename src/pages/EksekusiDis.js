@@ -72,7 +72,8 @@ class EksekusiDisposal extends Component {
             dataRinci: {},
             openModalDoc: false,
             alertSubmit: false,
-            openPdf: false
+            openPdf: false,
+            npwp: ''
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -131,7 +132,7 @@ class EksekusiDisposal extends Component {
     openProsesModalDoc = async (value) => {
         const token = localStorage.getItem('token')
         this.setState({dataRinci: value})
-        await this.props.getDocumentDis(token, value.no_asset, 'disposal', value.nilai_jual === "0" ? 'dispose' : 'sell')
+        await this.props.getDocumentDis(token, value.no_asset, 'disposal', value.nilai_jual === "0" ? 'dispose' : 'sell', 'ada')
         this.closeProsesModalDoc()
     }
 
@@ -247,6 +248,17 @@ class EksekusiDisposal extends Component {
         this.getDataDisposal()
     }
 
+    updateNpwp = async (value) => {
+        this.setState({npwp: value})
+        const token =localStorage.getItem('token')
+        const data = {
+            npwp: value
+        }
+        const { dataRinci } = this.state
+        await this.props.updateDisposal(token, dataRinci.id, data)
+        this.getDataDisposal()
+    }
+
     render() {
         const {isOpen, dropOpen, dropOpenNum, detail, alert, upload, errMsg, dataRinci} = this.state
         const {dataDis, isGet, alertM, alertMsg, alertUpload, page, dataDoc} = this.props.disposal
@@ -328,11 +340,7 @@ class EksekusiDisposal extends Component {
                                                         </div>
                                                     </div>
                                                     <div className="footCart">
-                                                        {level === '2' ? (
-                                                            <Button color="primary" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}>Rincian</Button>
-                                                        ) : (
-                                                            <Button color="primary" onClick={() => this.openProsesModalDoc(item)}>Upload Dokumen</Button>
-                                                        )}
+                                                        <Button color="primary" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}>Rincian</Button>
                                                         <div></div>
                                                     </div>
                                                 </div>
@@ -502,8 +510,8 @@ class EksekusiDisposal extends Component {
                                         <Col md={3}>Kategori</Col>
                                         <Col md={9} className="katCheck">: 
                                             <div className="katCheck">
-                                                <div className="ml-2"><input type="checkbox" disabled/> IT</div>
-                                                <div className="ml-3"><input type="checkbox" disabled/> Non IT</div>
+                                                <div className="ml-2"><input type="checkbox" checked={dataRinci.kategori === 'IT' ? true : false} disabled/> IT</div>
+                                                <div className="ml-3"><input type="checkbox" checked={dataRinci.kategori === 'NON IT' ? true : false} disabled/> Non IT</div>
                                             </div>
                                         </Col>
                                     </Row>
@@ -538,6 +546,26 @@ class EksekusiDisposal extends Component {
                                             />
                                         </Col>
                                     </Row>
+                                    {dataRinci.nilai_jual !== '0' ? (
+                                        <Row>
+                                            <Col md={3}>Status NPWP</Col>
+                                            <Col md={9} className="colRinci">
+                                            <Input 
+                                            type="select"
+                                            className="inputRinci"
+                                            name="npwp"
+                                            value={this.state.npwp === '' ? dataRinci.npwp : this.state.npwp} 
+                                            onChange={e => {this.updateNpwp(e.target.value)} }
+                                            >
+                                                <option>-Pilih Status NPWP-</option>
+                                                <option value="ada">Ada</option>
+                                                <option value="tidak">Tidak Ada</option>
+                                            </Input>
+                                            </Col>
+                                        </Row>
+                                    ) : (
+                                        <Row></Row>
+                                    )}
                                     {level === '2' && dataRinci.nilai_jual === '0' ? (
                                         <div>
                                             <Row className="mb-5">

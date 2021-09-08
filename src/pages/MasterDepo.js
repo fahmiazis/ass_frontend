@@ -379,7 +379,8 @@ class MasterDepo extends Component {
                                                 <th>Kode SAP 1</th>
                                                 <th>Kode SAP 2</th>
                                                 <th>Nama GROM</th>
-                                                <th>Nama ROM</th>
+                                                <th>Nama OM</th>
+                                                <th>Nama BM</th>
                                                 <th>Nama AOS</th>
                                                 <th>Nama PIC 1</th>
                                                 <th>Nama PIC 2</th>
@@ -412,7 +413,8 @@ class MasterDepo extends Component {
                                                 <th>Kode SAP 1</th>
                                                 <th>Kode SAP 2</th>
                                                 <th>Nama GROM</th>
-                                                <th>Nama ROM</th>
+                                                <th>Nama OM</th>
+                                                <th>Nama BM</th>
                                                 <th>Nama AOS</th>
                                                 <th>Nama PIC 1</th>
                                                 <th>Nama PIC 2</th>
@@ -435,7 +437,8 @@ class MasterDepo extends Component {
                                                     <td>{item.kode_sap_1}</td>
                                                     <td>{item.kode_sap_2}</td>
                                                     <td>{item.nama_grom}</td>
-                                                    <td>{item.nama_rom}</td>
+                                                    <td>{item.nama_om}</td>
+                                                    <td>{item.nama_bm}</td>
                                                     <td>{item.nama_aos}</td>
                                                     <td>{item.nama_pic_1}</td>
                                                     <td>{item.nama_pic_2}</td>
@@ -676,7 +679,7 @@ class MasterDepo extends Component {
                             </div>
                             <div className={style.addModalDepo}>
                                 <text className="col-md-4">
-                                    Nama ROM
+                                    Nama OM
                                 </text>
                                 <div className="col-md-8">
                                 <Input 
@@ -1006,7 +1009,7 @@ class MasterDepo extends Component {
                             </div>
                             <div className={style.addModalDepo}>
                                 <text className="col-md-4">
-                                    Nama ROM
+                                    Nama OM
                                 </text>
                                 <div className="col-md-8">
                                 <Input 
