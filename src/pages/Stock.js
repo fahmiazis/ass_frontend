@@ -230,7 +230,6 @@ class Stock extends Component {
         // const search = value === undefined ? '' : this.state.search
         // const limit = value === undefined ? this.state.limit : value.limit
         await this.props.getStockAll(token)
-        await this.props.getNameApprove(token)
         this.setState({limit: value === undefined ? 10 : value.limit})
     }
 
@@ -544,7 +543,6 @@ class Stock extends Component {
                                                             type="select"
                                                             className="inputRinci"
                                                             name="grouping"
-                                                            value={item.grouping}
                                                             defaultValue={item.grouping}
                                                             onChange={e => this.updateNewAsset({item: item, target: e.target})}
                                                             >

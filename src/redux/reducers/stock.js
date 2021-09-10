@@ -5,6 +5,7 @@ const stockState = {
     isUpdate: false,
     isSubmit: false,
     isGet: false,
+    getReport: false,
     isApprove: false,
     isReject: false,
     isGetApp: false,
@@ -14,6 +15,7 @@ const stockState = {
     isDelete: false,
     isLoading: false,
     isError: false,
+    isAll: false,
     isGetStatus: false,
     alertMsg: '',
     dataAsset: [],
@@ -26,7 +28,10 @@ const stockState = {
     isExport: false,
     link: '',
     stockApp: {},
-    dataStatus: []
+    dataStatus: [],
+    dataRep: [],
+    pageRep: {},
+    dataAll: []
 };
 
 export default (state=stockState, action) => {
@@ -55,6 +60,34 @@ export default (state=stockState, action) => {
                 ...state,
                 isLoading: false,
                 getStock: false,
+                isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'REPORT_STOCK_PENDING': {
+            return {
+                ...state,
+                getReport: false,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'REPORT_STOCK_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: false,
+                getReport: true,
+                dataRep: action.payload.data.result.rows,
+                alertMsg: 'get stock Succesfully',
+                pageRep: action.payload.data.pageInfo
+            };
+        }
+        case 'REPORT_STOCK_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                getReport: false,
                 isError: true,
                 alertMsg: "Unable connect to server"
             };
@@ -256,6 +289,30 @@ export default (state=stockState, action) => {
             };
         }
         case 'GET_STATUS_REJECTED': {
+            return {
+                ...state,
+                isError: true,
+                isLoading: false,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'STATUS_ALL_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'STATUS_ALL_FULFILLED': {
+            return {
+                ...state,
+                isAll: true,
+                dataAll: action.payload.data.result,
+                isLoading: false,
+                alertMsg: 'get status stock Succesfully',
+            };
+        }
+        case 'STATUS_ALL_REJECTED': {
             return {
                 ...state,
                 isError: true,

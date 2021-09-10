@@ -7,9 +7,13 @@ export default {
         type: 'SUBMIT_STOCK',
         payload: http(token).get('/stock/submit')
     }),
-    getStockAll: (token) => ({
+    getStockAll: (token, search, limit, page, group) => ({
         type: 'GET_STOCK',
-        payload: http(token).get('/stock/get')
+        payload: http(token).get(`/stock/get?limit=${limit === undefined ? 10 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&group=${group === undefined ? '' : group}`)
+    }),
+    getReportAll: (token, search, limit, page, group) => ({
+        type: 'REPORT_STOCK',
+        payload: http(token).get(`/stock/report?limit=${limit === undefined ? 10 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&group=${group === undefined ? '' : group}`)
     }),
     getDetailStock: (token, id) => ({
         type: 'DETAIL_STOCK',
@@ -38,6 +42,10 @@ export default {
     getStatus: (token, fisik, kondisi) => ({
         type: 'GET_STATUS',
         payload: http(token).get(`/stock/status/get?fisik=${fisik === undefined ? '' : fisik}&kondisi=${kondisi === undefined ? '' : kondisi}`)
+    }),
+    getStatusAll: (token) => ({
+        type: 'STATUS_ALL',
+        payload: http(token).get(`/stock/status/all`)
     }),
     resetStock: () => ({
         type: 'RESET_STOCK'

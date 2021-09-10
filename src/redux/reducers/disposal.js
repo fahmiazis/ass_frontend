@@ -5,6 +5,7 @@ const disposalState = {
     isAdd: false,
     isUpload: false,
     isUpdate: false,
+    isGetDet: false,
     isGet: false,
     isGetApp: false,
     isDetail: false,
@@ -29,7 +30,8 @@ const disposalState = {
     rejReject: false,
     rejApprove: false,
     isExport: false,
-    link: ''
+    link: '',
+    detailDis: []
 };
 
 export default (state=disposalState, action) => {
@@ -54,6 +56,31 @@ export default (state=disposalState, action) => {
                 };
             }
             case 'GET_DISPOSAL_REJECTED': {
+                return {
+                    ...state,
+                    isError: true,
+                    isLoading: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'DETAIL_DISPOSAL_PENDING': {
+                return {
+                    ...state,
+                    isGetDet: false,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'DETAIL_DISPOSAL_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isGetDet: true,
+                    detailDis: action.payload.data.result,
+                    alertMsg: 'get detail disposal Succesfully',
+                };
+            }
+            case 'DETAIL_DISPOSAL_REJECTED': {
                 return {
                     ...state,
                     isError: true,

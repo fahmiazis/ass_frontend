@@ -2,7 +2,8 @@
 /* eslint-disable jsx-a11y/no-distracting-elements */
 import React, { Component } from 'react'
 import {NavbarBrand, Input, Button, Row, Col,
-    Modal, ModalHeader, ModalBody, ModalFooter, Container, Alert, Spinner} from 'reactstrap'
+    Modal, ModalHeader, ModalBody, ModalFooter, Container, Alert, Spinner,
+    Table} from 'reactstrap'
 import style from '../assets/css/input.module.css'
 import {FaUserCircle, FaBars} from 'react-icons/fa'
 import {AiOutlineCheck, AiOutlineClose} from 'react-icons/ai'
@@ -82,7 +83,9 @@ class TaxFinDisposal extends Component {
             dataRinci: {},
             openModalDoc: false,
             alertSubmit: false,
-            openPdf: false
+            openPdf: false,
+            preview: false,
+            preset: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -173,7 +176,20 @@ class TaxFinDisposal extends Component {
 
     closeProsesModalDoc = () => {
         this.setState({openModalDoc: !this.state.openModalDoc})
-        this.setState({modalRinci: !this.state.modalRinci})
+    }
+
+    openProsesDocPeng = async () => {
+        const token = localStorage.getItem('token')
+        const { dataRinci } = this.state
+        await this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'pengajuan')
+        this.closeProsesModalDoc()
+    }
+
+    openDocEksekusi = async () => {
+        const token = localStorage.getItem('token')
+        const { dataRinci } = this.state
+        await this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'sell', 'ada')
+        this.closeProsesModalDoc()
     }
 
     openProsesDocTax = async (value) => {
@@ -279,6 +295,28 @@ class TaxFinDisposal extends Component {
         }
     }
 
+    pengajuanDisposal = async (value) => {
+        const token = localStorage.getItem('token')
+        await this.props.getDetailDis(token, value, 'pengajuan')
+        await this.props.getApproveDisposal(token, value, 'disposal pengajuan')
+        this.modalPeng()
+    }
+
+    persetujuanDisposal = async (value) => {
+        const token = localStorage.getItem('token')
+        await this.props.getDetailDis(token, value, 'persetujuan')
+        await this.props.getApproveSetDisposal(token, value, 'disposal persetujuan')
+        this.modalPers()
+    }
+
+    modalPers = () => {
+        this.setState({preset: !this.state.preset})
+    }
+
+    modalPeng = () => {
+        this.setState({preview: !this.state.preview})
+    } 
+
     menuButtonClick(ev) {
         ev.preventDefault();
         this.onSetOpen(!this.state.open);
@@ -306,9 +344,11 @@ class TaxFinDisposal extends Component {
 
     render() {
         const {alert, dataRinci} = this.state
-        const {dataDis, alertM, alertMsg, dataDoc} = this.props.disposal
+        const {dataDis, alertM, alertMsg, dataDoc, detailDis} = this.props.disposal
+        const { disApp } = this.props.setuju
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
+        const appPeng = this.props.disposal.disApp
 
         const contentHeader =  (
             <div className={style.navbar}>
@@ -639,8 +679,8 @@ class TaxFinDisposal extends Component {
                                         <Col md={3}>Kategori</Col>
                                         <Col md={9} className="katCheck">: 
                                             <div className="katCheck">
-                                                <div className="ml-2"><input type="checkbox" disabled/> IT</div>
-                                                <div className="ml-3"><input type="checkbox" disabled/> Non IT</div>
+                                                <div className="ml-2"><input type="checkbox" checked={dataRinci.kategori === 'IT' ? true : false}/> IT</div>
+                                                <div className="ml-3"><input type="checkbox" checked={dataRinci.kategori === 'NON IT' ? true : false}/> Non IT</div>
                                             </div>
                                         </Col>
                                     </Row>
@@ -767,22 +807,28 @@ class TaxFinDisposal extends Component {
                                     )}
                                 </div>
                                 {level === '2' ? (
-                                    <div className="footRinci1">
-                                        <Button className="btnFootRinci1 mr-2" size="md" color="warning" onClick={() => this.openProsesDocFinance(dataRinci)}>Doc Finance</Button>
-                                        <Button className="btnFootRinci1 mr-2" size="md" color="success" onClick={() => this.openProsesDocTax(dataRinci)}>Doc Tax</Button>
-                                        <Button className="btnFootRinci1 mr-2" size="md" color="primary" onClick={handleSubmit}>Save</Button>
-                                        <Button className="btnFootRinci1" size="md" color="secondary" onClick={() => this.openModalRinci()}>Close</Button>
-                                    </div>
+                                    <Row className="footRinci1">
+                                        <Button className="btnFootRinci3" size="md" color="primary" outline onClick={handleSubmit}>Save</Button>
+                                        <Button className="btnFootRinci3" size="md" color="warning" outline onClick={() => this.openProsesDocFinance(dataRinci)}>Doc Finance</Button>
+                                        <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocTax(dataRinci)}>Doc Tax</Button>
+                                        <Button className="btnFootRinci3" size="md" color="danger" outline onClick={() => this.pengajuanDisposal(dataRinci.no_disposal)}>Form Pengajuan</Button>
+                                        <Button className="btnFootRinci3" size="md" color="info" outline onClick={() => this.persetujuanDisposal(dataRinci.status_app)}>Form Persetujuan</Button>
+                                        <Button className="btnFootRinci3" size="md" color="primary" outline onClick={() => this.openDocEksekusi()}>Doc Eksekusi</Button>
+                                        <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocPeng()}>Doc Pengajuan</Button>
+                                    </Row>
                                 ) : (
-                                    <div className="footRinci1">
-                                        <Button className="btnFootRinci1" size="md" color="primary" onClick={handleSubmit}>Save</Button>
+                                    <Row className="footRinci1 ml-2">
+                                        <Button className="btnFootRinci3" size="md" color="primary" outline onClick={handleSubmit}>Save</Button>
                                         {level === "3" ? (
-                                            <Button className="btnFootRinci1" size="md" color="success" onClick={() => this.openProsesDocTax(dataRinci)}>Upload Doc</Button>
+                                            <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocTax(dataRinci)}>Upload Doc</Button>
                                         ) : level === '4' && (
-                                            <Button className="btnFootRinci1" size="md" color="success" onClick={() => this.openProsesDocFinance(dataRinci)}>Upload Doc</Button>
+                                            <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocFinance(dataRinci)}>Upload Doc</Button>
                                         )}
-                                        <Button className="btnFootRinci1" size="md" color="secondary" onClick={() => this.openModalRinci()}>Close</Button>
-                                    </div>
+                                        <Button className="btnFootRinci3" size="md" color="warning" outline onClick={() => this.pengajuanDisposal(dataRinci.no_disposal)}>Form Pengajuan</Button>
+                                        <Button className="btnFootRinci3" size="md" color="info" outline onClick={() => this.persetujuanDisposal(dataRinci.status_app)}>Form Persetujuan</Button>
+                                        <Button className="btnFootRinci3" size="md" color="danger" outline onClick={() => this.openDocEksekusi()}>Doc Eksekusi</Button>
+                                        <Button className="btnFootRinci3" size="md" color="primary" outline onClick={() => this.openProsesDocPeng()}>Doc Pengajuan</Button>
+                                    </Row>
                                 )}
                             </div>
                         )}
@@ -790,28 +836,328 @@ class TaxFinDisposal extends Component {
                     </div>
                 </ModalBody>
             </Modal>
-            <Modal show={this.state.openPdf} size="xl" onHide={this.openModalPdf} centered={true}>
+            <Modal show={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
                 <Modal.Header>Dokumen</Modal.Header>
-                    <Modal.Body>
-                        <div className={style.readPdf}>
-                            <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
+                <Modal.Body>
+                    <div className={style.readPdf}>
+                        <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
+                    </div>
+                    <hr/>
+                    <div className={style.foot}>
+                        <div>
+                            <Button color="success">Download</Button>
                         </div>
-                        <hr/>
-                        <div className={style.foot}>
+                    {level === '5' ? (
+                        <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                        ) : (
                             <div>
-                                <Button color="success">Download</Button>
+                                <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
+                                <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
                             </div>
-                        {level === '5' ? (
-                            <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
-                            ) : (
-                                <div>
-                                    <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
-                                    <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
-                                </div>
-                            )}
+                        )}
+                    </div>
+                </Modal.Body>
+            </Modal>
+            <Modal isOpen={this.state.preview} toggle={this.modalPeng} size="xl">
+                <ModalBody>
+                    <div>PT. Pinus Merah Abadi</div>
+                    <div className="modalDis">
+                        <text className="titleModDis">Form Pengajuan Disposal Asset</text>
+                    </div>
+                    <div className="mb-2"><text className="txtTrans">{detailDis[0] !== undefined && detailDis[0].area}</text>, {moment(detailDis[0] !== undefined && detailDis[0].createdAt).locale('idn').format('DD MMMM YYYY ')}</div>
+                    <Row>
+                        <Col md={2}>
+                        Hal
+                        </Col>
+                        <Col md={10}>
+                        : Pengajuan Disposal Asset
+                        </Col>
+                    </Row>
+                    <Row className="mb-2">
+                        <Col md={2}>
+                        {detailDis[0] === undefined ? "" :
+                        detailDis[0].status_depo === "Cabang Scylla" || detailDis.status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
+                        </Col>
+                        <Col md={10} className="txtTrans">
+                        : {detailDis[0] !== undefined && detailDis[0].area}
+                        </Col>
+                    </Row>
+                    <div>Kepada Yth.</div>
+                    <div>Bpk/Ibu Pimpinan</div>
+                    <div className="mb-2">Di tempat</div>
+                    <div>Dengan Hormat,</div>
+                    <div className="mb-3">Dengan surat ini kami mengajukan permohonan disposal aset dengan perincian sbb :</div>
+                    <Table striped bordered responsive hover className="tableDis mb-3">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Nomor Asset</th>
+                                <th>Nama Barang</th>
+                                <th>Merk/Type</th>
+                                <th>Kategori</th>
+                                <th>Status Depo</th>
+                                <th>Cost Center</th>
+                                <th>Nilai Buku</th>
+                                <th>Nilai Jual</th>
+                                <th>Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {detailDis.length !== 0 && detailDis.map(item => {
+                                return (
+                                    <tr>
+                                        <th scope="row">{detailDis.indexOf(item) + 1}</th>
+                                        <td>{item.no_asset}</td>
+                                        <td>{item.nama_asset}</td>
+                                        <td>{item.merk}</td>
+                                        <td>{item.kategori}</td>
+                                        <td>{item.status_depo}</td>
+                                        <td>{item.cost_center}</td>
+                                        <td>{item.nilai_buku}</td>
+                                        <td>{item.nilai_jual}</td>
+                                        <td>{item.keterangan}</td>
+                                    </tr>
+                                )
+                            })}
+                        </tbody>
+                    </Table>
+                    <div className="mb-3">Demikianlah hal yang kami sampaikan, atas perhatiannya kami mengucapkan terima kasih</div>
+                    <Table borderless responsive className="tabPreview">
+                        <thead>
+                            <tr>
+                                <th className="buatPre">Dibuat oleh,</th>
+                                <th className="buatPre">Diperiksa oleh,</th>
+                                <th className="buatPre">Disetujui oleh,</th>
+                            </tr>
+                        </thead>
+                        <tbody className="tbodyPre">
+                            <tr>
+                                <td className="restTable">
+                                    <Table bordered responsive className="divPre">
+                                        <thead>
+                                            <tr>
+                                                {appPeng.pembuat !== undefined && appPeng.pembuat.map(item => {
+                                                    return (
+                                                        <th className="headPre">
+                                                            <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                            <div>{item.nama === null ? "-" : item.nama}</div>
+                                                        </th>
+                                                    )
+                                                })}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                            {appPeng.pembuat !== undefined && appPeng.pembuat.map(item => {
+                                                return (
+                                                    <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                )
+                                            })}
+                                            </tr>
+                                        </tbody>
+                                    </Table>
+                                </td>
+                                <td className="restTable">
+                                    <Table bordered responsive className="divPre">
+                                        <thead>
+                                            <tr>
+                                                {appPeng.pemeriksa !== undefined && appPeng.pemeriksa.map(item => {
+                                                    return (
+                                                        <th className="headPre">
+                                                            <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                            <div>{item.nama === null ? "-" : item.nama}</div>
+                                                        </th>
+                                                    )
+                                                })}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                {appPeng.pemeriksa !== undefined && appPeng.pemeriksa.map(item => {
+                                                    return (
+                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                    )
+                                                })}
+                                            </tr>
+                                        </tbody>
+                                    </Table>
+                                </td>
+                                <td className="restTable">
+                                    <Table bordered responsive className="divPre">
+                                        <thead>
+                                            <tr>
+                                                {appPeng.penyetuju !== undefined && appPeng.penyetuju.map(item => {
+                                                    return (
+                                                        <th className="headPre">
+                                                            <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                            <div>{item.nama === null ? "-" : item.nama}</div>
+                                                        </th>
+                                                    )
+                                                })}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                {appPeng.penyetuju !== undefined && appPeng.penyetuju.map(item => {
+                                                    return (
+                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                    )
+                                                })}
+                                            </tr>
+                                        </tbody>
+                                    </Table>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </Table>
+                </ModalBody>
+                <hr />
+                <div className="modalFoot ml-3">
+                    <div></div>
+                    <div className="btnFoot">
+                        <Button className="mr-2" color="warning">
+                            Download
+                        </Button>
+                        <Button color="success" onClick={this.modalPeng}>
+                            Close
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+            <Modal isOpen={this.state.preset} toggle={this.modalPers} centered={true} size="xl">
+                <ModalBody>
+                    <div className="bodyPer">
+                        <div>PT. Pinus Merah Abadi</div>
+                        <div className="modalDis">
+                            <text className="titleModDis">Persetujuan Disposal Asset</text>
                         </div>
-                    </Modal.Body>
-                </Modal>
+                        <div className="mb-2"><text className="txtTrans">Bandung</text>, {moment().format('DD MMMM YYYY ')}</div>
+                        <Row>
+                            <Col md={2} className="mb-3">
+                            Hal : Persetujuan Disposal Asset
+                            </Col>
+                        </Row>
+                        <div>Kepada Yth.</div>
+                        <div className="mb-3">Bpk. Erwin Lesmana</div>
+                        <div className="mb-3">Dengan Hormat,</div>
+                        <div>Sehubungan dengan surat permohonan disposal aset area PMA terlampir</div>
+                        <div className="mb-3">Dengan ini kami mohon persetujuan untuk melakukan disposal aset dengan perincian sbb :</div>
+                        <Table striped bordered responsive hover className="tableDis mb-3">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Nomor Aset / Inventaris</th>
+                                    <th>Area (Cabang/Depo/CP)</th>
+                                    <th>Nama Barang</th>
+                                    <th>Nilai Buku</th>
+                                    <th>Nilai Jual</th>
+                                    <th>Tanggal Perolehan</th>
+                                    <th>Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {detailDis.length !== 0 ? detailDis.map(item => {
+                                    return (
+                                        // <tr onClick={() => this.openProsesModalDoc(item)}></tr>
+                                        <tr onClick={() => this.getDetailDisposal(item.no_disposal)}>
+                                            <th scope="row">{detailDis.indexOf(item) + 1}</th>
+                                            <td>{item.no_asset}</td>
+                                            <td>{item.area}</td>
+                                            <td>{item.nama_asset}</td>
+                                            <td>{item.nilai_buku}</td>
+                                            <td>{item.nilai_jual}</td>
+                                            <td>{item.createdAt}</td>
+                                            <td>{item.keterangan}</td>
+                                        </tr>
+                                    )
+                                }) : (
+                                    <tr>
+                                        <th scope="row">1</th>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </Table>
+                        <div className="mb-3">Demikian hal yang dapat kami sampaikan perihal persetujuan disposal aset, atas perhatiannya kami mengucapkan terima kasih.</div>
+                        <Table borderless className="tabPreview">
+                            <thead>
+                                <tr>
+                                    <th className="buatPre">Diajukan oleh,</th>
+                                    <th className="buatPre">Disetujui oleh,</th>
+                                </tr>
+                            </thead>
+                            <tbody className="tbodyPre">
+                                <tr>
+                                    <td className="restTable">
+                                        <Table bordered className="divPre">
+                                            <thead>
+                                                <tr>
+                                                    {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
+                                                        return (
+                                                            <th className="headPre">
+                                                                <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                <div>{item.nama === null ? "-" : item.nama}</div>
+                                                            </th>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
+                                                        return (
+                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </tbody>
+                                        </Table>
+                                    </td>
+                                    <td className="restTable">
+                                        <Table bordered className="divPre">
+                                            <thead>
+                                                <tr>
+                                                    {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
+                                                        return (
+                                                            <th className="headPre">
+                                                                <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                <div>{item.nama === null ? "-" : item.nama}</div>
+                                                            </th>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
+                                                        return (
+                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </tbody>
+                                        </Table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </Table>
+                        <div className="btnFoot">
+                            <Button className="mr-2" color="danger" disabled>
+                                Download
+                            </Button>
+                            <Button color="success" onClick={this.modalPers}>
+                                Close
+                            </Button>
+                        </div>
+                    </div>
+                </ModalBody>
+            </Modal>
         </>
         )
     }
@@ -832,7 +1178,10 @@ const mapDispatchToProps = {
     getDocumentDis: disposal.getDocumentDis,
     uploadDocumentDis: disposal.uploadDocumentDis,
     submitTaxFin: setuju.submitTaxFinDisposal,
-    submitFinal: setuju.submitFinalDisposal
+    submitFinal: setuju.submitFinalDisposal,
+    getApproveSetDisposal: setuju.getApproveSetDisposal,
+    getDetailDis: disposal.getDetailDisposal,
+    getApproveDisposal: disposal.getApproveDisposal,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(TaxFinDisposal)

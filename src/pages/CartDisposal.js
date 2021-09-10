@@ -107,7 +107,6 @@ class CartDisposal extends Component {
 
     closeProsesModalDoc = () => {
         this.setState({openModalDoc: !this.state.openModalDoc})
-        this.setState({modalRinci: !this.state.modalRinci})
     }
 
     openProsesModalDoc = async () => {

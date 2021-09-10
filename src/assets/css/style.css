@@ -682,6 +682,12 @@
 .btnFootRinci2 {
     width: 30%;
 }
+.btnFootRinci3 {
+    width: 30%;
+    border-radius: 50px;
+    height: 60%;
+    margin-bottom: 2%;
+}
 .inputRinci {
     border: 1px solid rgba(169, 169, 169, 0.6);
     width: 80%;
