@@ -298,6 +298,24 @@ class Disposal extends Component {
         }
     }
 
+    downloadData = () => {
+        const { fileName } = this.state
+        const download = fileName.path.split('/')
+        const cek = download[2].split('.')
+        axios({
+            url: `${REACT_APP_BACKEND_URL}/uploads/${download[2]}`,
+            method: 'GET',
+            responseType: 'blob', // important
+        }).then((response) => {
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${fileName.nama_dokumen}.${cek[1]}`); //or any other extension
+            document.body.appendChild(link);
+            link.click();
+        });
+    }
+
     goFormSet = async (val) => {
         const token = localStorage.getItem('token')
         await this.props.getSetDisposal(token, 100, "", 1, val, 'persetujuan')
@@ -1164,7 +1182,7 @@ class Disposal extends Component {
                         <hr/>
                         <div className={style.foot}>
                             <div>
-                                <Button color="success">Download</Button>
+                                <Button color="success" onClick={() => this.downloadData()}>Download</Button>
                             </div>
                         {level === '5' ? (
                             <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
