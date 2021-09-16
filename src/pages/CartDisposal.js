@@ -1,32 +1,23 @@
 /* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable jsx-a11y/no-distracting-elements */
 import React, { Component } from 'react'
-import {NavbarBrand, UncontrolledDropdown, DropdownToggle, DropdownMenu, Dropdown,
-    DropdownItem, Table, ButtonDropdown, Input, Button, Row, Col,
+import {NavbarBrand, Input, Button, Row, Col,
     Modal, ModalHeader, ModalBody, ModalFooter, Container, Alert, Spinner} from 'reactstrap'
-import logo from "../assets/img/logo.png"
 import style from '../assets/css/input.module.css'
-import {FaSearch, FaUserCircle, FaBars, FaTrash} from 'react-icons/fa'
-import {AiOutlineFileExcel, AiFillCheckCircle,  AiOutlineCheck, AiOutlineClose} from 'react-icons/ai'
-import {BsCircle, BsDashCircleFill, BsFillCircleFill} from 'react-icons/bs'
+import {FaUserCircle, FaBars, FaTrash} from 'react-icons/fa'
+import {AiOutlineCheck, AiOutlineClose} from 'react-icons/ai'
+import {BsCircle} from 'react-icons/bs'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
 import disposal from '../redux/actions/disposal'
+import pengadaan from '../redux/actions/pengadaan'
 import {connect} from 'react-redux'
-import moment from 'moment'
 import auth from '../redux/actions/auth'
-import {default as axios} from 'axios'
 import Sidebar from "../components/Header";
 import MaterialTitlePanel from "../components/material_title_panel";
 import SidebarContent from "../components/sidebar_content";
 import placeholder from  "../assets/img/placeholder.png"
-import a from "../assets/img/a.jpg"
-import b from "../assets/img/b.jpg"
-import c from "../assets/img/c.jpg"
-import d from "../assets/img/d.jpg"
-import e from "../assets/img/e.jpg"
-import f from "../assets/img/f.png"
-import g from "../assets/img/g.png"
+import Pdf from "../components/Pdf"
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -71,7 +62,11 @@ class CartDisposal extends Component {
             dataRinci: {},
             openModalDoc: false,
             alertSubmit: false,
-            limImage: 20000000
+            limImage: 20000000,
+            date: '',
+            idDoc: 0,
+            fileName: {},
+            openPdf: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -122,6 +117,20 @@ class CartDisposal extends Component {
         this.openModalRinci()
     }
 
+    showDokumen = async (value) => {
+        const token = localStorage.getItem('token')
+        await this.props.showDokumen(token, value.id)
+        this.setState({date: value.updatedAt, idDoc: value.id, fileName: value})
+        const {isShow} = this.props.pengadaan
+        if (isShow) {
+            this.openModalPdf()
+        }
+    }
+
+    openModalPdf = () => {
+        this.setState({openPdf: !this.state.openPdf})
+    }
+
     openModalRinci = () => {
         this.setState({modalRinci: !this.state.modalRinci})
     }
@@ -165,7 +174,7 @@ class CartDisposal extends Component {
     }
 
     componentDidUpdate() {
-        const {isError, isGet, isUpload, isSubmit} = this.props.disposal
+        const {isError, isUpload, isSubmit} = this.props.disposal
         const token = localStorage.getItem('token')
         const {dataRinci} = this.state
         if (isError) {
@@ -241,8 +250,8 @@ class CartDisposal extends Component {
     }
 
     render() {
-        const {isOpen, dropOpen, dropOpenNum, detail, alert, upload, errMsg, dataRinci} = this.state
-        const {dataDis, isGet, alertM, alertMsg, alertUpload, page, dataDoc, dataKet} = this.props.disposal
+        const {alert, dataRinci} = this.state
+        const {dataDis, alertM, alertMsg, alertUpload, dataDoc, dataKet} = this.props.disposal
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
 
@@ -549,13 +558,28 @@ class CartDisposal extends Component {
                     </Button>
                 </ModalFooter>
             </Modal>
+            <Modal isOpen={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
+                <ModalHeader>Dokumen</ModalHeader>
+                    <ModalBody>
+                        <div className={style.readPdf}>
+                            <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
+                        </div>
+                        <hr/>
+                        <div className={style.foot}>
+                            <div>
+                            </div>
+                            <Button color="primary" onClick={this.openModalPdf}>Close</Button>
+                        </div>
+                    </ModalBody>
+                </Modal>
             </>
         )
     }
 }
 
 const mapStateToProps = state => ({
-    disposal: state.disposal
+    disposal: state.disposal,
+    pengadaan: state.pengadaan
 })
 
 const mapDispatchToProps = {
@@ -567,7 +591,8 @@ const mapDispatchToProps = {
     updateDisposal: disposal.updateDisposal,
     getDocumentDis: disposal.getDocumentDis,
     uploadDocumentDis: disposal.uploadDocumentDis,
-    getKeterangan: disposal.getKeterangan
+    getKeterangan: disposal.getKeterangan,
+    showDokumen: pengadaan.showDokumen,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(CartDisposal)

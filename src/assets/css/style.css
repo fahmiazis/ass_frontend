@@ -386,6 +386,7 @@
     border: 0px;
     color: blue;
     margin-bottom: 3%;
+    text-align: start;
 }
 .imgCard {
     width: 288px;
@@ -867,4 +868,22 @@
 .errApprove {
     text-align: center;
     justify-content: center;
+}
+.docCol {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+}
+.docRes {
+    display: flex;
+    flex-direction: column;
+}
+.enter {
+    color: red;
+    font-style: italic;
+    font-size: 75%;
+}
+.lsDoc {
+    display: flex;
+    flex-direction: row;
 }

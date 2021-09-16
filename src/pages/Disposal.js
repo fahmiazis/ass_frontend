@@ -1172,15 +1172,22 @@ class Disposal extends Component {
                                         <text>{x.nama_dokumen}</text>
                                     </Col>
                                     {x.path !== null ? (
-                                        <Col md={6} lg={6} >
-                                            {x.status === 0 ? (
-                                                <AiOutlineClose size={20} />
-                                            ) : x.status === 3 ? (
-                                                <AiOutlineCheck size={20} />
-                                            ) : (
-                                                <BsCircle size={20} />
-                                            )}
-                                            <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
+                                        <Col md={6} lg={6} className="lsDoc">
+                                                {x.status === 0 ? (
+                                                    <AiOutlineClose size={20} />
+                                                ) : x.status === 3 ? (
+                                                    <AiOutlineCheck size={20} />
+                                                ) : (
+                                                    <BsCircle size={20} />
+                                                )}
+                                                {x.divisi === '0' ? (
+                                                    <AiOutlineClose size={20} />
+                                                ) : x.divisi === '3' ? (
+                                                    <AiOutlineCheck size={20} />
+                                                ) : (
+                                                    <div></div>
+                                                )}
+                                                <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
                                         </Col>
                                     ) : (
                                         <Col md={6} lg={6} >

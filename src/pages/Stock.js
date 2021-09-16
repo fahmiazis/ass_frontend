@@ -245,8 +245,7 @@ class Stock extends Component {
 
     prosesSubmitPre = async () => {
         const token = localStorage.getItem("token")
-        const { page } = this.props.asset
-        await this.props.getAsset(token, 1000, '', page.currentPage, 'asset')
+        await this.props.getAsset(token, 1000, '', 1, 'asset')
         this.modalSubmitPre()
     }
 
@@ -293,6 +292,8 @@ class Stock extends Component {
             if (value.key === 'Enter') {
                 await this.props.updateAsset(token, value.item.id, data)
                 this.getDataAsset()
+            } else {
+                await this.props.updateAsset(token, value.item.id, data)
             }
         } else {
             await this.props.updateAsset(token, value.item.id, data)
@@ -494,8 +495,23 @@ class Stock extends Component {
                                                             onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                             onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                             />
+                                                            {/* <text className="enter">Tekan enter untuk menyimpan perubahan</text> */}
                                                         </td>
-                                                        <td>{item.satuan}</td>
+                                                        <td>
+                                                            <Input 
+                                                            type="select"
+                                                            className="inputRinci"
+                                                            name="satuan"
+                                                            value={item.satuan}
+                                                            defaultValue={item.satuan}
+                                                            onChange={e => {this.updateNewAsset({item: item, target: e.target})} }
+                                                            >
+                                                                <option>-Pilih Satuan-</option>
+                                                                <option value="Unit">UNIT</option>
+                                                                <option value="Paket">PAKET</option>
+                                                            </Input>
+                                                        </td>
+                                                        {/* <td>{item.satuan}</td> */}
                                                         <td>{item.unit}</td>
                                                         {/* <td>{item.lokasi}</td> */}
                                                         <td>
@@ -507,6 +523,7 @@ class Stock extends Component {
                                                             onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                             onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                             />
+                                                             {/* <text className="enter">Tekan enter untuk menyimpan perubahan</text> */}
                                                         </td>
                                                         {/* <td>{item.status_fisik}</td> */}
                                                         <td>
@@ -568,6 +585,7 @@ class Stock extends Component {
                                                             onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                             onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                             />
+                                                             {/* <text className="enter">Tekan enter untuk menyimpan perubahan</text> */}
                                                         </td>
                                                         <td>
                                                             {item.pict === undefined || item.pict.length === 0 ? 
@@ -752,9 +770,10 @@ class Stock extends Component {
                                                 onBlur={handleBlur("satuan")}
                                                 onChange={handleChange("satuan")}
                                                 >
-                                                    <option>-Pilih Satuan-</option>
+                                                    <option>{values.satuan}</option>
+                                                    {/* <option>-Pilih Satuan-</option>
                                                     <option value="UNIT">UNIT</option>
-                                                    <option value="PAKET">PAKET</option>
+                                                    <option value="PAKET">PAKET</option> */}
                                                 </Input>
                                             </Col>
                                         </Row>
@@ -799,9 +818,10 @@ class Stock extends Component {
                                                 onBlur={handleBlur("status_fisik")}
                                                 onChange={e => { handleChange("status_fisik"); this.selectStatus(e.target.value, this.state.kondisi)} }
                                                 >
-                                                    <option>-Pilih Status Fisik-</option>
+                                                    <option>{dataRinci.status_fisik}</option>
+                                                    {/* <option>-Pilih Status Fisik-</option>
                                                     <option value="ada">Ada</option>
-                                                    <option value="tidak ada">Tidak Ada</option>
+                                                    <option value="tidak ada">Tidak Ada</option> */}
                                                 </Input>
                                             </Col>
                                         </Row>
@@ -817,10 +837,11 @@ class Stock extends Component {
                                                 onBlur={handleBlur("kondisi")}
                                                 onChange={e => { handleChange("kondisi"); this.selectStatus(this.state.fisik, e.target.value)} }
                                                 >
-                                                    <option>-Pilih Kondisi-</option>
+                                                    <option>{dataRinci.kondisi}</option>
+                                                    {/* <option>-Pilih Kondisi-</option>
                                                     <option value="baik">Baik</option>
                                                     <option value="rusak">Rusak</option>
-                                                    <option value="">-</option>
+                                                    <option value="">-</option> */}
                                                 </Input>
                                             </Col>
                                         </Row>
@@ -836,12 +857,13 @@ class Stock extends Component {
                                                 onBlur={handleBlur("grouping")}
                                                 onChange={handleChange("grouping")}
                                                 >
-                                                    <option>-Pilih Status Aset-</option>
-                                                    {dataStatus.length > 0 && dataStatus.map(item => {
+                                                    <option>{values.grouping}</option>
+                                                    {/* <option>-Pilih Status Aset-</option> */}
+                                                    {/* {dataStatus.length > 0 && dataStatus.map(item => {
                                                         return (
                                                             <option value={item.status}>{item.status}</option>
                                                         )
-                                                    })}
+                                                    })} */}
                                                 </Input>
                                             </Col>
                                         </Row>
@@ -863,10 +885,10 @@ class Stock extends Component {
                                             <text className={style.txtError}>{errors.keterangan}</text>
                                         ) : null}
                                     </div>
-                                    <ModalFooter>
+                                    {/* <ModalFooter>
                                         <Button className="btnFootRinci1 mr-3" size="md" color="primary" onClick={handleSubmit}>Save</Button>
                                         <Button className="btnFootRinci1" size="md" color="secondary" onClick={() => this.openModalEdit()}>Close</Button>
-                                    </ModalFooter>
+                                    </ModalFooter> */}
                                 </div>
                             )}
                             </Formik>

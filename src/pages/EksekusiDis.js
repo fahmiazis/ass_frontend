@@ -379,7 +379,7 @@ class EksekusiDisposal extends Component {
                                         <text>{x.nama_dokumen}</text>
                                     </Col>
                                     {x.path !== null ? (
-                                        <Col md={6} lg={6} >
+                                        <Col md={6} lg={6} className="docCol" >
                                             {x.status === 0 ? (
                                                 <AiOutlineClose size={20} />
                                             ) : x.status === 3 ? (
@@ -387,19 +387,20 @@ class EksekusiDisposal extends Component {
                                             ) : (
                                                 <BsCircle size={20} />
                                             )}
-                                            <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
-                                            
-                                            <div>
-                                                {level === '5' ? (
-                                                    <input
-                                                    className="ml-4"
-                                                    type="file"
-                                                    onClick={() => this.setState({detail: x})}
-                                                    onChange={this.onChangeUpload}
-                                                    />
-                                                ) : (
-                                                    <text></text>
-                                                )}
+                                            <div className='docRes'>
+                                                <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
+                                                <div>
+                                                    {level === '5' ? (
+                                                        <input
+                                                        className="ml-2"
+                                                        type="file"
+                                                        onClick={() => this.setState({detail: x})}
+                                                        onChange={this.onChangeUpload}
+                                                        />
+                                                    ) : (
+                                                        <text></text>
+                                                    )}
+                                                </div>
                                             </div>
                                         </Col>
                                     ) : (
@@ -493,6 +494,10 @@ class EksekusiDisposal extends Component {
                                 <div>
                                     <div className="titRinci">{dataRinci.nama_asset}</div>
                                     <Row className="mb-2 rowRinci">
+                                        <Col md={3}>Area</Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.kode_plant + '-' + dataRinci.area} disabled /></Col>
+                                    </Row>
+                                    <Row className="mb-2 rowRinci">
                                         <Col md={3}>No Asset</Col>
                                         <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
                                     </Row>
@@ -547,13 +552,14 @@ class EksekusiDisposal extends Component {
                                         </Col>
                                     </Row>
                                     {dataRinci.nilai_jual !== '0' ? (
-                                        <Row>
+                                        <Row className="mb-5 rowRinci">
                                             <Col md={3}>Status NPWP</Col>
                                             <Col md={9} className="colRinci">
                                             <Input 
                                             type="select"
                                             className="inputRinci"
                                             name="npwp"
+                                            disabled={level === '5' ? false : true}
                                             value={this.state.npwp === '' ? dataRinci.npwp : this.state.npwp} 
                                             onChange={e => {this.updateNpwp(e.target.value)} }
                                             >

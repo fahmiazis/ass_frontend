@@ -10,6 +10,7 @@ import {AiOutlineCheck, AiOutlineClose} from 'react-icons/ai'
 import {BsCircle} from 'react-icons/bs'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
+import pengadaan from '../redux/actions/pengadaan'
 import disposal from '../redux/actions/disposal'
 import setuju from '../redux/actions/setuju'
 import {connect} from 'react-redux'
@@ -1165,7 +1166,8 @@ class TaxFinDisposal extends Component {
 
 const mapStateToProps = state => ({
     disposal: state.disposal,
-    setuju: state.setuju
+    setuju: state.setuju,
+    pengadaan: state.pengadaan
 })
 
 const mapDispatchToProps = {
@@ -1181,6 +1183,7 @@ const mapDispatchToProps = {
     submitFinal: setuju.submitFinalDisposal,
     getApproveSetDisposal: setuju.getApproveSetDisposal,
     getDetailDis: disposal.getDetailDisposal,
+    showDokumen: pengadaan.showDokumen,
     getApproveDisposal: disposal.getApproveDisposal,
 }
 
