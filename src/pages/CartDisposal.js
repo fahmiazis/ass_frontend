@@ -13,6 +13,7 @@ import disposal from '../redux/actions/disposal'
 import pengadaan from '../redux/actions/pengadaan'
 import {connect} from 'react-redux'
 import auth from '../redux/actions/auth'
+import {default as axios} from 'axios'
 import Sidebar from "../components/Header";
 import MaterialTitlePanel from "../components/material_title_panel";
 import SidebarContent from "../components/sidebar_content";
@@ -125,6 +126,24 @@ class CartDisposal extends Component {
         if (isShow) {
             this.openModalPdf()
         }
+    }
+
+    downloadData = () => {
+        const { fileName } = this.state
+        const download = fileName.path.split('/')
+        const cek = download[2].split('.')
+        axios({
+            url: `${REACT_APP_BACKEND_URL}/uploads/${download[2]}`,
+            method: 'GET',
+            responseType: 'blob', // important
+        }).then((response) => {
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${fileName.nama_dokumen}.${cek[1]}`); //or any other extension
+            document.body.appendChild(link);
+            link.click();
+        });
     }
 
     openModalPdf = () => {
@@ -567,6 +586,7 @@ class CartDisposal extends Component {
                         <hr/>
                         <div className={style.foot}>
                             <div>
+                                <Button color="success" onClick={() => this.downloadData()}>Download</Button>
                             </div>
                             <Button color="primary" onClick={this.openModalPdf}>Close</Button>
                         </div>

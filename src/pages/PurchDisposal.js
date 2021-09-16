@@ -1,22 +1,20 @@
 /* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable jsx-a11y/no-distracting-elements */
 import React, { Component } from 'react'
-import {NavbarBrand, UncontrolledDropdown, DropdownToggle, DropdownMenu, Dropdown,
-    DropdownItem, Table, ButtonDropdown, Input, Button, Row, Col,
+import {NavbarBrand, Input, Button, Row, Col,
     Modal, ModalHeader, ModalBody, ModalFooter, Container, Alert, Spinner} from 'reactstrap'
-import logo from "../assets/img/logo.png"
 import style from '../assets/css/input.module.css'
-import {FaSearch, FaUserCircle, FaBars, FaTrash} from 'react-icons/fa'
-import {AiOutlineFileExcel, AiFillCheckCircle,  AiOutlineCheck, AiOutlineClose} from 'react-icons/ai'
-import {BsCircle, BsDashCircleFill, BsFillCircleFill} from 'react-icons/bs'
+import {FaUserCircle, FaBars} from 'react-icons/fa'
+import {AiOutlineCheck, AiOutlineClose} from 'react-icons/ai'
+import {BsCircle} from 'react-icons/bs'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
 import disposal from '../redux/actions/disposal'
 import setuju from '../redux/actions/setuju'
 import pengadaan from '../redux/actions/pengadaan'
 import {connect} from 'react-redux'
-import moment from 'moment'
 import Pdf from "../components/Pdf"
+import moment from 'moment'
 import auth from '../redux/actions/auth'
 import {default as axios} from 'axios'
 import Sidebar from "../components/Header";
@@ -37,6 +35,10 @@ const disposalSchema = Yup.object().shape({
     keterangan: Yup.string().required('must be filled'),
     nilai_jual: Yup.number().required('must be filled')
 })
+
+const alasanSchema = Yup.object().shape({
+    alasan: Yup.string().required()
+});
 
 class PurchDisposal extends Component {
     constructor(props) {
@@ -73,7 +75,10 @@ class PurchDisposal extends Component {
             modalRinci: false,
             dataRinci: {},
             openModalDoc: false,
-            alertSubmit: false
+            alertSubmit: false,
+            fileName: {},
+            openRejectDis: false,
+            openApproveDis: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -89,6 +94,22 @@ class PurchDisposal extends Component {
          }, 10000)
     }
 
+    rejectDokumen = async (value) => {
+        const {fileName} = this.state
+        const token = localStorage.getItem('token')
+        await this.props.rejectDocDis(token, fileName.id, value)
+        this.setState({openRejectDis: !this.state.openRejectDis})
+        this.openModalPdf()
+    }
+
+    approveDokumen = async () => {
+        const {fileName} = this.state
+        const token = localStorage.getItem('token')
+        await this.props.approveDocDis(token, fileName.id)
+        this.setState({openApproveDis: !this.state.openApproveDis})
+        this.openModalPdf()
+    }
+
     showDokumen = async (value) => {
         const token = localStorage.getItem('token')
         await this.props.showDokumen(token, value.id)
@@ -97,6 +118,24 @@ class PurchDisposal extends Component {
         if (isShow) {
             this.openModalPdf()
         }
+    }
+
+    downloadData = () => {
+        const { fileName } = this.state
+        const download = fileName.path.split('/')
+        const cek = download[2].split('.')
+        axios({
+            url: `${REACT_APP_BACKEND_URL}/uploads/${download[2]}`,
+            method: 'GET',
+            responseType: 'blob', // important
+        }).then((response) => {
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${fileName.nama_dokumen}.${cek[1]}`); //or any other extension
+            document.body.appendChild(link);
+            link.click();
+        });
     }
 
     openModalPdf = () => {
@@ -124,6 +163,10 @@ class PurchDisposal extends Component {
         this.getDataDisposal()
     }
 
+    openModalApproveDis = () => {
+        this.setState({openApproveDis: !this.state.openApproveDis})
+    }
+
     onChangeUpload = e => {
         const {size, type} = e.target.files[0]
         this.setState({fileUpload: e.target.files[0]})
@@ -140,6 +183,10 @@ class PurchDisposal extends Component {
             data.append('document', e.target.files[0])
             this.props.uploadDocumentDis(token, detail.id, data)
         }
+    }
+
+    openModalRejectDis = () => {
+        this.setState({openRejectDis: !this.state.openRejectDis})
     }
 
     closeProsesModalDoc = () => {
@@ -203,10 +250,9 @@ class PurchDisposal extends Component {
     }
 
     componentDidUpdate() {
-        const {isError, isGet, isUpload, isSubmit} = this.props.disposal
+        const {isError, isUpload, isSubmit, isAppDoc, isRejDoc} = this.props.disposal
         const error = this.props.setuju.isError
         const token = localStorage.getItem('token')
-        const level = localStorage.getItem('level')
         const {dataRinci} = this.state
         if (isError) {
             this.props.resetError()
@@ -227,6 +273,13 @@ class PurchDisposal extends Component {
         } else if (error) {
             this.props.resetSetuju()
             this.showAlert()
+        } else if (isAppDoc === true || isRejDoc === true) {
+            setTimeout(() => {
+                this.props.resetDis()
+             }, 1000)
+             setTimeout(() => {
+                this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'pengajuan')
+             }, 1100)
         }
     }
 
@@ -263,8 +316,8 @@ class PurchDisposal extends Component {
     }
 
     render() {
-        const {isOpen, dropOpen, dropOpenNum, detail, alert, upload, errMsg, dataRinci} = this.state
-        const {dataDis, isGet, alertM, alertMsg, alertUpload, page, dataDoc} = this.props.disposal
+        const {alert, dataRinci} = this.state
+        const {dataDis, alertM, dataDoc} = this.props.disposal
         const msgAlert = this.props.setuju.alertM
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
@@ -558,24 +611,81 @@ class PurchDisposal extends Component {
             </Modal>
             <Modal isOpen={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
                 <ModalHeader>Dokumen</ModalHeader>
-                    <ModalBody>
-                        <div className={style.readPdf}>
-                            <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
+                <ModalBody>
+                    <div className={style.readPdf}>
+                        <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
+                    </div>
+                    <hr/>
+                    <div className={style.foot}>
+                        <div>
+                            <Button color="success" onClick={() => this.downloadData()}>Download</Button>
                         </div>
-                        <hr/>
-                        <div className={style.foot}>
+                    {level === '5' ? (
+                        <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                        ) : (
                             <div>
-                                <Button color="success">Download</Button>
+                                <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
+                                <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
                             </div>
-                        {level === '5' ? (
-                            <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
-                            ) : (
-                                <div>
-                                </div>
-                            )}
+                        )}
+                    </div>
+                </ModalBody>
+            </Modal>
+            <Modal isOpen={this.state.openRejectDis} toggle={this.openModalRejectDis} centered={true}>
+                <ModalBody>
+                <Formik
+                initialValues={{
+                alasan: "",
+                }}
+                validationSchema={alasanSchema}
+                onSubmit={(values) => {this.rejectDokumen(values)}}
+                >
+                    {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                        <div className={style.modalApprove}>
+                        <div className={style.quest}>Anda yakin untuk reject {this.state.fileName.nama_dokumen} ?</div>
+                        <div className={style.alasan}>
+                            <text className="col-md-3">
+                                Alasan
+                            </text>
+                            <Input 
+                            type="name" 
+                            name="select" 
+                            className="col-md-9"
+                            value={values.alasan}
+                            onChange={handleChange('alasan')}
+                            onBlur={handleBlur('alasan')}
+                            />
                         </div>
-                    </ModalBody>
-                </Modal>
+                        {errors.alasan ? (
+                                <text className={style.txtError}>{errors.alasan}</text>
+                            ) : null}
+                        <div className={style.btnApprove}>
+                            <Button color="primary" onClick={handleSubmit}>Ya</Button>
+                            <Button color="secondary" onClick={this.openModalRejectDis}>Tidak</Button>
+                        </div>
+                    </div>
+                    )}
+                    </Formik>
+                </ModalBody>
+            </Modal>
+            <Modal isOpen={this.state.openApproveDis} toggle={this.openModalApproveDis} centered={true}>
+                <ModalBody>
+                    <div className={style.modalApprove}>
+                        <div>
+                            <text>
+                                Anda yakin untuk approve 
+                                <text className={style.verif}>  </text>
+                                pada tanggal
+                                <text className={style.verif}> {moment().format('LL')}</text> ?
+                            </text>
+                        </div>
+                        <div className={style.btnApprove}>
+                            <Button color="primary" onClick={this.approveDokumen}>Ya</Button>
+                            <Button color="secondary" onClick={this.openModalApproveDis}>Tidak</Button>
+                        </div>
+                    </div>
+                </ModalBody>
+            </Modal>
         </>
         )
     }
@@ -596,9 +706,12 @@ const mapDispatchToProps = {
     updateDisposal: disposal.updateDisposal,
     getDocumentDis: disposal.getDocumentDis,
     uploadDocumentDis: disposal.uploadDocumentDis,
+    approveDocDis: disposal.approveDocDis,
+    rejectDocDis: disposal.rejectDocDis,
     submitPurch: setuju.submitPurchDisposal,
     resetSetuju: setuju.resetSetuju,
     showDokumen: pengadaan.showDokumen,
+    resetDis: disposal.reset
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(PurchDisposal)

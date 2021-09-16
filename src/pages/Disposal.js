@@ -88,7 +88,8 @@ class Disposal extends Component {
             dataApp: {},
             img: '',
             limImage: 20000,
-            submitPre: false
+            submitPre: false,
+            date: ''
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -300,11 +301,31 @@ class Disposal extends Component {
         const token = localStorage.getItem('token')
         await this.props.showDokumen(token, value.id)
         this.setState({date: value.updatedAt, idDoc: value.id, fileName: value})
+        console.log(value)
         const {isShow} = this.props.pengadaan
         if (isShow) {
             this.openModalPdf()
         }
     }
+
+    downloadData = () => {
+        const { fileName } = this.state
+        const download = fileName.path.split('/')
+        const cek = download[2].split('.')
+        axios({
+            url: `${REACT_APP_BACKEND_URL}/uploads/${download[2]}`,
+            method: 'GET',
+            responseType: 'blob', // important
+        }).then((response) => {
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${fileName.nama_dokumen}.${cek[1]}`); //or any other extension
+            document.body.appendChild(link);
+            link.click();
+        });
+    }
+
 
     onChangeHandler = e => {
         const {size, type} = e.target.files[0]
@@ -508,10 +529,12 @@ class Disposal extends Component {
                                         <div className={style.headEmail}>
                                             <button onClick={this.goCartDispos} className="btnGoCart"><FaCartPlus size={60} className="green ml-2" /></button>
                                         </div>
-                                    ) : (
+                                    ) : level === '2' ? (
                                         <div className={style.headEmail}>
                                             <Button onClick={this.getSubmitDisposal} color="info" size="lg" className="btnGoCart">Submit</Button>
                                         </div>
+                                    ) : (
+                                        <div></div>
                                     )}
                                     <div className={style.searchEmail}>
                                         <text>Search: </text>
@@ -1099,8 +1122,8 @@ class Disposal extends Component {
                                             <Col md={3}>Kategori</Col>
                                             <Col md={9} className="katCheck">: 
                                                 <div className="katCheck">
-                                                    <div className="ml-2"><input type="checkbox"/> IT</div>
-                                                    <div className="ml-3"><input type="checkbox"/> Non IT</div>
+                                                    <div className="ml-2"><input type="checkbox" checked={dataRinci.kategori === 'IT' ? true : false} /> IT</div>
+                                                    <div className="ml-3"><input type="checkbox" checked={dataRinci.kategori === 'NON IT' ? true : false} /> Non IT</div>
                                                 </div>
                                             </Col>
                                         </Row>
@@ -1114,7 +1137,7 @@ class Disposal extends Component {
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Nilai Buku</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" disabled value={dataRinci.nilai_buku} /></Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col  md={3}>Nilai Jual</Col>
@@ -1272,7 +1295,7 @@ class Disposal extends Component {
                         <hr/>
                         <div className={style.foot}>
                             <div>
-                                <Button color="success">Download</Button>
+                                <Button color="success" onClick={() => this.downloadData()}>Download</Button>
                             </div>
                         {level === '5' ? (
                             <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>

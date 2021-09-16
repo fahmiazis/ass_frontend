@@ -86,7 +86,10 @@ class TaxFinDisposal extends Component {
             alertSubmit: false,
             openPdf: false,
             preview: false,
-            preset: false
+            preset: false,
+            idDoc: 0,
+            fileName: {},
+            date: ''
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -110,6 +113,24 @@ class TaxFinDisposal extends Component {
         if (isShow) {
             this.openModalPdf()
         }
+    }
+
+    downloadData = () => {
+        const { fileName } = this.state
+        const download = fileName.path.split('/')
+        const cek = download[2].split('.')
+        axios({
+            url: `${REACT_APP_BACKEND_URL}/uploads/${download[2]}`,
+            method: 'GET',
+            responseType: 'blob', // important
+        }).then((response) => {
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${fileName.nama_dokumen}.${cek[1]}`); //or any other extension
+            document.body.appendChild(link);
+            link.click();
+        });
     }
 
     openModalPdf = () => {
@@ -837,27 +858,20 @@ class TaxFinDisposal extends Component {
                     </div>
                 </ModalBody>
             </Modal>
-            <Modal show={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
-                <Modal.Header>Dokumen</Modal.Header>
-                <Modal.Body>
+            <Modal isOpen={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
+                <ModalHeader>Dokumen</ModalHeader>
+                <ModalBody>
                     <div className={style.readPdf}>
                         <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
                     </div>
                     <hr/>
                     <div className={style.foot}>
                         <div>
-                            <Button color="success">Download</Button>
+                            <Button color="success" onClick={() => this.downloadData()}>Download</Button>
                         </div>
-                    {level === '5' ? (
                         <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
-                        ) : (
-                            <div>
-                                <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
-                                <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
-                            </div>
-                        )}
                     </div>
-                </Modal.Body>
+                </ModalBody>
             </Modal>
             <Modal isOpen={this.state.preview} toggle={this.modalPeng} size="xl">
                 <ModalBody>
