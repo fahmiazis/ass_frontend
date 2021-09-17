@@ -72,6 +72,7 @@ class EksekusiDisposal extends Component {
             dataRinci: {},
             openModalDoc: false,
             alertSubmit: false,
+            alertSubmit2: false,
             openPdf: false,
             npwp: ''
         }
@@ -181,14 +182,30 @@ class EksekusiDisposal extends Component {
     submitEksDis = async (value) => {
         const token = localStorage.getItem('token')
         const level = localStorage.getItem('level')
-        if (value.nilai_jual === '0' && value.doc_sap === null && level === '2') {
-            this.setState({alertSubmit: true})
+        if (value.nilai_jual === '0' && level === '2') {
+            if (value.doc_sap === null || value.doc_sap === '') {
+                this.setState({alertSubmit: true})
        
-            setTimeout(() => {
-               this.setState({
-                   alertSubmit: false
-               })
-            }, 10000)
+                setTimeout(() => {
+                   this.setState({
+                       alertSubmit: false
+                   })
+                }, 10000)
+            } else {
+                await this.props.submitEksDisposal(token, value.no_asset)
+            }
+        } else if (value.nilai_jual !== 0 && level === '5' ) {
+            if (value.npwp === null || value.npwp === '') {
+                this.setState({alertSubmit2: true})
+       
+                setTimeout(() => {
+                   this.setState({
+                        alertSubmit2: false
+                   })
+                }, 10000)
+            } else {
+                await this.props.submitEksDisposal(token, value.no_asset)
+            }
         } else {
             await this.props.submitEksDisposal(token, value.no_asset)
         }
@@ -209,7 +226,7 @@ class EksekusiDisposal extends Component {
                 this.setState({modalUpload: false})
              }, 1000)
              setTimeout(() => {
-                this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', dataRinci.nilai_jual === "0" ? 'dispose' : 'sell')
+                this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', dataRinci.nilai_jual === "0" ? 'dispose' : 'sell', 'ada')
              }, 1100)
         } else if (isSubmit) {
             this.props.resetError()
@@ -312,6 +329,9 @@ class EksekusiDisposal extends Component {
                                 </div>
                                 <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit}>
                                     <div>Lengkapi no dokumen SAP sebelum submit</div>
+                                </Alert>
+                                <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit2}>
+                                    <div>Pilih Status npwp terlebih dahulu</div>
                                 </Alert>
                                 <Alert color="danger" className={style.alertWrong} isOpen={alert}>
                                     <div>{msgAlert}</div>
@@ -530,7 +550,7 @@ class EksekusiDisposal extends Component {
                                     </Row>
                                     <Row className="mb-2 rowRinci">
                                         <Col md={3}>Nilai Buku</Col>
-                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" disabled /></Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku} disabled /></Col>
                                     </Row>
                                     <Row className="mb-2 rowRinci">
                                         <Col md={3}>Nilai Jual</Col>
@@ -563,7 +583,7 @@ class EksekusiDisposal extends Component {
                                             value={this.state.npwp === '' ? dataRinci.npwp : this.state.npwp} 
                                             onChange={e => {this.updateNpwp(e.target.value)} }
                                             >
-                                                <option>-Pilih Status NPWP-</option>
+                                                <option value="">-Pilih Status NPWP-</option>
                                                 <option value="ada">Ada</option>
                                                 <option value="tidak">Tidak Ada</option>
                                             </Input>

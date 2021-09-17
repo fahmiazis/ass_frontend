@@ -427,7 +427,7 @@ class PurchDisposal extends Component {
                 </Modal>
                 <Modal size="xl" isOpen={this.state.openModalDoc} toggle={this.closeProsesModalDoc}>
                 <ModalHeader>
-                Kelengkapan Dokumen Eksekusi Disposal
+                Kelengkapan Disposal
                 </ModalHeader>
                 <ModalBody>
                     <Container>

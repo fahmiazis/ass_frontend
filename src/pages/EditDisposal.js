@@ -200,7 +200,7 @@ class EditDisposal extends Component {
 
     getDataDisposal = async () => {
         const token = localStorage.getItem('token')
-        await this.props.getDisposal(token, 10, '',  1, 2)
+        await this.props.getDisposal(token, 100, '',  1, 2)
     }
 
     menuButtonClick(ev) {
@@ -282,7 +282,7 @@ class EditDisposal extends Component {
                                     <div>Lengkapi rincian data asset yang ingin diajukan</div>
                                 </Alert>
                                 <Row className="cartDisposal2">
-                                    {isGet === false || dataDis.length === 0 ? (
+                                    {dataDis.length === 0 ? (
                                         <Col md={8} xl={8} sm={12}>
                                             <div className="txtDisposEmpty">Disposal Data is empty</div>
                                         </Col>
@@ -460,15 +460,24 @@ class EditDisposal extends Component {
                                         <text>{x.nama_dokumen}</text>
                                     </Col>
                                     {x.path !== null ? (
-                                        <Col md={6} lg={6} >
-                                            {x.status === 0 ? (
-                                                <AiOutlineClose size={20} />
-                                            ) : x.status === 3 ? (
-                                                <AiOutlineCheck size={20} />
-                                            ) : (
-                                                <BsCircle size={20} />
-                                            )}
-                                            <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
+                                        <Col md={6} lg={6}>
+                                            <div className="lsDoc">
+                                                {x.status === 0 ? (
+                                                    <AiOutlineClose size={20} />
+                                                ) : x.status === 3 ? (
+                                                    <AiOutlineCheck size={20} />
+                                                ) : (
+                                                    <BsCircle size={20} />
+                                                )}
+                                                {x.divisi === '0' ? (
+                                                    <AiOutlineClose size={20} />
+                                                ) : x.divisi === '3' ? (
+                                                    <AiOutlineCheck size={20} />
+                                                ) : (
+                                                    <div></div>
+                                                )}
+                                                <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
+                                            </div>
                                             <div>
                                                 <input
                                                 className="ml-4"

@@ -12,6 +12,7 @@ import moment from 'moment'
 import disposal from '../redux/actions/disposal'
 import pengadaan from '../redux/actions/pengadaan'
 import setuju from '../redux/actions/setuju'
+import {default as axios} from 'axios'
 import auth from '../redux/actions/auth'
 import SidebarContent from "../components/sidebar_content"
 import Pdf from "../components/Pdf"
@@ -39,7 +40,7 @@ class PersetujuanDis extends Component {
             preview: false,
             date: '',
             idDoc: null,
-            fileName: '',
+            fileName: {},
             openPdf: false,
         }
         this.onSetOpen = this.onSetOpen.bind(this);
@@ -73,6 +74,24 @@ class PersetujuanDis extends Component {
         if (isShow) {
             this.openModalPdf()
         }
+    }
+
+    downloadData = () => {
+        const { fileName } = this.state
+        const download = fileName.path.split('/')
+        const cek = download[2].split('.')
+        axios({
+            url: `${REACT_APP_BACKEND_URL}/uploads/${download[2]}`,
+            method: 'GET',
+            responseType: 'blob', // important
+        }).then((response) => {
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${fileName.nama_dokumen}.${cek[1]}`); //or any other extension
+            document.body.appendChild(link);
+            link.click();
+        });
     }
 
     openModalPdf = () => {
@@ -536,14 +555,14 @@ class PersetujuanDis extends Component {
                         <hr/>
                         <div className={style.foot}>
                             <div>
-                                <Button color="success">Download</Button>
+                                <Button color="success" onClick={() => this.downloadData()}>Download</Button>
                             </div>
                         {level === '5' ? (
                             <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
                             ) : (
                                 <div>
-                                    <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
-                                    <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
+                                    {/* <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
+                                    <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button> */}
                                 </div>
                             )}
                         </div>
