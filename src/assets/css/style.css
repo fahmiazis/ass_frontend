@@ -887,3 +887,8 @@
     display: flex;
     flex-direction: row;
 }
+.relogin {
+    justify-content: center;
+    text-align: center;
+    font-size: large;
+}

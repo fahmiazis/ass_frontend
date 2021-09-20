@@ -188,7 +188,7 @@ export default (state=userState, action) => {
                 return {
                     ...state,
                     isLoading: true,
-                    alertMsg: 'Login in ....'
+                    alertMsg: 'Waiting'
                 };
             }
             case 'UPDATE_USER_FULFILLED': {
@@ -241,7 +241,8 @@ export default (state=userState, action) => {
                     ...state,
                     isError: false,
                     isUpload: false,
-                    isExport: false
+                    isExport: false,
+                    isUpdate: false
                 }
             }
             default: {
