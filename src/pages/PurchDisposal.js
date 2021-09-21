@@ -427,7 +427,7 @@ class PurchDisposal extends Component {
                 </Modal>
                 <Modal size="xl" isOpen={this.state.openModalDoc} toggle={this.closeProsesModalDoc}>
                 <ModalHeader>
-                Kelengkapan Disposal
+                Kelengkapan Dokumen
                 </ModalHeader>
                 <ModalBody>
                     <Container>
@@ -620,8 +620,10 @@ class PurchDisposal extends Component {
                         <div>
                             <Button color="success" onClick={() => this.downloadData()}>Download</Button>
                         </div>
-                    {level === '5' ? (
-                        <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                        {level === '5' ? (
+                            <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                        ) : this.state.fileName.nama_dokumen === 'Form Seleksi Vendor' ? (
+                            <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
                         ) : (
                             <div>
                                 <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>

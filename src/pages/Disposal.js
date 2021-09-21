@@ -1141,12 +1141,12 @@ class Disposal extends Component {
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col  md={3}>Nilai Jual</Col>
-                                            <Col md={9} className="colRinci">:  <Input 
+                                            <Col md={9} className="colRinci">:  <Input
                                                 className="inputRinci" 
                                                 value={values.nilai_jual} 
                                                 onBlur={handleBlur("nilai_jual")}
                                                 onChange={handleChange("nilai_jual")}
-                                                disabled={dataRinci.nilai_jual === '0' ? true : false}
+                                                disabled={dataRinci.nilai_jual === '0' || level !== 5 ? true : false}
                                                 />
                                             </Col>
                                         </Row>
@@ -1157,7 +1157,8 @@ class Disposal extends Component {
                                             <Col md={3}>Keterangan</Col>
                                             <Col md={9} className="colRinci">:  <Input
                                                 className="inputRinci" 
-                                                type="text" 
+                                                type="text"
+                                                disabled={level !== 5 ? true : false}
                                                 value={values.keterangan} 
                                                 onBlur={handleBlur("keterangan")}
                                                 onChange={handleChange("keterangan")}

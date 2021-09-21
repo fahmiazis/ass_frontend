@@ -520,7 +520,7 @@ class Disposal extends Component {
                                         </Input>
                                     </div>
                                 </div>
-                                    {this.props.disposal.isGet === false || noDis === undefined ? (
+                                    {this.props.disposal.isGet === false || noDis === undefined  || level === '5' || level === '12' || level === '7' ? (
                                         <div></div>
                                     ) : (
                                         <Row className="bodyDispos">

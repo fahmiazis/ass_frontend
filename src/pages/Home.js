@@ -83,10 +83,12 @@ class Home extends Component {
         const email = localStorage.getItem('email')
         const fullname = localStorage.getItem('fullname')
         const id = localStorage.getItem('id')
-        console.log(id)
+        const level = localStorage.getItem('level')
         if (email === 'null' || email === '' || fullname === 'null' || fullname === '') {
-            if (id !== null) {
+            if (id !== null && level !== '5') {
                 this.openModalEdit()
+            } else if (level === '5') {
+                console.log('5')
             } else {
                 this.relogin()
             }
