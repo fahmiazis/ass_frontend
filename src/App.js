@@ -31,6 +31,7 @@ import CartMutasi from './pages/CartMutasi'
 import NavStock from './pages/NavStock'
 import NavDisposal from './pages/NavDisposal'
 import ReportStock from './pages/ReportStock'
+import Tes from './pages/Tes'
 
 class App extends Component {
 
@@ -46,6 +47,7 @@ class App extends Component {
             <Switch>
                 <Route path='/login' exact component={Login} />
                 <Route path='/side' exact component={Sidebar} />
+                <Route path='/tes' exact component={Tes} />
                 <PrivateRoute path='/' exact>
                     <Home />
                 </PrivateRoute>

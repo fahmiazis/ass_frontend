@@ -527,7 +527,7 @@ class Disposal extends Component {
                                         {noDis.length !== 0 && noDis.map(x => {
                                             return (
                                                 <div className="bodyCard">
-                                                    <img src={dataDis.find(({status_app}) => status_app === x).no_asset === '4100000150' ? b : dataDis.find(({status_app}) => status_app === x).no_asset === '4300001770' ? e : placeholder} className="imgCard1" />
+                                                    <img src={placeholder} className="imgCard1" />
                                                     
                                                     {dataDis.find(({status_app}) => status_app === x).nilai_jual === '0' ? 
                                                      (

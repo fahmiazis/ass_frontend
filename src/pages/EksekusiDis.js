@@ -1,15 +1,13 @@
 /* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable jsx-a11y/no-distracting-elements */
 import React, { Component } from 'react'
-import {NavbarBrand, UncontrolledDropdown, DropdownToggle, DropdownMenu, Dropdown,
-    DropdownItem, Table, ButtonDropdown, Input, Button, Row, Col,
+import {NavbarBrand, Input, Button, Row, Col,
     Modal, ModalHeader, ModalBody, ModalFooter, Container, Alert, Spinner} from 'reactstrap'
-import logo from "../assets/img/logo.png"
 import Pdf from "../components/Pdf"
 import style from '../assets/css/input.module.css'
-import {FaSearch, FaUserCircle, FaBars, FaTrash} from 'react-icons/fa'
-import {AiOutlineFileExcel, AiFillCheckCircle,  AiOutlineCheck, AiOutlineClose} from 'react-icons/ai'
-import {BsCircle, BsDashCircleFill, BsFillCircleFill} from 'react-icons/bs'
+import {FaUserCircle, FaBars} from 'react-icons/fa'
+import {AiOutlineCheck, AiOutlineClose} from 'react-icons/ai'
+import {BsCircle} from 'react-icons/bs'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
 import pengadaan from '../redux/actions/pengadaan'
@@ -30,11 +28,15 @@ import d from "../assets/img/d.jpg"
 import e from "../assets/img/e.jpg"
 import f from "../assets/img/f.png"
 import g from "../assets/img/g.png"
-const {REACT_APP_BACKEND_URL, REACT_APP_URL} = process.env
+const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
     doc_sap: Yup.string().required('must be filled')
 })
+
+const alasanSchema = Yup.object().shape({
+    alasan: Yup.string().required()
+});
 
 class EksekusiDisposal extends Component {
     constructor(props) {
@@ -77,7 +79,9 @@ class EksekusiDisposal extends Component {
             npwp: '',
             fileName: {},
             idDoc: 0,
-            date: ''
+            date: '',
+            openRejectDis: false,
+            openApproveDis: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -105,6 +109,13 @@ class EksekusiDisposal extends Component {
         if (isShow) {
             this.openModalPdf()
         }
+    }
+
+    openModalApproveDis = () => {
+        this.setState({openApproveDis: !this.state.openApproveDis})
+    }
+    openModalRejectDis = () => {
+        this.setState({openRejectDis: !this.state.openRejectDis})
     }
 
     openModalPdf = () => {
@@ -176,6 +187,22 @@ class EksekusiDisposal extends Component {
         this.setState({modalUpload: !this.state.modalUpload})
     }
 
+    rejectDokumen = async (value) => {
+        const {fileName} = this.state
+        const token = localStorage.getItem('token')
+        await this.props.rejectDocDis(token, fileName.id, value)
+        this.setState({openRejectDis: !this.state.openRejectDis})
+        this.openModalPdf()
+    }
+
+    approveDokumen = async () => {
+        const {fileName} = this.state
+        const token = localStorage.getItem('token')
+        await this.props.approveDocDis(token, fileName.id)
+        this.setState({openApproveDis: !this.state.openApproveDis})
+        this.openModalPdf()
+    }
+
     deleteItem = async (value) => {
         const token = localStorage.getItem('token')
         await this.props.deleteDisposal(token, value)
@@ -216,7 +243,7 @@ class EksekusiDisposal extends Component {
     }
 
     componentDidUpdate() {
-        const {isError, isGet, isUpload, isSubmit} = this.props.disposal
+        const {isError, isUpload, isSubmit} = this.props.disposal
         const error = this.props.setuju.isError
         const token = localStorage.getItem('token')
         const {dataRinci} = this.state
@@ -298,8 +325,8 @@ class EksekusiDisposal extends Component {
     }
 
     render() {
-        const {isOpen, dropOpen, dropOpenNum, detail, alert, upload, errMsg, dataRinci} = this.state
-        const {dataDis, isGet, alertM, alertMsg, alertUpload, page, dataDoc} = this.props.disposal
+        const {alert, dataRinci} = this.state
+        const {dataDis, dataDoc} = this.props.disposal
         const msgAlert = this.props.setuju.alertM
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
@@ -645,6 +672,61 @@ class EksekusiDisposal extends Component {
                     </div>
                 </ModalBody>
             </Modal>
+            <Modal isOpen={this.state.openRejectDis} toggle={this.openModalRejectDis} centered={true}>
+                    <ModalBody>
+                    <Formik
+                    initialValues={{
+                    alasan: "",
+                    }}
+                    validationSchema={alasanSchema}
+                    onSubmit={(values) => {this.rejectDokumen(values)}}
+                    >
+                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                            <div className={style.modalApprove}>
+                            <div className={style.quest}>Anda yakin untuk reject {this.state.fileName.nama_dokumen} ?</div>
+                            <div className={style.alasan}>
+                                <text className="col-md-3">
+                                    Alasan
+                                </text>
+                                <Input 
+                                type="name" 
+                                name="select" 
+                                className="col-md-9"
+                                value={values.alasan}
+                                onChange={handleChange('alasan')}
+                                onBlur={handleBlur('alasan')}
+                                />
+                            </div>
+                            {errors.alasan ? (
+                                    <text className={style.txtError}>{errors.alasan}</text>
+                                ) : null}
+                            <div className={style.btnApprove}>
+                                <Button color="primary" onClick={handleSubmit}>Ya</Button>
+                                <Button color="secondary" onClick={this.openModalRejectDis}>Tidak</Button>
+                            </div>
+                        </div>
+                        )}
+                        </Formik>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.openApproveDis} toggle={this.openModalApproveDis} centered={true}>
+                    <ModalBody>
+                        <div className={style.modalApprove}>
+                            <div>
+                                <text>
+                                    Anda yakin untuk approve 
+                                    <text className={style.verif}>  </text>
+                                    pada tanggal
+                                    <text className={style.verif}> {moment().format('LL')}</text> ?
+                                </text>
+                            </div>
+                            <div className={style.btnApprove}>
+                                <Button color="primary" onClick={this.approveDokumen}>Ya</Button>
+                                <Button color="secondary" onClick={this.openModalApproveDis}>Tidak</Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                </Modal>
             </>
         )
     }
@@ -668,6 +750,8 @@ const mapDispatchToProps = {
     uploadDocumentDis: disposal.uploadDocumentDis,
     submitEksDisposal: setuju.submitEksDisposal,
     showDokumen: pengadaan.showDokumen,
+    approveDocDis: disposal.approveDocDis,
+    rejectDocDis: disposal.rejectDocDis,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EksekusiDisposal)

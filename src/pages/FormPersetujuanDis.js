@@ -1,6 +1,7 @@
 /* eslint-disable jsx-a11y/no-distracting-elements */
 import React, { Component } from 'react'
 import { NavbarBrand, Row, Col, Table, Button, Modal, ModalBody, ModalFooter, Container, Alert, Spinner, ModalHeader } from 'reactstrap'
+import { PDFDownloadLink, Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
 import style from '../assets/css/input.module.css'
 import { AiOutlineClose, AiOutlineCheck } from 'react-icons/ai'
 import { BsCircle } from 'react-icons/bs'
@@ -308,22 +309,129 @@ class PersetujuanDis extends Component {
                                     </tr>
                                 </tbody>
                             </Table>
-                            <div className="btnFoot">
-                                <Button className="mr-2" color="danger" disabled>
-                                    Reject
-                                </Button>
-                                {level === '23' || level === '22' || level === '25' ? (
-                                    <Button color="success">
-                                        <label>
-                                            <input type="file" className="file-upload2" onChange={this.approveSet}/>
+                            <div className="btnFoot1">
+                                <div className="btnfootapp">
+                                    <Button className="mr-2" color="danger" disabled>
+                                        Reject
+                                    </Button>
+                                    {level === '23' || level === '22' || level === '25' ? (
+                                        <Button color="success">
+                                            <label>
+                                                <input type="file" className="file-upload2" onChange={this.approveSet}/>
+                                                Approve
+                                            </label>
+                                        </Button>
+                                    ) : (
+                                        <Button color="success" onClick={this.approveSet}>
                                             Approve
-                                        </label>
-                                    </Button>
-                                ) : (
-                                    <Button color="success" onClick={this.approveSet}>
-                                        Approve
-                                    </Button>
-                                )}
+                                        </Button>
+                                    )}
+                                </div>
+                                <Button color="primary" className="btnDownloadForm">
+                                <PDFDownloadLink className="btnDownloadForm" document={
+                                    <Document>
+                                        <Page size="A4" style={styles.page} orientation="landscape">
+                                            <Text style={styles.font}>PT. Pinus Merah Abadi</Text>
+                                            <View style={styles.modalDis}>
+                                                <Text style={[styles.titleModDis, styles.fontTit]}>Persetujuan Disposal Asset</Text>
+                                            </View>
+                                            <View style={styles.marbot}><Text style={styles.font}>Bandung, {moment().format('DD MMMM YYYY ')}</Text></View>
+                                            <View style={styles.marbotT}>
+                                                <Text style={[styles.font]}>
+                                                Hal : Persetujuan Disposal Asset
+                                                </Text>
+                                            </View>
+                                            <Text style={styles.font}>Kepada Yth.</Text>
+                                            <Text style={[styles.marbotT, styles.font]}>Bpk. Erwin Lesmana</Text>
+                                            <Text style={[styles.marbotT, styles.font]}>Dengan Hormat,</Text>
+                                            <Text style={styles.font}>Sehubungan dengan surat permohonan disposal aset area PMA terlampir</Text>
+                                            <Text style={[styles.marbotT, styles.font]}>Dengan ini kami mohon persetujuan untuk melakukan disposal aset dengan perincian sbb :</Text>
+                                            <View style={styles.table}>
+                                                <View style={[styles.row, styles.header]}>
+                                                    <Text style={[styles.cell1, style.headerText]}>No</Text>
+                                                    <Text style={[styles.cell1, style.headerText]}>Nomor Aset / Inventaris</Text>
+                                                    <Text style={[styles.cell1, style.headerText]}>Area (Cabang/Depo/CP)</Text>
+                                                    <Text style={[styles.cell1, style.headerText]}>Nama Barang</Text>
+                                                    <Text style={[styles.cell1, style.headerText]}>Nilai Buku</Text>
+                                                    <Text style={[styles.cell1, style.headerText]}>Nilai Jual</Text>
+                                                    <Text style={[styles.cell1, style.headerText]}>Tanggal Perolehan</Text>
+                                                    <Text style={[styles.cell1, style.headerText]}>Keterangan</Text>
+                                                </View>
+                                                {dataDis.length !== 0 && dataDis.map(item => {
+                                                return(
+                                                    <View style={[styles.row]}>
+                                                        <Text style={[styles.cell, styles.body]}>{dataDis.indexOf(item) + 1}</Text>
+                                                        <Text style={[styles.cell, styles.body]}>{item.no_asset}</Text>
+                                                        <Text style={[styles.cell, styles.body]}>{item.area}</Text>
+                                                        <Text style={[styles.cell, styles.body]}>{item.nama_asset}</Text>
+                                                        <Text style={[styles.cell, styles.body]}>{item.nilai_buku}</Text>
+                                                        <Text style={[styles.cell, styles.body]}>{item.nilai_jual}</Text>
+                                                        <Text style={[styles.cell, styles.body]}>{item.createdAt}</Text>
+                                                        <Text style={[styles.cell, styles.body]}>{item.keterangan}</Text>
+                                                    </View>
+                                                    )
+                                                })}
+                                            </View>
+                                            <Text style={[styles.marbotT, styles.font]}>Demikian hal yang dapat kami sampaikan perihal persetujuan disposal aset, atas perhatiannya kami mengucapkan terima kasih.</Text>
+                                            <View style={styles.footTtd}>
+                                                <View style={styles.tableTtd}>
+                                                    <View style={[styles.row, styles.headerTtd]}>
+                                                        <Text style={[styles.cellrow, style.headerTxt]}>Diajukan oleh,</Text>
+                                                    </View>
+                                                    <View style={[styles.row, styles.headerTtd]}>
+                                                        <View style={[styles.cell2]}>
+                                                            <View style={styles.table}>
+                                                                <View style={[styles.row]}>
+                                                                    {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
+                                                                        return (
+                                                                            <Text style={[styles.cellTtdHead]}>{item.nama === null ? "-" : item.nama}</Text>
+                                                                        )
+                                                                    })}
+                                                                </View>
+                                                                <View style={[styles.row]}>
+                                                                    {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
+                                                                        return (
+                                                                            <Text style={[styles.cellTtdBody]}>{item.jabatan === null ? "-" : item.jabatan}</Text>
+                                                                        )
+                                                                    })}
+                                                                </View>
+                                                            </View>
+                                                        </View>
+                                                    </View>
+                                                </View>
+                                                <View style={styles.table}>
+                                                    <View style={[styles.row, styles.headerTtd]}>
+                                                        <Text style={[styles.cellrow, style.headerTxt]}>Disetujui oleh,</Text>
+                                                    </View>
+                                                    <View style={[styles.row, styles.headerTtd]}>
+                                                        <View style={[styles.cell2]}>
+                                                            <View style={styles.table}>
+                                                                <View style={[styles.row]}>
+                                                                {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
+                                                                    return (
+                                                                        <Text style={[styles.cellTtdHead]}>{item.nama === null ? "-" : item.nama}</Text>     
+                                                                    )
+                                                                })}
+                                                                </View>
+                                                                <View style={[styles.row]}>
+                                                                    {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
+                                                                        return (
+                                                                            <Text style={[styles.cellTtdBody]}>{item.jabatan === null ? "-" : item.jabatan}</Text>
+                                                                        )
+                                                                    })}
+                                                                </View>
+                                                            </View>
+                                                        </View>
+                                                    </View>
+                                                </View>
+                                            </View>
+                                        </Page>
+                                    </Document>
+                                    } 
+                                    fileName={`Form persetujuan D${dataDis[0].status_app}.pdf`}>
+                                    {({ blob, url, loading, error }) => (loading ? 'Loading document...' : 'Download Form')}
+                                </PDFDownloadLink>
+                                </Button>
                             </div>
                         </div>
                     </MaterialTitlePanel>
@@ -572,6 +680,198 @@ class PersetujuanDis extends Component {
         )
     }
 }
+
+const styles = StyleSheet.create({
+    page: {
+      backgroundColor: '#FFFFFF',
+      paddingTop: '20px',
+      paddingLeft: '10px',
+      paddingRight: '10px'
+    },
+    section: {
+      margin: 10,
+      padding: 10,
+      flexGrow: 1
+    },
+    modalDis: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'center',
+    },
+    titleModDis: {
+        fontWeight: 'bold',
+        textDecoration: 'underline'
+    },
+    marbot: {
+        marginBottom: '10px',
+    },
+    font: {
+        fontSize: '11px'
+    },
+    fontTit: {
+        fontSize: '14px'
+    },
+    marbotT: {
+        marginBottom: '15px',
+    },
+    table: {
+        fontSize: 10,
+        width: '100%',
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-start",
+        alignContent: "stretch",
+        flexWrap: "nowrap",
+        alignItems: "stretch"
+      },
+      tableTtd: {
+        fontSize: 10,
+        width: '20%',
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-start",
+        alignContent: "stretch",
+        flexWrap: "nowrap",
+        alignItems: "stretch"
+      },
+      footTtd: {
+        display: 'flex',
+        flexDirection: 'row'
+      },
+      row: {
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-around",
+        alignContent: "stretch",
+        flexWrap: "nowrap",
+        alignItems: "stretch",
+        flexGrow: 0,
+        flexShrink: 0,
+        flexBasis: 35,
+        marginBottom: 0
+      },
+      row1: {
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-around",
+        alignContent: "stretch",
+        flexWrap: "nowrap",
+        alignItems: "stretch",
+        flexGrow: 0,
+        width: 200,
+        flexShrink: 0,
+        flexBasis: 35,
+        marginBottom: 0
+      },
+      cell: {
+        borderColor: "gray",
+        borderStyle: "solid",
+        borderWidth: 0.5,
+        borderTopWidth: 1,
+        flexGrow: 1,
+        flexShrink: 1,
+        flexBasis: "auto",
+        alignSelf: "stretch",
+        padding: 8,
+        paddingBottom: 10
+      },
+      cell1: {
+        borderColor: "black",
+        borderStyle: "solid",
+        borderTopWidth: 1,
+        borderRightWidth: 1,
+        borderLeftWidth: 1,
+        borderBottomWidth: 0,
+        flexGrow: 1,
+        flexShrink: 1,
+        flexBasis: "auto",
+        alignSelf: "stretch",
+        padding: 14,
+        marginBottom: 2
+      },
+      cellrow: {
+        borderColor: "black",
+        borderStyle: "solid",
+        borderTopWidth: 1,
+        borderRightWidth: 1,
+        borderLeftWidth: 1,
+        borderBottomWidth: 0,
+        flexGrow: 1,
+        flexShrink: 1,
+        flexBasis: "auto",
+        alignSelf: "center",
+        textAlign: 'center',
+        padding: 14,
+        marginBottom: 2
+      },
+      cell2: {
+        borderColor: "black",
+        borderStyle: "solid",
+        borderTopWidth: 1,
+        borderRightWidth: 1,
+        borderLeftWidth: 1,
+        borderBottomWidth: 1,
+        flexGrow: 1,
+        flexShrink: 1,
+        flexBasis: "auto",
+        alignSelf: "stretch",
+        padding: 0,
+        marginBottom: 2
+      },
+      cellTtdHead: {
+        borderColor: "black",
+        borderStyle: "solid",
+        borderBottomWidth: 0,
+        borderLeftWidth: 1,
+        borderRightWidth: 0,
+        borderTopWidth: 0,
+        flexGrow: 1,
+        flexShrink: 1,
+        flexBasis: "auto",
+        alignSelf: "center",
+        padding: 14,
+        textAlign: 'center'
+      },
+      cellTtdBody: {
+        borderColor: "black",
+        borderStyle: "solid",
+        borderBottomWidth: 0,
+        borderLeftWidth: 1,
+        borderRightWidth: 0,
+        borderTopWidth: 1,
+        flexGrow: 1,
+        flexShrink: 1,
+        flexBasis: "auto",
+        alignSelf: "center",
+        padding: 8,
+        textAlign: 'center'
+      },
+      header: {
+        backgroundColor: "gray"
+      },
+      headerTtd: {
+          backgroundColor: "#FFFFFF"
+      },
+      body: {
+        backgroundColor: "#eee"
+      },
+      headerText: {
+        fontSize: 11,
+        fontWeight: "bold",
+        color: "black",
+      },
+      headerTxt: {
+        fontSize: 11,
+        fontWeight: "bold",
+        color: "black",
+        textAlign: 'center'
+      },
+      tableText: {
+        margin: 10,
+        fontSize: 10,
+        color: 'neutralDark'
+      }
+  });
 
 const mapStateToProps = state => ({
     asset: state.asset,

@@ -378,6 +378,16 @@
 .btnFoot {
     margin-right: 2%;
 }
+.btnfootapp {
+    display: flex;
+    flex-direction: row;
+}
+.btnFoot1 {
+    margin-right: 2%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
 .alertWrong {
     text-align: center;
 }
@@ -891,4 +901,7 @@
     justify-content: center;
     text-align: center;
     font-size: large;
+}
+.btnDownloadForm {
+    color: #F6F2F0;
 }
