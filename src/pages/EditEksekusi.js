@@ -390,18 +390,19 @@ class EditEksekusi extends Component {
                                 <div className="rightRinci">
                                     <div>
                                         <div className="titRinci">{dataRinci.nama_asset}</div>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>No Asset</Col>
-                                            <Col md={9}>:  <input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
                                         </Row>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Merk / Type</Col>
-                                            <Col md={9}>:  <input
+                                            <Col md={9} className="colRinci">:  <Input
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.merk}
                                                 onBlur={handleBlur("merk")}
                                                 onChange={handleChange("merk")}
+                                                disabled
                                                 />
                                             </Col>
                                         </Row>
@@ -412,42 +413,43 @@ class EditEksekusi extends Component {
                                             <Col md={3}>Kategori</Col>
                                             <Col md={9} className="katCheck">: 
                                                 <div className="katCheck">
-                                                    <div className="ml-2"><input type="checkbox" checked={dataRinci.kategori === 'IT' ? true : false} disabled/> IT</div>
-                                                    <div className="ml-3"><input type="checkbox" checked={dataRinci.kategori === 'NON IT' ? true : false} disabled/> NON IT</div>
+                                                    <div className="ml-2"><input type="checkbox" checked={dataRinci.kategori === 'IT' ? true : false} /> IT</div>
+                                                    <div className="ml-3"><input type="checkbox" checked={dataRinci.kategori === 'NON IT' ? true : false} /> Non IT</div>
                                                 </div>
                                             </Col>
                                         </Row>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Status Area</Col>
-                                            <Col md={9}>:  <input className="inputRinci" value={dataRinci.status_depo} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.status_depo} disabled /></Col>
                                         </Row>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Cost Center</Col>
-                                            <Col md={9}>:  <input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
                                         </Row>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Nilai Buku</Col>
-                                            <Col md={9}>:  <input className="inputRinci" disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" disabled value={dataRinci.nilai_buku === null ? '0' : dataRinci.nilai_buku} /></Col>
                                         </Row>
-                                        <Row className="mb-2">
-                                            <Col md={3}>Nilai Jual</Col>
-                                            <Col md={9}>:  <input 
+                                        <Row className="mb-2 rowRinci">
+                                            <Col  md={3}>Nilai Jual</Col>
+                                            <Col md={9} className="colRinci">:  <Input
                                                 className="inputRinci" 
                                                 value={values.nilai_jual} 
                                                 onBlur={handleBlur("nilai_jual")}
                                                 onChange={handleChange("nilai_jual")}
-                                                disabled={dataRinci.nilai_jual === '0' ? true : false}
+                                                disabled={dataRinci.nilai_jual === '0' || level !== 5 ? true : false}
                                                 />
                                             </Col>
                                         </Row>
                                         {errors.nilai_jual ? (
                                             <text className={style.txtError}>{errors.nilai_jual}</text>
                                         ) : null}
-                                        <Row>
+                                        <Row className="mb-4 rowRinci">
                                             <Col md={3}>Keterangan</Col>
-                                            <Col md={9}>:  <input
+                                            <Col md={9} className="colRinci">:  <Input
                                                 className="inputRinci" 
-                                                type="text" 
+                                                type="text"
+                                                disabled={level !== 5 ? true : false}
                                                 value={values.keterangan} 
                                                 onBlur={handleBlur("keterangan")}
                                                 onChange={handleChange("keterangan")}

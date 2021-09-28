@@ -685,7 +685,7 @@ class TaxFinDisposal extends Component {
                                     </Row>
                                     <Row className="mb-2 rowRinci">
                                         <Col md={3}>Nilai Buku</Col>
-                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" disabled /></Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku} disabled /></Col>
                                     </Row>
                                     <Row className="mb-2 rowRinci">
                                         <Col md={3}>Nilai Jual</Col>
