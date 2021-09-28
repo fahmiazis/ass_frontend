@@ -14,6 +14,7 @@ import * as Yup from 'yup'
 import disposal from '../redux/actions/disposal'
 import {connect} from 'react-redux'
 import moment from 'moment'
+import pengadaan from '../redux/actions/pengadaan'
 import auth from '../redux/actions/auth'
 import {default as axios} from 'axios'
 import Sidebar from "../components/Header";
@@ -76,7 +77,8 @@ class EditDisposal extends Component {
             modalRinci: false,
             dataRinci: {},
             openModalDoc: false,
-            alertSubmit: false
+            alertSubmit: false,
+            openPdf: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -90,6 +92,38 @@ class EditDisposal extends Component {
                 alert: false
             })
          }, 10000)
+    }
+
+    showDokumen = async (value) => {
+        const token = localStorage.getItem('token')
+        await this.props.showDokumen(token, value.id)
+        this.setState({date: value.updatedAt, idDoc: value.id, fileName: value})
+        const {isShow} = this.props.pengadaan
+        if (isShow) {
+            this.openModalPdf()
+        }
+    }
+
+    openModalPdf = () => {
+        this.setState({openPdf: !this.state.openPdf})
+    }
+
+    downloadData = () => {
+        const { fileName } = this.state
+        const download = fileName.path.split('/')
+        const cek = download[2].split('.')
+        axios({
+            url: `${REACT_APP_BACKEND_URL}/uploads/${download[2]}`,
+            method: 'GET',
+            responseType: 'blob', // important
+        }).then((response) => {
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${fileName.nama_dokumen}.${cek[1]}`); //or any other extension
+            document.body.appendChild(link);
+            link.click();
+        });
     }
 
     onChangeUpload = e => {
@@ -517,7 +551,8 @@ class EditDisposal extends Component {
 }
 
 const mapStateToProps = state => ({
-    disposal: state.disposal
+    disposal: state.disposal,
+    pengadaan: state.pengadaan
 })
 
 const mapDispatchToProps = {
@@ -528,7 +563,8 @@ const mapDispatchToProps = {
     deleteDisposal: disposal.deleteDisposal,
     updateDisposal: disposal.updateDisposal,
     getDocumentDis: disposal.getDocumentDis,
-    uploadDocumentDis: disposal.uploadDocumentDis
+    uploadDocumentDis: disposal.uploadDocumentDis,
+    showDokumen: pengadaan.showDokumen,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EditDisposal)

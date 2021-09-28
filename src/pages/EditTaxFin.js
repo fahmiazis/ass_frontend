@@ -40,17 +40,13 @@ const taxSchema = Yup.object().shape({
 })
 
 const finSchema = Yup.object().shape({
-    nominal: Yup.number().required('must be filled'),
+    nominal: Yup.string().required('must be filled'),
     no_sap: Yup.string().required('must be filled')
 })
 
 const assetSchema = Yup.object().shape({
     no_fp: Yup.string().required('must be filled')
 })
-
-const alasanSchema = Yup.object().shape({
-    alasan: Yup.string().required()
-});
 
 class TaxFinDisposal extends Component {
     constructor(props) {
@@ -93,11 +89,7 @@ class TaxFinDisposal extends Component {
             preset: false,
             idDoc: 0,
             fileName: {},
-            date: '',
-            tipeDoc: '',
-            openApproveDis: false,
-            openRejectDis: false,
-            alertSetuju: false
+            date: ''
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -109,16 +101,6 @@ class TaxFinDisposal extends Component {
          setTimeout(() => {
             this.setState({
                 alert: false
-            })
-         }, 10000)
-    }
-
-    showAlertSet = () => {
-        this.setState({alertSetuju: true})
-       
-         setTimeout(() => {
-            this.setState({
-                alertSetuju: false
             })
          }, 10000)
     }
@@ -175,7 +157,7 @@ class TaxFinDisposal extends Component {
                })
             }, 10000)
         } else {
-            await this.props.submitTaxFin(token, value.no_asset)
+            await this.props.submitEdit(token, value.no_asset)
             this.getDataDisposal()
         }
     }
@@ -191,50 +173,9 @@ class TaxFinDisposal extends Component {
                })
             }, 10000)
         } else {
-            await this.props.submitFinal(token, value.no_asset)
+            await this.props.submitEdit(token, value.no_asset)
             this.getDataDisposal()
         }
-    }
-
-    rejectTaxFinDis = async (value) => {
-        const token = localStorage.getItem('token')
-        if (value.val.doc_sap === null || value.val.doc_sap === '') {
-            this.setState({alertSubmit: true})
-       
-            setTimeout(() => {
-               this.setState({
-                   alertSubmit: false
-               })
-            }, 10000)
-        } else {
-            await this.props.rejectTaxFin(token, value.val.no_asset, value.tipe)
-            this.getDataDisposal()
-        }
-    }
-
-    rejectDokumen = async (value) => {
-        const {fileName, tipeDoc, dataRinci} = this.state
-        const token = localStorage.getItem('token')
-        await this.props.rejectDocDis(token, fileName.id, value)
-        this.setState({openRejectDis: !this.state.openRejectDis})
-        await this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', tipeDoc)
-        this.openModalPdf()
-    }
-
-    approveDokumen = async () => {
-        const {fileName, tipeDoc, dataRinci} = this.state
-        const token = localStorage.getItem('token')
-        await this.props.approveDocDis(token, fileName.id)
-        this.setState({openApproveDis: !this.state.openApproveDis})
-        await this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', tipeDoc)
-        this.openModalPdf()
-    }
-
-    openModalApproveDis = () => {
-        this.setState({openApproveDis: !this.state.openApproveDis})
-    }
-    openModalRejectDis = () => {
-        this.setState({openRejectDis: !this.state.openRejectDis})
     }
 
     onChangeUpload = e => {
@@ -268,7 +209,6 @@ class TaxFinDisposal extends Component {
 
     openDocEksekusi = async () => {
         const token = localStorage.getItem('token')
-        this.setState({tipeDoc: 'sell'})
         const { dataRinci } = this.state
         await this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'sell', 'ada')
         this.closeProsesModalDoc()
@@ -276,14 +216,12 @@ class TaxFinDisposal extends Component {
 
     openProsesDocTax = async (value) => {
         const token = localStorage.getItem('token')
-        this.setState({tipeDoc: 'tax'})
         await this.props.getDocumentDis(token, value.no_asset, 'disposal', 'tax')
         this.closeProsesModalDoc()
     }
 
     openProsesDocFinance = async (value) => {
         const token = localStorage.getItem('token')
-        this.setState({tipeDoc: 'finance'})
         await this.props.getDocumentDis(token, value.no_asset, 'disposal', 'finance')
         this.closeProsesModalDoc()
     }
@@ -332,11 +270,9 @@ class TaxFinDisposal extends Component {
 
     componentDidUpdate() {
         const {isError, isUpload, isSubmit} = this.props.disposal
-        const error = this.props.setuju.isError
         const token = localStorage.getItem('token')
         const level = localStorage.getItem('level')
         const {dataRinci} = this.state
-        const message = this.props.setuju.alertM
         if (isError) {
             this.props.resetError()
             this.showAlert()
@@ -357,10 +293,6 @@ class TaxFinDisposal extends Component {
             setTimeout(() => {
                 this.getDataDisposal()
              }, 1000)
-        } else if (error) {
-            this.showAlertSet()
-            this.props.resetSetuju()
-            console.log(message)
         }
     }
 
@@ -378,10 +310,10 @@ class TaxFinDisposal extends Component {
     getDataDisposal = async () => {
         const token = localStorage.getItem('token')
         const level = localStorage.getItem('level')
-        if (level === '2') {
-            await this.props.getDisposal(token, 10, '',  1, 7)
-        } else if (level === '3' || level === '4') {
-            await this.props.getDisposal(token, 10, '',  1, 6)   
+        if (level === '3' || level === '4') {
+            await this.props.getDisposal(token, 100, '',  1, 7)   
+        } else {
+            console.log('king')
         }
     }
 
@@ -435,7 +367,6 @@ class TaxFinDisposal extends Component {
     render() {
         const {alert, dataRinci} = this.state
         const {dataDis, alertM, alertMsg, dataDoc, detailDis} = this.props.disposal
-        const message = this.props.setuju.alertM
         const { disApp } = this.props.setuju
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
@@ -502,11 +433,7 @@ class TaxFinDisposal extends Component {
                                         <Col md={12} xl={12} sm={12} className="mb-5 mt-5">
                                         {dataDis.length !== 0 && dataDis.map(item => {
                                             return (
-                                                item.no_io === '3' ? (
-                                                    <Col md={8} xl={8} sm={12}>
-                                                        <div className="txtDisposEmpty">Tidak ada data disposal</div>
-                                                    </Col>
-                                                ) : (
+                                                item.no_io === 'tax' || item.no_io === 'taxfin' ? (
                                                     <div className="cart1">
                                                         <div className="navCart">
                                                             <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="cartImg" />
@@ -526,6 +453,10 @@ class TaxFinDisposal extends Component {
                                                             <div></div>
                                                         </div>
                                                     </div>
+                                                ) : (
+                                                    <Col md={8} xl={8} sm={12}>
+                                                        <div className="txtDisposEmpty">Tidak ada data disposal</div>
+                                                    </Col>
                                                 )
                                             )
                                         })}
@@ -554,11 +485,7 @@ class TaxFinDisposal extends Component {
                                         <Col md={12} xl={12} sm={12} className="mb-5 mt-5">
                                         {dataDis.length !== 0 && dataDis.map(item => {
                                             return (
-                                                item.no_io === '4' ? (
-                                                    <Col md={8} xl={8} sm={12}>
-                                                        <div className="txtDisposEmpty">Tidak ada data disposal</div>
-                                                    </Col> 
-                                                ) : (
+                                                item.no_io === 'finance' || item.no_io === 'taxfin' ? (
                                                     <div className="cart1">
                                                         <div className="navCart">
                                                             <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="cartImg" />
@@ -578,59 +505,11 @@ class TaxFinDisposal extends Component {
                                                             <div></div>
                                                         </div>
                                                     </div>
+                                                ) : (
+                                                    <Col md={8} xl={8} sm={12}>
+                                                        <div className="txtDisposEmpty">Tidak ada data disposal</div>
+                                                    </Col>
                                                 )
-                                            )
-                                        })}
-                                    </Col>
-                                    )}
-                                </Row>
-                            </div>
-                            ) : level === '2' ? (
-                                <div className={style.bodyDashboard}>
-                                <Alert color="danger" className={style.alertWrong} isOpen={alert}>
-                                    <div>{alertMsg}</div>
-                                    <div>{alertM}</div>
-                                </Alert>
-                                <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSetuju}>
-                                    <div>{message}</div>
-                                </Alert>
-                                <div className={style.headMaster}>
-                                    <div className={style.titleDashboard1}>Finance & Tax Disposal</div>
-                                </div>
-                                <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit}>
-                                    <div>Lengkapi data asset terlebih dahulu</div>
-                                </Alert>
-                                <Row className="cartDisposal2">
-                                    {dataDis.length === 0 ? (
-                                        <Col md={8} xl={8} sm={12}>
-                                            <div className="txtDisposEmpty">Tidak ada data disposal</div>
-                                        </Col>
-                                    ) : (
-                                        <Col md={12} xl={12} sm={12} className="mb-5 mt-5">
-                                        {dataDis.length !== 0 && dataDis.map(item => {
-                                            return (
-                                                <div className="cart1">
-                                                    <div className="navCart">
-                                                        <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="cartImg" />
-                                                        <Button className="labelBut" color="warning" size="sm">{item.nilai_jual === '0' ? 'Pemusnahan' : 'Penjualan'}</Button>
-                                                        <div className="txtCart">
-                                                            <div>
-                                                                <div className="nameCart mb-3">{item.nama_asset}</div>
-                                                                <div className="noCart mb-3">No asset : {item.no_asset}</div>
-                                                                <div className="noCart mb-3">No disposal : D{item.no_disposal}</div>
-                                                                <div className="noCart mb-3">{item.keterangan}</div>
-                                                                <div className="btnVerTax">
-                                                                    <Button color="success" disabled={item.no_io === 'finance' || item.no_io === 'tax' || item.no_io === 'taxfin' ? true : false} onClick={() => this.submitFinalDisposal(item)}>Approve</Button>
-                                                                    <Button color="danger ml-2" onClick={() => this.rejectTaxFinDis({val: item, tipe: 'tax'})} >Reject Tax</Button>
-                                                                    <Button color="danger ml-2" onClick={() => this.rejectTaxFinDis({val: item, tipe: 'finance'})} >Reject Finance</Button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="footCart">
-                                                        <Button color="primary mr-4" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}>Rincian</Button>
-                                                    </div>
-                                                </div>
                                             )
                                         })}
                                     </Col>
@@ -671,33 +550,33 @@ class TaxFinDisposal extends Component {
                                         <text>{x.nama_dokumen}</text>
                                     </Col>
                                     {x.path !== null ? (
-                                        <Col md={6} lg={6}>
-                                        <div className="lsDoc">
-                                            {/* {x.status === 0 ? (
-                                                <AiOutlineClose size={20} />
-                                            ) : x.status === 3 ? (
-                                                <AiOutlineCheck size={20} />
-                                            ) : (
-                                                <BsCircle size={20} />
-                                            )} */}
-                                            {x.divisi === '0' ? (
-                                                <AiOutlineClose size={20} />
-                                            ) : x.divisi === '3' ? (
-                                                <AiOutlineCheck size={20} />
-                                            ) : (
-                                                <BsCircle size={20} />
-                                            )}
-                                            <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
-                                        </div>
-                                        <div>
-                                            <input
-                                            className="ml-4"
-                                            type="file"
-                                            onClick={() => this.setState({detail: x})}
-                                            onChange={this.onChangeUpload}
-                                            />
-                                        </div>
-                                    </Col>
+                                        <Col md={6} lg={6} >
+                                            <div className="lsDoc">
+                                                {/* {x.status === 0 ? (
+                                                    <AiOutlineClose size={20} />
+                                                ) : x.status === 3 ? (
+                                                    <AiOutlineCheck size={20} />
+                                                ) : (
+                                                    <BsCircle size={20} />
+                                                )} */}
+                                                {x.divisi === '0' ? (
+                                                    <AiOutlineClose size={20} />
+                                                ) : x.divisi === '3' ? (
+                                                    <AiOutlineCheck size={20} />
+                                                ) : (
+                                                    <BsCircle size={20} />
+                                                )}
+                                                <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
+                                            </div>
+                                            <div>
+                                                <input
+                                                className="ml-4"
+                                                type="file"
+                                                onClick={() => this.setState({detail: x})}
+                                                onChange={this.onChangeUpload}
+                                                />
+                                            </div>
+                                        </Col>
                                     ) : (
                                         <Col md={6} lg={6} >
                                             {level === '2' ? (
@@ -730,7 +609,7 @@ class TaxFinDisposal extends Component {
                 <ModalHeader>
                     Rincian
                 </ModalHeader>
-                <ModalBody className="space">
+                <ModalBody>
                     <Alert color="danger" className={style.alertWrong} isOpen={alert}>
                         <div>{alertM}</div>
                     </Alert>
@@ -848,7 +727,7 @@ class TaxFinDisposal extends Component {
                                                 <Col md={9} className="colRinci">:  <Input className="inputRinci" value = {dataRinci.no_sap} disabled/></Col>
                                             </Row>
                                             <Row className="mb-2 rowRinci">
-                                                <Col md={3}>Nominal uang masuk</Col>
+                                                <Col md={3}>Nominal Penjualan</Col>
                                                 <Col md={9} className="colRinci">:  <Input className="inputRinci" value = {dataRinci.nominal} disabled/></Col>
                                             </Row>
                                             <Row className="mb-2 rowRinci">
@@ -903,8 +782,8 @@ class TaxFinDisposal extends Component {
                                             {errors.no_sap ? (
                                                 <text className={style.txtError}>{errors.no_sap}</text>
                                             ) : null}
-                                            <Row className="mb-2 rowRinci">
-                                                <Col md={3}>Nominal uang masuk</Col>
+                                            <Row className="mb-5 rowRinci">
+                                                <Col md={3}>Nominal Penjualan</Col>
                                                 <Col md={9} className="colRinci">:  <Input 
                                                     type="text" 
                                                     className="inputRinci" 
@@ -913,24 +792,24 @@ class TaxFinDisposal extends Component {
                                                     onChange={handleChange("nominal")}
                                                     />
                                                 </Col>
+                                                {errors.nominal ? (
+                                                    <text className={style.txtError}>{errors.nominal}</text>
+                                                ) : null}
                                             </Row>
-                                            {errors.nominal ? (
-                                                <text className='txtError mb-5'>{errors.nominal}</text>
-                                            ) : null}
                                         </div>
                                     ) : (
                                         <Row></Row>
                                     )}
                                 </div>
                                 {level === '2' ? (
-                                    <Row className="footRinci1 ml-2 mb-2">
+                                    <Row className="footRinci1">
                                         <Button className="btnFootRinci3" size="md" color="primary" outline onClick={handleSubmit}>Save</Button>
                                         <Button className="btnFootRinci3" size="md" color="warning" outline onClick={() => this.openProsesDocFinance(dataRinci)}>Doc Finance</Button>
                                         <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocTax(dataRinci)}>Doc Tax</Button>
                                         <Button className="btnFootRinci3" size="md" color="danger" outline onClick={() => this.pengajuanDisposal(dataRinci.no_disposal)}>Form Pengajuan</Button>
                                         <Button className="btnFootRinci3" size="md" color="info" outline onClick={() => this.persetujuanDisposal(dataRinci.status_app)}>Form Persetujuan</Button>
                                         <Button className="btnFootRinci3" size="md" color="primary" outline onClick={() => this.openDocEksekusi()}>Doc Eksekusi</Button>
-                                        <Button className="btnFootRinci3 mb-5" size="md" color="success" outline onClick={() => this.openProsesDocPeng()}>Doc Pengajuan</Button>
+                                        <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocPeng()}>Doc Pengajuan</Button>
                                     </Row>
                                 ) : (
                                     <Row className="footRinci1 ml-2">
@@ -962,15 +841,8 @@ class TaxFinDisposal extends Component {
                     <div className={style.foot}>
                         <div>
                             <Button color="success" onClick={() => this.downloadData()}>Download</Button>
-                        </div> 
-                        {level === '2' ? (
-                            <div>
-                                <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
-                                <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
-                            </div>
-                        ) : (
-                            <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>  
-                        )}
+                        </div>
+                        <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
                     </div>
                 </ModalBody>
             </Modal>
@@ -1274,61 +1146,6 @@ class TaxFinDisposal extends Component {
                     </div>
                 </ModalBody>
             </Modal>
-            <Modal isOpen={this.state.openApproveDis} toggle={this.openModalApproveDis} centered={true}>
-                <ModalBody>
-                    <div className={style.modalApprove}>
-                        <div>
-                            <text>
-                                Anda yakin untuk approve 
-                                <text className={style.verif}>  </text>
-                                pada tanggal
-                                <text className={style.verif}> {moment().format('LL')}</text> ?
-                            </text>
-                        </div>
-                        <div className={style.btnApprove}>
-                            <Button color="primary" onClick={this.approveDokumen}>Ya</Button>
-                            <Button color="secondary" onClick={this.openModalApproveDis}>Tidak</Button>
-                        </div>
-                    </div>
-                </ModalBody>
-            </Modal>
-            <Modal isOpen={this.state.openRejectDis} toggle={this.openModalRejectDis} centered={true}>
-                    <ModalBody>
-                    <Formik
-                    initialValues={{
-                    alasan: "",
-                    }}
-                    validationSchema={alasanSchema}
-                    onSubmit={(values) => {this.rejectDokumen(values)}}
-                    >
-                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
-                            <div className={style.modalApprove}>
-                            <div className={style.quest}>Anda yakin untuk reject {this.state.fileName.nama_dokumen} ?</div>
-                            <div className={style.alasan}>
-                                <text className="col-md-3">
-                                    Alasan
-                                </text>
-                                <Input 
-                                type="name" 
-                                name="select" 
-                                className="col-md-9"
-                                value={values.alasan}
-                                onChange={handleChange('alasan')}
-                                onBlur={handleBlur('alasan')}
-                                />
-                            </div>
-                            {errors.alasan ? (
-                                    <text className={style.txtError}>{errors.alasan}</text>
-                                ) : null}
-                            <div className={style.btnApprove}>
-                                <Button color="primary" onClick={handleSubmit}>Ya</Button>
-                                <Button color="secondary" onClick={this.openModalRejectDis}>Tidak</Button>
-                            </div>
-                        </div>
-                        )}
-                        </Formik>
-                    </ModalBody>
-                </Modal>
         </>
         )
     }
@@ -1355,10 +1172,7 @@ const mapDispatchToProps = {
     getDetailDis: disposal.getDetailDisposal,
     showDokumen: pengadaan.showDokumen,
     getApproveDisposal: disposal.getApproveDisposal,
-    rejectTaxFin: setuju.rejectTaxFin,
-    resetSetuju: setuju.resetSetuju,
-    approveDocDis: disposal.approveDocDis,
-    rejectDocDis: disposal.rejectDocDis
+    submitEdit: setuju.submitEditTaxFin
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(TaxFinDisposal)

@@ -16,12 +16,14 @@ import {connect} from 'react-redux'
 import moment from 'moment'
 import auth from '../redux/actions/auth'
 import {default as axios} from 'axios'
-import Sidebar from "../components/Header";
+import Sidebar from "../components/Header"
+import Pdf from "../components/Pdf"
 import MaterialTitlePanel from "../components/material_title_panel";
 import SidebarContent from "../components/sidebar_content";
 import placeholder from  "../assets/img/placeholder.png"
 import a from "../assets/img/a.jpg"
 import b from "../assets/img/b.jpg"
+import pengadaan from '../redux/actions/pengadaan'
 import c from "../assets/img/c.jpg"
 import d from "../assets/img/d.jpg"
 import e from "../assets/img/e.jpg"
@@ -76,7 +78,8 @@ class EditEksekusi extends Component {
             modalRinci: false,
             dataRinci: {},
             openModalDoc: false,
-            alertSubmit: false
+            alertSubmit: false,
+            openPdf: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -90,6 +93,38 @@ class EditEksekusi extends Component {
                 alert: false
             })
          }, 10000)
+    }
+
+    showDokumen = async (value) => {
+        const token = localStorage.getItem('token')
+        await this.props.showDokumen(token, value.id)
+        this.setState({date: value.updatedAt, idDoc: value.id, fileName: value})
+        const {isShow} = this.props.pengadaan
+        if (isShow) {
+            this.openModalPdf()
+        }
+    }
+
+    openModalPdf = () => {
+        this.setState({openPdf: !this.state.openPdf})
+    }
+
+    downloadData = () => {
+        const { fileName } = this.state
+        const download = fileName.path.split('/')
+        const cek = download[2].split('.')
+        axios({
+            url: `${REACT_APP_BACKEND_URL}/uploads/${download[2]}`,
+            method: 'GET',
+            responseType: 'blob', // important
+        }).then((response) => {
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${fileName.nama_dokumen}.${cek[1]}`); //or any other extension
+            document.body.appendChild(link);
+            link.click();
+        });
     }
 
     onChangeUpload = e => {
@@ -118,7 +153,7 @@ class EditEksekusi extends Component {
     openProsesModalDoc = async () => {
         const token = localStorage.getItem('token')
         const { dataRinci } = this.state
-        await this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'pengajuan')
+        await this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', dataRinci.nilai_jual === "0" ? 'dispose' : 'sell', 'ada')
         this.closeProsesModalDoc()
     }
 
@@ -462,19 +497,12 @@ class EditEksekusi extends Component {
                                     {x.path !== null ? (
                                         <Col md={6} lg={6}>
                                             <div className="lsDoc">
-                                                {x.status === 0 ? (
-                                                    <AiOutlineClose size={20} />
-                                                ) : x.status === 3 ? (
-                                                    <AiOutlineCheck size={20} />
-                                                ) : (
-                                                    <BsCircle size={20} />
-                                                )}
                                                 {x.divisi === '0' ? (
                                                     <AiOutlineClose size={20} />
                                                 ) : x.divisi === '3' ? (
                                                     <AiOutlineCheck size={20} />
                                                 ) : (
-                                                    <div></div>
+                                                    <BsCircle size={20} />
                                                 )}
                                                 <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
                                             </div>
@@ -511,13 +539,29 @@ class EditEksekusi extends Component {
                     </Button>
                 </ModalFooter>
             </Modal>
+            <Modal isOpen={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
+                <ModalHeader>Dokumen</ModalHeader>
+                <ModalBody>
+                    <div className={style.readPdf}>
+                        <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
+                    </div>
+                    <hr/>
+                    <div className={style.foot}>
+                        <div>
+                            <Button color="success" onClick={() => this.downloadData()}>Download</Button>
+                        </div>
+                        <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                    </div>
+                </ModalBody>
+            </Modal>
             </>
         )
     }
 }
 
 const mapStateToProps = state => ({
-    disposal: state.disposal
+    disposal: state.disposal,
+    pengadaan: state.pengadaan
 })
 
 const mapDispatchToProps = {
@@ -528,7 +572,8 @@ const mapDispatchToProps = {
     deleteDisposal: disposal.deleteDisposal,
     updateDisposal: disposal.updateDisposal,
     getDocumentDis: disposal.getDocumentDis,
-    uploadDocumentDis: disposal.uploadDocumentDis
+    uploadDocumentDis: disposal.uploadDocumentDis,
+    showDokumen: pengadaan.showDokumen,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EditEksekusi)

@@ -8,10 +8,13 @@ const setujuState = {
     isError: false,
     approve: false,
     alertMsg: '',
+    alertM: '',
     isSubmitEks: false,
     isSubmitTax: false,
     isSubmitFinal: false,
     isSubmitPurch: false,
+    isSubmitEdit: false,
+    isRejTaxFin: false,
     dataDis: [],
     noDis: [],
     page: {},
@@ -122,6 +125,7 @@ export default (state=setujuState, action) => {
                     isLoading: false,
                     isSubmitFinal: false,
                     isError: true,
+                    alertM: action.payload.response.data.message,
                     alertMsg: "Unable connect to server"
                 };
             }
@@ -218,6 +222,52 @@ export default (state=setujuState, action) => {
                 };
             }
             case 'APPROVE_SETDIS_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'SUBMIT_EDIT_TAXFIN_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'SUBMIT_EDIT_TAXFIN_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isSubmitEdit: true,
+                    alertMsg: 'submit edit Succesfully',
+                };
+            }
+            case 'SUBMIT_EDIT_TAXFIN_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'REJECT_TAXFIN_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'REJECT_TAXFIN_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isRejTaxFin: true,
+                    alertMsg: 'add disposal Succesfully',
+                };
+            }
+            case 'REJECT_TAXFIN_REJECTED': {
                 return {
                     ...state,
                     isLoading: false,

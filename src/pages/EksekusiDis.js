@@ -94,7 +94,7 @@ class EksekusiDisposal extends Component {
             this.setState({
                 alert: false
             })
-         }, 10000)
+         }, 5000)
     }
 
     goReport = () => {
@@ -162,7 +162,7 @@ class EksekusiDisposal extends Component {
             this.setState({
                 upload: false
             })
-         }, 10000)
+         }, 5000)
     }
 
     toggle = () => {
@@ -188,17 +188,19 @@ class EksekusiDisposal extends Component {
     }
 
     rejectDokumen = async (value) => {
-        const {fileName} = this.state
+        const {fileName, dataRinci} = this.state
         const token = localStorage.getItem('token')
         await this.props.rejectDocDis(token, fileName.id, value)
         this.setState({openRejectDis: !this.state.openRejectDis})
+        await this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', dataRinci.nilai_jual === "0" ? 'dispose' : 'sell', 'ada')
         this.openModalPdf()
     }
 
     approveDokumen = async () => {
-        const {fileName} = this.state
+        const {fileName, dataRinci} = this.state
         const token = localStorage.getItem('token')
         await this.props.approveDocDis(token, fileName.id)
+        await this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', dataRinci.nilai_jual === "0" ? 'dispose' : 'sell', 'ada')
         this.setState({openApproveDis: !this.state.openApproveDis})
         this.openModalPdf()
     }
@@ -220,11 +222,11 @@ class EksekusiDisposal extends Component {
                    this.setState({
                        alertSubmit: false
                    })
-                }, 10000)
+                }, 5000)
             } else {
                 await this.props.submitEksDisposal(token, value.no_asset)
             }
-        } else if (value.nilai_jual !== 0 && level === '5' ) {
+        } else if (value.nilai_jual !== '0' && level === '5' ) {
             if (value.npwp === null || value.npwp === '') {
                 this.setState({alertSubmit2: true})
        
@@ -232,7 +234,7 @@ class EksekusiDisposal extends Component {
                    this.setState({
                         alertSubmit2: false
                    })
-                }, 10000)
+                }, 5000)
             } else {
                 await this.props.submitEksDisposal(token, value.no_asset)
             }
@@ -448,9 +450,9 @@ class EksekusiDisposal extends Component {
                                     </Col>
                                     {x.path !== null ? (
                                         <Col md={6} lg={6} className="docCol" >
-                                            {x.status === 0 ? (
+                                            {x.divisi === '0' ? (
                                                 <AiOutlineClose size={20} />
-                                            ) : x.status === 3 ? (
+                                            ) : x.divisi === '3' ? (
                                                 <AiOutlineCheck size={20} />
                                             ) : (
                                                 <BsCircle size={20} />
@@ -583,8 +585,8 @@ class EksekusiDisposal extends Component {
                                         <Col md={3}>Kategori</Col>
                                         <Col md={9} className="katCheck">: 
                                             <div className="katCheck">
-                                                <div className="ml-2"><input type="checkbox" checked={dataRinci.kategori === 'IT' ? true : false} disabled/> IT</div>
-                                                <div className="ml-3"><input type="checkbox" checked={dataRinci.kategori === 'NON IT' ? true : false} disabled/> Non IT</div>
+                                                <div className="ml-2"><input type="checkbox" checked={dataRinci.kategori === 'IT' ? true : false} /> IT</div>
+                                                <div className="ml-3"><input type="checkbox" checked={dataRinci.kategori === 'NON IT' ? true : false} /> Non IT</div>
                                             </div>
                                         </Col>
                                     </Row>
@@ -622,7 +624,7 @@ class EksekusiDisposal extends Component {
                                     {dataRinci.nilai_jual !== '0' ? (
                                         <Row className="mb-5 rowRinci">
                                             <Col md={3}>Status NPWP</Col>
-                                            <Col md={9} className="colRinci">
+                                            <Col md={9} className="colRinci">:
                                             <Input 
                                             type="select"
                                             className="inputRinci"
@@ -631,7 +633,7 @@ class EksekusiDisposal extends Component {
                                             value={this.state.npwp === '' ? dataRinci.npwp : this.state.npwp} 
                                             onChange={e => {this.updateNpwp(e.target.value)} }
                                             >
-                                                <option value="">-Pilih Status NPWP-</option>
+                                                <option value={null}>-Pilih Status NPWP-</option>
                                                 <option value="ada">Ada</option>
                                                 <option value="tidak">Tidak Ada</option>
                                             </Input>

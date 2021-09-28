@@ -34,6 +34,14 @@ export default {
         type: 'SUBMIT_PURCH',
         payload: http(token).patch(`/disposal/purch/submit/${no}`)
     }),
+    submitEditTaxFin: (token, no) => ({
+        type: 'SUBMIT_EDIT_TAXFIN',
+        payload: http(token).patch(`/disposal/taxfin/edit/${no}`)
+    }),
+    rejectTaxFin: (token, no, tipe) => ({
+        type: 'REJECT_TAXFIN',
+        payload: http(token).patch(`/disposal/taxfin/rej/${no}?tipe=${tipe}`)
+    }),
     resetSetuju: () => ({
         type: 'RESET_SETUJU'
     })

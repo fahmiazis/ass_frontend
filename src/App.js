@@ -32,6 +32,8 @@ import NavStock from './pages/NavStock'
 import NavDisposal from './pages/NavDisposal'
 import ReportStock from './pages/ReportStock'
 import Tes from './pages/Tes'
+import EditEksekusi from './pages/EditEksekusi'
+import EditTaxFin from './pages/EditTaxFin'
 
 class App extends Component {
 
@@ -119,6 +121,12 @@ class App extends Component {
                 </PrivateRoute>
                 <PrivateRoute path='/repstock'>
                     <ReportStock />
+                </PrivateRoute>
+                <PrivateRoute path='/edittax'>
+                    <EditTaxFin />
+                </PrivateRoute>
+                <PrivateRoute path='/editeks'>
+                    <EditEksekusi />
                 </PrivateRoute>
             </Switch>
         </BrowserRouter>
