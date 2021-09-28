@@ -454,9 +454,7 @@ class TaxFinDisposal extends Component {
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <Col md={8} xl={8} sm={12}>
-                                                        <div className="txtDisposEmpty">Tidak ada data disposal</div>
-                                                    </Col>
+                                                    <div></div>
                                                 )
                                             )
                                         })}
@@ -506,9 +504,7 @@ class TaxFinDisposal extends Component {
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <Col md={8} xl={8} sm={12}>
-                                                        <div className="txtDisposEmpty">Tidak ada data disposal</div>
-                                                    </Col>
+                                                    <div></div>
                                                 )
                                             )
                                         })}
