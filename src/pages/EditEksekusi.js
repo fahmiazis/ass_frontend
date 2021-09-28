@@ -311,7 +311,7 @@ class EditEksekusi extends Component {
                                     })}
                                 </Alert>
                                 <div className={style.headMaster}>
-                                    <div className={style.titleDashboard1}>Edit Pengajuan Disposal</div>
+                                    <div className={style.titleDashboard1}>Edit Eksekusi Disposal</div>
                                 </div>
                                 <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit}>
                                     <div>Lengkapi rincian data asset yang ingin diajukan</div>

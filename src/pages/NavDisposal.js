@@ -71,7 +71,7 @@ export default class NavDisposal extends Component {
                                 </button>
                                 <button className="cardNav1" onClick={() => this.goRoute('editdis')}>
                                     <div className="titCard">
-                                        Edit Disposal
+                                        Edit Pengajuan Disposal
                                     </div>
                                 </button>
                                 <button className="cardNav1" onClick={() => this.goRoute('edittax')}>
