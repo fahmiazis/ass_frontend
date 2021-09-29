@@ -198,18 +198,8 @@ class TaxFinDisposal extends Component {
 
     rejectTaxFinDis = async (value) => {
         const token = localStorage.getItem('token')
-        if (value.val.doc_sap === null || value.val.doc_sap === '') {
-            this.setState({alertSubmit: true})
-       
-            setTimeout(() => {
-               this.setState({
-                   alertSubmit: false
-               })
-            }, 10000)
-        } else {
-            await this.props.rejectTaxFin(token, value.val.no_asset, value.tipe)
-            this.getDataDisposal()
-        }
+        await this.props.rejectTaxFin(token, value.val.no_asset, value.tipe)
+        this.getDataDisposal()
     }
 
     rejectDokumen = async (value) => {
