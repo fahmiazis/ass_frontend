@@ -7,6 +7,10 @@ export default {
         type: 'GET_DISPOSAL',
         payload: http(token).get(`/disposal/get?limit=${limit === undefined ? 10 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&status=${status === undefined ? 1 : status}&tipe=${tipe === undefined ? 'disposal' : tipe}`)
     }),
+    getNewDisposal: (token, form, limit, search, page, status, tipe) => ({
+        type: 'GETNEW_DISPOSAL',
+        payload: http(token).get(`/disposal/get?limit=${limit === undefined ? 10 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&status=${status === undefined ? 1 : status}&tipe=${tipe === undefined ? 'disposal' : tipe}&form=${form}`)
+    }),
     getSubmitDisposal: (token, limit, search, page, status, tipe) => ({
         type: 'GET_SUBMIT_DISPOSAL',
         payload: http(token).get(`/disposal/get?limit=${limit === undefined ? 10 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&status=${status === undefined ? 1 : status}&tipe=${tipe === undefined ? 'disposal' : tipe}`)

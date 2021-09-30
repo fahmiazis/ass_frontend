@@ -235,7 +235,7 @@ class EditDisposal extends Component {
 
     getDataDisposal = async () => {
         const token = localStorage.getItem('token')
-        await this.props.getDisposal(token, 100, '',  1, 2)
+        await this.props.getDisposal(token, 'editdis', 100, '',  1, 2)
     }
 
     menuButtonClick(ev) {
@@ -300,54 +300,60 @@ class EditDisposal extends Component {
                 <Sidebar {...sidebarProps}>
                     <MaterialTitlePanel title={contentHeader}>
                         <div className={style.backgroundLogo}>
+                        {level === '5' ? (
                             <div className={style.bodyDashboard}>
-                                <Alert color="danger" className={style.alertWrong} isOpen={alert}>
-                                    <div>{alertMsg}</div>
-                                    <div>{alertM}</div>
-                                    {alertUpload !== undefined && alertUpload.map(item => {
+                            <Alert color="danger" className={style.alertWrong} isOpen={alert}>
+                                <div>{alertMsg}</div>
+                                <div>{alertM}</div>
+                                {alertUpload !== undefined && alertUpload.map(item => {
+                                    return (
+                                        <div>{item}</div>
+                                    )
+                                })}
+                            </Alert>
+                            <div className={style.headMaster}>
+                                <div className={style.titleDashboard1}>Edit Pengajuan Disposal</div>
+                            </div>
+                            <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit}>
+                                <div>Lengkapi rincian data asset yang ingin diajukan</div>
+                            </Alert>
+                            <Row className="cartDisposal2">
+                                {dataDis.length === 0 ? (
+                                    <Col md={8} xl={8} sm={12}>
+                                        <div className="txtDisposEmpty">Disposal Data is empty</div>
+                                    </Col>
+                                ) : (
+                                    <Col md={12} xl={12} sm={12} className="mb-5 mt-5">
+                                    {dataDis.length !== 0 && dataDis.map(item => {
                                         return (
-                                            <div>{item}</div>
-                                        )
-                                    })}
-                                </Alert>
-                                <div className={style.headMaster}>
-                                    <div className={style.titleDashboard1}>Edit Pengajuan Disposal</div>
-                                </div>
-                                <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit}>
-                                    <div>Lengkapi rincian data asset yang ingin diajukan</div>
-                                </Alert>
-                                <Row className="cartDisposal2">
-                                    {dataDis.length === 0 ? (
-                                        <Col md={8} xl={8} sm={12}>
-                                            <div className="txtDisposEmpty">Disposal Data is empty</div>
-                                        </Col>
-                                    ) : (
-                                        <Col md={12} xl={12} sm={12} className="mb-5 mt-5">
-                                        {dataDis.length !== 0 && dataDis.map(item => {
-                                            return (
-                                                <div className="cart1">
-                                                    <div className="navCart">
-                                                        <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="cartImg" />
-                                                        <div className="txtCart">
-                                                            <div>
-                                                                <div className="nameCart mb-3">{item.nama_asset}</div>
-                                                                <div className="noCart mb-3">No asset : {item.no_asset}</div>
-                                                                <div className="noCart mb-3">No disposal : D{item.no_disposal}</div>
-                                                                <div className="noCart mb-3">{item.keterangan}</div>
-                                                            </div>
+                                            <div className="cart1">
+                                                <div className="navCart">
+                                                    <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="cartImg" />
+                                                    <div className="txtCart">
+                                                        <div>
+                                                            <div className="nameCart mb-3">{item.nama_asset}</div>
+                                                            <div className="noCart mb-3">No asset : {item.no_asset}</div>
+                                                            <div className="noCart mb-3">No disposal : D{item.no_disposal}</div>
+                                                            <div className="noCart mb-3">{item.keterangan}</div>
                                                         </div>
                                                     </div>
-                                                    <div className="footCart">
-                                                        <Button color="primary" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}>Rincian</Button>
-                                                        <div></div>
-                                                    </div>
                                                 </div>
-                                            )
-                                        })}
-                                    </Col>
-                                    )}
-                                </Row>
+                                                <div className="footCart">
+                                                    <Button color="primary" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}>Rincian</Button>
+                                                    <div></div>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </Col>
+                                )}
+                            </Row>
+                        </div>
+                        ) : (
+                            <div className={style.headMaster}>
+                                <div className={style.titleDashboard1}>Anda tidak memiliki akses dihalaman ini</div>
                             </div>
+                        )}
                         </div>
                     </MaterialTitlePanel>
                 </Sidebar>
@@ -575,7 +581,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = {
     logout: auth.logout,
-    getDisposal: disposal.getDisposal,
+    getDisposal: disposal.getNewDisposal,
     submitDisposal: disposal.submitDisposal,
     resetError: disposal.reset,
     deleteDisposal: disposal.deleteDisposal,

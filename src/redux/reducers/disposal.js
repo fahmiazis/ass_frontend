@@ -63,6 +63,31 @@ export default (state=disposalState, action) => {
                     alertMsg: "Unable connect to server"
                 };
             }
+            case 'GETNEW_DISPOSAL_PENDING': {
+                return {
+                    ...state,
+                    isGet: false,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'GETNEW_DISPOSAL_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isGet: true,
+                    dataDis: action.payload.data.result.rows,
+                    alertMsg: 'get disposal Succesfully',
+                };
+            }
+            case 'GETNEW_DISPOSAL_REJECTED': {
+                return {
+                    ...state,
+                    isError: true,
+                    isLoading: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
             case 'DETAIL_DISPOSAL_PENDING': {
                 return {
                     ...state,
