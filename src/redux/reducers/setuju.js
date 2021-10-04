@@ -7,6 +7,7 @@ const setujuState = {
     isLoading: false,
     isError: false,
     approve: false,
+    reject: false,
     alertMsg: '',
     alertM: '',
     isSubmitEks: false,
@@ -218,10 +219,33 @@ export default (state=setujuState, action) => {
                     ...state,
                     isLoading: false,
                     approve: true,
-                    alertMsg: 'add disposal Succesfully',
+                    alertMsg: 'approve Succesfully',
                 };
             }
             case 'APPROVE_SETDIS_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'REJECT_SETDIS_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'REJECT_SETDIS_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    reject: true,
+                    alertMsg: 'reject disposal Succesfully',
+                };
+            }
+            case 'REJECT_SETDIS_REJECTED': {
                 return {
                     ...state,
                     isLoading: false,

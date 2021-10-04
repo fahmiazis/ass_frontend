@@ -1,5 +1,6 @@
 /* eslint-disable import/no-anonymous-default-export */
 import http from '../../helpers/http'
+import qs from 'qs'
 
 export default {
     submitSetDisposal: (token) => ({
@@ -17,6 +18,10 @@ export default {
     approveSetDisposal: (token, no) => ({
         type: 'APPROVE_SETDIS',
         payload: http(token).patch(`/disposal/setuju/app/${no}`)
+    }),
+    rejectSetDisposal: (token, no, data, tipe) => ({
+        type: 'REJECT_SETDIS',
+        payload: http(token).patch(`/disposal/setuju/rej/${no}?tipe=${tipe}`, qs.stringify(data))
     }),
     submitEksDisposal: (token, no) => ({
         type: 'SUBMIT_EKSEKUSI',

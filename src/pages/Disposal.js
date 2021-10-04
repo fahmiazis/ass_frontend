@@ -37,6 +37,11 @@ const alasanSchema = Yup.object().shape({
     alasan: Yup.string().required()
 });
 
+const alasanDisSchema = Yup.object().shape({
+    alasan: Yup.string().required(),
+    jenis_reject: Yup.string().required()
+});
+
 class Disposal extends Component {
     constructor(props) {
         super(props);
@@ -178,7 +183,13 @@ class Disposal extends Component {
 
     rejectDisposal = async (value) => {
         const token = localStorage.getItem('token')
-        await this.props.rejectDisposal(token, value.no, value.value)
+        const data = {
+            alasan: value.value.alasan
+        }
+        if (value.value.jenis_reject === 'batal') {
+            this.openModalDis()
+        } 
+        await this.props.rejectDisposal(token, value.no, data, value.value.jenis_reject)
         this.openModalReject()
         this.getDataDisposal()
     }
@@ -1237,8 +1248,9 @@ class Disposal extends Component {
                     <Formik
                     initialValues={{
                     alasan: "",
+                    jenis_reject: "revisi"
                     }}
-                    validationSchema={alasanSchema}
+                    validationSchema={alasanDisSchema}
                     onSubmit={(values) => {this.rejectDisposal({value: values, no: detailDis[0].no_disposal})}}
                     >
                         {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
@@ -1246,11 +1258,30 @@ class Disposal extends Component {
                             <div className={style.quest}>Anda yakin untuk reject ?</div>
                             <div className={style.alasan}>
                                 <text className="col-md-3">
+                                    Reject
+                                </text>
+                                <Input 
+                                type="select" 
+                                name="jenis_reject" 
+                                className="col-md-9"
+                                value={values.jenis_reject}
+                                onChange={handleChange('jenis_reject')}
+                                onBlur={handleBlur('jenis_reject')}
+                                >
+                                    <option value="batal">Pembatalan </option>
+                                    <option value="revisi">Perbaikan </option>
+                                </Input>
+                            </div>
+                            {errors.jenis_reject ? (
+                                <text className={style.txtError}>{errors.jenis_reject}</text>
+                            ) : null}
+                            <div className={style.alasan}>
+                                <text className="col-md-3">
                                     Alasan
                                 </text>
                                 <Input 
                                 type="name" 
-                                name="select" 
+                                name="alasan" 
                                 className="col-md-9"
                                 value={values.alasan}
                                 onChange={handleChange('alasan')}
@@ -1258,8 +1289,8 @@ class Disposal extends Component {
                                 />
                             </div>
                             {errors.alasan ? (
-                                    <text className={style.txtError}>{errors.alasan}</text>
-                                ) : null}
+                                <text className={style.txtError}>{errors.alasan}</text>
+                            ) : null}
                             <div className={style.btnApprove}>
                                 <Button color="primary" onClick={handleSubmit}>Ya</Button>
                                 <Button color="secondary" onClick={this.openModalReject}>Tidak</Button>

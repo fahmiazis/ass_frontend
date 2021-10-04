@@ -47,9 +47,9 @@ export default {
         type: 'APPROVE_DIS',
         payload: http(token).patch(`/disposal/app/${no}`)
     }),
-    rejectDisposal: (token, no, data) => ({
+    rejectDisposal: (token, no, data, tipe) => ({
         type: 'REJECT_DIS',
-        payload: http(token).patch(`/disposal/rej/${no}`, qs.stringify(data))
+        payload: http(token).patch(`/disposal/rej/${no}?tipe=${tipe}`, qs.stringify(data))
     }),
     getDocumentDis: (token, no, tipeDokumen, tipe, npwp) => ({
         type: 'GET_DOCDIS',

@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/no-distracting-elements */
 import React, { Component } from 'react'
-import { NavbarBrand, Row, Col, Table, Button, Modal, ModalBody, ModalFooter, Container, Alert, Spinner, ModalHeader } from 'reactstrap'
+import { NavbarBrand, Row, Col, Table, Button, Modal, ModalBody, ModalFooter, Container, Alert, Input, Spinner, ModalHeader } from 'reactstrap'
 import { PDFDownloadLink, Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
 import style from '../assets/css/input.module.css'
 import { AiOutlineClose, AiOutlineCheck } from 'react-icons/ai'
@@ -9,6 +9,8 @@ import { FaBars, FaUserCircle } from 'react-icons/fa'
 import Sidebar from "../components/Header"
 import MaterialTitlePanel from "../components/material_title_panel"
 import {connect} from 'react-redux'
+import {Formik} from 'formik'
+import * as Yup from 'yup'
 import moment from 'moment'
 import disposal from '../redux/actions/disposal'
 import pengadaan from '../redux/actions/pengadaan'
@@ -18,6 +20,11 @@ import auth from '../redux/actions/auth'
 import SidebarContent from "../components/sidebar_content"
 import Pdf from "../components/Pdf"
 const {REACT_APP_BACKEND_URL} = process.env
+
+const alasanDisSchema = Yup.object().shape({
+    alasan: Yup.string().required(),
+    jenis_reject: Yup.string().required()
+});
 
 class PersetujuanDis extends Component {
 
@@ -43,9 +50,26 @@ class PersetujuanDis extends Component {
             idDoc: null,
             fileName: {},
             openPdf: false,
+            openReject: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+    }
+
+
+    openModalReject = () => {
+        this.setState({openReject: !this.state.openReject})
+    }
+
+    rejectDisposal = async (value) => {
+        const token = localStorage.getItem('token')
+        const {dataDis} = this.props.setuju
+        const data = {
+            alasan: value.value.alasan
+        }
+        await this.props.rejectSetDisposal(token, dataDis[0].status_app, data, value.value.jenis_reject)
+        this.getApproveSet(dataDis[0].status_app)
+        this.openModalReject()
     }
 
     menuButtonClick(ev) {
@@ -263,7 +287,7 @@ class PersetujuanDis extends Component {
                                                         {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
                                                             return (
                                                                 <th className="headPre">
-                                                                    <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                    <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
                                                                     <div>{item.nama === null ? "-" : item.nama}</div>
                                                                 </th>
                                                             )
@@ -288,7 +312,7 @@ class PersetujuanDis extends Component {
                                                         {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
                                                             return (
                                                                 <th className="headPre">
-                                                                    <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                    <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
                                                                     <div>{item.nama === null ? "-" : item.nama}</div>
                                                                 </th>
                                                             )
@@ -311,7 +335,7 @@ class PersetujuanDis extends Component {
                             </Table>
                             <div className="btnFoot1">
                                 <div className="btnfootapp">
-                                    <Button className="mr-2" color="danger" disabled>
+                                    <Button className="mr-2" color="danger" onClick={this.openModalReject} disabled>
                                         Reject
                                     </Button>
                                     {level === '23' || level === '22' || level === '25' ? (
@@ -676,6 +700,63 @@ class PersetujuanDis extends Component {
                         </div>
                     </ModalBody>
                 </Modal>
+                <Modal isOpen={this.state.openReject} toggle={this.openModalReject} centered={true}>
+                    <ModalBody>
+                    <Formik
+                    initialValues={{
+                    alasan: "",
+                    jenis_reject: "revisi"
+                    }}
+                    validationSchema={alasanDisSchema}
+                    onSubmit={(values) => {this.rejectDisposal({value: values, no: dataDis[0].status_app})}}
+                    >
+                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                            <div className={style.modalApprove}>
+                            <div className={style.quest}>Anda yakin untuk reject ?</div>
+                            <div className={style.alasan}>
+                                <text className="col-md-3">
+                                    Reject
+                                </text>
+                                <Input 
+                                type="select" 
+                                name="jenis_reject" 
+                                className="col-md-9"
+                                value={values.jenis_reject}
+                                onChange={handleChange('jenis_reject')}
+                                onBlur={handleBlur('jenis_reject')}
+                                >
+                                    <option value="batal">Pembatalan </option>
+                                    <option value="revisi">Perbaikan </option>
+                                </Input>
+                            </div>
+                            {errors.jenis_reject ? (
+                                <text className={style.txtError}>{errors.jenis_reject}</text>
+                            ) : null}
+                            <div className={style.alasan}>
+                                <text className="col-md-3">
+                                    Alasan
+                                </text>
+                                <Input 
+                                type="name" 
+                                name="alasan" 
+                                className="col-md-9"
+                                value={values.alasan}
+                                onChange={handleChange('alasan')}
+                                onBlur={handleBlur('alasan')}
+                                />
+                            </div>
+                            {errors.alasan ? (
+                                <text className={style.txtError}>{errors.alasan}</text>
+                            ) : null}
+                            <div className={style.btnApprove}>
+                                <Button color="primary" onClick={handleSubmit}>Ya</Button>
+                                <Button color="secondary" onClick={this.openModalReject}>Tidak</Button>
+                            </div>
+                        </div>
+                        )}
+                        </Formik>
+                    </ModalBody>
+                </Modal>
             </>
         )
     }
@@ -893,6 +974,7 @@ const mapDispatchToProps = {
     approveSetDisposal: setuju.approveSetDisposal,
     getDocumentDis: disposal.getDocumentDis,
     getApproveDisposal: disposal.getApproveDisposal,
+    rejectSetDisposal: setuju.rejectSetDisposal
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(PersetujuanDis)
