@@ -372,26 +372,26 @@ class PersetujuanDis extends Component {
                                             <Text style={[styles.marbotT, styles.font]}>Dengan ini kami mohon persetujuan untuk melakukan disposal aset dengan perincian sbb :</Text>
                                             <View style={styles.table}>
                                                 <View style={[styles.row, styles.header]}>
-                                                    <Text style={[styles.cell1, style.headerText]}>No</Text>
-                                                    <Text style={[styles.cell1, style.headerText]}>Nomor Aset / Inventaris</Text>
-                                                    <Text style={[styles.cell1, style.headerText]}>Area (Cabang/Depo/CP)</Text>
-                                                    <Text style={[styles.cell1, style.headerText]}>Nama Barang</Text>
-                                                    <Text style={[styles.cell1, style.headerText]}>Nilai Buku</Text>
-                                                    <Text style={[styles.cell1, style.headerText]}>Nilai Jual</Text>
-                                                    <Text style={[styles.cell1, style.headerText]}>Tanggal Perolehan</Text>
-                                                    <Text style={[styles.cell1, style.headerText]}>Keterangan</Text>
+                                                    <View style={[styles.cell1]}><Text style={style.headerText}>No</Text></View>
+                                                    <View style={[styles.cell1]}><Text style={style.headerText}>Nomor Aset / Inventaris</Text></View>
+                                                    <View style={[styles.cell1]}><Text style={style.headerText}>Area (Cabang/Depo/CP)</Text></View>
+                                                    <View style={[styles.cell1]}><Text style={style.headerText}>Nama Barang</Text></View>
+                                                    <View style={[styles.cell1]}><Text style={style.headerText}>Nilai Buku</Text></View>
+                                                    <View style={[styles.cell1]}><Text style={style.headerText}>Nilai Jual</Text></View>
+                                                    <View style={[styles.cell1]}><Text style={style.headerText}>Tanggal Perolehan</Text></View>
+                                                    <View style={[styles.cell1]}><Text style={style.headerText}>Keterangan</Text></View>
                                                 </View>
                                                 {dataDis.length !== 0 && dataDis.map(item => {
                                                 return(
                                                     <View style={[styles.row]}>
-                                                        <Text style={[styles.cell, styles.body]}>{dataDis.indexOf(item) + 1}</Text>
-                                                        <Text style={[styles.cell, styles.body]}>{item.no_asset}</Text>
-                                                        <Text style={[styles.cell, styles.body]}>{item.area}</Text>
-                                                        <Text style={[styles.cell, styles.body]}>{item.nama_asset}</Text>
-                                                        <Text style={[styles.cell, styles.body]}>{item.nilai_buku}</Text>
-                                                        <Text style={[styles.cell, styles.body]}>{item.nilai_jual}</Text>
-                                                        <Text style={[styles.cell, styles.body]}>{item.createdAt}</Text>
-                                                        <Text style={[styles.cell, styles.body]}>{item.keterangan}</Text>
+                                                        <View style={[styles.cell]}><Text style={styles.body}>{dataDis.indexOf(item) + 1}</Text></View>
+                                                        <View style={[styles.cell]}><Text style={styles.body}>{item.no_asset}</Text></View>
+                                                        <View style={[styles.cell]}><Text style={styles.body}>{item.area}</Text></View>
+                                                        <View style={[styles.cell]}><Text style={styles.body}>{item.nama_asset}</Text></View>
+                                                        <View style={[styles.cell]}><Text style={styles.body}>{item.nilai_buku}</Text></View>
+                                                        <View style={[styles.cell]}><Text style={styles.body}>{item.nilai_jual}</Text></View>
+                                                        <View style={[styles.cell]}><Text style={styles.body}>{item.createdAt}</Text></View>
+                                                        <View style={[styles.cell]}><Text style={styles.body}>{item.keterangan}</Text></View>
                                                     </View>
                                                     )
                                                 })}
@@ -933,13 +933,11 @@ const styles = StyleSheet.create({
       headerTtd: {
           backgroundColor: "#FFFFFF"
       },
-      body: {
-        backgroundColor: "#eee"
-      },
       headerText: {
         fontSize: 11,
         fontWeight: "bold",
         color: "black",
+        padding: 5
       },
       headerTxt: {
         fontSize: 11,
