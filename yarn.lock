@@ -1168,6 +1168,11 @@
   resolved "https://registry.yarnpkg.com/@csstools/normalize.css/-/normalize.css-10.1.0.tgz#f0950bba18819512d42f7197e56c518aa491cf18"
   integrity sha512-ij4wRiunFfaJxjB0BdrYHIH8FxBJpOwNPhhAcunlmPdXudL1WQV1qoP9un6JsEBAgQH+7UXyyjh0g7jTxXK6tg==
 
+"@david.kucsai/react-pdf-table@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@david.kucsai/react-pdf-table/-/react-pdf-table-0.3.0.tgz#d7c932394ea23209dce45051135bc16639e2a6bc"
+  integrity sha512-qL/co/JtkYH69SuXsllAbnQO0fbmOxofNwCLEo/oJU7BEkwiQYxGYAsZp1DQxLYwhlML7QgQpL/ApkhOWrIVug==
+
 "@emotion/cache@^11.0.0", "@emotion/cache@^11.1.3":
   version "11.1.3"
   resolved "https://registry.yarnpkg.com/@emotion/cache/-/cache-11.1.3.tgz#c7683a9484bcd38d5562f2b9947873cf66829afd"

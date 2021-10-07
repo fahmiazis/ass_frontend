@@ -29,6 +29,9 @@ import d from "../assets/img/d.jpg"
 import e from "../assets/img/e.jpg"
 import f from "../assets/img/f.png"
 import g from "../assets/img/g.png"
+import TablePdf from "../components/Table"
+import TablePeng from '../components/TablePeng'
+
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -1122,7 +1125,7 @@ class TaxFinDisposal extends Component {
                     <div></div>
                     <div className="btnFoot">
                         <Button className="mr-2" color="warning">
-                            Download
+                            <TablePeng detailDis={detailDis} />
                         </Button>
                         <Button color="success" onClick={this.modalPeng}>
                             Close
@@ -1254,8 +1257,8 @@ class TaxFinDisposal extends Component {
                             </tbody>
                         </Table>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="danger" disabled>
-                                Download
+                            <Button className="mr-2" color="warning">
+                                <TablePdf dataDis={detailDis} />
                             </Button>
                             <Button color="success" onClick={this.modalPers}>
                                 Close

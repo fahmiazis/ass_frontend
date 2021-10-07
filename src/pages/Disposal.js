@@ -25,6 +25,7 @@ import placeholder from  "../assets/img/placeholder.png"
 import disposal from '../redux/actions/disposal'
 import b from "../assets/img/b.jpg"
 import e from "../assets/img/e.jpg"
+import TablePeng from '../components/TablePeng'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -995,8 +996,8 @@ class Disposal extends Component {
                     <div className="modalFoot ml-3">
                         <div></div>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="warning" onClick={this.openPreview}>
-                                Print
+                            <Button className="mr-2" color="warning">
+                                <TablePeng detailDis={detailDis} />
                             </Button>
                             <Button color="success" onClick={this.openPreview}>
                                 Close

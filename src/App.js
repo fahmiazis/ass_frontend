@@ -34,6 +34,7 @@ import ReportStock from './pages/ReportStock'
 import Tes from './pages/Tes'
 import EditEksekusi from './pages/EditEksekusi'
 import EditTaxFin from './pages/EditTaxFin'
+import TablePdf from './components/Table'
 
 class App extends Component {
 
@@ -50,6 +51,7 @@ class App extends Component {
                 <Route path='/login' exact component={Login} />
                 <Route path='/side' exact component={Sidebar} />
                 <Route path='/tes' exact component={Tes} />
+                <Route path='/tablepdf' component={TablePdf} />
                 <PrivateRoute path='/' exact>
                     <Home />
                 </PrivateRoute>

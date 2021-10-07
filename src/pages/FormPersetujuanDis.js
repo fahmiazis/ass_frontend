@@ -19,6 +19,8 @@ import {default as axios} from 'axios'
 import auth from '../redux/actions/auth'
 import SidebarContent from "../components/sidebar_content"
 import Pdf from "../components/Pdf"
+import TablePdf from "../components/Table"
+import TablePeng from '../components/TablePeng'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const alasanDisSchema = Yup.object().shape({
@@ -352,109 +354,7 @@ class PersetujuanDis extends Component {
                                     )}
                                 </div>
                                 <Button color="primary" className="btnDownloadForm">
-                                <PDFDownloadLink className="btnDownloadForm" document={
-                                    <Document>
-                                        <Page size="A4" style={styles.page} orientation="landscape">
-                                            <Text style={styles.font}>PT. Pinus Merah Abadi</Text>
-                                            <View style={styles.modalDis}>
-                                                <Text style={[styles.titleModDis, styles.fontTit]}>Persetujuan Disposal Asset</Text>
-                                            </View>
-                                            <View style={styles.marbot}><Text style={styles.font}>Bandung, {moment().format('DD MMMM YYYY ')}</Text></View>
-                                            <View style={styles.marbotT}>
-                                                <Text style={[styles.font]}>
-                                                Hal : Persetujuan Disposal Asset
-                                                </Text>
-                                            </View>
-                                            <Text style={styles.font}>Kepada Yth.</Text>
-                                            <Text style={[styles.marbotT, styles.font]}>Bpk. Erwin Lesmana</Text>
-                                            <Text style={[styles.marbotT, styles.font]}>Dengan Hormat,</Text>
-                                            <Text style={styles.font}>Sehubungan dengan surat permohonan disposal aset area PMA terlampir</Text>
-                                            <Text style={[styles.marbotT, styles.font]}>Dengan ini kami mohon persetujuan untuk melakukan disposal aset dengan perincian sbb :</Text>
-                                            <View style={styles.table}>
-                                                <View style={[styles.row, styles.header]}>
-                                                    <View style={[styles.cell1]}><Text style={style.headerText}>No</Text></View>
-                                                    <View style={[styles.cell1]}><Text style={style.headerText}>Nomor Aset / Inventaris</Text></View>
-                                                    <View style={[styles.cell1]}><Text style={style.headerText}>Area (Cabang/Depo/CP)</Text></View>
-                                                    <View style={[styles.cell1]}><Text style={style.headerText}>Nama Barang</Text></View>
-                                                    <View style={[styles.cell1]}><Text style={style.headerText}>Nilai Buku</Text></View>
-                                                    <View style={[styles.cell1]}><Text style={style.headerText}>Nilai Jual</Text></View>
-                                                    <View style={[styles.cell1]}><Text style={style.headerText}>Tanggal Perolehan</Text></View>
-                                                    <View style={[styles.cell1]}><Text style={style.headerText}>Keterangan</Text></View>
-                                                </View>
-                                                {dataDis.length !== 0 && dataDis.map(item => {
-                                                return(
-                                                    <View style={[styles.row]}>
-                                                        <View style={[styles.cell]}><Text style={styles.body}>{dataDis.indexOf(item) + 1}</Text></View>
-                                                        <View style={[styles.cell]}><Text style={styles.body}>{item.no_asset}</Text></View>
-                                                        <View style={[styles.cell]}><Text style={styles.body}>{item.area}</Text></View>
-                                                        <View style={[styles.cell]}><Text style={styles.body}>{item.nama_asset}</Text></View>
-                                                        <View style={[styles.cell]}><Text style={styles.body}>{item.nilai_buku}</Text></View>
-                                                        <View style={[styles.cell]}><Text style={styles.body}>{item.nilai_jual}</Text></View>
-                                                        <View style={[styles.cell]}><Text style={styles.body}>{item.createdAt}</Text></View>
-                                                        <View style={[styles.cell]}><Text style={styles.body}>{item.keterangan}</Text></View>
-                                                    </View>
-                                                    )
-                                                })}
-                                            </View>
-                                            <Text style={[styles.marbotT, styles.font]}>Demikian hal yang dapat kami sampaikan perihal persetujuan disposal aset, atas perhatiannya kami mengucapkan terima kasih.</Text>
-                                            <View style={styles.footTtd}>
-                                                <View style={styles.tableTtd}>
-                                                    <View style={[styles.row, styles.headerTtd]}>
-                                                        <Text style={[styles.cellrow, style.headerTxt]}>Diajukan oleh,</Text>
-                                                    </View>
-                                                    <View style={[styles.row, styles.headerTtd]}>
-                                                        <View style={[styles.cell2]}>
-                                                            <View style={styles.table}>
-                                                                <View style={[styles.row]}>
-                                                                    {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
-                                                                        return (
-                                                                            <Text style={[styles.cellTtdHead]}>{item.nama === null ? "-" : item.nama}</Text>
-                                                                        )
-                                                                    })}
-                                                                </View>
-                                                                <View style={[styles.row]}>
-                                                                    {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
-                                                                        return (
-                                                                            <Text style={[styles.cellTtdBody]}>{item.jabatan === null ? "-" : item.jabatan}</Text>
-                                                                        )
-                                                                    })}
-                                                                </View>
-                                                            </View>
-                                                        </View>
-                                                    </View>
-                                                </View>
-                                                <View style={styles.table}>
-                                                    <View style={[styles.row, styles.headerTtd]}>
-                                                        <Text style={[styles.cellrow, style.headerTxt]}>Disetujui oleh,</Text>
-                                                    </View>
-                                                    <View style={[styles.row, styles.headerTtd]}>
-                                                        <View style={[styles.cell2]}>
-                                                            <View style={styles.table}>
-                                                                <View style={[styles.row]}>
-                                                                {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
-                                                                    return (
-                                                                        <Text style={[styles.cellTtdHead]}>{item.nama === null ? "-" : item.nama}</Text>     
-                                                                    )
-                                                                })}
-                                                                </View>
-                                                                <View style={[styles.row]}>
-                                                                    {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
-                                                                        return (
-                                                                            <Text style={[styles.cellTtdBody]}>{item.jabatan === null ? "-" : item.jabatan}</Text>
-                                                                        )
-                                                                    })}
-                                                                </View>
-                                                            </View>
-                                                        </View>
-                                                    </View>
-                                                </View>
-                                            </View>
-                                        </Page>
-                                    </Document>
-                                    } 
-                                    fileName={`Form persetujuan D${dataDis[0].status_app}.pdf`}>
-                                    {({ blob, url, loading, error }) => (loading ? 'Loading document...' : 'Download Form')}
-                                </PDFDownloadLink>
+                                        <TablePdf dataDis={dataDis} />
                                 </Button>
                             </div>
                         </div>
@@ -530,7 +430,7 @@ class PersetujuanDis extends Component {
                         <Row className="mb-2">
                             <Col md={2}>
                             {detailDis[0] === undefined ? "" :
-                            detailDis[0].status_depo === "Cabang Scylla" || detailDis.status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
+                            detailDis[0].status_depo === "Cabang Scylla" || detailDis[0].status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
                             </Col>
                             <Col md={10} className="txtTrans">
                             : {detailDis[0] !== undefined && detailDis[0].area}
@@ -617,10 +517,14 @@ class PersetujuanDis extends Component {
                                                 <tr>
                                                     {appPeng.pemeriksa !== undefined && appPeng.pemeriksa.map(item => {
                                                         return (
-                                                            <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
-                                                                <div>{item.nama === null ? "-" : item.nama}</div>
-                                                            </th>
+                                                            item.jabatan === 'asset' ? (
+                                                                <text></text>
+                                                            ) : (
+                                                                <th className="headPre">
+                                                                    <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                    <div>{item.nama === null ? "-" : item.nama}</div>
+                                                                </th>
+                                                            )
                                                         )
                                                     })}
                                                 </tr>
@@ -629,7 +533,11 @@ class PersetujuanDis extends Component {
                                                 <tr>
                                                     {appPeng.pemeriksa !== undefined && appPeng.pemeriksa.map(item => {
                                                         return (
-                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                            item.jabatan === 'asset' ? (
+                                                                <text></text>
+                                                            ) : (
+                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                            )
                                                         )
                                                     })}
                                                 </tr>
@@ -669,8 +577,8 @@ class PersetujuanDis extends Component {
                     <div className="modalFoot ml-3">
                         <div></div>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="warning" onClick={this.openPreview}>
-                                Print
+                            <Button className="mr-2" color="warning">
+                                <TablePeng detailDis={detailDis}/>
                             </Button>
                             <Button color="success" onClick={this.openPreview}>
                                 Close
@@ -831,7 +739,7 @@ const styles = StyleSheet.create({
         flexBasis: 35,
         marginBottom: 0
       },
-      row1: {
+      rowTblHead: {
         display: "flex",
         flexDirection: "row",
         justifyContent: "space-around",
@@ -839,16 +747,27 @@ const styles = StyleSheet.create({
         flexWrap: "nowrap",
         alignItems: "stretch",
         flexGrow: 0,
-        width: 200,
         flexShrink: 0,
         flexBasis: 35,
         marginBottom: 0
       },
+      rowTblBody: {
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-around",
+        alignContent: "stretch",
+        flexWrap: "nowrap",
+        alignItems: "stretch",
+        flexGrow: 0,
+        flexShrink: 0,
+        flexBasis: 35,
+        borderBottomWidth: 1
+      },
       cell: {
         borderColor: "gray",
         borderStyle: "solid",
-        borderWidth: 0.5,
-        borderTopWidth: 1,
+        borderLeftWidth: 0.5,
+        borderRightWidth: 0.5,
         flexGrow: 1,
         flexShrink: 1,
         flexBasis: "auto",
