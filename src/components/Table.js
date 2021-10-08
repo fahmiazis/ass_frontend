@@ -48,7 +48,7 @@ class TablePdf extends Component {
                                 <DataTableCell style={[styles.font, styles.padingTbl]} getContent={(r) => r.nama_asset}/>
                                 <DataTableCell style={[styles.font, styles.padingTbl]} getContent={(r) => r.nilai_buku}/>
                                 <DataTableCell style={[styles.font, styles.padingTbl]} getContent={(r) => r.nilai_jual}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} getContent={(r) => r.createdAt}/>
+                                <DataTableCell style={[styles.font, styles.padingTbl]} getContent={(r) => moment(r.dataAsset.tanggal).format('DD/MM/YYYY')}/>
                                 <DataTableCell style={[styles.font, styles.padingTbl]} getContent={(r) => r.keterangan}/>
                             </TableBody>
                         </Table>

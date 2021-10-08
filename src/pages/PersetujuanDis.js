@@ -574,13 +574,13 @@ class Disposal extends Component {
                                                             <Col md={6} className="txtDoc">
                                                             Status Approval
                                                             </Col>
-                                                            {dataDis.find(({status_app}) => status_app === x).appForm.find(({status}) => status === 0) !== undefined ? (
+                                                            {dataDis.find(({status_app}) => status_app === x).ttdSet.find(({status}) => status === 0) !== undefined ? (
                                                                 <Col md={6} className="txtDoc">
-                                                                : Reject {dataDis.find(({status_app}) => status_app === x).appForm.find(({status}) => status === 0).jabatan}
+                                                                : Reject {dataDis.find(({status_app}) => status_app === x).ttdSet.find(({status}) => status === 0).jabatan}
                                                                 </Col>
-                                                            ) : dataDis.find(({status_app}) => status_app === x).appForm.find(({status}) => status === 1) !== undefined ? (
+                                                            ) : dataDis.find(({status_app}) => status_app === x).ttdSet.find(({status}) => status === 1) !== undefined ? (
                                                                 <Col md={6} className="txtDoc">
-                                                                : Approve {dataDis.find(({status_app}) => status_app === x).appForm.find(({status}) => status === 1).jabatan}
+                                                                : Approve {dataDis.find(({status_app}) => status_app === x).ttdSet.find(({status}) => status === 1).jabatan}
                                                                 </Col>
                                                             ) : (
                                                                 <Col md={6} className="txtDoc">
@@ -602,18 +602,10 @@ class Disposal extends Component {
                                     )}
                                 <div>
                                     <div className={style.infoPageEmail}>
-                                        <text>Showing {level === '5' ? page.currentPage : pages.currentPage} of {level === '5' ? page.pages : pages.pages} pages</text>
+                                        <text>Showing {pages.currentPage !== undefined ? pages.currentPage : '0'} of {pages.pages !== undefined ? pages.pages : '0'} pages</text>
                                         <div className={style.pageButton}>
-                                            {level === '5' ? (
-                                                <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
-                                            ) : (
-                                                <button className={style.btnPrev} color="info" disabled={pages.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
-                                            )}
-                                            {level === '5' ? (
-                                                <button className={style.btnPrev} color="info" disabled={page.nextLink === null ? true : false} onClick={this.next}>Next</button>
-                                            ) : (
-                                                <button className={style.btnPrev} color="info" disabled={pages.nextLink === null ? true : false} onClick={this.next}>Next</button>
-                                            )}
+                                            <button className={style.btnPrev} color="info" disabled={pages.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
+                                            <button className={style.btnPrev} color="info" disabled={pages.nextLink === null ? true : false} onClick={this.next}>Next</button>
                                         </div>
                                     </div>
                                 </div>

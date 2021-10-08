@@ -254,7 +254,7 @@ class PersetujuanDis extends Component {
                                                 <td>{item.nama_asset}</td>
                                                 <td>{item.nilai_buku}</td>
                                                 <td>{item.nilai_jual}</td>
-                                                <td>{item.createdAt}</td>
+                                                <td>{moment(item.dataAsset.tanggal).format('DD/MM/YYYY')}</td>
                                                 <td>{item.keterangan}</td>
                                             </tr>
                                         )
