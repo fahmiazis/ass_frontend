@@ -6,6 +6,7 @@ import {connect} from 'react-redux'
 import moment from 'moment'
 
 class TablePdf extends Component {
+
     render() {
         const {disApp} = this.props.setuju
         const dataDis = this.props.dataDis
@@ -32,27 +33,27 @@ class TablePdf extends Component {
                             data={dataDis} style={styles.marbot}
                         >
                             <TableHeader style={styles.header}>
-                                <TableCell style={[styles.font, styles.headerText]}  weighting={0.2}>No</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} >Nomor Aset</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} >Area (Cabang/Depo/CP)</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} >Nama Barang</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} >Nilai Buku</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} >Nilai Jual</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} >Tanggal Perolehan</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} >Keterangan</TableCell>
+                                <TableCell style={[styles.font, styles.headerText, styles.number]}  weighting={0.1}>No</TableCell>
+                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>Nomor Aset</TableCell>
+                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.4} >{"Area" + "\n" + "(Cabang/Depo/CP)"}</TableCell>
+                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={1} >Nama Barang</TableCell>
+                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>Nilai Buku</TableCell>
+                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>Nilai Jual</TableCell>
+                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>{"Tanggal" + "\n" + "Perolehan"}</TableCell>
+                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={1} >Keterangan</TableCell>
                             </TableHeader>
                             <TableBody>
-                                <DataTableCell style={styles.font} weighting={0.2} getContent={(r) => dataDis.indexOf(r) + 1}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} getContent={(r) => r.no_asset}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} getContent={(r) => r.area}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} getContent={(r) => r.nama_asset}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} getContent={(r) => r.nilai_buku}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} getContent={(r) => r.nilai_jual}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} getContent={(r) => moment(r.dataAsset.tanggal).format('DD/MM/YYYY')}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} getContent={(r) => r.keterangan}/>
+                                <DataTableCell style={[styles.font, styles.number]} weighting={0.1} getContent={(r) => dataDis.indexOf(r) + 1}/>
+                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.no_asset}/>
+                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.4} getContent={(r) => r.area}/>
+                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={1} getContent={(r) => r.nama_asset}/>
+                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}/>
+                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}/>
+                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => moment(r.dataAsset.tanggal).format('DD/MM/YYYY')}/>
+                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={1} getContent={(r) => r.keterangan}/>
                             </TableBody>
                         </Table>
-                        <Text style={[styles.marbotT, styles.font, styles.martop]}>Demikian hal yang dapat kami sampaikan perihal persetujuan disposal aset, atas perhatiannya kami mengucapkan terima kasih.</Text>
+                        <Text break={dataDis.length <= 18 ? false : dataDis.length > 18 && dataDis.length <= 26 ? true : (dataDis.length - 26) % 36 >= 1 && (dataDis.length - 26) % 36 <= 27 ? false : true} style={[styles.marbotT, styles.font, styles.martop]}>Demikian hal yang dapat kami sampaikan perihal persetujuan disposal aset, atas perhatiannya kami mengucapkan terima kasih.</Text>
                         <View style={styles.footTtd}>
                             <View style={styles.tableTtd}>
                                 <View style={[styles.row, styles.headerTtd]}>
@@ -109,6 +110,9 @@ class TablePdf extends Component {
                                 </View>
                             </View>
                         </View>
+                        <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
+                            `${pageNumber} / ${totalPages}`
+                        )} fixed />
                     </Page>
                 </Document>
                 } 
@@ -137,7 +141,8 @@ const styles = StyleSheet.create({
       backgroundColor: '#FFFFFF',
       paddingTop: '20px',
       paddingLeft: '10px',
-      paddingRight: '10px'
+      paddingRight: '10px',
+      paddingBottom: '30px'
     },
     section: {
       margin: 10,
@@ -145,7 +150,7 @@ const styles = StyleSheet.create({
       flexGrow: 1
     },
     padingTbl: {
-        padding: 5,
+        padding: 2,
     },
     modalDis: {
         display: 'flex',
@@ -157,19 +162,23 @@ const styles = StyleSheet.create({
         textDecoration: 'underline'
     },
     marbot: {
-        marginBottom: '10px',
+        marginBottom: '7px',
     },
     martop: {
         marginTop: "10px"
     },
     font: {
-        fontSize: '11px'
+        fontSize: '9px'
     },
     fontTit: {
-        fontSize: '14px'
+        fontSize: '11px'
+    },
+    number: {
+        textAlign: 'center',
+        paddingTop: 2
     },
     marbotT: {
-        marginBottom: '15px',
+        marginBottom: '8px',
     },
     table: {
         fontSize: 10,
@@ -296,10 +305,10 @@ const styles = StyleSheet.create({
           backgroundColor: "#FFFFFF"
       },
       headerText: {
-        fontSize: 11,
         fontWeight: "bold",
         color: "black",
-        backgroundColor: 'gray'
+        backgroundColor: 'gray',
+        textAlign: 'center'
       },
       headerTxt: {
         fontSize: 11,
@@ -311,5 +320,15 @@ const styles = StyleSheet.create({
         margin: 10,
         fontSize: 10,
         color: 'neutralDark'
-      }
+      },
+      pageNumber: {
+        position: 'absolute',
+        fontSize: 10,
+        bottom: 10,
+        left: 0,
+        right: 0,
+        textAlign: 'center',
+        color: 'grey',
+        marginTop: '10px'
+      },
 })

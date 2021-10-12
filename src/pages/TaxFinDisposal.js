@@ -985,7 +985,7 @@ class TaxFinDisposal extends Component {
                     <Row className="mb-2">
                         <Col md={2}>
                         {detailDis[0] === undefined ? "" :
-                        detailDis[0].status_depo === "Cabang Scylla" || detailDis.status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
+                        detailDis[0].status_depo === "Cabang Scylla" || detailDis[0].status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
                         </Col>
                         <Col md={10} className="txtTrans">
                         : {detailDis[0] !== undefined && detailDis[0].area}

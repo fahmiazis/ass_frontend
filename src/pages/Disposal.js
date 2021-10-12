@@ -776,7 +776,7 @@ class Disposal extends Component {
                         <Row className="mb-2">
                             <Col md={2}>
                             {detailDis[0] === undefined ? "" :
-                            detailDis[0].status_depo === "Cabang Scylla" || detailDis.status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
+                            detailDis[0].status_depo === "Cabang Scylla" || detailDis[0].status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
                             </Col>
                             <Col md={10} className="txtTrans">
                             : {detailDis[0] !== undefined && detailDis[0].area}
@@ -813,8 +813,8 @@ class Disposal extends Component {
                                             <td>{item.kategori}</td>
                                             <td>{item.status_depo}</td>
                                             <td>{item.cost_center}</td>
-                                            <td>{item.nilai_buku}</td>
-                                            <td>{item.nilai_jual}</td>
+                                            <td>{item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             <td>{item.keterangan}</td>
                                         </tr>
                                     )
@@ -894,8 +894,8 @@ class Disposal extends Component {
                                             <td>{item.kategori}</td>
                                             <td>{item.status_depo}</td>
                                             <td>{item.cost_center}</td>
-                                            <td>{item.nilai_buku}</td>
-                                            <td>{item.nilai_jual}</td>
+                                            <td>{item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             <td>{item.keterangan}</td>
                                         </tr>
                                     )
@@ -1053,7 +1053,7 @@ class Disposal extends Component {
                                     </div>
                                     <div className="secSmallRinci">
                                         <div className="titSmallRinci">Nilai Buku</div>
-                                        <div className="txtAreaRinci">{dataRinci.nilai_buku}</div>
+                                        <div className="txtAreaRinci">{dataRinci.nilai_buku !== undefined ? dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") : dataRinci.nilai_buku}</div>
                                     </div>
                                     <div className="secSmallRinci">
                                         <div className="titSmallRinci">Kategori</div>
@@ -1155,7 +1155,7 @@ class Disposal extends Component {
                                             <Col  md={3}>Nilai Jual</Col>
                                             <Col md={9} className="colRinci">:  <Input
                                                 className="inputRinci" 
-                                                value={values.nilai_jual} 
+                                                value={values.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} 
                                                 onBlur={handleBlur("nilai_jual")}
                                                 onChange={handleChange("nilai_jual")}
                                                 disabled={dataRinci.nilai_jual === '0' || level !== 5 ? true : false}
@@ -1482,8 +1482,8 @@ class Disposal extends Component {
                                                 <td>{item.no_asset}</td>
                                                 <td>{item.area}</td>
                                                 <td>{item.nama_asset}</td>
-                                                <td>{item.nilai_buku}</td>
-                                                <td>{item.nilai_jual}</td>
+                                                <td>{item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                <td>{item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                 <td>{item.createdAt}</td>
                                                 <td>{item.keterangan}</td>
                                             </tr>

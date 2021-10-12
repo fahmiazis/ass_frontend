@@ -1,10 +1,7 @@
 import React, { Component } from 'react'
-import { Container, Collapse, Nav, Navbar,
-    NavbarToggler, NavbarBrand, NavItem, NavLink,
-    UncontrolledDropdown, DropdownToggle, DropdownMenu, Dropdown,
+import {  NavbarBrand, DropdownToggle, DropdownMenu,
     DropdownItem, Table, ButtonDropdown, Input, Button,
-    Modal, ModalHeader, ModalBody, ModalFooter, Alert, Spinner} from 'reactstrap'
-import logo from "../assets/img/logo.png"
+    Modal, ModalHeader, ModalBody, Alert, Spinner} from 'reactstrap'
 import style from '../assets/css/input.module.css'
 import {FaSearch, FaUserCircle, FaBars} from 'react-icons/fa'
 import {AiFillCheckCircle, AiOutlineFileExcel} from 'react-icons/ai'

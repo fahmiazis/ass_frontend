@@ -1,10 +1,7 @@
 import React, { Component } from 'react'
-import { Container, Collapse, Nav, Navbar,
-    NavbarToggler, NavbarBrand, NavItem, NavLink,
-    UncontrolledDropdown, DropdownToggle, DropdownMenu, Dropdown,
+import { NavbarBrand, DropdownToggle, DropdownMenu,
     DropdownItem, Table, ButtonDropdown, Input, Button,
-    Modal, ModalHeader, ModalBody, ModalFooter, Spinner, Alert} from 'reactstrap'
-import logo from "../assets/img/logo.png"
+    Modal, ModalHeader, ModalBody, Spinner, Alert} from 'reactstrap'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
 import style from '../assets/css/input.module.css'
