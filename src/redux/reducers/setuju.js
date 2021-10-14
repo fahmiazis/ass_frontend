@@ -7,7 +7,9 @@ const setujuState = {
     isLoading: false,
     isError: false,
     approve: false,
+    errorApp: false,
     reject: false,
+    errorRej: false,
     alertMsg: '',
     alertM: '',
     isSubmitEks: false,
@@ -226,8 +228,9 @@ export default (state=setujuState, action) => {
                 return {
                     ...state,
                     isLoading: false,
-                    isError: true,
-                    alertMsg: "Unable connect to server"
+                    errorApp: true,
+                    alertMsg: "Unable connect to server",
+                    alertM: action.payload.response.data.message
                 };
             }
             case 'REJECT_SETDIS_PENDING': {
@@ -249,8 +252,9 @@ export default (state=setujuState, action) => {
                 return {
                     ...state,
                     isLoading: false,
-                    isError: true,
-                    alertMsg: "Unable connect to server"
+                    errorRej: true,
+                    alertMsg: "Unable connect to server",
+                    alertM: action.payload.response.data.message
                 };
             }
             case 'SUBMIT_EDIT_TAXFIN_PENDING': {
@@ -304,6 +308,15 @@ export default (state=setujuState, action) => {
                     ...state,
                     isError: false,
                     isGet: false
+                }
+            }
+            case 'RESET_APPSET': {
+                return {
+                    ...state,
+                    reject: false,
+                    approve: false,
+                    errorApp: false,
+                    errorRej: false
                 }
             }
             default: {

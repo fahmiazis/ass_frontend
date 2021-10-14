@@ -3,7 +3,7 @@ import React, { Component } from 'react'
 import { NavbarBrand, Row, Col, Table, Button, Modal, ModalBody, ModalFooter, Container, Alert, Input, Spinner, ModalHeader } from 'reactstrap'
 import { PDFDownloadLink, Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
 import style from '../assets/css/input.module.css'
-import { AiOutlineClose, AiOutlineCheck } from 'react-icons/ai'
+import { AiOutlineClose, AiOutlineCheck, AiFillCheckCircle } from 'react-icons/ai'
 import { BsCircle } from 'react-icons/bs'
 import { FaBars, FaUserCircle } from 'react-icons/fa'
 import Sidebar from "../components/Header"
@@ -49,6 +49,8 @@ class PersetujuanDis extends Component {
             detailDis: [],
             preview: false,
             date: '',
+            modalConfirm: false,
+            confirm: "",
             idDoc: null,
             fileName: {},
             openPdf: false,
@@ -91,6 +93,10 @@ class PersetujuanDis extends Component {
         await this.props.getApproveDisposal(token, value, 'disposal pengajuan')
         this.setState({detailDis: detail})
         this.openPreview()
+    }
+
+    openConfirm = () => {
+        this.setState({modalConfirm: !this.state.modalConfirm})
     }
 
     showDokumen = async (value) => {
@@ -158,6 +164,23 @@ class PersetujuanDis extends Component {
     getApproveSet = async (val) => {
         const token = localStorage.getItem("token")
         await this.props.getApproveSetDisposal(token, val, 'disposal persetujuan')
+    }
+
+    componentDidUpdate() {
+        const {dataDis, errorRej, errorApp, approve, reject} = this.props.setuju
+        if (errorRej) {
+            this.openConfirm(this.setState({confirm: 'rejReject'}))
+            this.props.resetAppSet()
+        } else if (errorApp) {
+            this.openConfirm(this.setState({confirm: 'rejApprove'}))
+            this.props.resetAppSet()
+        } else if (approve) {
+            this.openConfirm(this.setState({confirm: 'approve'}))
+            this.props.resetAppSet()
+        } else if (reject) {
+            this.openConfirm(this.setState({confirm: 'reject'}))
+            this.props.resetAppSet()
+        }
     }
 
     approveSet = async () => {
@@ -337,7 +360,7 @@ class PersetujuanDis extends Component {
                             </Table>
                             <div className="btnFoot1">
                                 <div className="btnfootapp">
-                                    <Button className="mr-2" color="danger" onClick={this.openModalReject} disabled>
+                                    <Button className="mr-2" color="danger" onClick={this.openModalReject}>
                                         Reject
                                     </Button>
                                     {level === '23' || level === '22' || level === '25' ? (
@@ -665,211 +688,57 @@ class PersetujuanDis extends Component {
                         </Formik>
                     </ModalBody>
                 </Modal>
+                <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="sm">
+                    <ModalBody>
+                        {this.state.confirm === 'edit' ? (
+                        <div className={style.cekUpdate}>
+                            <AiFillCheckCircle size={80} className={style.green} />
+                            <div className={[style.sucUpdate, style.green]}>Berhasil Update Dokumen</div>
+                        </div>
+                        ) : this.state.confirm === 'add' ? (
+                            <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Menambah Dokumen</div>
+                            </div>
+                        ) : this.state.confirm === 'approve' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Approve Dokumen</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'reject' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Reject Dokumen</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'rejApprove' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Approve Dokumen</div>
+                                <div className="errApprove mt-2">{this.props.setuju.alertM === undefined ? '' : this.props.setuju.alertM}</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'rejReject' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Reject Dokumen</div>
+                                <div className="errApprove mt-2">{this.props.setuju.alertM === undefined ? '' : this.props.setuju.alertM}</div>
+                            </div>
+                            </div>
+                        ) : (
+                            <div></div>
+                        )}
+                    </ModalBody>
+                </Modal>
             </>
         )
     }
 }
-
-const styles = StyleSheet.create({
-    page: {
-      backgroundColor: '#FFFFFF',
-      paddingTop: '20px',
-      paddingLeft: '10px',
-      paddingRight: '10px'
-    },
-    section: {
-      margin: 10,
-      padding: 10,
-      flexGrow: 1
-    },
-    modalDis: {
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'center',
-    },
-    titleModDis: {
-        fontWeight: 'bold',
-        textDecoration: 'underline'
-    },
-    marbot: {
-        marginBottom: '10px',
-    },
-    font: {
-        fontSize: '11px'
-    },
-    fontTit: {
-        fontSize: '14px'
-    },
-    marbotT: {
-        marginBottom: '15px',
-    },
-    table: {
-        fontSize: 10,
-        width: '100%',
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "flex-start",
-        alignContent: "stretch",
-        flexWrap: "nowrap",
-        alignItems: "stretch"
-      },
-      tableTtd: {
-        fontSize: 10,
-        width: '20%',
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "flex-start",
-        alignContent: "stretch",
-        flexWrap: "nowrap",
-        alignItems: "stretch"
-      },
-      footTtd: {
-        display: 'flex',
-        flexDirection: 'row'
-      },
-      row: {
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "space-around",
-        alignContent: "stretch",
-        flexWrap: "nowrap",
-        alignItems: "stretch",
-        flexGrow: 0,
-        flexShrink: 0,
-        flexBasis: 35,
-        marginBottom: 0
-      },
-      rowTblHead: {
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "space-around",
-        alignContent: "stretch",
-        flexWrap: "nowrap",
-        alignItems: "stretch",
-        flexGrow: 0,
-        flexShrink: 0,
-        flexBasis: 35,
-        marginBottom: 0
-      },
-      rowTblBody: {
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "space-around",
-        alignContent: "stretch",
-        flexWrap: "nowrap",
-        alignItems: "stretch",
-        flexGrow: 0,
-        flexShrink: 0,
-        flexBasis: 35,
-        borderBottomWidth: 1
-      },
-      cell: {
-        borderColor: "gray",
-        borderStyle: "solid",
-        borderLeftWidth: 0.5,
-        borderRightWidth: 0.5,
-        flexGrow: 1,
-        flexShrink: 1,
-        flexBasis: "auto",
-        alignSelf: "stretch",
-        padding: 8,
-        paddingBottom: 10
-      },
-      cell1: {
-        borderColor: "black",
-        borderStyle: "solid",
-        borderTopWidth: 1,
-        borderRightWidth: 1,
-        borderLeftWidth: 1,
-        borderBottomWidth: 0,
-        flexGrow: 1,
-        flexShrink: 1,
-        flexBasis: "auto",
-        alignSelf: "stretch",
-        padding: 14,
-        marginBottom: 2
-      },
-      cellrow: {
-        borderColor: "black",
-        borderStyle: "solid",
-        borderTopWidth: 1,
-        borderRightWidth: 1,
-        borderLeftWidth: 1,
-        borderBottomWidth: 0,
-        flexGrow: 1,
-        flexShrink: 1,
-        flexBasis: "auto",
-        alignSelf: "center",
-        textAlign: 'center',
-        padding: 14,
-        marginBottom: 2
-      },
-      cell2: {
-        borderColor: "black",
-        borderStyle: "solid",
-        borderTopWidth: 1,
-        borderRightWidth: 1,
-        borderLeftWidth: 1,
-        borderBottomWidth: 1,
-        flexGrow: 1,
-        flexShrink: 1,
-        flexBasis: "auto",
-        alignSelf: "stretch",
-        padding: 0,
-        marginBottom: 2
-      },
-      cellTtdHead: {
-        borderColor: "black",
-        borderStyle: "solid",
-        borderBottomWidth: 0,
-        borderLeftWidth: 1,
-        borderRightWidth: 0,
-        borderTopWidth: 0,
-        flexGrow: 1,
-        flexShrink: 1,
-        flexBasis: "auto",
-        alignSelf: "center",
-        padding: 14,
-        textAlign: 'center'
-      },
-      cellTtdBody: {
-        borderColor: "black",
-        borderStyle: "solid",
-        borderBottomWidth: 0,
-        borderLeftWidth: 1,
-        borderRightWidth: 0,
-        borderTopWidth: 1,
-        flexGrow: 1,
-        flexShrink: 1,
-        flexBasis: "auto",
-        alignSelf: "center",
-        padding: 8,
-        textAlign: 'center'
-      },
-      header: {
-        backgroundColor: "gray"
-      },
-      headerTtd: {
-          backgroundColor: "#FFFFFF"
-      },
-      headerText: {
-        fontSize: 11,
-        fontWeight: "bold",
-        color: "black",
-        padding: 5
-      },
-      headerTxt: {
-        fontSize: 11,
-        fontWeight: "bold",
-        color: "black",
-        textAlign: 'center'
-      },
-      tableText: {
-        margin: 10,
-        fontSize: 10,
-        color: 'neutralDark'
-      }
-  });
 
 const mapStateToProps = state => ({
     asset: state.asset,
@@ -891,7 +760,8 @@ const mapDispatchToProps = {
     approveSetDisposal: setuju.approveSetDisposal,
     getDocumentDis: disposal.getDocumentDis,
     getApproveDisposal: disposal.getApproveDisposal,
-    rejectSetDisposal: setuju.rejectSetDisposal
+    rejectSetDisposal: setuju.rejectSetDisposal,
+    resetAppSet: setuju.resetAppSet
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(PersetujuanDis)

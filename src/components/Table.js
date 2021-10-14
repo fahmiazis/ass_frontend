@@ -47,8 +47,8 @@ class TablePdf extends Component {
                                 <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.no_asset}/>
                                 <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.4} getContent={(r) => r.area}/>
                                 <DataTableCell style={[styles.font, styles.padingTbl]} weighting={1} getContent={(r) => r.nama_asset}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}/>
+                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.nilai_buku === undefined || r.nilai_buku === null ? r.nilai_buku : r.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}/>
+                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.nilai_jual === undefined || r.nilai_jual === null ? r.nilai_jual : r.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}/>
                                 <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => moment(r.dataAsset.tanggal).format('DD/MM/YYYY')}/>
                                 <DataTableCell style={[styles.font, styles.padingTbl]} weighting={1} getContent={(r) => r.keterangan}/>
                             </TableBody>

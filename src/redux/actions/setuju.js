@@ -49,5 +49,8 @@ export default {
     }),
     resetSetuju: () => ({
         type: 'RESET_SETUJU'
+    }),
+    resetAppSet: () => ({
+        type: 'RESET_APPSET'
     })
 }

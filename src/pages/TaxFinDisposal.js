@@ -31,6 +31,7 @@ import f from "../assets/img/f.png"
 import g from "../assets/img/g.png"
 import TablePdf from "../components/Table"
 import TablePeng from '../components/TablePeng'
+import NumberInput from '../components/NumberInput'
 
 const {REACT_APP_BACKEND_URL} = process.env
 
@@ -761,7 +762,7 @@ class TaxFinDisposal extends Component {
                         validationSchema = {level === '2' ? assetSchema : level === '3' ? taxSchema : level === '4' ? finSchema : disposalSchema}
                         onSubmit={(values) => {this.updateDataDis(values)}}
                         >
-                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                        {({ setFieldValue, handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
                             <div className="rightRinci">
                                 <div>
                                     <div className="titRinci">{dataRinci.nama_asset}</div>
@@ -803,13 +804,13 @@ class TaxFinDisposal extends Component {
                                     </Row>
                                     <Row className="mb-2 rowRinci">
                                         <Col md={3}>Nilai Buku</Col>
-                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku} disabled /></Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null ? dataRinci.nilai_buku : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
                                     </Row>
                                     <Row className="mb-2 rowRinci">
                                         <Col md={3}>Nilai Jual</Col>
                                         <Col md={9} className="colRinci">:  <Input 
                                             className="inputRinci" 
-                                            value={values.nilai_jual} 
+                                            value={values.nilai_jual === null ? values.nilai_jual : values.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} 
                                             onBlur={handleBlur("nilai_jual")}
                                             onChange={handleChange("nilai_jual")}
                                             disabled
@@ -842,7 +843,7 @@ class TaxFinDisposal extends Component {
                                             </Row>
                                             <Row className="mb-2 rowRinci">
                                                 <Col md={3}>Nominal uang masuk</Col>
-                                                <Col md={9} className="colRinci">:  <Input className="inputRinci" value = {dataRinci.nominal} disabled/></Col>
+                                                <Col md={9} className="colRinci">:  <Input className="inputRinci" value = {dataRinci.nominal === null ? dataRinci.nominal : dataRinci.nominal.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled/></Col>
                                             </Row>
                                             <Row className="mb-2 rowRinci">
                                                 <Col md={3}>Faktur Pajak</Col>
@@ -898,13 +899,18 @@ class TaxFinDisposal extends Component {
                                             ) : null}
                                             <Row className="mb-2 rowRinci">
                                                 <Col md={3}>Nominal uang masuk</Col>
-                                                <Col md={9} className="colRinci">:  <Input 
+                                                <Col md={9} className="colRinci">:  <NumberInput 
+                                                    value={values.nominal}
+                                                    className="inputRinci1"
+                                                    onValueChange={val => setFieldValue("nominal", val.floatValue)}
+                                                />
+                                                {/* <Input 
                                                     type="text" 
                                                     className="inputRinci" 
                                                     value={values.nominal} 
                                                     onBlur={handleBlur("nominal")}
                                                     onChange={handleChange("nominal")}
-                                                    />
+                                                    /> */}
                                                 </Col>
                                             </Row>
                                             {errors.nominal ? (

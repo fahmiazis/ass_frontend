@@ -28,6 +28,7 @@ import d from "../assets/img/d.jpg"
 import e from "../assets/img/e.jpg"
 import f from "../assets/img/f.png"
 import g from "../assets/img/g.png"
+import NumberInput from "../components/NumberInput";
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -525,7 +526,7 @@ class PurchDisposal extends Component {
                         validationSchema = {disposalSchema}
                         onSubmit={(values) => {this.updateDataDis(values)}}
                         >
-                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue}) => (
                             <div className="rightRinci">
                                 <div>
                                     <div className="titRinci">{dataRinci.nama_asset}</div>
@@ -567,16 +568,21 @@ class PurchDisposal extends Component {
                                     </Row>
                                     <Row className="mb-2">
                                         <Col md={3}>Nilai Buku</Col>
-                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" disabled /></Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku} disabled /></Col>
                                     </Row>
                                     <Row className="mb-2">
                                         <Col md={3}>Nilai Jual</Col>
-                                        <Col md={9} className="colRinci">:  <Input 
+                                        <Col md={9} className="colRinci">:  <NumberInput 
+                                            value={values.nilai_jual}
+                                            className="inputRinci1"
+                                            onValueChange={val => setFieldValue("nilai_jual", val.floatValue)}
+                                        />
+                                            {/* <Input 
                                             className="inputRinci" 
                                             value={values.nilai_jual} 
                                             onBlur={handleBlur("nilai_jual")}
                                             onChange={handleChange("nilai_jual")}
-                                            />
+                                            /> */}
                                         </Col>
                                     </Row>
                                     {errors.nilai_jual ? (
