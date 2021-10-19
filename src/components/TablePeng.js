@@ -86,7 +86,7 @@ class TablePdf extends Component {
                                             <View style={[styles.rowTtdHead]}>
                                                 {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
                                                     return (
-                                                        <Text style={[styles.cellTtdHead]}>
+                                                        <Text style={[styles.cellTtdHead, styles.font]}>
                                                             {item.nama === null ? "-" : item.nama}
                                                         </Text>
                                                     )
@@ -95,7 +95,7 @@ class TablePdf extends Component {
                                             <View style={[styles.row]}>
                                                 {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
                                                     return (
-                                                        <Text style={[styles.cellTtdBody]}>{item.jabatan === null ? "-" : item.jabatan}</Text>
+                                                        <Text style={[styles.cellTtdBody, styles.font]}>{item.jabatan === null ? "-" : item.jabatan}</Text>
                                                     )
                                                 })}
                                             </View>
@@ -116,7 +116,7 @@ class TablePdf extends Component {
                                                         item.jabatan === 'asset' ? (
                                                             null
                                                         ) : (
-                                                        <Text style={[styles.cellTtdHead]}>
+                                                        <Text style={[styles.cellTtdHead, styles.font]}>
                                                             {item.nama === null ? "-" : item.nama}
                                                         </Text>
                                                         )
@@ -129,7 +129,7 @@ class TablePdf extends Component {
                                                         item.jabatan === 'asset' ? (
                                                             null
                                                         ) : (
-                                                        <Text style={[styles.cellTtdBody]}>{item.jabatan === null ? "-" : item.jabatan}</Text>
+                                                        <Text style={[styles.cellTtdBody, styles.font]}>{item.jabatan === null ? "-" : item.jabatan}</Text>
                                                         )
                                                     )
                                                 })}
@@ -148,7 +148,7 @@ class TablePdf extends Component {
                                             <View style={[styles.rowTtdHead]}>
                                             {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
                                                 return (
-                                                    <Text style={[styles.cellTtdHead]}>
+                                                    <Text style={[styles.cellTtdHead, styles.font]}>
                                                             {item.nama === null ? "-" : item.nama}
                                                     </Text>     
                                                 )
@@ -157,7 +157,7 @@ class TablePdf extends Component {
                                             <View style={[styles.row]}>
                                                 {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
                                                     return (
-                                                        <Text style={[styles.cellTtdBody]}>{item.jabatan === null ? "-" : item.jabatan}</Text>
+                                                        <Text style={[styles.cellTtdBody, styles.font]}>{item.jabatan === null ? "-" : item.jabatan}</Text>
                                                     )
                                                 })}
                                             </View>

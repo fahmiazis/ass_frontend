@@ -2,7 +2,7 @@
 /* eslint-disable jsx-a11y/no-distracting-elements */
 import React, { Component } from 'react'
 import {NavbarBrand, Input, Button, Row, Col,
-    Modal, ModalHeader, ModalBody, ModalFooter, Container, Alert, Spinner} from 'reactstrap'
+    Modal, ModalHeader, ModalBody, ModalFooter, Container, Alert, Spinner, Table} from 'reactstrap'
 import style from '../assets/css/input.module.css'
 import {FaUserCircle, FaBars, FaTrash} from 'react-icons/fa'
 import {AiOutlineCheck, AiOutlineClose} from 'react-icons/ai'
@@ -14,6 +14,7 @@ import pengadaan from '../redux/actions/pengadaan'
 import {connect} from 'react-redux'
 import auth from '../redux/actions/auth'
 import {default as axios} from 'axios'
+import moment from 'moment'
 import Sidebar from "../components/Header";
 import MaterialTitlePanel from "../components/material_title_panel";
 import SidebarContent from "../components/sidebar_content";
@@ -579,19 +580,96 @@ class CartDisposal extends Component {
             </Modal>
             <Modal isOpen={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
                 <ModalHeader>Dokumen</ModalHeader>
-                    <ModalBody>
-                        <div className={style.readPdf}>
-                            <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
+                <ModalBody>
+                    <div className={style.readPdf}>
+                        <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
+                    </div>
+                    <hr/>
+                    <div className={style.foot}>
+                        <div>
+                            <Button color="success" onClick={() => this.downloadData()}>Download</Button>
                         </div>
-                        <hr/>
-                        <div className={style.foot}>
-                            <div>
-                                <Button color="success" onClick={() => this.downloadData()}>Download</Button>
-                            </div>
-                            <Button color="primary" onClick={this.openModalPdf}>Close</Button>
-                        </div>
-                    </ModalBody>
-                </Modal>
+                        <Button color="primary" onClick={this.openModalPdf}>Close</Button>
+                    </div>
+                </ModalBody>
+            </Modal>
+            {/* <Modal isOpen={this.state.preview} toggle={this.modalPeng} size="xl">
+                <ModalBody>
+                    <div>PT. Pinus Merah Abadi</div>
+                    <div className="modalDis">
+                        <text className="titleModDis">Form Pengajuan Disposal Asset</text>
+                    </div>
+                    <div className="mb-2"><text className="txtTrans">{dataDis[0] !== undefined && dataDis[0].area}</text>, {moment(dataDis[0] !== undefined && dataDis[0].createdAt).locale('idn').format('DD MMMM YYYY ')}</div>
+                    <Row>
+                        <Col md={2}>
+                        Hal
+                        </Col>
+                        <Col md={10}>
+                        : Pengajuan Disposal Asset
+                        </Col>
+                    </Row>
+                    <Row className="mb-2">
+                        <Col md={2}>
+                        {dataDis[0] === undefined ? "" :
+                        dataDis[0].status_depo === "Cabang Scylla" || dataDis[0].status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
+                        </Col>
+                        <Col md={10} className="txtTrans">
+                        : {dataDis[0] !== undefined && dataDis[0].area}
+                        </Col>
+                    </Row>
+                    <div>Kepada Yth.</div>
+                    <div>Bpk/Ibu Pimpinan</div>
+                    <div className="mb-2">Di tempat</div>
+                    <div>Dengan Hormat,</div>
+                    <div className="mb-3">Dengan surat ini kami mengajukan permohonan disposal aset dengan perincian sbb :</div>
+                    <Table striped bordered responsive hover className="tableDis mb-3">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Nomor Asset</th>
+                                <th>Nama Barang</th>
+                                <th>Merk/Type</th>
+                                <th>Kategori</th>
+                                <th>Status Depo</th>
+                                <th>Cost Center</th>
+                                <th>Nilai Buku</th>
+                                <th>Nilai Jual</th>
+                                <th>Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {dataDis.length !== 0 && dataDis.map(item => {
+                                return (
+                                    <tr>
+                                        <th scope="row">{dataDis.indexOf(item) + 1}</th>
+                                        <td>{item.no_asset}</td>
+                                        <td>{item.nama_asset}</td>
+                                        <td>{item.merk}</td>
+                                        <td>{item.kategori}</td>
+                                        <td>{item.status_depo}</td>
+                                        <td>{item.cost_center}</td>
+                                        <td>{item.nilai_buku}</td>
+                                        <td>{item.nilai_jual}</td>
+                                        <td>{item.keterangan}</td>
+                                    </tr>
+                                )
+                            })}
+                        </tbody>
+                    </Table>
+                </ModalBody>
+                <hr />
+                <div className="modalFoot ml-3">
+                    <div></div>
+                    <div className="btnFoot">
+                        <Button className="mr-2" color="primary">
+                            Submit
+                        </Button>
+                        <Button color="success" onClick={this.modalPeng}>
+                            Close
+                        </Button>
+                    </div>
+                </div>
+            </Modal> */}
             </>
         )
     }

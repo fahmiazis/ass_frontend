@@ -526,7 +526,10 @@ class Disposal extends Component {
                                         <Row className="bodyDispos">
                                         {noDis.length !== 0 && noDis.map(x => {
                                             return (
-                                                <div className="bodyCard">
+                                                dataDis.find(({status_app}) => status_app === x) === undefined ? (
+                                                    <div></div>
+                                                ) : (
+                                                    <div className="bodyCard">
                                                     <img src={placeholder} className="imgCard1" />
                                                     
                                                     {dataDis.find(({status_app}) => status_app === x).nilai_jual === '0' ? 
@@ -596,6 +599,7 @@ class Disposal extends Component {
                                                         </Col>
                                                     </Row>
                                                 </div>
+                                                )
                                             )
                                         })}
                                         </Row>
@@ -613,7 +617,7 @@ class Disposal extends Component {
                         </div>
                     </MaterialTitlePanel>
                 </Sidebar>
-                <Modal show={this.props.asset.isLoading ? true: false} size="sm">
+                <Modal show={this.props.disposal.isLoading ? true: false} size="sm">
                         <Modal.Body>
                         <div>
                             <div className={style.cekUpdate}>
