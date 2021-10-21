@@ -54,7 +54,39 @@ class TablePdf extends Component {
                             </TableBody>
                         </Table>
                         <Text break={dataDis.length <= 18 ? false : dataDis.length > 18 && dataDis.length <= 26 ? true : (dataDis.length - 26) % 36 >= 1 && (dataDis.length - 26) % 36 <= 27 ? false : true} style={[styles.marbotT, styles.font, styles.martop]}>Demikian hal yang dapat kami sampaikan perihal persetujuan disposal aset, atas perhatiannya kami mengucapkan terima kasih.</Text>
-                        <View style={styles.footTtd}>
+                        <Table data={[{id: 1}]}>
+                            <TableHeader>
+                                <TableCell style={styles.fontTtdHead}  weighting={0.237}>Diajukan Oleh,</TableCell>
+                                <TableCell style={styles.fontTtdHead} >Disetujui Oleh,</TableCell>
+                            </TableHeader>
+                        </Table>
+                        <Table data={[{id: 1}]}>
+                            <TableHeader style={styles.header}>
+                                {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
+                                    return (
+                                        <TableCell style={styles.fontTtd}>{item.nama === null ? "-" : item.status === 0 ? 'Reject' + '\n\n' + item.nama : moment(item.updatedAt).format('LL') + '\n\n' + item.nama}</TableCell>
+                                    )
+                                })}
+                                {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
+                                    return (
+                                        <TableCell style={styles.fontTtd}>{item.nama === null ? "-" : item.status === 0 ? 'Reject' + '\n\n' + item.nama : moment(item.updatedAt).format('LL') + '\n\n' + item.nama}</TableCell>
+                                    )
+                                })}
+                            </TableHeader>
+                            <TableBody>
+                                {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
+                                    return (
+                                        <DataTableCell style={styles.fontTtd} getContent={(r) => item.jabatan === null ? "-" : item.jabatan}/>
+                                    )
+                                })}
+                                {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
+                                    return (
+                                        <DataTableCell style={styles.fontTtd} getContent={(r) => item.jabatan === null ? "-" : item.jabatan}/>
+                                    )
+                                })}
+                            </TableBody>
+                        </Table>
+                        {/* <View style={styles.footTtd}>
                             <View style={styles.tableTtd}>
                                 <View style={[styles.row, styles.headerTtd]}>
                                     <Text style={[styles.cellrow, styles.headerTxt]}>Diajukan oleh,</Text>
@@ -109,7 +141,7 @@ class TablePdf extends Component {
                                     </View>
                                 </View>
                             </View>
-                        </View>
+                        </View> */}
                         <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
                             `${pageNumber} / ${totalPages}`
                         )} fixed />
@@ -190,6 +222,18 @@ const styles = StyleSheet.create({
         flexWrap: "nowrap",
         alignItems: "stretch"
       },
+      fontTtd: {
+        fontSize: '9px',
+        textAlign: 'center',
+        textTransform: 'uppercase',
+        padding: 5
+    },
+    fontTtdHead: {
+        fontSize: '9px',
+        textAlign: 'center',
+        textTransform: 'capitalize',
+        padding: 5
+    },
       tableTtd: {
         fontSize: 10,
         width: '20%',

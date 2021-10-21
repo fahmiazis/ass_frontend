@@ -75,97 +75,65 @@ class TablePdf extends Component {
                             </TableBody>
                         </Table>
                         <Text break={detailDis.length <= 18 ? false : detailDis.length > 18 && detailDis.length <= 26 ? true : (detailDis.length - 26) % 36 >= 1 && (detailDis.length - 26) % 36 <= 27 ? false : true} style={[styles.marbotT, styles.font, styles.martop]}>Demikian hal yang dapat kami sampaikan perihal persetujuan disposal aset, atas perhatiannya kami mengucapkan terima kasih.</Text>
-                        <View style={styles.footTtd}>
-                            <View style={styles.tableTtd}>
-                                <View style={[styles.row, styles.headerTtd]}>
-                                    <Text style={[styles.cellrow, styles.headerTxt]}>Dibuat oleh,</Text>
-                                </View>
-                                <View style={[styles.row, styles.headerTtd]}>
-                                    <View style={[styles.cell2]}>
-                                        <View style={styles.table}>
-                                            <View style={[styles.rowTtdHead]}>
-                                                {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
-                                                    return (
-                                                        <Text style={[styles.cellTtdHead, styles.font]}>
-                                                            {item.nama === null ? "-" : item.nama}
-                                                        </Text>
-                                                    )
-                                                })}
-                                            </View>
-                                            <View style={[styles.row]}>
-                                                {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
-                                                    return (
-                                                        <Text style={[styles.cellTtdBody, styles.font]}>{item.jabatan === null ? "-" : item.jabatan}</Text>
-                                                    )
-                                                })}
-                                            </View>
-                                        </View>
-                                    </View>
-                                </View>
-                            </View>
-                            <View style={styles.tablePem}>
-                                <View style={[styles.row, styles.headerTtd]}>
-                                    <Text style={[styles.cellrow, styles.headerTxt]}>Diperiksa oleh,</Text>
-                                </View>
-                                <View style={[styles.row, styles.headerTtd]}>
-                                    <View style={[styles.cell2]}>
-                                        <View style={styles.table}>
-                                            <View style={[styles.rowTtdHead]}>
-                                                {disApp.pemeriksa !== undefined && disApp.pemeriksa.map(item => {
-                                                    return (
-                                                        item.jabatan === 'asset' ? (
-                                                            null
-                                                        ) : (
-                                                        <Text style={[styles.cellTtdHead, styles.font]}>
-                                                            {item.nama === null ? "-" : item.nama}
-                                                        </Text>
-                                                        )
-                                                    )
-                                                })}
-                                            </View>
-                                            <View style={[styles.row]}>
-                                                {disApp.pemeriksa !== undefined && disApp.pemeriksa.map(item => {
-                                                    return (
-                                                        item.jabatan === 'asset' ? (
-                                                            null
-                                                        ) : (
-                                                        <Text style={[styles.cellTtdBody, styles.font]}>{item.jabatan === null ? "-" : item.jabatan}</Text>
-                                                        )
-                                                    )
-                                                })}
-                                            </View>
-                                        </View>
-                                    </View>
-                                </View>
-                            </View>
-                            <View style={styles.table}>
-                                <View style={[styles.row, styles.headerTtd]}>
-                                    <Text style={[styles.cellrow, styles.headerTxt]}>Disetujui oleh,</Text>
-                                </View>
-                                <View style={[styles.row, styles.headerTtd]}>
-                                    <View style={[styles.cell2]}>
-                                        <View style={styles.table}>
-                                            <View style={[styles.rowTtdHead]}>
-                                            {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
-                                                return (
-                                                    <Text style={[styles.cellTtdHead, styles.font]}>
-                                                            {item.nama === null ? "-" : item.nama}
-                                                    </Text>     
-                                                )
-                                            })}
-                                            </View>
-                                            <View style={[styles.row]}>
-                                                {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
-                                                    return (
-                                                        <Text style={[styles.cellTtdBody, styles.font]}>{item.jabatan === null ? "-" : item.jabatan}</Text>
-                                                    )
-                                                })}
-                                            </View>
-                                        </View>
-                                    </View>
-                                </View>
-                            </View>
-                        </View>
+                        <Table data={[{id: 1}]}>
+                            {detailDis.find(({kategori}) => kategori === 'IT') ? (
+                                <TableHeader>
+                                    <TableCell style={styles.fontTtdHead}  weighting={0.228}>Dibuat Oleh,</TableCell>
+                                    <TableCell style={styles.fontTtdHead} >Diperiksa Oleh,</TableCell>
+                                    <TableCell style={styles.fontTtdHead} >Disetujui Oleh,</TableCell>
+                                </TableHeader>
+                            ) : (
+                                <TableHeader>
+                                    <TableCell style={styles.fontTtdHead}  weighting={0.16}>Dibuat Oleh,</TableCell>
+                                    <TableCell style={styles.fontTtdHead} weighting={0.52}>Diperiksa Oleh,</TableCell>
+                                    <TableCell style={styles.fontTtdHead} weighting={0.7}>Disetujui Oleh,</TableCell>
+                                </TableHeader>
+                            )}
+                        </Table>
+                        <Table data={[{id: 1}]}>
+                            <TableHeader style={styles.header}>
+                                {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
+                                    return (
+                                        <TableCell style={styles.fontTtd}>{item.nama === null ? "-" : item.status === 0 ? 'Reject' + '\n\n' + item.nama : moment(item.updatedAt).format('LL') + '\n\n' + item.nama}</TableCell>
+                                    )
+                                })}
+                                {disApp.pemeriksa !== undefined && disApp.pemeriksa.map(item => {
+                                    return (
+                                        item.jabatan === 'asset' ? (
+                                            null
+                                        ) : (
+                                            <TableCell style={styles.fontTtd}>{item.nama === null ? "-" : item.status === 0 ? 'Reject' + '\n\n' + item.nama : moment(item.updatedAt).format('LL') + '\n\n' + item.nama}</TableCell>
+                                        )
+                                    )
+                                })}
+                                {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
+                                    return (
+                                        <TableCell style={styles.fontTtd}>{item.nama === null ? "-" : item.status === 0 ? 'Reject' + '\n\n' + item.nama : moment(item.updatedAt).format('LL') + '\n\n' + item.nama}</TableCell>
+                                    )
+                                })}
+                            </TableHeader>
+                            <TableBody>
+                                {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
+                                    return (
+                                        <DataTableCell style={styles.fontTtd} getContent={(r) => item.jabatan === null ? "-" : item.jabatan}/>
+                                    )
+                                })}
+                                {disApp.pemeriksa !== undefined && disApp.pemeriksa.map(item => {
+                                    return (
+                                        item.jabatan === 'asset' ? (
+                                            null
+                                        ) : (
+                                            <DataTableCell style={styles.fontTtd} getContent={(r) => item.jabatan === null ? "-" : item.jabatan}/>
+                                        )
+                                    )
+                                })}
+                                {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
+                                    return (
+                                        <DataTableCell style={styles.fontTtd} getContent={(r) => item.jabatan === null ? "-" : item.jabatan}/>
+                                    )
+                                })}
+                            </TableBody>
+                        </Table>
                         <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => (
                             `${pageNumber} / ${totalPages}`
                         )} fixed />
@@ -225,6 +193,18 @@ const styles = StyleSheet.create({
     },
     fontTit: {
         fontSize: '11px'
+    },
+    fontTtd: {
+        fontSize: '9px',
+        textAlign: 'center',
+        textTransform: 'uppercase',
+        padding: 5
+    },
+    fontTtdHead: {
+        fontSize: '9px',
+        textAlign: 'center',
+        textTransform: 'capitalize',
+        padding: 5
     },
     marbotT: {
         marginBottom: '8px',
@@ -291,6 +271,7 @@ const styles = StyleSheet.create({
         flexShrink: 0,
         flexBasis: 35,
         marginBottom: 0,
+        borderBottomWidth: 1
       },
       cell: {
         borderColor: "gray",
@@ -375,7 +356,7 @@ const styles = StyleSheet.create({
         textAlign: 'center'
       },
       headerTxt: {
-        fontSize: 11,
+        fontSize: '9px',
         fontWeight: "bold",
         color: "black",
         textAlign: 'center'

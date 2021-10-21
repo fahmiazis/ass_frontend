@@ -783,7 +783,7 @@ class Disposal extends Component {
                             detailDis[0].status_depo === "Cabang Scylla" || detailDis[0].status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
                             </Col>
                             <Col md={10} className="txtTrans">
-                            : {detailDis[0] !== undefined && detailDis[0].area}
+                            : {detailDis[0] !== undefined && detailDis[0].area + ' - ' + detailDis[0].cost_center} 
                             </Col>
                         </Row>
                         <div>Kepada Yth.</div>
@@ -799,8 +799,6 @@ class Disposal extends Component {
                                     <th>Nama Barang</th>
                                     <th>Merk/Type</th>
                                     <th>Kategori</th>
-                                    <th>Status Depo</th>
-                                    <th>Cost Center</th>
                                     <th>Nilai Buku</th>
                                     <th>Nilai Jual</th>
                                     <th>Keterangan</th>
@@ -815,8 +813,6 @@ class Disposal extends Component {
                                             <td>{item.nama_asset}</td>
                                             <td>{item.merk}</td>
                                             <td>{item.kategori}</td>
-                                            <td>{item.status_depo}</td>
-                                            <td>{item.cost_center}</td>
                                             <td>{item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             <td>{item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             <td>{item.keterangan}</td>
@@ -864,7 +860,7 @@ class Disposal extends Component {
                             detailDis[0].status_depo === "Cabang Scylla" || detailDis.status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
                             </Col>
                             <Col md={10} className="txtTrans">
-                            : {detailDis[0] !== undefined && detailDis[0].area}
+                            : {detailDis[0] !== undefined && detailDis[0].area + ' - ' + detailDis[0].cost_center}
                             </Col>
                         </Row>
                         <div>Kepada Yth.</div>
@@ -880,8 +876,6 @@ class Disposal extends Component {
                                     <th>Nama Barang</th>
                                     <th>Merk/Type</th>
                                     <th>Kategori</th>
-                                    <th>Status Depo</th>
-                                    <th>Cost Center</th>
                                     <th>Nilai Buku</th>
                                     <th>Nilai Jual</th>
                                     <th>Keterangan</th>
@@ -896,8 +890,6 @@ class Disposal extends Component {
                                             <td>{item.nama_asset}</td>
                                             <td>{item.merk}</td>
                                             <td>{item.kategori}</td>
-                                            <td>{item.status_depo}</td>
-                                            <td>{item.cost_center}</td>
                                             <td>{item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             <td>{item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             <td>{item.keterangan}</td>
@@ -1334,13 +1326,13 @@ class Disposal extends Component {
                             <div>
                                 <Button color="success" onClick={() => this.downloadData()}>Download</Button>
                             </div>
-                        {level === '5' ? (
-                            <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                        {level === '12' || level === '2' ? (
+                             <div>
+                                <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
+                                <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
+                            </div>
                             ) : (
-                                <div>
-                                    <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
-                                    <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
-                                </div>
+                                <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
                             )}
                         </div>
                     </ModalBody>

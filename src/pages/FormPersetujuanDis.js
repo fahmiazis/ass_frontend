@@ -275,8 +275,8 @@ class PersetujuanDis extends Component {
                                                 <td>{item.no_asset}</td>
                                                 <td>{item.area}</td>
                                                 <td>{item.nama_asset}</td>
-                                                <td>{item.nilai_buku}</td>
-                                                <td>{item.nilai_jual}</td>
+                                                <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                 <td>{moment(item.dataAsset.tanggal).format('DD/MM/YYYY')}</td>
                                                 <td>{item.keterangan}</td>
                                             </tr>
