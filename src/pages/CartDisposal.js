@@ -113,9 +113,10 @@ class CartDisposal extends Component {
         this.closeProsesModalDoc()
     }
 
-    prosesRinci = async () => {
+    prosesRinci = async (val) => {
         const token = localStorage.getItem('token')
-        await this.props.getKeterangan(token)
+        this.setState({dataRinci: val})
+        await this.props.getKeterangan(token, val.nilai_jual)
         this.openModalRinci()
     }
 
@@ -349,7 +350,7 @@ class CartDisposal extends Component {
                                                                 <div className="nameCart">{item.nama_asset}</div>
                                                                 <div className="noCart">No asset {item.no_asset}</div>
                                                             </div>
-                                                            <Button color="primary" onClick={() => this.prosesRinci(this.setState({dataRinci: item}))}>Rincian</Button>
+                                                            <Button color="primary" onClick={() => this.prosesRinci(item)}>Rincian</Button>
                                                         </div>
                                                     </div>
                                                     <div className="footCart">
