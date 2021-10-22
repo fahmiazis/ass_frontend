@@ -29,6 +29,8 @@ import d from "../assets/img/d.jpg"
 import e from "../assets/img/e.jpg"
 import f from "../assets/img/f.png"
 import g from "../assets/img/g.png"
+import NumberInput from '../components/NumberInput'
+
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -643,7 +645,7 @@ class TaxFinDisposal extends Component {
                         validationSchema = {level === '2' ? assetSchema : level === '3' ? taxSchema : level === '4' ? finSchema : disposalSchema}
                         onSubmit={(values) => {this.updateDataDis(values)}}
                         >
-                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue}) => (
                             <div className="rightRinci">
                                 <div>
                                     <div className="titRinci">{dataRinci.nama_asset}</div>
@@ -685,13 +687,13 @@ class TaxFinDisposal extends Component {
                                     </Row>
                                     <Row className="mb-2 rowRinci">
                                         <Col md={3}>Nilai Buku</Col>
-                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku} disabled /></Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null || dataRinci.nilai_buku === undefined ? 0 : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
                                     </Row>
                                     <Row className="mb-2 rowRinci">
                                         <Col md={3}>Nilai Jual</Col>
                                         <Col md={9} className="colRinci">:  <Input 
                                             className="inputRinci" 
-                                            value={values.nilai_jual} 
+                                            value={values.nilai_jual === null ? values.nilai_jual : values.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} 
                                             onBlur={handleBlur("nilai_jual")}
                                             onChange={handleChange("nilai_jual")}
                                             disabled
@@ -780,13 +782,11 @@ class TaxFinDisposal extends Component {
                                             ) : null}
                                             <Row className="mb-5 rowRinci">
                                                 <Col md={3}>Nominal Penjualan</Col>
-                                                <Col md={9} className="colRinci">:  <Input 
-                                                    type="text" 
-                                                    className="inputRinci" 
-                                                    value={values.nominal} 
-                                                    onBlur={handleBlur("nominal")}
-                                                    onChange={handleChange("nominal")}
-                                                    />
+                                                <Col md={9} className="colRinci">:  <NumberInput 
+                                                    value={values.nominal}
+                                                    className="inputRinci1"
+                                                    onValueChange={val => setFieldValue("nominal", val.floatValue)}
+                                                />
                                                 </Col>
                                                 {errors.nominal ? (
                                                     <text className={style.txtError}>{errors.nominal}</text>
@@ -863,7 +863,7 @@ class TaxFinDisposal extends Component {
                         detailDis[0].status_depo === "Cabang Scylla" || detailDis.status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
                         </Col>
                         <Col md={10} className="txtTrans">
-                        : {detailDis[0] !== undefined && detailDis[0].area}
+                        : {detailDis[0] !== undefined && detailDis[0].area + ' - ' + detailDis[0].cost_center}
                         </Col>
                     </Row>
                     <div>Kepada Yth.</div>
@@ -879,8 +879,6 @@ class TaxFinDisposal extends Component {
                                 <th>Nama Barang</th>
                                 <th>Merk/Type</th>
                                 <th>Kategori</th>
-                                <th>Status Depo</th>
-                                <th>Cost Center</th>
                                 <th>Nilai Buku</th>
                                 <th>Nilai Jual</th>
                                 <th>Keterangan</th>
@@ -895,10 +893,8 @@ class TaxFinDisposal extends Component {
                                         <td>{item.nama_asset}</td>
                                         <td>{item.merk}</td>
                                         <td>{item.kategori}</td>
-                                        <td>{item.status_depo}</td>
-                                        <td>{item.cost_center}</td>
-                                        <td>{item.nilai_buku}</td>
-                                        <td>{item.nilai_jual}</td>
+                                        <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                        <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                         <td>{item.keterangan}</td>
                                     </tr>
                                 )
@@ -1048,8 +1044,8 @@ class TaxFinDisposal extends Component {
                                             <td>{item.no_asset}</td>
                                             <td>{item.area}</td>
                                             <td>{item.nama_asset}</td>
-                                            <td>{item.nilai_buku}</td>
-                                            <td>{item.nilai_jual}</td>
+                                            <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             <td>{item.createdAt}</td>
                                             <td>{item.keterangan}</td>
                                         </tr>

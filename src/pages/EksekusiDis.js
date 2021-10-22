@@ -2,7 +2,7 @@
 /* eslint-disable jsx-a11y/no-distracting-elements */
 import React, { Component } from 'react'
 import {NavbarBrand, Input, Button, Row, Col,
-    Modal, ModalHeader, ModalBody, ModalFooter, Container, Alert, Spinner} from 'reactstrap'
+    Modal, ModalHeader, ModalBody, ModalFooter, Container, Alert, Spinner, Table} from 'reactstrap'
 import Pdf from "../components/Pdf"
 import style from '../assets/css/input.module.css'
 import {FaUserCircle, FaBars} from 'react-icons/fa'
@@ -28,6 +28,8 @@ import d from "../assets/img/d.jpg"
 import e from "../assets/img/e.jpg"
 import f from "../assets/img/f.png"
 import g from "../assets/img/g.png"
+import TablePdf from "../components/Table"
+import TablePeng from '../components/TablePeng'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -81,7 +83,9 @@ class EksekusiDisposal extends Component {
             idDoc: 0,
             date: '',
             openRejectDis: false,
-            openApproveDis: false
+            openApproveDis: false,
+            preset: false,
+            preview: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -194,6 +198,35 @@ class EksekusiDisposal extends Component {
         this.setState({openRejectDis: !this.state.openRejectDis})
         await this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', dataRinci.nilai_jual === "0" ? 'dispose' : 'sell', 'ada')
         this.openModalPdf()
+    }
+
+    openProsesDocPeng = async () => {
+        const token = localStorage.getItem('token')
+        const { dataRinci } = this.state
+        await this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'pengajuan')
+        this.closeProsesModalDoc()
+    }
+
+    modalPers = () => {
+        this.setState({preset: !this.state.preset})
+    }
+
+    modalPeng = () => {
+        this.setState({preview: !this.state.preview})
+    } 
+
+    persetujuanDisposal = async (value) => {
+        const token = localStorage.getItem('token')
+        await this.props.getDetailDis(token, value, 'persetujuan')
+        await this.props.getApproveSetDisposal(token, value, 'disposal persetujuan')
+        this.modalPers()
+    }
+
+    pengajuanDisposal = async (value) => {
+        const token = localStorage.getItem('token')
+        await this.props.getDetailDis(token, value, 'pengajuan')
+        await this.props.getApproveDisposal(token, value, 'disposal pengajuan')
+        this.modalPeng()
     }
 
     approveDokumen = async () => {
@@ -328,10 +361,12 @@ class EksekusiDisposal extends Component {
 
     render() {
         const {alert, dataRinci} = this.state
-        const {dataDis, dataDoc} = this.props.disposal
+        const {dataDis, dataDoc, detailDis} = this.props.disposal
         const msgAlert = this.props.setuju.alertM
+        const { disApp } = this.props.setuju
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
+        const appPeng = this.props.disposal.disApp
 
         const contentHeader =  (
             <div className={style.navbar}>
@@ -435,7 +470,7 @@ class EksekusiDisposal extends Component {
                 </Modal>
                 <Modal size="xl" isOpen={this.state.openModalDoc} toggle={this.closeProsesModalDoc}>
                 <ModalHeader>
-                   Kelengkapan Dokumen Eksekusi Disposal
+                   Kelengkapan Dokumen
                 </ModalHeader>
                 <ModalBody>
                     <Container>
@@ -600,13 +635,13 @@ class EksekusiDisposal extends Component {
                                     </Row>
                                     <Row className="mb-2 rowRinci">
                                         <Col md={3}>Nilai Buku</Col>
-                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku} disabled /></Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null || dataRinci.nilai_buku === undefined ? 0 : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
                                     </Row>
                                     <Row className="mb-2 rowRinci">
                                         <Col md={3}>Nilai Jual</Col>
                                         <Col md={9} className="colRinci">:  <Input 
                                             className="inputRinci" 
-                                            value={dataRinci.nilai_jual} 
+                                            value={dataRinci.nilai_jual === null || dataRinci.nilai_jual === undefined ? 0 : dataRinci.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} 
                                             disabled
                                             />
                                         </Col>
@@ -663,11 +698,14 @@ class EksekusiDisposal extends Component {
                                         <Row></Row>
                                     )}
                                 </div>
-                                    <div className="footRinci1">
-                                        <Button className="btnFootRinci1 mr-2" size="md" color="warning" onClick={() => this.openProsesModalDoc(dataRinci)}>Doc Eksekusi</Button>
-                                        <Button className="btnFootRinci1 mr-2" size="md" color="primary" onClick={handleSubmit}>Save</Button>
-                                        <Button className="btnFootRinci1" size="md" color="secondary" onClick={() => this.openModalRinci()}>Close</Button>
-                                    </div>
+                                    <Row className="footRinci1">
+                                        <Button className="btnFootRinci3" size="md" color="primary" outline onClick={handleSubmit}>Save</Button>
+                                        <Button className="btnFootRinci3" size="md" color="warning" outline onClick={() => this.openProsesModalDoc(dataRinci)}>Doc Eksekusi</Button>
+                                        <Button className="btnFootRinci3" size="md" color="danger" outline onClick={() => this.pengajuanDisposal(dataRinci.no_disposal)}>Form Pengajuan</Button>
+                                        <Button className="btnFootRinci3" size="md" color="info" outline onClick={() => this.persetujuanDisposal(dataRinci.status_app)}>Form Persetujuan</Button>
+                                        <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocPeng()}>Doc Pengajuan</Button>
+                                        <Button className="btnFootRinci3 mb-5" size="md" color="secondary" outline onClick={() => this.openModalRinci()}>Close</Button>
+                                    </Row>
                             </div>
                         )}
                         </Formik>
@@ -729,6 +767,302 @@ class EksekusiDisposal extends Component {
                         </div>
                     </ModalBody>
                 </Modal>
+                <Modal isOpen={this.state.preview} toggle={this.modalPeng} size="xl">
+                    <ModalBody>
+                        <div>PT. Pinus Merah Abadi</div>
+                        <div className="modalDis">
+                            <text className="titleModDis">Form Pengajuan Disposal Asset</text>
+                        </div>
+                        <div className="mb-2"><text className="txtTrans">{detailDis[0] !== undefined && detailDis[0].area}</text>, {moment(detailDis[0] !== undefined && detailDis[0].createdAt).locale('idn').format('DD MMMM YYYY ')}</div>
+                        <Row>
+                            <Col md={2}>
+                            Hal
+                            </Col>
+                            <Col md={10}>
+                            : Pengajuan Disposal Asset
+                            </Col>
+                        </Row>
+                        <Row className="mb-2">
+                            <Col md={2}>
+                            {detailDis[0] === undefined ? "" :
+                            detailDis[0].status_depo === "Cabang Scylla" || detailDis[0].status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
+                            </Col>
+                            <Col md={10} className="txtTrans">
+                            : {detailDis[0] !== undefined && detailDis[0].area + ' - ' + detailDis[0].cost_center}
+                            </Col>
+                        </Row>
+                        <div>Kepada Yth.</div>
+                        <div>Bpk/Ibu Pimpinan</div>
+                        <div className="mb-2">Di tempat</div>
+                        <div>Dengan Hormat,</div>
+                        <div className="mb-3">Dengan surat ini kami mengajukan permohonan disposal aset dengan perincian sbb :</div>
+                        <Table striped bordered responsive hover className="tableDis mb-3">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Nomor Asset</th>
+                                    <th>Nama Barang</th>
+                                    <th>Merk/Type</th>
+                                    <th>Kategori</th>
+                                    <th>Nilai Buku</th>
+                                    <th>Nilai Jual</th>
+                                    <th>Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {detailDis.length !== 0 && detailDis.map(item => {
+                                    return (
+                                        <tr>
+                                            <th scope="row">{detailDis.indexOf(item) + 1}</th>
+                                            <td>{item.no_asset}</td>
+                                            <td>{item.nama_asset}</td>
+                                            <td>{item.merk}</td>
+                                            <td>{item.kategori}</td>
+                                            <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.keterangan}</td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </Table>
+                        <div className="mb-3">Demikianlah hal yang kami sampaikan, atas perhatiannya kami mengucapkan terima kasih</div>
+                        <Table borderless responsive className="tabPreview">
+                            <thead>
+                                <tr>
+                                    <th className="buatPre">Dibuat oleh,</th>
+                                    <th className="buatPre">Diperiksa oleh,</th>
+                                    <th className="buatPre">Disetujui oleh,</th>
+                                </tr>
+                            </thead>
+                            <tbody className="tbodyPre">
+                                <tr>
+                                    <td className="restTable">
+                                        <Table bordered responsive className="divPre">
+                                            <thead>
+                                                <tr>
+                                                    {appPeng.pembuat !== undefined && appPeng.pembuat.map(item => {
+                                                        return (
+                                                            <th className="headPre">
+                                                                <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                <div>{item.nama === null ? "-" : item.nama}</div>
+                                                            </th>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                {appPeng.pembuat !== undefined && appPeng.pembuat.map(item => {
+                                                    return (
+                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                    )
+                                                })}
+                                                </tr>
+                                            </tbody>
+                                        </Table>
+                                    </td>
+                                    <td className="restTable">
+                                        <Table bordered responsive className="divPre">
+                                            <thead>
+                                                <tr>
+                                                    {appPeng.pemeriksa !== undefined && appPeng.pemeriksa.map(item => {
+                                                        return (
+                                                            <th className="headPre">
+                                                                <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                <div>{item.nama === null ? "-" : item.nama}</div>
+                                                            </th>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    {appPeng.pemeriksa !== undefined && appPeng.pemeriksa.map(item => {
+                                                        return (
+                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </tbody>
+                                        </Table>
+                                    </td>
+                                    <td className="restTable">
+                                        <Table bordered responsive className="divPre">
+                                            <thead>
+                                                <tr>
+                                                    {appPeng.penyetuju !== undefined && appPeng.penyetuju.map(item => {
+                                                        return (
+                                                            <th className="headPre">
+                                                                <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                <div>{item.nama === null ? "-" : item.nama}</div>
+                                                            </th>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    {appPeng.penyetuju !== undefined && appPeng.penyetuju.map(item => {
+                                                        return (
+                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </tbody>
+                                        </Table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </Table>
+                    </ModalBody>
+                    <hr />
+                    <div className="modalFoot ml-3">
+                        <div></div>
+                        <div className="btnFoot">
+                            <Button className="mr-2" color="warning">
+                                <TablePeng detailDis={detailDis} />
+                            </Button>
+                            <Button color="success" onClick={this.modalPeng}>
+                                Close
+                            </Button>
+                        </div>
+                    </div>
+                </Modal>
+                <Modal isOpen={this.state.preset} toggle={this.modalPers} centered={true} size="xl">
+                    <ModalBody>
+                        <div className="bodyPer">
+                            <div>PT. Pinus Merah Abadi</div>
+                            <div className="modalDis">
+                                <text className="titleModDis">Persetujuan Disposal Asset</text>
+                            </div>
+                            <div className="mb-2"><text className="txtTrans">Bandung</text>, {moment().format('DD MMMM YYYY ')}</div>
+                            <Row>
+                                <Col md={2} className="mb-3">
+                                Hal : Persetujuan Disposal Asset
+                                </Col>
+                            </Row>
+                            <div>Kepada Yth.</div>
+                            <div className="mb-3">Bpk. Erwin Lesmana</div>
+                            <div className="mb-3">Dengan Hormat,</div>
+                            <div>Sehubungan dengan surat permohonan disposal aset area PMA terlampir</div>
+                            <div className="mb-3">Dengan ini kami mohon persetujuan untuk melakukan disposal aset dengan perincian sbb :</div>
+                            <Table striped bordered responsive hover className="tableDis mb-3">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nomor Aset / Inventaris</th>
+                                        <th>Area (Cabang/Depo/CP)</th>
+                                        <th>Nama Barang</th>
+                                        <th>Nilai Buku</th>
+                                        <th>Nilai Jual</th>
+                                        <th>Tanggal Perolehan</th>
+                                        <th>Keterangan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {detailDis.length !== 0 ? detailDis.map(item => {
+                                        return (
+                                            // <tr onClick={() => this.openProsesModalDoc(item)}></tr>
+                                            <tr onClick={() => this.getDetailDisposal(item.no_disposal)}>
+                                                <th scope="row">{detailDis.indexOf(item) + 1}</th>
+                                                <td>{item.no_asset}</td>
+                                                <td>{item.area}</td>
+                                                <td>{item.nama_asset}</td>
+                                                <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                <td>{moment(item.dataAsset.tanggal).format('DD/MM/YYYY')}</td>
+                                                <td>{item.keterangan}</td>
+                                            </tr>
+                                        )
+                                    }) : (
+                                        <tr>
+                                            <th scope="row">1</th>
+                                            <td> </td>
+                                            <td> </td>
+                                            <td> </td>
+                                            <td> </td>
+                                            <td> </td>
+                                            <td> </td>
+                                            <td> </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </Table>
+                            <div className="mb-3">Demikian hal yang dapat kami sampaikan perihal persetujuan disposal aset, atas perhatiannya kami mengucapkan terima kasih.</div>
+                            <Table borderless className="tabPreview">
+                                <thead>
+                                    <tr>
+                                        <th className="buatPre">Diajukan oleh,</th>
+                                        <th className="buatPre">Disetujui oleh,</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="tbodyPre">
+                                    <tr>
+                                        <td className="restTable">
+                                            <Table bordered className="divPre">
+                                                <thead>
+                                                    <tr>
+                                                        {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
+                                                            return (
+                                                                <th className="headPre">
+                                                                    <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                    <div>{item.nama === null ? "-" : item.nama}</div>
+                                                                </th>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
+                                                            return (
+                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </tbody>
+                                            </Table>
+                                        </td>
+                                        <td className="restTable">
+                                            <Table bordered className="divPre">
+                                                <thead>
+                                                    <tr>
+                                                        {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
+                                                            return (
+                                                                <th className="headPre">
+                                                                    <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                    <div>{item.nama === null ? "-" : item.nama}</div>
+                                                                </th>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
+                                                            return (
+                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </tbody>
+                                            </Table>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </Table>
+                            <div className="btnFoot">
+                                <Button className="mr-2" color="warning">
+                                    <TablePdf dataDis={detailDis} />
+                                </Button>
+                                <Button color="success" onClick={this.modalPers}>
+                                    Close
+                                </Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                </Modal>
             </>
         )
     }
@@ -754,6 +1088,9 @@ const mapDispatchToProps = {
     showDokumen: pengadaan.showDokumen,
     approveDocDis: disposal.approveDocDis,
     rejectDocDis: disposal.rejectDocDis,
+    getApproveSetDisposal: setuju.getApproveSetDisposal,
+    getDetailDis: disposal.getDetailDisposal,
+    getApproveDisposal: disposal.getApproveDisposal,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EksekusiDisposal)

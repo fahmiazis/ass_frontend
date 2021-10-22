@@ -456,7 +456,7 @@ class PersetujuanDis extends Component {
                             detailDis[0].status_depo === "Cabang Scylla" || detailDis[0].status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
                             </Col>
                             <Col md={10} className="txtTrans">
-                            : {detailDis[0] !== undefined && detailDis[0].area}
+                            : {detailDis[0] !== undefined && detailDis[0].area + ' - ' + detailDis[0].cost_center}
                             </Col>
                         </Row>
                         <div>Kepada Yth.</div>
@@ -472,8 +472,6 @@ class PersetujuanDis extends Component {
                                     <th>Nama Barang</th>
                                     <th>Merk/Type</th>
                                     <th>Kategori</th>
-                                    <th>Status Depo</th>
-                                    <th>Cost Center</th>
                                     <th>Nilai Buku</th>
                                     <th>Nilai Jual</th>
                                     <th>Keterangan</th>
@@ -488,10 +486,8 @@ class PersetujuanDis extends Component {
                                             <td>{item.nama_asset}</td>
                                             <td>{item.merk}</td>
                                             <td>{item.kategori}</td>
-                                            <td>{item.status_depo}</td>
-                                            <td>{item.cost_center}</td>
-                                            <td>{item.nilai_buku}</td>
-                                            <td>{item.nilai_jual}</td>
+                                            <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             <td>{item.keterangan}</td>
                                         </tr>
                                     )

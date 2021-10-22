@@ -434,16 +434,16 @@ class EditDisposal extends Component {
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Nilai Buku</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" disabled value={dataRinci.nilai_buku === null ? '0' : dataRinci.nilai_buku} /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" disabled value={dataRinci.nilai_buku === null || dataRinci.nilai_buku === undefined ? 0 : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} /></Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col  md={3}>Nilai Jual</Col>
                                             <Col md={9} className="colRinci">:  <Input
                                                 className="inputRinci" 
-                                                value={values.nilai_jual} 
+                                                value={values.nilai_jual === null ? values.nilai_jual : values.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} 
                                                 onBlur={handleBlur("nilai_jual")}
                                                 onChange={handleChange("nilai_jual")}
-                                                disabled={dataRinci.nilai_jual === '0' || level !== 5 ? true : false}
+                                                disabled={true}
                                                 />
                                             </Col>
                                         </Row>

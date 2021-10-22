@@ -804,7 +804,7 @@ class TaxFinDisposal extends Component {
                                     </Row>
                                     <Row className="mb-2 rowRinci">
                                         <Col md={3}>Nilai Buku</Col>
-                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null ? dataRinci.nilai_buku : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null || dataRinci.nilai_buku === undefined ? 0 : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
                                     </Row>
                                     <Row className="mb-2 rowRinci">
                                         <Col md={3}>Nilai Jual</Col>
@@ -904,13 +904,6 @@ class TaxFinDisposal extends Component {
                                                     className="inputRinci1"
                                                     onValueChange={val => setFieldValue("nominal", val.floatValue)}
                                                 />
-                                                {/* <Input 
-                                                    type="text" 
-                                                    className="inputRinci" 
-                                                    value={values.nominal} 
-                                                    onBlur={handleBlur("nominal")}
-                                                    onChange={handleChange("nominal")}
-                                                    /> */}
                                                 </Col>
                                             </Row>
                                             {errors.nominal ? (
@@ -994,7 +987,7 @@ class TaxFinDisposal extends Component {
                         detailDis[0].status_depo === "Cabang Scylla" || detailDis[0].status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
                         </Col>
                         <Col md={10} className="txtTrans">
-                        : {detailDis[0] !== undefined && detailDis[0].area}
+                        : {detailDis[0] !== undefined && detailDis[0].area + ' - ' + detailDis[0].cost_center}
                         </Col>
                     </Row>
                     <div>Kepada Yth.</div>
@@ -1010,8 +1003,6 @@ class TaxFinDisposal extends Component {
                                 <th>Nama Barang</th>
                                 <th>Merk/Type</th>
                                 <th>Kategori</th>
-                                <th>Status Depo</th>
-                                <th>Cost Center</th>
                                 <th>Nilai Buku</th>
                                 <th>Nilai Jual</th>
                                 <th>Keterangan</th>
@@ -1026,10 +1017,8 @@ class TaxFinDisposal extends Component {
                                         <td>{item.nama_asset}</td>
                                         <td>{item.merk}</td>
                                         <td>{item.kategori}</td>
-                                        <td>{item.status_depo}</td>
-                                        <td>{item.cost_center}</td>
-                                        <td>{item.nilai_buku}</td>
-                                        <td>{item.nilai_jual}</td>
+                                        <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                        <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                         <td>{item.keterangan}</td>
                                     </tr>
                                 )
@@ -1179,9 +1168,9 @@ class TaxFinDisposal extends Component {
                                             <td>{item.no_asset}</td>
                                             <td>{item.area}</td>
                                             <td>{item.nama_asset}</td>
-                                            <td>{item.nilai_buku}</td>
-                                            <td>{item.nilai_jual}</td>
-                                            <td>{item.createdAt}</td>
+                                            <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{moment(item.dataAsset.tanggal).format('DD/MM/YYYY')}</td>
                                             <td>{item.keterangan}</td>
                                         </tr>
                                     )
