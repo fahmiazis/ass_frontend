@@ -868,10 +868,14 @@ class EksekusiDisposal extends Component {
                                                 <tr>
                                                     {appPeng.pemeriksa !== undefined && appPeng.pemeriksa.map(item => {
                                                         return (
-                                                            <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
-                                                                <div>{item.nama === null ? "-" : item.nama}</div>
-                                                            </th>
+                                                            item.jabatan === 'asset' ? (
+                                                                null
+                                                            ) : (
+                                                                <th className="headPre">
+                                                                    <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                    <div>{item.nama === null ? "-" : item.nama}</div>
+                                                                </th>
+                                                            )
                                                         )
                                                     })}
                                                 </tr>
@@ -880,7 +884,11 @@ class EksekusiDisposal extends Component {
                                                 <tr>
                                                     {appPeng.pemeriksa !== undefined && appPeng.pemeriksa.map(item => {
                                                         return (
-                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                            item.jabatan === 'asset' ? (
+                                                                null
+                                                            ) : (
+                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                            )
                                                         )
                                                     })}
                                                 </tr>
