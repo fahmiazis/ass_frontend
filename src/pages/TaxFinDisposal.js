@@ -49,7 +49,8 @@ const finSchema = Yup.object().shape({
 })
 
 const assetSchema = Yup.object().shape({
-    no_fp: Yup.string().required('must be filled')
+    doc_sap: Yup.string().required('must be filled'),
+    doc_clearing: Yup.string().required('must be filled')
 })
 
 const alasanSchema = Yup.object().shape({
@@ -757,6 +758,7 @@ class TaxFinDisposal extends Component {
                             no_sap: dataRinci.no_sap === null ? '' : dataRinci.no_sap,
                             nominal: dataRinci.nominal === null ? '' : dataRinci.nominal,
                             doc_sap: dataRinci.doc_sap === null ? '' : dataRinci.doc_sap,
+                            doc_clearing: dataRinci.doc_clearing === null ? '' : dataRinci.doc_clearing,
                             no_fp: dataRinci.no_fp === null ? '' : dataRinci.no_fp
                         }}
                         validationSchema = {level === '2' ? assetSchema : level === '3' ? taxSchema : level === '4' ? finSchema : disposalSchema}
@@ -862,6 +864,20 @@ class TaxFinDisposal extends Component {
                                             </Row>
                                             {errors.doc_sap ? (
                                                 <text className={style.txtError}>{errors.doc_sap}</text>
+                                            ) : null}
+                                            <Row className="mb-5 rowRinci">
+                                                <Col md={3}>No Doc Clearing</Col>
+                                                <Col md={9} className="colRinci">:  <Input
+                                                    type="text" 
+                                                    className="inputRinci" 
+                                                    value={values.doc_clearing} 
+                                                    onBlur={handleBlur("doc_clearing")}
+                                                    onChange={handleChange("doc_clearing")}
+                                                    />
+                                                </Col>
+                                            </Row>
+                                            {errors.doc_clearing ? (
+                                                <text className={style.txtError}>{errors.doc_clearing}</text>
                                             ) : null}
                                         </div>
                                     ) : level === '3' ? (
