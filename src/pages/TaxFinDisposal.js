@@ -851,7 +851,7 @@ class TaxFinDisposal extends Component {
                                                 <Col md={3}>Faktur Pajak</Col>
                                                 <Col md={9} className="colRinci">:  <Input className="inputRinci" value = {dataRinci.no_fp} disabled/></Col>
                                             </Row>
-                                            <Row className="mb-5 rowRinci">
+                                            <Row className="mb-2 rowRinci">
                                                 <Col md={3}>No Doc SAP</Col>
                                                 <Col md={9} className="colRinci">:  <Input
                                                     type="text" 

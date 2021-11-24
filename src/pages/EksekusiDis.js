@@ -681,7 +681,7 @@ class EksekusiDisposal extends Component {
                                     )}
                                     {level === '2' && dataRinci.nilai_jual === '0' ? (
                                         <div>
-                                            <Row className="mb-5">
+                                            <Row className="mb-2">
                                                 <Col md={3}>No Doc SAP</Col>
                                                 <Col md={9} className="colRinci">:  <Input 
                                                 className="inputRinci"
