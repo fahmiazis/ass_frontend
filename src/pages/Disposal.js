@@ -2,10 +2,11 @@
 /* eslint-disable jsx-a11y/alt-text */
 import React, { Component } from 'react'
 import { Container, NavbarBrand, Table, Input, Button, Col,
-    Alert, Spinner, Row, Modal, ModalBody, ModalHeader, ModalFooter} from 'reactstrap'
+    Alert, Spinner, Row, Modal, ModalBody, ModalHeader, ModalFooter,
+    UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem} from 'reactstrap'
 import style from '../assets/css/input.module.css'
-import {FaSearch, FaUserCircle, FaBars, FaCartPlus} from 'react-icons/fa'
-import {BsCircle} from 'react-icons/bs'
+import {FaSearch, FaUserCircle, FaBars, FaCartPlus, FaFileSignature} from 'react-icons/fa'
+import {BsCircle, BsBell, BsFillCircleFill} from 'react-icons/bs'
 import { AiOutlineCheck, AiOutlineClose, AiFillCheckCircle} from 'react-icons/ai'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
@@ -26,6 +27,7 @@ import disposal from '../redux/actions/disposal'
 import b from "../assets/img/b.jpg"
 import e from "../assets/img/e.jpg"
 import TablePeng from '../components/TablePeng'
+import notif from '../redux/actions/notif'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -414,9 +416,15 @@ class Disposal extends Component {
         this.modalSubmitPre()
         this.getDataDisposal()
     }
+    
+    getNotif = async () => {
+        const token = localStorage.getItem("token")
+        await this.props.getNotif(token)
+    }
 
     componentDidMount() {
         const level = localStorage.getItem('level')
+        this.getNotif()
         if (level === "5" ) {
             this.getDataAsset()
         } else {
@@ -479,6 +487,7 @@ class Disposal extends Component {
         const {dataRinci} = this.state
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
+        const dataNotif = this.props.notif.data
 
         const contentHeader =  (
             <div className={style.navbar}>
@@ -493,6 +502,60 @@ class Disposal extends Component {
                             <span>WEB ASSET</span>
                         </marquee>
                         <div className={style.textLogo}>
+                        <UncontrolledDropdown>
+                                <DropdownToggle nav>
+                                    <div className={style.optionType}>
+                                        <BsBell size={30} className="white" />
+                                        {dataNotif.length > 0 ? (
+                                            <BsFillCircleFill className="red ball" size={10} />
+                                        ) : (
+                                            <div></div>
+                                        ) }
+                                    </div>
+                                </DropdownToggle>
+                                <DropdownMenu right
+                                modifiers={{
+                                    setMaxHeight: {
+                                        enabled: true,
+                                        order: 890,
+                                        fn: (data) => {
+                                        return {
+                                            ...data,
+                                            styles: {
+                                            ...data.styles,
+                                            overflow: 'auto',
+                                            maxHeight: '600px',
+                                            },
+                                        };
+                                        },
+                                    },
+                                }}>
+                                    {dataNotif.length > 0 ? (
+                                        dataNotif.map(item => {
+                                            return (
+                                                <DropdownItem>
+                                                    <div className={style.notif}>
+                                                        <FaFileSignature size={90} className="mr-4"/>
+                                                        <div>
+                                                            <div>Request</div>
+                                                            <div className="textNotif">{item.keterangan} {item.jenis}</div>
+                                                            <div className="textNotif">No {item.jenis}: {item.no_proses}</div>
+                                                            <div>{moment(item.createdAt).format('LLL')}</div>
+                                                        </div>
+                                                    </div>
+                                                    <hr/>
+                                                </DropdownItem>
+                                            )
+                                        })
+                                    ) : (
+                                        <DropdownItem>
+                                            <div className={style.grey}>
+                                                You don't have any notifications 
+                                            </div>        
+                                        </DropdownItem>
+                                    )}
+                                </DropdownMenu>
+                            </UncontrolledDropdown>
                             <FaUserCircle size={24} className="mr-2" />
                             <text className="mr-3">{level === '1' ? 'Super admin' : names }</text>
                         </div>
@@ -1525,7 +1588,8 @@ const mapStateToProps = state => ({
     disposal: state.disposal,
     approve: state.approve,
     pengadaan: state.pengadaan,
-    setuju: state.setuju
+    setuju: state.setuju,
+    notif: state.notif
 })
 
 const mapDispatchToProps = {
@@ -1549,7 +1613,8 @@ const mapDispatchToProps = {
     submitSetDisposal: setuju.submitSetDisposal,
     addSell: disposal.addSell,
     resAppRej: disposal.resAppRej,
-    getSubmitDisposal: disposal.getSubmitDisposal
+    getSubmitDisposal: disposal.getSubmitDisposal,
+    getNotif: notif.getNotif
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Disposal)

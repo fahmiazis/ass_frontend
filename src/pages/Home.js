@@ -2,7 +2,8 @@
 import React, { Component } from 'react'
 import Sidebar from '../components/Sidebar'
 import auth from '../redux/actions/auth'
-import { Input, Button, Modal, ModalHeader, ModalBody, Alert } from 'reactstrap'
+import { Input, Button, Modal, ModalHeader, ModalBody, Alert, 
+    UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap'
 import {connect} from 'react-redux'
 import addPicture from '../assets/img/add.png'
 import disposPicture from '../assets/img/disposal.png'
@@ -11,10 +12,14 @@ import repPicture from '../assets/img/report.png'
 import stockPicture from '../assets/img/stock.svg'
 import {Formik} from 'formik'
 import user from '../redux/actions/user'
+import notif from '../redux/actions/notif'
 import * as Yup from 'yup'
 import {VscAccount} from 'react-icons/vsc'
 import '../assets/css/style.css'
 import style from '../assets/css/input.module.css'
+import moment from 'moment'
+import {BsFillCircleFill, BsBell} from 'react-icons/bs'
+import { FaFileSignature } from 'react-icons/fa'
 
 const userEditSchema = Yup.object().shape({
     fullname: Yup.string().required('must be filled'),
@@ -67,6 +72,11 @@ class Home extends Component {
         await this.props.updateUser(token, id, data)
     }
 
+    getNotif = async () => {
+        const token = localStorage.getItem("token")
+        await this.props.getNotif(token)
+    }
+
     componentDidUpdate() {
         const {isUpdate, isError} = this.props.user
         if (isUpdate) {
@@ -84,6 +94,7 @@ class Home extends Component {
         const fullname = localStorage.getItem('fullname')
         const id = localStorage.getItem('id')
         const level = localStorage.getItem('level')
+        this.getNotif()
         if (email === 'null' || email === '' || fullname === 'null' || fullname === '') {
             if (id !== null && level !== '5') {
                 this.openModalEdit()
@@ -104,6 +115,7 @@ class Home extends Component {
         const fullname = localStorage.getItem('fullname')
         const id = localStorage.getItem('id')
         const { alertM, alertMsg } = this.props.user
+        const dataNotif = this.props.notif.data
         return (
             <>
             <div className="bodyHome">
@@ -118,6 +130,60 @@ class Home extends Component {
                     <div className="bodyAkun">
                         <div></div>
                         <div className="akun">
+                            <UncontrolledDropdown>
+                                <DropdownToggle nav>
+                                    <div className={style.optionType}>
+                                        <BsBell size={30} className="black" />
+                                        {dataNotif.length > 0 ? (
+                                            <BsFillCircleFill className="red ball" size={10} />
+                                        ) : (
+                                            <div></div>
+                                        ) }
+                                    </div>
+                                </DropdownToggle>
+                                <DropdownMenu right
+                                modifiers={{
+                                    setMaxHeight: {
+                                        enabled: true,
+                                        order: 890,
+                                        fn: (data) => {
+                                        return {
+                                            ...data,
+                                            styles: {
+                                            ...data.styles,
+                                            overflow: 'auto',
+                                            maxHeight: '600px',
+                                            },
+                                        };
+                                        },
+                                    },
+                                }}>
+                                    {dataNotif.length > 0 ? (
+                                        dataNotif.map(item => {
+                                            return (
+                                                <DropdownItem>
+                                                    <div className={style.notif}>
+                                                        <FaFileSignature size={90} className="mr-4"/>
+                                                        <div>
+                                                            <div>Request</div>
+                                                            <div className="textNotif">{item.keterangan} {item.jenis}</div>
+                                                            <div className="textNotif">No {item.jenis}: {item.no_proses}</div>
+                                                            <div>{moment(item.createdAt).format('LLL')}</div>
+                                                        </div>
+                                                    </div>
+                                                    <hr/>
+                                                </DropdownItem>
+                                            )
+                                        })
+                                    ) : (
+                                        <DropdownItem>
+                                            <div className={style.grey}>
+                                                You don't have any notifications 
+                                            </div>        
+                                        </DropdownItem>
+                                    )}
+                                </DropdownMenu>
+                            </UncontrolledDropdown>
                             <VscAccount size={30} className="mr-2" />
                             <text>{level === '1' ? 'Super Admin' : names}</text>
                         </div>
@@ -235,13 +301,15 @@ class Home extends Component {
 
 const mapStateToProps = state => ({
     auth: state.auth,
-    user: state.user
+    user: state.user,
+    notif: state.notif
 })
 
 const mapDispatchToProps = {
     updateUser: user.updateUser,
     reset: user.resetError,
-    logout: auth.logout
+    logout: auth.logout,
+    getNotif: notif.getNotif
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Home)

@@ -55,9 +55,9 @@ export default {
         type: 'GET_DOCDIS',
         payload: http(token).get(`/disposal/doc/${no}?tipeDokumen=${tipeDokumen}&tipe=${tipe}&npwp=${npwp === undefined ? '' : npwp}`)
     }),
-    uploadDocumentDis: (token, id, data) => ({
+    uploadDocumentDis: (token, id, data, tipe, ket) => ({
         type: 'UPLOAD_DOCDIS',
-        payload: http(token).post(`/disposal/upload/${id}`, data)
+        payload: http(token).post(`/disposal/upload/${id}?tipe=${tipe}&ket=${ket}`, data)
     }),
     approveDocDis: (token, id) => ({
         type: 'APPROVE_DOCDIS',

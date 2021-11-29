@@ -1,11 +1,12 @@
 /* eslint-disable jsx-a11y/no-distracting-elements */
 import React, { Component } from 'react'
-import { NavbarBrand, Row, Col, Table, Button, Modal, ModalBody, ModalFooter, Container, Alert, Input, Spinner, ModalHeader } from 'reactstrap'
-import { PDFDownloadLink, Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
+import { NavbarBrand, Row, Col, Table, Button, Modal, ModalBody, 
+    ModalFooter, Container, Alert, Input, Spinner, ModalHeader,
+    UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap'
 import style from '../assets/css/input.module.css'
 import { AiOutlineClose, AiOutlineCheck, AiFillCheckCircle } from 'react-icons/ai'
-import { BsCircle } from 'react-icons/bs'
-import { FaBars, FaUserCircle } from 'react-icons/fa'
+import { BsCircle, BsBell, BsFillCircleFill } from 'react-icons/bs'
+import { FaBars, FaUserCircle, FaFileSignature } from 'react-icons/fa'
 import Sidebar from "../components/Header"
 import MaterialTitlePanel from "../components/material_title_panel"
 import {connect} from 'react-redux'
@@ -21,6 +22,7 @@ import SidebarContent from "../components/sidebar_content"
 import Pdf from "../components/Pdf"
 import TablePdf from "../components/Table"
 import TablePeng from '../components/TablePeng'
+import notif from '../redux/actions/notif'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const alasanDisSchema = Yup.object().shape({
@@ -149,10 +151,16 @@ class PersetujuanDis extends Component {
         this.setState({ open });
     }
 
+    getNotif = async () => {
+        const token = localStorage.getItem("token")
+        await this.props.getNotif(token)
+    }
+
     componentDidMount () {
         const {dataDis} = this.props.setuju
         this.setState({idStatus: dataDis[0].status_app})
         this.getApproveSet(dataDis[0].status_app)
+        this.getNotif()
     }
 
     getDataDisposal = async (value) => {
@@ -197,6 +205,7 @@ class PersetujuanDis extends Component {
         const { dataDoc } = this.props.disposal
         const appPeng = this.props.disposal.disApp
         const { detailDis } = this.state
+        const dataNotif = this.props.notif.data
         
         const contentHeader =  (
             <div className={style.navbar}>
@@ -211,6 +220,60 @@ class PersetujuanDis extends Component {
                             <span>WEB ASSET</span>
                         </marquee>
                         <div className={style.textLogo}>
+                        <UncontrolledDropdown>
+                                <DropdownToggle nav>
+                                    <div className={style.optionType}>
+                                        <BsBell size={30} className="white" />
+                                        {dataNotif.length > 0 ? (
+                                            <BsFillCircleFill className="red ball" size={10} />
+                                        ) : (
+                                            <div></div>
+                                        ) }
+                                    </div>
+                                </DropdownToggle>
+                                <DropdownMenu right
+                                modifiers={{
+                                    setMaxHeight: {
+                                        enabled: true,
+                                        order: 890,
+                                        fn: (data) => {
+                                        return {
+                                            ...data,
+                                            styles: {
+                                            ...data.styles,
+                                            overflow: 'auto',
+                                            maxHeight: '600px',
+                                            },
+                                        };
+                                        },
+                                    },
+                                }}>
+                                    {dataNotif.length > 0 ? (
+                                        dataNotif.map(item => {
+                                            return (
+                                                <DropdownItem>
+                                                    <div className={style.notif}>
+                                                        <FaFileSignature size={90} className="mr-4"/>
+                                                        <div>
+                                                            <div>Request</div>
+                                                            <div className="textNotif">{item.keterangan} {item.jenis}</div>
+                                                            <div className="textNotif">No {item.jenis}: {item.no_proses}</div>
+                                                            <div>{moment(item.createdAt).format('LLL')}</div>
+                                                        </div>
+                                                    </div>
+                                                    <hr/>
+                                                </DropdownItem>
+                                            )
+                                        })
+                                    ) : (
+                                        <DropdownItem>
+                                            <div className={style.grey}>
+                                                You don't have any notifications 
+                                            </div>        
+                                        </DropdownItem>
+                                    )}
+                                </DropdownMenu>
+                            </UncontrolledDropdown>
                             <FaUserCircle size={24} className="mr-2" />
                             <text className="mr-3">{level === '1' ? 'Super admin' : names }</text>
                         </div>
@@ -740,7 +803,8 @@ const mapStateToProps = state => ({
     asset: state.asset,
     disposal: state.disposal,
     pengadaan: state.pengadaan,
-    setuju: state.setuju
+    setuju: state.setuju,
+    notif: state.notif
 })
 
 const mapDispatchToProps = {
@@ -757,7 +821,8 @@ const mapDispatchToProps = {
     getDocumentDis: disposal.getDocumentDis,
     getApproveDisposal: disposal.getApproveDisposal,
     rejectSetDisposal: setuju.rejectSetDisposal,
-    resetAppSet: setuju.resetAppSet
+    resetAppSet: setuju.resetAppSet,
+    getNotif: notif.getNotif
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(PersetujuanDis)

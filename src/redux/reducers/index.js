@@ -12,6 +12,7 @@ import dokumen from './dokumen'
 import disposal from './disposal'
 import stock from './stock'
 import mutasi from './mutasi'
+import notif from './notif'
 
 export default combineReducers({
   pengadaan,
@@ -25,5 +26,6 @@ export default combineReducers({
   approve,
   setuju,
   stock,
-  mutasi
+  mutasi,
+  notif
 })

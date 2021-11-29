@@ -169,6 +169,9 @@
 }
 .akun {
     padding: 1%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 .titHome {
     font-size: 250%;
@@ -915,3 +918,20 @@
 .space {
     margin-bottom: 10%;
 }
+.black {
+    color: black;
+}
+.textNotif {
+    text-transform: capitalize;
+}
+.red {
+    color: red;
+}
+.ball {
+    position: absolute;
+    margin-left: 15px;
+    margin-bottom: 10px;
+}
+.white {
+    color: white;
+  }

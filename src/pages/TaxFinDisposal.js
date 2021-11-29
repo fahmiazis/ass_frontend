@@ -3,11 +3,11 @@
 import React, { Component } from 'react'
 import {NavbarBrand, Input, Button, Row, Col,
     Modal, ModalHeader, ModalBody, ModalFooter, Container, Alert, Spinner,
-    Table} from 'reactstrap'
+    Table, UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem} from 'reactstrap'
 import style from '../assets/css/input.module.css'
-import {FaUserCircle, FaBars} from 'react-icons/fa'
+import {FaUserCircle, FaBars, FaFileSignature} from 'react-icons/fa'
 import {AiOutlineCheck, AiOutlineClose} from 'react-icons/ai'
-import {BsCircle} from 'react-icons/bs'
+import {BsCircle, BsBell, BsFillCircleFill} from 'react-icons/bs'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
 import pengadaan from '../redux/actions/pengadaan'
@@ -32,6 +32,7 @@ import g from "../assets/img/g.png"
 import TablePdf from "../components/Table"
 import TablePeng from '../components/TablePeng'
 import NumberInput from '../components/NumberInput'
+import notif from '../redux/actions/notif'
 
 const {REACT_APP_BACKEND_URL} = process.env
 
@@ -435,6 +436,7 @@ class TaxFinDisposal extends Component {
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
         const appPeng = this.props.disposal.disApp
+        const dataNotif = this.props.notif.data
 
         const contentHeader =  (
             <div className={style.navbar}>
@@ -449,6 +451,60 @@ class TaxFinDisposal extends Component {
                             <span>WEB ASSET</span>
                         </marquee>
                         <div className={style.textLogo}>
+                        <UncontrolledDropdown>
+                                <DropdownToggle nav>
+                                    <div className={style.optionType}>
+                                        <BsBell size={30} className="white" />
+                                        {dataNotif.length > 0 ? (
+                                            <BsFillCircleFill className="red ball" size={10} />
+                                        ) : (
+                                            <div></div>
+                                        ) }
+                                    </div>
+                                </DropdownToggle>
+                                <DropdownMenu right
+                                modifiers={{
+                                    setMaxHeight: {
+                                        enabled: true,
+                                        order: 890,
+                                        fn: (data) => {
+                                        return {
+                                            ...data,
+                                            styles: {
+                                            ...data.styles,
+                                            overflow: 'auto',
+                                            maxHeight: '600px',
+                                            },
+                                        };
+                                        },
+                                    },
+                                }}>
+                                    {dataNotif.length > 0 ? (
+                                        dataNotif.map(item => {
+                                            return (
+                                                <DropdownItem>
+                                                    <div className={style.notif}>
+                                                        <FaFileSignature size={90} className="mr-4"/>
+                                                        <div>
+                                                            <div>Request</div>
+                                                            <div className="textNotif">{item.keterangan} {item.jenis}</div>
+                                                            <div className="textNotif">No {item.jenis}: {item.no_proses}</div>
+                                                            <div>{moment(item.createdAt).format('LLL')}</div>
+                                                        </div>
+                                                    </div>
+                                                    <hr/>
+                                                </DropdownItem>
+                                            )
+                                        })
+                                    ) : (
+                                        <DropdownItem>
+                                            <div className={style.grey}>
+                                                You don't have any notifications 
+                                            </div>        
+                                        </DropdownItem>
+                                    )}
+                                </DropdownMenu>
+                            </UncontrolledDropdown>
                             <FaUserCircle size={24} className="mr-2" />
                             <text className="mr-3">{level === '1' ? 'Super admin' : names }</text>
                         </div>
@@ -1349,7 +1405,8 @@ class TaxFinDisposal extends Component {
 const mapStateToProps = state => ({
     disposal: state.disposal,
     setuju: state.setuju,
-    pengadaan: state.pengadaan
+    pengadaan: state.pengadaan,
+    notif: state.notif
 })
 
 const mapDispatchToProps = {
@@ -1370,7 +1427,8 @@ const mapDispatchToProps = {
     rejectTaxFin: setuju.rejectTaxFin,
     resetSetuju: setuju.resetSetuju,
     approveDocDis: disposal.approveDocDis,
-    rejectDocDis: disposal.rejectDocDis
+    rejectDocDis: disposal.rejectDocDis,
+    getNotif: notif.getNotif
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(TaxFinDisposal)
