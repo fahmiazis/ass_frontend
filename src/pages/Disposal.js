@@ -1551,7 +1551,7 @@ class Disposal extends Component {
                                                 <td>{item.nama_asset}</td>
                                                 <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                 <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                <td>{item.createdAt}</td>
+                                                <td>{moment(item.dataAsset.tanggal).format('DD/MM/YYYY')}</td>
                                                 <td>{item.keterangan}</td>
                                             </tr>
                                         )

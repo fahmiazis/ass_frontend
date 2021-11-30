@@ -33,8 +33,7 @@ import TablePeng from '../components/TablePeng'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
-    doc_sap: Yup.string().required('must be filled'),
-    doc_clearing: Yup.string().required('must be filled')
+    doc_sap: Yup.string().required('must be filled')
 })
 
 const alasanSchema = Yup.object().shape({
@@ -589,7 +588,6 @@ class EksekusiDisposal extends Component {
                         <Formik
                         initialValues = {{
                             doc_sap: dataRinci.doc_sap === null ? '' : dataRinci.doc_sap,
-                            doc_clearing: dataRinci.doc_clearing === null ? '' : dataRinci.doc_clearing,
                             keterangan: dataRinci.keterangan,
                             nilai_jual: dataRinci.nilai_jual
                         }}
@@ -694,20 +692,6 @@ class EksekusiDisposal extends Component {
                                             </Row>
                                             {errors.doc_sap ? (
                                                 <text className={style.txtError}>{errors.doc_sap}</text>
-                                            ) : null}
-                                            <Row className="mb-5">
-                                                <Col md={3}>No Doc Clearing</Col>
-                                                <Col md={9} className="colRinci">:  <Input 
-                                                className="inputRinci"
-                                                type="text"
-                                                value={values.doc_clearing}
-                                                onChange={handleChange("doc_clearing")}
-                                                onBlur={handleBlur("doc_clearing")}
-                                                />
-                                                </Col>
-                                            </Row>
-                                            {errors.doc_clearing ? (
-                                                <text className={style.txtError}>{errors.doc_clearing}</text>
                                             ) : null}
                                         </div>
                                     ) : (
