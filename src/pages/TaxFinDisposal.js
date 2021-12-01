@@ -825,6 +825,10 @@ class TaxFinDisposal extends Component {
                                 <div>
                                     <div className="titRinci">{dataRinci.nama_asset}</div>
                                     <Row className="mb-2 rowRinci">
+                                        <Col md={3}>Area</Col>
+                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.area} disabled /></Col>
+                                    </Row>
+                                    <Row className="mb-2 rowRinci">
                                         <Col md={3}>No Asset</Col>
                                         <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
                                     </Row>
