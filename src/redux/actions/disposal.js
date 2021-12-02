@@ -63,9 +63,9 @@ export default {
         type: 'APPROVE_DOCDIS',
         payload: http(token).patch(`/disposal/docapp/${id}`)
     }),
-    rejectDocDis: (token, id, data) => ({
+    rejectDocDis: (token, id, data, tipe, ket) => ({
         type:'REJECT_DOCDIS',
-        payload: http(token).patch(`/disposal/docrej/${id}`, qs.stringify(data))
+        payload: http(token).patch(`/disposal/docrej/${id}?tipe=${tipe}&ket=${ket}`, qs.stringify(data))
     }),
     getKeterangan: (token, nilai) => ({
         type: 'GET_KET',

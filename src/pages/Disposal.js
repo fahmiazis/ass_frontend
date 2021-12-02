@@ -164,7 +164,7 @@ class Disposal extends Component {
     rejectDokumen = async (value) => {
         const {fileName} = this.state
         const token = localStorage.getItem('token')
-        await this.props.rejectDocDis(token, fileName.id, value)
+        await this.props.rejectDocDis(token, fileName.id, value, 'edit', 'peng')
         this.setState({openRejectDis: !this.state.openRejectDis})
         this.openModalPdf()
     }

@@ -141,7 +141,7 @@ class EditEksekusi extends Component {
             const token = localStorage.getItem('token')
             const data = new FormData()
             data.append('document', e.target.files[0])
-            this.props.uploadDocumentDis(token, detail.id, data)
+            this.props.uploadDocumentDis(token, detail.id, data, 'edit', 'eks')
         }
     }
 
