@@ -19,16 +19,7 @@ const {REACT_APP_BACKEND_URL} = process.env
 
 const emailSchema = Yup.object().shape({
     nama_depo: Yup.string().required('must be filled'),
-    email_sa_kasir: Yup.string().email().required('must be filled with a valid email'),
-    email_bm: Yup.string().email().required('must be filled with a valid email'),
-    email_aos: Yup.string().email().required('must be filled with a valid email'),
-    email_ho_pic: Yup.string().email().required('must be filled with a valid email'),
-    email_grom: Yup.string().email().required('must be filled with a valid email'),
-    email_rom: Yup.string().email().required('must be filled with a valid email'),
-    email_ho_1: Yup.string().email().required('must be filled with a valid email'),
-    email_ho_2: Yup.string().email('must be valid email'),
-    email_ho_3: Yup.string().email('must be valid email'),
-    email_ho_4: Yup.string().email('must be valid email')
+    email_area_aos: Yup.string().email().required('must be filled with a valid email'),
 });
 
 class MasterEmail extends Component {
@@ -192,19 +183,7 @@ class MasterEmail extends Component {
         const destruct = values.nama_depo.split('-')
         const data = {
             kode_plant: destruct[0],
-            area: destruct[1],
-            email_sa_kasir: values.email_sa_kasir,
-            email_aos: values.email_aos,
-            email_bm: values.email_bm,
-            email_ho_pic: values.email_ho_pic,
-            email_grom: values.email_grom,
-            email_rom: values.email_rom,
-            email_ho_1: values.email_ho_1,
-            email_ho_2: values.email_ho_2,
-            email_ho_3: values.email_ho_3,
-            email_ho_4: values.email_ho_4,
-            tipe: values.tipe,
-            status: values.status
+            email_area_aos: values.email_area_aos,
         }
         await this.props.updateEmail(token, id, data)
         const {isUpdate} = this.props.email
@@ -426,17 +405,19 @@ class MasterEmail extends Component {
                                             <tr>
                                                 <th>No</th>
                                                 <th>Kode Plant</th>
-                                                <th>Email Area</th>
+                                                <th>Email Area AOS</th>
+                                                <th>Email Area OM</th>
                                                 <th>Email Staff Purch</th>
-                                                <th>Email Spv Purch</th>
+                                                <th>Email Spv Purch 1</th>
+                                                <th>Email Spv Purch 2</th>
                                                 <th>Email Manager Purch</th>
+                                                <th>Email Spv Asset</th>
                                                 <th>Email AM</th>
                                                 <th>Email AAM</th>
                                                 <th>Email GA SPV</th>
                                                 <th>Email Staff GA</th>
                                                 <th>Email IT SPV</th>
                                                 <th>Email ISM</th>
-                                                <th>Status</th>
                                             </tr>
                                         </thead>
                                         
@@ -446,19 +427,19 @@ class MasterEmail extends Component {
                                             <tr onClick={()=>this.openModalEdit(item.id, this.setState({detail: item}))}>
                                                 <th scope="row">{(dataEmail.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</th>
                                                 <td>{item.kode_plant}</td>
-                                                <td>{item.area}</td>
-                                                <td>{item.email_sa_kasir}</td>
-                                                <td>{item.email_aos}</td>
-                                                <td>{item.email_ho_pic}</td>
-                                                <td>{item.email_bm}</td>
-                                                <td>{item.email_grom}</td>
-                                                <td>{item.email_rom}</td>
-                                                <td>{item.email_ho_1}</td>
-                                                <td>{item.email_ho_2}</td>
-                                                <td>{item.email_ho_3}</td>
-                                                <td>{item.email_ho_4}</td>
-                                                <td>{item.tipe}</td>
-                                                <td>{item.status}</td>
+                                                <td>{item.email_area_aos}</td>
+                                                <td>{item.email_area_om}</td>
+                                                <td>{item.email_staff_purch}</td>
+                                                <td>{item.email_spv_purch_1}</td>
+                                                <td>{item.email_spv_purch_2}</td>
+                                                <td>{item.email_manager_purch}</td>
+                                                <td>{item.email_spv_asset}</td>
+                                                <td>{item.email_am}</td>
+                                                <td>{item.email_aam}</td>
+                                                <td>{item.email_ga_spv}</td>
+                                                <td>{item.email_staff_ga}</td>
+                                                <td>{item.email_it_spv}</td>
+                                                <td>{item.email_ism}</td>
                                             </tr>
                                             )
                                             })}
@@ -698,17 +679,8 @@ class MasterEmail extends Component {
                             <ModalHeader toggle={this.closeEdit}>Edit Master Email</ModalHeader>
                             <Formik
                             initialValues={{
-                                nama_depo: detail.kode_plant + "-" + detail.area, 
-                                email_sa_kasir: detail.email_sa_kasir,
-                                email_bm: detail.email_bm,
-                                email_aos: detail.email_aos,
-                                email_ho_pic: detail.email_ho_pic,
-                                email_grom: detail.email_grom,
-                                email_rom: detail.email_rom,
-                                email_ho_1: detail.email_ho_1,
-                                email_ho_2: detail.email_ho_2,
-                                email_ho_3: detail.email_ho_3,
-                                email_ho_4: detail.email_ho_4
+                                nama_depo: detail.kode_plant, 
+                                email_area_aos: detail.email_area_aos,
                             }}
                             validationSchema={emailSchema}
                             onSubmit={(values) => {this.editEmail(values, detail.id)}}>
@@ -741,181 +713,19 @@ class MasterEmail extends Component {
                             </div>
                             <div className={style.addModalDepo}>
                                 <text className="col-md-3">
-                                    Email SA / KASIR
+                                    Email Area AOS
                                 </text>
                                 <div className="col-md-9">
                                 <Input
                                 // defaultValue={detail.email_sa_kasir} 
                                 type="email" 
-                                name="email_sa_kasir" 
-                                value={values.email_sa_kasir}
-                                onBlur={handleBlur('email_sa_kasir')}
-                                onChange={handleChange('email_sa_kasir')}
+                                name="email_area_aos" 
+                                value={values.email_area_aos}
+                                onBlur={handleBlur('email_area_aos')}
+                                onChange={handleChange('email_area_aos')}
                                 />
-                                {errors.email_sa_kasir ? (
-                                    <text className={style.txtError}>{errors.email_sa_kasir}</text>
-                                ) : null}
-                                </div>
-                            </div>
-                            <div className={style.addModalDepo}>
-                                <text className="col-md-3">
-                                    Email AOS
-                                </text>
-                                <div className="col-md-9">
-                                <Input 
-                                // defaultValue={detail.email_aos}
-                                type="email" 
-                                name="email_aos" 
-                                value={values.email_aos}
-                                onBlur={handleBlur('email_aos')}
-                                onChange={handleChange('email_aos')}
-                                />
-                                {errors.email_aos ? (
-                                    <text className={style.txtError}>{errors.email_aos}</text>
-                                ) : null}
-                                </div>                            
-                            </div>
-                            <div className={style.addModalDepo}>
-                                <text className="col-md-3">
-                                    Email HO PIC
-                                </text>
-                                <div className="col-md-9">
-                                <Input
-                                // defaultValue={detail.email_ho_pic}
-                                type="email" 
-                                name="email_ho_pic" 
-                                value={values.email_ho_pic}
-                                onBlur={handleBlur('email_ho_pic')}
-                                onChange={handleChange('email_ho_pic')}
-                                />
-                                {errors.email_ho_pic ? (
-                                    <text className={style.txtError}>{errors.email_ho_pic}</text>
-                                ) : null}
-                                </div>
-                            </div>
-                            <div className={style.addModalDepo}>
-                                <text className="col-md-3">
-                                    Email BM
-                                </text>
-                                <div className="col-md-9">
-                                <Input
-                                // defaultValue={detail.email_bm}
-                                type="email" 
-                                name="email_aos" 
-                                value={values.email_bm}
-                                onBlur={handleBlur('email_bm')}
-                                onChange={handleChange('email_bm')}
-                                />
-                                {errors.email_bm ? (
-                                    <text className={style.txtError}>{errors.email_bm}</text>
-                                ) : null}
-                                </div>
-                            </div>
-                            <div className={style.addModalDepo}>
-                                <text className="col-md-3">
-                                    Email GROM
-                                </text>
-                                <div className="col-md-9">
-                                <Input
-                                // defaultValue={detail.email_grom}
-                                type="email" 
-                                name="email_aos" 
-                                value={values.email_grom}
-                                onBlur={handleBlur('email_grom')}
-                                onChange={handleChange('email_grom')}
-                                />
-                                {errors.email_grom ? (
-                                    <text className={style.txtError}>{errors.email_grom}</text>
-                                ) : null}
-                                </div>
-                            </div>
-                            <div className={style.addModalDepo}>
-                                <text className="col-md-3">
-                                    Email ROM
-                                </text>
-                                <div className="col-md-9">
-                                <Input
-                                // defaultValue={detail.email_rom}
-                                type="email" 
-                                name="email_aos" 
-                                value={values.email_rom}
-                                onBlur={handleBlur('email_rom')}
-                                onChange={handleChange('email_rom')}
-                                />
-                                {errors.email_rom ? (
-                                    <text className={style.txtError}>{errors.email_rom}</text>
-                                ) : null}
-                                </div>
-                            </div>
-                            <div className={style.addModalDepo}>
-                                <text className="col-md-3">
-                                    Email HO 1
-                                </text>
-                                <div className="col-md-9">
-                                <Input
-                                // defaultValue={detail.email_ho_1}
-                                type="email" 
-                                name="email_aos" 
-                                value={values.email_ho_1}
-                                onBlur={handleBlur('email_ho_1')}
-                                onChange={handleChange('email_ho_1')}
-                                />
-                                {errors.email_ho_1 ? (
-                                    <text className={style.txtError}>{errors.email_ho_1}</text>
-                                ) : null}
-                                </div>
-                            </div>
-                            <div className={style.addModalDepo}>
-                                <text className="col-md-3">
-                                    Email HO 2
-                                </text>
-                                <div className="col-md-9">
-                                <Input
-                                // defaultValue={detail.email_ho_2}
-                                type="email" 
-                                name="email_aos" 
-                                value={values.email_ho_2}
-                                onBlur={handleBlur('email_ho_2')}
-                                onChange={handleChange('email_ho_2')}
-                                />
-                                {errors.email_ho_2 ? (
-                                    <text className={style.txtError}>{errors.email_ho_2}</text>
-                                ) : null}
-                                </div>
-                            </div>
-                            <div className={style.addModalDepo}>
-                                <text className="col-md-3">
-                                    Email HO 3
-                                </text>
-                                <div className="col-md-9">
-                                <Input
-                                // defaultValue={detail.email_ho_3}
-                                type="email" 
-                                name="email_ho_3" 
-                                value={values.email_ho_3}
-                                onBlur={handleBlur('email_ho_3')}
-                                onChange={handleChange('email_ho_3')}
-                                />
-                                {errors.email_ho_3 ? (
-                                    <text className={style.txtError}>{errors.email_ho_3}</text>
-                                ) : null}
-                                </div>
-                            </div>
-                            <div className={style.addModalDepo}>
-                                <text className="col-md-3">
-                                    Email HO 4
-                                </text>
-                                <div className="col-md-9">
-                                <Input
-                                // defaultValue={detail.email_ho_4}
-                                type="email" 
-                                name="email_ho_4" 
-                                value={values.email_ho_4}
-                                onBlur={handleBlur('email_ho_4')}
-                                onChange={handleChange('email_ho_4')}
-                                />
-                                {errors.email_ho_4 ? (
-                                    <text className={style.txtError}>{errors.email_ho_4}</text>
+                                {errors.email_area_aos ? (
+                                    <text className={style.txtError}>{errors.email_area_aos}</text>
                                 ) : null}
                                 </div>
                             </div>
