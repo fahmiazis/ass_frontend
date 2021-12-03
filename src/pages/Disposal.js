@@ -605,14 +605,18 @@ class Disposal extends Component {
                                 <div className={style.headMaster}> 
                                     <div className={style.titleDashboard}>Disposal Asset</div>
                                 </div>
-                                <div className={style.secEmail}>
+                                <div className={style.secEmail1}>
                                     {level === '5' ? (
                                         <div className={style.headEmail}>
                                             <button onClick={this.goCartDispos} className="btnGoCart"><FaCartPlus size={60} className="green ml-2" /></button>
                                         </div>
                                     ) : level === '2' ? (
-                                        <div className={style.headEmail}>
-                                            <Button onClick={this.getSubmitDisposal} color="info" size="lg" className="btnGoCart">Submit</Button>
+                                        <div className="mt-5">
+                                            <Button onClick={this.getSubmitDisposal} color="info" size="lg" className="btnGoCart mb-4">Submit</Button>
+                                            <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
+                                                <option value="available">Available To Approve</option>
+                                                <option value="not available">Not Available To Approve</option>
+                                            </Input>
                                         </div>
                                     ) : (
                                         <div className="mt-3">

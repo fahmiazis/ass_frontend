@@ -403,6 +403,12 @@ html,body{
   align-items: center;
   justify-content: space-between;
 }
+.secEmail1 {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+}
 .infoPageEmail {
   display: flex;
   flex-direction: row;
