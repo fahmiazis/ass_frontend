@@ -97,7 +97,8 @@ class Disposal extends Component {
             img: '',
             limImage: 20000,
             submitPre: false,
-            date: ''
+            date: '',
+            view: ''
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -428,6 +429,7 @@ class Disposal extends Component {
         if (level === "5" ) {
             this.getDataAsset()
         } else {
+            this.changeView('available')
             this.getDataDisposal()
         }
     }
@@ -477,6 +479,10 @@ class Disposal extends Component {
         const token = localStorage.getItem("token")
         await this.props.addSell(token, value)
         this.getDataAsset()
+    }
+
+    changeView = (val) => {
+        this.setState({view: val})
     }
 
     render() {
@@ -609,7 +615,12 @@ class Disposal extends Component {
                                             <Button onClick={this.getSubmitDisposal} color="info" size="lg" className="btnGoCart">Submit</Button>
                                         </div>
                                     ) : (
-                                        <div></div>
+                                        <div className="mt-3">
+                                            <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
+                                                <option value="available">Available To Approve</option>
+                                                <option value="not available">Not Available To Approve</option>
+                                            </Input>
+                                        </div>
                                     )}
                                     <div className={style.searchEmail}>
                                         <text>Search: </text>
@@ -681,88 +692,174 @@ class Disposal extends Component {
                                         </Row>
                                     )
                                 ) : (
-                                    noDis === undefined ? (
-                                        <div></div>
-                                    ) : (
-                                        <Row className="bodyDispos">
-                                        {noDis.length !== 0 && noDis.map(x => {
-                                            return (
-                                                dataDis.find(({no_disposal}) => no_disposal === x) === undefined ? (
-                                                    <div></div>
-                                                ) : (
-                                                    <div className="bodyCard">
-                                                    <img src={dataDis.find(({no_disposal}) => no_disposal === x).no_asset === '4100000150' ? b : dataDis.find(({no_disposal}) => no_disposal === x).no_asset === '4300001770' ? e : placeholder} className="imgCard1" />
-                                                    
-                                                    {dataDis.find(({no_disposal}) => no_disposal === x).nilai_jual === '0' ? 
-                                                     (
-                                                        <Button size="sm" color="success" className="labelBut">Pemusnahan</Button>
-                                                     ) : (
-                                                         <div></div>
-                                                     )}
-                                                     {dataDis.find(({no_disposal}) => no_disposal === x).nilai_jual !== '0' ?
-                                                     (
-                                                        <Button size="sm" color="warning" className="labelBut">Penjualan</Button>
-                                                     ) : (
-                                                         <div></div>
-                                                     )}
-                                                    <div className="ml-2">
-                                                        <div className="txtDoc mb-2">
-                                                            Pengajuan Disposal Asset
+                                    this.state.view === 'available' ? (
+                                        dataNotif === undefined ? (
+                                            <div></div>
+                                        ) : (
+                                            <Row className="bodyDispos">
+                                            {dataNotif.length !== 0 && dataNotif.map(x => {
+                                                return (
+                                                    dataDis.find(({no_disposal}) => 'D' + no_disposal === x.no_proses) === undefined ? (
+                                                        <div></div>
+                                                    ) : (
+                                                        <div className="bodyCard">
+                                                        <img src={dataDis.find(({no_disposal}) => 'D' + no_disposal === x.no_proses).no_asset === '4100000150' ? b : dataDis.find(({no_disposal}) => 'D' + no_disposal === x.no_proses).no_asset === '4300001770' ? e : placeholder} className="imgCard1" />
+                                                        
+                                                        {dataDis.find(({no_disposal}) => 'D' + no_disposal === x.no_proses).nilai_jual === '0' ? 
+                                                         (
+                                                            <Button size="sm" color="success" className="labelBut">Pemusnahan</Button>
+                                                         ) : (
+                                                             <div></div>
+                                                         )}
+                                                         {dataDis.find(({no_disposal}) => 'D' + no_disposal === x.no_proses).nilai_jual !== '0' ?
+                                                         (
+                                                            <Button size="sm" color="warning" className="labelBut">Penjualan</Button>
+                                                         ) : (
+                                                             <div></div>
+                                                         )}
+                                                        <div className="ml-2">
+                                                            <div className="txtDoc mb-2">
+                                                                Pengajuan Disposal Asset
+                                                            </div>
+                                                            <Row className="mb-2">
+                                                                <Col md={6} className="txtDoc">
+                                                                Kode Plant
+                                                                </Col>
+                                                                <Col md={6} className="txtDoc">
+                                                                : {dataDis.find(({no_disposal}) => 'D' + no_disposal === x.no_proses).kode_plant}
+                                                                </Col>
+                                                            </Row>
+                                                            <Row className="mb-2">
+                                                                <Col md={6} className="txtDoc">
+                                                                Area
+                                                                </Col>
+                                                                <Col md={6} className="txtDoc">
+                                                                : {dataDis.find(({no_disposal}) => 'D' + no_disposal === x.no_proses).area}
+                                                                </Col>
+                                                            </Row>
+                                                            <Row className="mb-2">
+                                                                <Col md={6} className="txtDoc">
+                                                                No Disposal
+                                                                </Col>
+                                                                <Col md={6} className="txtDoc">
+                                                                : D{dataDis.find(({no_disposal}) => 'D' + no_disposal === x.no_proses).no_disposal}
+                                                                </Col>
+                                                            </Row>
+                                                            <Row className="mb-2">
+                                                                <Col md={6} className="txtDoc">
+                                                                Status Approval
+                                                                </Col>
+                                                                {dataDis.find(({no_disposal}) => 'D' + no_disposal === x.no_proses).appForm.find(({status}) => status === 0) !== undefined ? (
+                                                                    <Col md={6} className="txtDoc">
+                                                                    : Reject {dataDis.find(({no_disposal}) => 'D' + no_disposal === x.no_proses).appForm.find(({status}) => status === 0).jabatan}
+                                                                    </Col>
+                                                                ) : dataDis.find(({no_disposal}) => 'D' + no_disposal === x.no_proses).appForm.find(({status}) => status === 1) !== undefined ? (
+                                                                    <Col md={6} className="txtDoc">
+                                                                    : Approve {dataDis.find(({no_disposal}) => 'D' + no_disposal === x.no_proses).appForm.find(({status}) => status === 1).jabatan}
+                                                                    </Col>
+                                                                ) : (
+                                                                    <Col md={6} className="txtDoc">
+                                                                    : -
+                                                                    </Col>
+                                                                )}
+                                                                
+                                                            </Row>
                                                         </div>
-                                                        <Row className="mb-2">
-                                                            <Col md={6} className="txtDoc">
-                                                            Kode Plant
+                                                        <Row className="footCard mb-3 mt-3">
+                                                            <Col md={12} xl={12}>
+                                                                <Button className="btnSell" color="primary" onClick={() => {this.getDetailDisposal(x); this.getApproveDis({nama: 'disposal pengajuan', no: dataDis.find(({no_disposal}) => 'D' + no_disposal === x.no_proses).no_disposal})}}>Proses</Button>
                                                             </Col>
-                                                            <Col md={6} className="txtDoc">
-                                                            : {dataDis.find(({no_disposal}) => no_disposal === x).kode_plant}
-                                                            </Col>
-                                                        </Row>
-                                                        <Row className="mb-2">
-                                                            <Col md={6} className="txtDoc">
-                                                            Area
-                                                            </Col>
-                                                            <Col md={6} className="txtDoc">
-                                                            : {dataDis.find(({no_disposal}) => no_disposal === x).area}
-                                                            </Col>
-                                                        </Row>
-                                                        <Row className="mb-2">
-                                                            <Col md={6} className="txtDoc">
-                                                            No Disposal
-                                                            </Col>
-                                                            <Col md={6} className="txtDoc">
-                                                            : D{dataDis.find(({no_disposal}) => no_disposal === x).no_disposal}
-                                                            </Col>
-                                                        </Row>
-                                                        <Row className="mb-2">
-                                                            <Col md={6} className="txtDoc">
-                                                            Status Approval
-                                                            </Col>
-                                                            {dataDis.find(({no_disposal}) => no_disposal === x).appForm.find(({status}) => status === 0) !== undefined ? (
-                                                                <Col md={6} className="txtDoc">
-                                                                : Reject {dataDis.find(({no_disposal}) => no_disposal === x).appForm.find(({status}) => status === 0).jabatan}
-                                                                </Col>
-                                                            ) : dataDis.find(({no_disposal}) => no_disposal === x).appForm.find(({status}) => status === 1) !== undefined ? (
-                                                                <Col md={6} className="txtDoc">
-                                                                : Approve {dataDis.find(({no_disposal}) => no_disposal === x).appForm.find(({status}) => status === 1).jabatan}
-                                                                </Col>
-                                                            ) : (
-                                                                <Col md={6} className="txtDoc">
-                                                                : -
-                                                                </Col>
-                                                            )}
-                                                            
                                                         </Row>
                                                     </div>
-                                                    <Row className="footCard mb-3 mt-3">
-                                                        <Col md={12} xl={12}>
-                                                            <Button className="btnSell" color="primary" onClick={() => {this.getDetailDisposal(x); this.getApproveDis({nama: 'disposal pengajuan', no: dataDis.find(({no_disposal}) => no_disposal === x).no_disposal})}}>Proses</Button>
-                                                        </Col>
-                                                    </Row>
-                                                </div>
+                                                    )
                                                 )
-                                            )
-                                        })}
-                                        </Row>
+                                            })}
+                                            </Row>
+                                        )
+                                    ) : (
+                                        noDis === undefined ? (
+                                            <div></div>
+                                        ) : (
+                                            <Row className="bodyDispos">
+                                            {noDis.length !== 0 && noDis.map(x => {
+                                                return (
+                                                    dataDis.find(({no_disposal}) => no_disposal === x) === undefined ? (
+                                                        <div></div>
+                                                    ) : (
+                                                        <div className="bodyCard">
+                                                        <img src={dataDis.find(({no_disposal}) => no_disposal === x).no_asset === '4100000150' ? b : dataDis.find(({no_disposal}) => no_disposal === x).no_asset === '4300001770' ? e : placeholder} className="imgCard1" />
+                                                        
+                                                        {dataDis.find(({no_disposal}) => no_disposal === x).nilai_jual === '0' ? 
+                                                         (
+                                                            <Button size="sm" color="success" className="labelBut">Pemusnahan</Button>
+                                                         ) : (
+                                                             <div></div>
+                                                         )}
+                                                         {dataDis.find(({no_disposal}) => no_disposal === x).nilai_jual !== '0' ?
+                                                         (
+                                                            <Button size="sm" color="warning" className="labelBut">Penjualan</Button>
+                                                         ) : (
+                                                             <div></div>
+                                                         )}
+                                                        <div className="ml-2">
+                                                            <div className="txtDoc mb-2">
+                                                                Pengajuan Disposal Asset
+                                                            </div>
+                                                            <Row className="mb-2">
+                                                                <Col md={6} className="txtDoc">
+                                                                Kode Plant
+                                                                </Col>
+                                                                <Col md={6} className="txtDoc">
+                                                                : {dataDis.find(({no_disposal}) => no_disposal === x).kode_plant}
+                                                                </Col>
+                                                            </Row>
+                                                            <Row className="mb-2">
+                                                                <Col md={6} className="txtDoc">
+                                                                Area
+                                                                </Col>
+                                                                <Col md={6} className="txtDoc">
+                                                                : {dataDis.find(({no_disposal}) => no_disposal === x).area}
+                                                                </Col>
+                                                            </Row>
+                                                            <Row className="mb-2">
+                                                                <Col md={6} className="txtDoc">
+                                                                No Disposal
+                                                                </Col>
+                                                                <Col md={6} className="txtDoc">
+                                                                : D{dataDis.find(({no_disposal}) => no_disposal === x).no_disposal}
+                                                                </Col>
+                                                            </Row>
+                                                            <Row className="mb-2">
+                                                                <Col md={6} className="txtDoc">
+                                                                Status Approval
+                                                                </Col>
+                                                                {dataDis.find(({no_disposal}) => no_disposal === x).appForm.find(({status}) => status === 0) !== undefined ? (
+                                                                    <Col md={6} className="txtDoc">
+                                                                    : Reject {dataDis.find(({no_disposal}) => no_disposal === x).appForm.find(({status}) => status === 0).jabatan}
+                                                                    </Col>
+                                                                ) : dataDis.find(({no_disposal}) => no_disposal === x).appForm.find(({status}) => status === 1) !== undefined ? (
+                                                                    <Col md={6} className="txtDoc">
+                                                                    : Approve {dataDis.find(({no_disposal}) => no_disposal === x).appForm.find(({status}) => status === 1).jabatan}
+                                                                    </Col>
+                                                                ) : (
+                                                                    <Col md={6} className="txtDoc">
+                                                                    : -
+                                                                    </Col>
+                                                                )}
+                                                                
+                                                            </Row>
+                                                        </div>
+                                                        <Row className="footCard mb-3 mt-3">
+                                                            <Col md={12} xl={12}>
+                                                                <Button className="btnSell" color="primary" onClick={() => {this.getDetailDisposal(x); this.getApproveDis({nama: 'disposal pengajuan', no: dataDis.find(({no_disposal}) => no_disposal === x).no_disposal})}}>Proses</Button>
+                                                            </Col>
+                                                        </Row>
+                                                    </div>
+                                                    )
+                                                )
+                                            })}
+                                            </Row>
+                                        )
                                     )
                                 )}
                                 <div>
