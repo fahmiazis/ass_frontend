@@ -33,6 +33,7 @@ import NavDisposal from './pages/NavDisposal'
 import ReportStock from './pages/ReportStock'
 import Tes from './pages/Tes'
 import EditEksekusi from './pages/EditEksekusi'
+import TrackingDisposal from './pages/TrackingDisposal'
 import EditTaxFin from './pages/EditTaxFin'
 import TablePdf from './components/Table'
 
@@ -129,6 +130,9 @@ class App extends Component {
                 </PrivateRoute>
                 <PrivateRoute path='/editeks'>
                     <EditEksekusi />
+                </PrivateRoute>
+                <PrivateRoute path='/trackdis'>
+                    <TrackingDisposal />
                 </PrivateRoute>
             </Switch>
         </BrowserRouter>

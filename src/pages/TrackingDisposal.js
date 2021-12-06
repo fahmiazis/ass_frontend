@@ -1,16 +1,12 @@
 /* eslint-disable jsx-a11y/no-distracting-elements */
 /* eslint-disable jsx-a11y/alt-text */
 import React, { Component } from 'react'
-import { Container, Collapse, Nav, Navbar,
-    NavbarToggler, NavbarBrand, NavItem, NavLink,
-    UncontrolledDropdown, DropdownToggle, DropdownMenu, Dropdown,
-    DropdownItem, Table, ButtonDropdown, Input, Button, Col,
-    Alert, Spinner, Row} from 'reactstrap'
-import logo from "../assets/img/logo.png"
+import { Container, NavbarBrand, Table, Input, Button, Col,
+    Alert, Spinner, Row, Modal, ModalBody, ModalHeader, ModalFooter,
+    UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem} from 'reactstrap'
 import style from '../assets/css/input.module.css'
-import {Modal} from 'react-bootstrap'
-import {FaSearch, FaUserCircle, FaBars, FaCartPlus} from 'react-icons/fa'
-import {BsCircle, BsDashCircleFill, BsFillCircleFill} from 'react-icons/bs'
+import {FaSearch, FaUserCircle, FaBars, FaCartPlus, FaFileSignature} from 'react-icons/fa'
+import {BsCircle, BsBell, BsFillCircleFill} from 'react-icons/bs'
 import { AiOutlineCheck, AiOutlineClose, AiFillCheckCircle} from 'react-icons/ai'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
@@ -23,18 +19,15 @@ import moment from 'moment'
 import auth from '../redux/actions/auth'
 import setuju from '../redux/actions/setuju'
 import {default as axios} from 'axios'
-import Sidebar from "../components/Header";
-import MaterialTitlePanel from "../components/material_title_panel";
-import SidebarContent from "../components/sidebar_content";
+import Sidebar from "../components/Header"
+import MaterialTitlePanel from "../components/material_title_panel"
+import SidebarContent from "../components/sidebar_content"
 import placeholder from  "../assets/img/placeholder.png"
 import disposal from '../redux/actions/disposal'
-import a from "../assets/img/a.jpg"
 import b from "../assets/img/b.jpg"
-import c from "../assets/img/c.jpg"
-import d from "../assets/img/d.jpg"
 import e from "../assets/img/e.jpg"
-import f from "../assets/img/f.png"
-import g from "../assets/img/g.png"
+import TablePeng from '../components/TablePeng'
+import notif from '../redux/actions/notif'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -45,6 +38,11 @@ const disposalSchema = Yup.object().shape({
 
 const alasanSchema = Yup.object().shape({
     alasan: Yup.string().required()
+});
+
+const alasanDisSchema = Yup.object().shape({
+    alasan: Yup.string().required(),
+    jenis_reject: Yup.string().required()
 });
 
 class Disposal extends Component {
@@ -95,14 +93,18 @@ class Disposal extends Component {
             openApproveDis: false,
             openRejectDis: false,
             fileName: {},
-            dataApp: {}
+            dataApp: {},
+            img: '',
+            limImage: 20000,
+            submitPre: false,
+            date: '',
+            view: ''
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
     }
 
     getApproveDis = async (value) => {
-        this.setState({nama: value.nama})
         const token = localStorage.getItem('token')
         await this.props.getApproveDisposal(token, value.no, value.nama)
     }
@@ -131,7 +133,6 @@ class Disposal extends Component {
 
     closeProsesModalDoc = () => {
         this.setState({openModalDoc: !this.state.openModalDoc})
-        this.setState({formDis: !this.state.formDis})
     }
 
     openModalApproveDis = () => {
@@ -143,12 +144,14 @@ class Disposal extends Component {
 
     openModalReject = () => {
         this.setState({openReject: !this.state.openReject})
-        this.openModalDis()
     }
 
     openModalApprove = () => {
         this.setState({openApprove: !this.state.openApprove})
-        this.openModalDis()
+    }
+
+    modalSubmitPre = () => {
+        this.setState({submitPre: !this.state.submitPre})
     }
 
     approveDokumen = async () => {
@@ -162,7 +165,7 @@ class Disposal extends Component {
     rejectDokumen = async (value) => {
         const {fileName} = this.state
         const token = localStorage.getItem('token')
-        await this.props.rejectDocDis(token, fileName.id, value)
+        await this.props.rejectDocDis(token, fileName.id, value, 'edit', 'peng')
         this.setState({openRejectDis: !this.state.openRejectDis})
         this.openModalPdf()
     }
@@ -170,21 +173,28 @@ class Disposal extends Component {
     openProsesModalDoc = async () => {
         const token = localStorage.getItem('token')
         const { dataRinci } = this.state
-        await this.props.getDocumentDis(token, dataRinci.no_asset)
+        await this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'pengajuan')
         this.closeProsesModalDoc()
-        this.openRinciAdmin()
     }
 
 
     approveDisposal = async (value) => {
         const token = localStorage.getItem('token')
         await this.props.approveDisposal(token, value)
+        this.openModalApprove()
         this.getDataDisposal()
     }
 
     rejectDisposal = async (value) => {
         const token = localStorage.getItem('token')
-        await this.props.rejectDisposal(token, value.no, value.value)
+        const data = {
+            alasan: value.value.alasan
+        }
+        if (value.value.jenis_reject === 'batal') {
+            this.openModalDis()
+        } 
+        await this.props.rejectDisposal(token, value.no, data, value.value.jenis_reject)
+        this.openModalReject()
         this.getDataDisposal()
     }
 
@@ -224,7 +234,7 @@ class Disposal extends Component {
         const { dataDis } = this.props.disposal
         const detail = []
         for (let i = 0; i < dataDis.length; i++) {
-            if (dataDis[i].status_app === value) {
+            if (dataDis[i].no_disposal === value) {
                 detail.push(dataDis[i])
             }
         }
@@ -242,6 +252,21 @@ class Disposal extends Component {
 
     openModalDis = () => {
         this.setState({formDis: !this.state.formDis})
+    }
+
+    DownloadTemplate = () => {
+        axios({
+            url: `${REACT_APP_BACKEND_URL}/masters/dokumen.xlsx`,
+            method: 'GET',
+            responseType: 'blob',
+        }).then((response) => {
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', "dokumen.xlsx");
+            document.body.appendChild(link);
+            link.click();
+        });
     }
 
     dropDown = () => {
@@ -271,7 +296,6 @@ class Disposal extends Component {
 
     openModalPdf = () => {
         this.setState({openPdf: !this.state.openPdf})
-        this.setState({openModalDoc: !this.state.openModalDoc})
     }
 
     addDokumen = async (values) => {
@@ -292,6 +316,7 @@ class Disposal extends Component {
         const token = localStorage.getItem('token')
         await this.props.showDokumen(token, value.id)
         this.setState({date: value.updatedAt, idDoc: value.id, fileName: value})
+        console.log(value)
         const {isShow} = this.props.pengadaan
         if (isShow) {
             this.openModalPdf()
@@ -316,11 +341,6 @@ class Disposal extends Component {
         });
     }
 
-    goFormSet = async (val) => {
-        const token = localStorage.getItem('token')
-        await this.props.getSetDisposal(token, 100, "", 1, val, 'persetujuan')
-        this.props.history.push('/formset')
-    }
 
     onChangeHandler = e => {
         const {size, type} = e.target.files[0]
@@ -337,7 +357,7 @@ class Disposal extends Component {
 
     componentDidUpdate() {
         const {isError, isUpload, isExport} = this.props.asset
-        const {isAdd, isDelete, isAppDoc, isRejDoc} = this.props.disposal
+        const {isAdd, isAppDoc, isRejDoc, approve, reject, rejReject, rejApprove} = this.props.disposal
         const token = localStorage.getItem('token')
         const { dataRinci } = this.state
         if (isError) {
@@ -363,8 +383,22 @@ class Disposal extends Component {
                 this.props.resetDis()
              }, 1000)
              setTimeout(() => {
-                this.props.getDocumentDis(token, dataRinci.no_asset)
+                this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'pengajuan')
              }, 1100)
+        } else if (reject) {
+            this.openConfirm(this.setState({confirm: 'reject'}))
+            this.props.resAppRej()
+        } else if (approve) {
+            this.openConfirm(this.setState({confirm: 'approve'}))
+            this.props.resAppRej()
+        } else if (rejReject) {
+            this.openConfirm(this.setState({confirm: 'rejReject'}))
+            this.openModalReject()
+            this.props.resAppRej()
+        } else if (rejApprove) {
+            this.openConfirm(this.setState({confirm: 'rejApprove'}))
+            this.openModalApprove()
+            this.props.resAppRej()
         }
     }
 
@@ -377,8 +411,27 @@ class Disposal extends Component {
         }
     }
 
-    componentDidMount() {
+    goSetDispos = async () => {
+        const token = localStorage.getItem("token")
+        await this.props.submitSetDisposal(token)
+        this.modalSubmitPre()
         this.getDataDisposal()
+    }
+    
+    getNotif = async () => {
+        const token = localStorage.getItem("token")
+        await this.props.getNotif(token)
+    }
+
+    componentDidMount() {
+        const level = localStorage.getItem('level')
+        this.getNotif()
+        if (level === "5" ) {
+            this.getDataAsset()
+        } else {
+            this.changeView('available')
+            this.getDataDisposal()
+        }
     }
 
     getDataAsset = async (value) => {
@@ -386,7 +439,7 @@ class Disposal extends Component {
         const { page } = this.props.asset
         const search = value === undefined ? '' : this.state.search
         const limit = value === undefined ? this.state.limit : value.limit
-        await this.props.getAsset(token, limit, search, page.currentPage)
+        await this.props.getAsset(token, limit, search, page.currentPage, 'disposal')
         this.setState({limit: value === undefined ? 12 : value.limit})
     }
 
@@ -395,8 +448,16 @@ class Disposal extends Component {
         const { page } = this.props.disposal
         const search = value === undefined ? '' : this.state.search
         const limit = value === undefined ? this.state.limit : value.limit
-        await this.props.getDisposal(token, limit, search, page.currentPage, 3, 'persetujuan')
-        this.setState({limit: value === undefined ? 12 : value.limit})
+        await this.props.getDisposal(token, limit, search, page.currentPage, 2)
+        await this.props.getNameApprove(token)
+        this.setState({limit: value === undefined ? 10 : value.limit})
+    }
+
+    getSubmitDisposal = async (value) => {
+        const token = localStorage.getItem("token")
+        const { page } = this.props.disposal
+        await this.props.getSubmitDisposal(token, 1000, '', page.currentPage, 9)
+        this.modalSubmitPre()
     }
 
     menuButtonClick(ev) {
@@ -414,19 +475,25 @@ class Disposal extends Component {
         this.getDataAsset()
     }
 
-    deleteDisposal = async (value) => {
+    addSell = async (value) => {
         const token = localStorage.getItem("token")
+        await this.props.addSell(token, value)
+        this.getDataAsset()
+    }
+
+    changeView = (val) => {
+        this.setState({view: val})
     }
 
     render() {
-        const {isOpen, dropOpen, dropApp, dropOpenNum, detail, alert, upload, errMsg, detailDis} = this.state
-        const {dataAsset, alertM, alertMsg, alertUpload} = this.props.asset
-        const page = this.props.disposal.page 
-        const { dataDis, noDis, dataDoc, disApp } = this.props.disposal
-        const { dataName } = this.props.approve
+        const {alert, upload, errMsg, detailDis} = this.state
+        const {dataAsset, alertM, alertMsg, alertUpload, page} = this.props.asset
+        const pages = this.props.disposal.page 
+        const { dataDis, noDis, dataDoc, disApp, dataSubmit } = this.props.disposal
         const {dataRinci} = this.state
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
+        const dataNotif = this.props.notif.data
 
         const contentHeader =  (
             <div className={style.navbar}>
@@ -441,6 +508,60 @@ class Disposal extends Component {
                             <span>WEB ASSET</span>
                         </marquee>
                         <div className={style.textLogo}>
+                        <UncontrolledDropdown>
+                                <DropdownToggle nav>
+                                    <div className={style.optionType}>
+                                        <BsBell size={30} className="white" />
+                                        {dataNotif.length > 0 ? (
+                                            <BsFillCircleFill className="red ball" size={10} />
+                                        ) : (
+                                            <div></div>
+                                        ) }
+                                    </div>
+                                </DropdownToggle>
+                                <DropdownMenu right
+                                modifiers={{
+                                    setMaxHeight: {
+                                        enabled: true,
+                                        order: 890,
+                                        fn: (data) => {
+                                        return {
+                                            ...data,
+                                            styles: {
+                                            ...data.styles,
+                                            overflow: 'auto',
+                                            maxHeight: '600px',
+                                            },
+                                        };
+                                        },
+                                    },
+                                }}>
+                                    {dataNotif.length > 0 ? (
+                                        dataNotif.map(item => {
+                                            return (
+                                                <DropdownItem>
+                                                    <div className={style.notif}>
+                                                        <FaFileSignature size={90} className="mr-4"/>
+                                                        <div>
+                                                            <div>Request</div>
+                                                            <div className="textNotif">{item.keterangan} {item.jenis}</div>
+                                                            <div className="textNotif">No {item.jenis}: {item.no_proses}</div>
+                                                            <div>{moment(item.createdAt).format('LLL')}</div>
+                                                        </div>
+                                                    </div>
+                                                    <hr/>
+                                                </DropdownItem>
+                                            )
+                                        })
+                                    ) : (
+                                        <DropdownItem>
+                                            <div className={style.grey}>
+                                                You don't have any notifications 
+                                            </div>        
+                                        </DropdownItem>
+                                    )}
+                                </DropdownMenu>
+                            </UncontrolledDropdown>
                             <FaUserCircle size={24} className="mr-2" />
                             <text className="mr-3">{level === '1' ? 'Super admin' : names }</text>
                         </div>
@@ -480,164 +601,70 @@ class Disposal extends Component {
                             <Alert color="danger" className={style.alertWrong} isOpen={upload}>
                                 <div>{errMsg}</div>
                             </Alert>
-                            <div className={style.bodyDashboard}>
-                                <div className={style.headMaster}> 
-                                    <div className={style.titleDashboard}>Persetujuan Disposal Asset</div>
+                            {level !== '5' ? (
+                                <div className={style.headMaster}>
+                                    <div className={style.titleDashboard1}>Anda tidak memiliki akses dihalaman ini</div>
                                 </div>
-                                <div className={style.secEmail}>
-                                    {level === '5' ? (
+                            ) : (
+                                <div className={style.bodyDashboard}>
+                                    <div className={style.headMaster}> 
+                                        <div className={style.titleDashboard}>Tracking Disposal Asset</div>
+                                    </div>
+                                    <div className={style.secEmail1}>
+                                        <div className={style.searchEmail}>
+                                            <text>Search: </text>
+                                            <Input 
+                                            className={style.search}
+                                            onChange={this.onSearch}
+                                            value={this.state.search}
+                                            onKeyPress={this.onSearch}
+                                            >
+                                                <FaSearch size={20} />
+                                            </Input>
+                                        </div>
                                         <div className={style.headEmail}>
-                                            {/* <Button color="success" size="lg" onClick={this.openModalDis}>Open Form</Button> */}
-                                            <button onClick={this.goCartDispos} className="btnGoCart"><FaCartPlus size={60} className="green ml-2" /></button>
-                                        </div>
-                                    ) : (
-                                        <div className={style.secHeadDashboard}>
-                                            <div>
-                                                <text>Show: </text>
-                                                <ButtonDropdown className={style.drop} isOpen={dropOpen} toggle={this.dropDown}>
-                                                <DropdownToggle caret color="light">
-                                                    {this.state.limit}
-                                                </DropdownToggle>
-                                                <DropdownMenu>
-                                                <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 10, search: ''})}>10</DropdownItem>
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 20, search: ''})}>20</DropdownItem>
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 50, search: ''})}>50</DropdownItem>
-                                                </DropdownMenu>
-                                                </ButtonDropdown>
-                                                <text className={style.textEntries}>entries</text>
-                                            </div>
-                                        </div>
-                                    )}
-                                    <div className={style.searchEmail}>
-                                        <text>Search: </text>
-                                        <Input 
-                                        className={style.search}
-                                        onChange={this.onSearch}
-                                        value={this.state.search}
-                                        onKeyPress={this.onSearch}
-                                        >
-                                            <FaSearch size={20} />
-                                        </Input>
-                                    </div>
-                                </div>
-                                    {this.props.disposal.isGet === false || noDis === undefined  || level === '5' || level === '12' || level === '7' ? (
-                                        <div></div>
-                                    ) : (
-                                        <Row className="bodyDispos">
-                                        {noDis.length !== 0 && noDis.map(x => {
-                                            return (
-                                                dataDis.find(({status_app}) => status_app === x) === undefined ? (
-                                                    <div></div>
-                                                ) : (
-                                                    <div className="bodyCard">
-                                                    <img src={placeholder} className="imgCard1" />
-                                                    
-                                                    {dataDis.find(({status_app}) => status_app === x).nilai_jual === '0' ? 
-                                                     (
-                                                        <Button size="sm" color="success" className="labelBut">Pemusnahan</Button>
-                                                     ) : (
-                                                         <div></div>
-                                                     )}
-                                                     {dataDis.find(({status_app}) => status_app === x).nilai_jual !== '0' ?
-                                                     (
-                                                        <Button size="sm" color="warning" className="labelBut">Penjualan</Button>
-                                                     ) : (
-                                                         <div></div>
-                                                     )}
-                                                    {/* <button className="btnDispos" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}></button> */}
-                                                    <div className="ml-2">
-                                                        <div className="txtDoc mb-2">
-                                                            Persetujuan Disposal Asset
-                                                        </div>
-                                                        <Row className="mb-2">
-                                                            <Col md={6} className="txtDoc">
-                                                            Kode Plant
-                                                            </Col>
-                                                            <Col md={6} className="txtDoc">
-                                                            : {dataDis.find(({status_app}) => status_app === x).kode_plant}
-                                                            </Col>
-                                                        </Row>
-                                                        <Row className="mb-2">
-                                                            <Col md={6} className="txtDoc">
-                                                            Area
-                                                            </Col>
-                                                            <Col md={6} className="txtDoc">
-                                                            : {dataDis.find(({status_app}) => status_app === x).area}
-                                                            </Col>
-                                                        </Row>
-                                                        <Row className="mb-2">
-                                                            <Col md={6} className="txtDoc">
-                                                            No Persetujuan
-                                                            </Col>
-                                                            <Col md={6} className="txtDoc">
-                                                            : {dataDis.find(({status_app}) => status_app === x).status_app}
-                                                            </Col>
-                                                        </Row>
-                                                        <Row className="mb-2">
-                                                            <Col md={6} className="txtDoc">
-                                                            Status Approval
-                                                            </Col>
-                                                            {dataDis.find(({status_app}) => status_app === x).ttdSet.find(({status}) => status === 0) !== undefined ? (
-                                                                <Col md={6} className="txtDoc">
-                                                                : Reject {dataDis.find(({status_app}) => status_app === x).ttdSet.find(({status}) => status === 0).jabatan}
-                                                                </Col>
-                                                            ) : dataDis.find(({status_app}) => status_app === x).ttdSet.find(({status}) => status === 1) !== undefined ? (
-                                                                <Col md={6} className="txtDoc">
-                                                                : Approve {dataDis.find(({status_app}) => status_app === x).ttdSet.find(({status}) => status === 1).jabatan}
-                                                                </Col>
-                                                            ) : (
-                                                                <Col md={6} className="txtDoc">
-                                                                : -
-                                                                </Col>
-                                                            )}
-                                                            
-                                                        </Row>
-                                                    </div>
-                                                    <Row className="footCard mb-3 mt-3">
-                                                        <Col md={12} xl={12}>
-                                                            <Button className="btnSell" color="primary" onClick={() => this.goFormSet(x)}>Proses</Button>
-                                                        </Col>
-                                                    </Row>
-                                                </div>
-                                                )
-                                            )
-                                        })}
-                                        </Row>
-                                    )}
-                                <div>
-                                    <div className={style.infoPageEmail}>
-                                        <text>Showing {page.currentPage === undefined ? '0' : page.currentPage} of {page.pages === undefined ? '0' : page.pages} pages</text>
-                                        <div className={style.pageButton}>
-                                            <button className={style.btnPrev} color="info" disabled={page.prevLink === undefined || page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
-                                            <button className={style.btnPrev} color="info" disabled={page.nextLink === undefined || page.nextLink === null ? true : false} onClick={this.next}>Next</button>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
+                            
                         </div>
                     </MaterialTitlePanel>
                 </Sidebar>
-                <Modal show={this.props.disposal.isLoading ? true: false} size="sm">
-                        <Modal.Body>
+                <Modal isOpen={this.props.asset.isLoading && level === '5' ? true: false} size="sm">
+                        <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>
                                 <Spinner />
                                 <div sucUpdate>Waiting....</div>
                             </div>
                         </div>
-                        </Modal.Body>
+                        </ModalBody>
                 </Modal>
-                <Modal show={this.props.disposal.isAdd ? true: false} size="sm">
-                        <Modal.Body>
+                <Modal isOpen={this.props.disposal.isLoading ? true: false} size="sm">
+                        <ModalBody>
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <Spinner />
+                                <div sucUpdate>Waiting....</div>
+                            </div>
+                        </div>
+                        </ModalBody>
+                </Modal>
+                <Modal isOpen={this.props.disposal.isAdd ? true: false} size="sm">
+                        <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>
                                 <div sucUpdate>Berhasil menambahkan item disposal</div>
                             </div>
                         </div>
-                        </Modal.Body>
+                        </ModalBody>
                 </Modal>
-                <Modal show={this.state.formDis} onHide={this.openModalDis} size="xl">
-                    <Modal.Body>
+                <Modal isOpen={this.state.formDis} toggle={this.openModalDis} size="xl">
+                    <Alert color="danger" className={style.alertWrong} isOpen={detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true}>
+                        <div>Data Penjualan Asset Sedang Dilengkapi oleh divisi purchasing</div>
+                    </Alert>
+                    <ModalBody>
                         <div className="preDis">
                             <text>PT. Pinus Merah Abadi</text>
                             <text></text>
@@ -657,10 +684,10 @@ class Disposal extends Component {
                         <Row className="mb-2">
                             <Col md={2}>
                             {detailDis[0] === undefined ? "" :
-                            detailDis[0].status_depo === "Cabang Scylla" || detailDis.status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
+                            detailDis[0].status_depo === "Cabang Scylla" || detailDis[0].status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
                             </Col>
                             <Col md={10} className="txtTrans">
-                            : {detailDis[0] !== undefined && detailDis[0].area}
+                            : {detailDis[0] !== undefined && detailDis[0].area + ' - ' + detailDis[0].cost_center} 
                             </Col>
                         </Row>
                         <div>Kepada Yth.</div>
@@ -676,8 +703,6 @@ class Disposal extends Component {
                                     <th>Nama Barang</th>
                                     <th>Merk/Type</th>
                                     <th>Kategori</th>
-                                    <th>Status Depo</th>
-                                    <th>Cost Center</th>
                                     <th>Nilai Buku</th>
                                     <th>Nilai Jual</th>
                                     <th>Keterangan</th>
@@ -692,10 +717,8 @@ class Disposal extends Component {
                                             <td>{item.nama_asset}</td>
                                             <td>{item.merk}</td>
                                             <td>{item.kategori}</td>
-                                            <td>{item.status_depo}</td>
-                                            <td>{item.cost_center}</td>
-                                            <td>{item.nilai_buku}</td>
-                                            <td>{item.nilai_jual}</td>
+                                            <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             <td>{item.keterangan}</td>
                                         </tr>
                                     )
@@ -703,40 +726,25 @@ class Disposal extends Component {
                             </tbody>
                         </Table>
                         <div className="mb-3">Demikianlah hal yang kami sampaikan, atas perhatiannya kami mengucapkan terima kasih</div>
-                    </Modal.Body>
+                    </ModalBody>
                     <hr />
                     <div className="modalFoot ml-3">
-                        {level === '1' ? (
-                            <div>
-                                <text>Pilih Approval: </text>
-                                <ButtonDropdown className={style.drop} isOpen={dropApp} toggle={this.dropApp}>
-                                <DropdownToggle caret color="light">
-                                    {this.state.nama}
-                                </DropdownToggle>
-                                <DropdownMenu>
-                                    {dataName.length !== 0 && dataName.map(item => {
-                                        return (
-                                            <DropdownItem className={style.item} onClick={() => this.getApproveDis({nama: item.name, no: detailDis[0] !== undefined && detailDis[0].no_disposal})} >{item.name}</DropdownItem>
-                                        )
-                                    })}
-                                </DropdownMenu>
-                                </ButtonDropdown>
-                            </div>
-                        ) : (
-                            <Button color="primary" onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})}>Preview</Button>
-                        )}
+                        <Button color="primary" onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})}>Preview</Button>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="danger" onClick={this.openModalReject}>
+                            <Button className="mr-2" color="danger" disabled={detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true} onClick={this.openModalReject}>
                                 Reject
                             </Button>
-                            <Button color="success" onClick={this.openModalApprove}>
+                            <Button color="success" onClick={this.openModalApprove} disabled={detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true}>
                                 Approve
                             </Button>
                         </div>
                     </div>
                 </Modal>
-                <Modal show={this.state.preview} onHide={this.openPreview} size="xl">
-                    <Modal.Body>
+                <Modal isOpen={this.state.preview} toggle={this.openPreview} size="xl">
+                    <Alert color="danger" className={style.alertWrong} isOpen={detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true}>
+                        <div>Data Penjualan Asset Sedang Dilengkapi oleh divisi purchasing</div>
+                    </Alert>
+                    <ModalBody>
                         <div>PT. Pinus Merah Abadi</div>
                         <div className="modalDis">
                             <text className="titleModDis">Form Pengajuan Disposal Asset</text>
@@ -756,7 +764,7 @@ class Disposal extends Component {
                             detailDis[0].status_depo === "Cabang Scylla" || detailDis.status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
                             </Col>
                             <Col md={10} className="txtTrans">
-                            : {detailDis[0] !== undefined && detailDis[0].area}
+                            : {detailDis[0] !== undefined && detailDis[0].area + ' - ' + detailDis[0].cost_center}
                             </Col>
                         </Row>
                         <div>Kepada Yth.</div>
@@ -772,8 +780,6 @@ class Disposal extends Component {
                                     <th>Nama Barang</th>
                                     <th>Merk/Type</th>
                                     <th>Kategori</th>
-                                    <th>Status Depo</th>
-                                    <th>Cost Center</th>
                                     <th>Nilai Buku</th>
                                     <th>Nilai Jual</th>
                                     <th>Keterangan</th>
@@ -788,10 +794,8 @@ class Disposal extends Component {
                                             <td>{item.nama_asset}</td>
                                             <td>{item.merk}</td>
                                             <td>{item.kategori}</td>
-                                            <td>{item.status_depo}</td>
-                                            <td>{item.cost_center}</td>
-                                            <td>{item.nilai_buku}</td>
-                                            <td>{item.nilai_jual}</td>
+                                            <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             <td>{item.keterangan}</td>
                                         </tr>
                                     )
@@ -816,7 +820,7 @@ class Disposal extends Component {
                                                     {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
                                                         return (
                                                             <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
                                                                 <div>{item.nama === null ? "-" : item.nama}</div>
                                                             </th>
                                                         )
@@ -843,10 +847,10 @@ class Disposal extends Component {
                                                             item.jabatan === 'asset' ? (
                                                                 null
                                                             ) : (
-                                                                <th className="headPre">
-                                                                    <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
-                                                                    <div>{item.nama === null ? "-" : item.nama}</div>
-                                                                </th>
+                                                            <th className="headPre">
+                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
+                                                                <div>{item.nama === null ? "-" : item.nama}</div>
+                                                            </th>
                                                             )
                                                         )
                                                     })}
@@ -874,7 +878,7 @@ class Disposal extends Component {
                                                     {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
                                                         return (
                                                             <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
                                                                 <div>{item.nama === null ? "-" : item.nama}</div>
                                                             </th>
                                                         )
@@ -895,13 +899,13 @@ class Disposal extends Component {
                                </tr>
                            </tbody>
                        </Table>
-                    </Modal.Body>
+                    </ModalBody>
                     <hr />
                     <div className="modalFoot ml-3">
                         <div></div>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="warning" onClick={this.openPreview}>
-                                Print
+                            <Button className="mr-2" color="warning">
+                                <TablePeng detailDis={detailDis} />
                             </Button>
                             <Button color="success" onClick={this.openPreview}>
                                 Close
@@ -909,30 +913,35 @@ class Disposal extends Component {
                         </div>
                     </div>
                 </Modal>
-                <Modal show={this.state.modalRinci} onHide={this.openModalRinci} size="xl">
-                    <Modal.Header>
+                <Modal isOpen={this.state.modalRinci} toggle={this.openModalRinci} size="xl">
+                    <ModalHeader>
                         Rincian
-                    </Modal.Header>
-                    <Modal.Body>
+                    </ModalHeader>
+                    <ModalBody>
                         <div className="mainRinci">
                             <div className="leftRinci">
-                                <img src={dataRinci.no_asset === '4100000150' ? b : dataRinci.no_asset === '4300001770' ? e : placeholder} className="imgRinci" />
+                                <img src={this.state.img === '' ? placeholder : `${REACT_APP_BACKEND_URL}/${this.state.img}`} className="imgRinci" />
                                 <div className="secImgSmall">
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? b : dataRinci.no_asset === '4300001770' ? e : placeholder} className="imgSmallRinci" />
-                                    </button>
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? a : dataRinci.no_asset === '4300001770' ? d : placeholder} className="imgSmallRinci" />
-                                    </button>
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? c : dataRinci.no_asset === '4300001770' ? f : placeholder} className="imgSmallRinci" />
-                                    </button>
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? a : dataRinci.no_asset === '4300001770' ? g : placeholder} className="imgSmallRinci" />
-                                    </button>
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? c : dataRinci.no_asset === '4300001770' ? d : placeholder} className="imgSmallRinci" />
-                                    </button>
+                                    {dataRinci.pict !== undefined ? (
+                                        dataRinci.pict.length > 0 ? (
+                                            dataRinci.pict.map(item => {
+                                                return (
+                                                    <button className="btnSmallImg" onClick={() => this.setState({img: item.path})}>
+                                                        <img src={`${REACT_APP_BACKEND_URL}/${item.path}`} className="imgSmallRinci" />
+                                                    </button>
+                                                )
+                                            })
+                                        ) : (
+                                            <button className="btnSmallImg">
+                                                <img src={placeholder} className="imgSmallRinci" />
+                                            </button>
+                                        ) 
+                                    ) : (
+                                        <button className="btnSmallImg">
+                                            <img src={placeholder} className="imgSmallRinci" />
+                                        </button>
+                                    )
+                                    }
                                 </div>
                             </div>
                             <div className="rightRinci">
@@ -950,39 +959,52 @@ class Disposal extends Component {
                                         <div className="titSmallRinci">Kode Plant</div>
                                         <div className="txtAreaRinci">{dataRinci.kode_plant}</div>
                                     </div>
+                                    <div className="secSmallRinci">
+                                        <div className="titSmallRinci">Nilai Buku</div>
+                                        <div className="txtAreaRinci">{dataRinci.nilai_buku !== undefined ? dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") : dataRinci.nilai_buku}</div>
+                                    </div>
+                                    <div className="secSmallRinci">
+                                        <div className="titSmallRinci">Kategori</div>
+                                        <div className="txtAreaRinci">{dataRinci.kategori}</div>
+                                    </div>
                                 </div>
                                 <div className="footRinci">
                                     <Button className="btnFootRinci" size="lg" color="warning">Sell</Button>
-                                    <Button className="btnFootRinci" size="lg" color="info" onClick={() => this.addDisposal(dataRinci.id)}>Dispose</Button>
+                                    <Button className="btnFootRinci" size="lg" color="info" onClick={() => this.addDisposal(dataRinci.no_asset)}>Dispose</Button>
                                 </div>
                             </div>
                         </div>
-                    </Modal.Body>
+                    </ModalBody>
                 </Modal>
-                <Modal show={this.state.rinciAdmin} onHide={this.openRinciAdmin} size="xl">
-                    <Modal.Header>
+                <Modal isOpen={this.state.rinciAdmin} toggle={this.openRinciAdmin} size="xl">
+                    <ModalHeader>
                         Rincian
-                    </Modal.Header>
-                    <Modal.Body>
+                    </ModalHeader>
+                    <ModalBody>
                         <div className="mainRinci">
                             <div className="leftRinci">
-                                <img src={dataRinci.no_asset === '4100000150' ? b : dataRinci.no_asset === '4300001770' ? e : placeholder} className="imgRinci" />
+                            <img src={this.state.img === '' ? placeholder : `${REACT_APP_BACKEND_URL}/${this.state.img}`} className="imgRinci" />
                                 <div className="secImgSmall">
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? b : dataRinci.no_asset === '4300001770' ? e : placeholder} className="imgSmallRinci" />
-                                    </button>
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? a : dataRinci.no_asset === '4300001770' ? d : placeholder} className="imgSmallRinci" />
-                                    </button>
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? c : dataRinci.no_asset === '4300001770' ? f : placeholder} className="imgSmallRinci" />
-                                    </button>
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? a : dataRinci.no_asset === '4300001770' ? g : placeholder} className="imgSmallRinci" />
-                                    </button>
-                                    <button className="btnSmallImg">
-                                        <img src={dataRinci.no_asset === '4100000150' ? c : dataRinci.no_asset === '4300001770' ? d : placeholder} className="imgSmallRinci" />
-                                    </button>
+                                    {dataRinci.pict !== undefined ? (
+                                        dataRinci.pict.length > 0 ? (
+                                            dataRinci.pict.map(item => {
+                                                return (
+                                                    <button className="btnSmallImg" onClick={() => this.setState({img: item.path})}>
+                                                        <img src={`${REACT_APP_BACKEND_URL}/${item.path}`} className="imgSmallRinci" />
+                                                    </button>
+                                                )
+                                            })
+                                        ) : (
+                                            <button className="btnSmallImg">
+                                                <img src={placeholder} className="imgSmallRinci" />
+                                            </button>
+                                        ) 
+                                    ) : (
+                                        <button className="btnSmallImg">
+                                            <img src={placeholder} className="imgSmallRinci" />
+                                        </button>
+                                    )
+                                    }
                                 </div>
                             </div>
                             <Formik
@@ -1002,13 +1024,13 @@ class Disposal extends Component {
                                             <Col md={3}>Area</Col>
                                             <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.area} disabled /></Col>
                                         </Row>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>No Asset</Col>
-                                            <Col md={9}>:  <input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
                                         </Row>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Merk / Type</Col>
-                                            <Col md={9}>:  <input
+                                            <Col md={9} className="colRinci">:  <Input
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.merk}
@@ -1024,42 +1046,43 @@ class Disposal extends Component {
                                             <Col md={3}>Kategori</Col>
                                             <Col md={9} className="katCheck">: 
                                                 <div className="katCheck">
-                                                    <div className="ml-2"><input type="checkbox"/> IT</div>
-                                                    <div className="ml-3"><input type="checkbox"/> Non IT</div>
+                                                    <div className="ml-2"><input type="checkbox" checked={dataRinci.kategori === 'IT' ? true : false} /> IT</div>
+                                                    <div className="ml-3"><input type="checkbox" checked={dataRinci.kategori === 'NON IT' ? true : false} /> Non IT</div>
                                                 </div>
                                             </Col>
                                         </Row>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Status Area</Col>
-                                            <Col md={9}>:  <input className="inputRinci" value={dataRinci.status_depo} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.status_depo} disabled /></Col>
                                         </Row>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Cost Center</Col>
-                                            <Col md={9}>:  <input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
                                         </Row>
-                                        <Row className="mb-2">
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Nilai Buku</Col>
-                                            <Col md={9}>:  <input className="inputRinci" disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" disabled value={dataRinci.nilai_buku === null || dataRinci.nilai_buku === undefined ? 0 : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} /></Col>
                                         </Row>
-                                        <Row className="mb-2">
-                                            <Col md={3}>Nilai Jual</Col>
-                                            <Col md={9}>:  <input 
+                                        <Row className="mb-2 rowRinci">
+                                            <Col  md={3}>Nilai Jual</Col>
+                                            <Col md={9} className="colRinci">:  <Input
                                                 className="inputRinci" 
-                                                value={values.nilai_jual} 
+                                                value={values.nilai_jual === null ? values.nilai_jual : values.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} 
                                                 onBlur={handleBlur("nilai_jual")}
                                                 onChange={handleChange("nilai_jual")}
-                                                disabled={dataRinci.nilai_jual === '0' ? true : false}
+                                                disabled={true}
                                                 />
                                             </Col>
                                         </Row>
                                         {errors.nilai_jual ? (
                                             <text className={style.txtError}>{errors.nilai_jual}</text>
                                         ) : null}
-                                        <Row>
+                                        <Row className="mb-4 rowRinci">
                                             <Col md={3}>Keterangan</Col>
-                                            <Col md={9}>:  <input
+                                            <Col md={9} className="colRinci">:  <Input
                                                 className="inputRinci" 
-                                                type="text" 
+                                                type="text"
+                                                disabled={level !== 5 ? true : false}
                                                 value={values.keterangan} 
                                                 onBlur={handleBlur("keterangan")}
                                                 onChange={handleChange("keterangan")}
@@ -1079,13 +1102,13 @@ class Disposal extends Component {
                             )}
                             </Formik>
                         </div>
-                    </Modal.Body>
+                    </ModalBody>
                 </Modal>
-                <Modal size="xl" show={this.state.openModalDoc} onHide={this.closeProsesModalDoc}>
-                <Modal.Header>
+                <Modal size="xl" isOpen={this.state.openModalDoc} toggle={this.closeProsesModalDoc}>
+                <ModalHeader>
                    Kelengkapan Dokumen
-                </Modal.Header>
-                <Modal.Body>
+                </ModalHeader>
+                <ModalBody>
                     <Container>
                         <Alert color="danger" className="alertWrong" isOpen={this.state.upload}>
                             <div>{this.state.errMsg}</div>
@@ -1097,15 +1120,22 @@ class Disposal extends Component {
                                         <text>{x.nama_dokumen}</text>
                                     </Col>
                                     {x.path !== null ? (
-                                        <Col md={6} lg={6} >
-                                            {x.status === 0 ? (
-                                                <AiOutlineClose size={20} />
-                                            ) : x.status === 3 ? (
-                                                <AiOutlineCheck size={20} />
-                                            ) : (
-                                                <BsCircle size={20} />
-                                            )}
-                                            <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
+                                        <Col md={6} lg={6} className="lsDoc">
+                                                {x.status === 0 ? (
+                                                    <AiOutlineClose size={20} />
+                                                ) : x.status === 3 ? (
+                                                    <AiOutlineCheck size={20} />
+                                                ) : (
+                                                    <BsCircle size={20} />
+                                                )}
+                                                {x.divisi === '0' ? (
+                                                    <AiOutlineClose size={20} />
+                                                ) : x.divisi === '3' ? (
+                                                    <AiOutlineCheck size={20} />
+                                                ) : (
+                                                    <div></div>
+                                                )}
+                                                <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
                                         </Col>
                                     ) : (
                                         <Col md={6} lg={6} >
@@ -1116,23 +1146,24 @@ class Disposal extends Component {
                             )
                         })}
                     </Container>
-                </Modal.Body>
-                <Modal.Footer>
+                </ModalBody>
+                <ModalFooter>
                     <Button className="mr-2" color="secondary" onClick={this.closeProsesModalDoc}>
                             Close
                         </Button>
                         <Button color="primary" onClick={this.closeProsesModalDoc}>
                             Save 
                     </Button>
-                </Modal.Footer>
+                </ModalFooter>
             </Modal>
-            <Modal show={this.state.openReject} onHide={this.openModalReject} centered={true}>
-                    <Modal.Body>
+            <Modal isOpen={this.state.openReject} toggle={this.openModalReject} centered={true}>
+                    <ModalBody>
                     <Formik
                     initialValues={{
                     alasan: "",
+                    jenis_reject: "revisi"
                     }}
-                    validationSchema={alasanSchema}
+                    validationSchema={alasanDisSchema}
                     onSubmit={(values) => {this.rejectDisposal({value: values, no: detailDis[0].no_disposal})}}
                     >
                         {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
@@ -1140,11 +1171,30 @@ class Disposal extends Component {
                             <div className={style.quest}>Anda yakin untuk reject ?</div>
                             <div className={style.alasan}>
                                 <text className="col-md-3">
+                                    Reject
+                                </text>
+                                <Input 
+                                type="select" 
+                                name="jenis_reject" 
+                                className="col-md-9"
+                                value={values.jenis_reject}
+                                onChange={handleChange('jenis_reject')}
+                                onBlur={handleBlur('jenis_reject')}
+                                >
+                                    <option value="batal">Pembatalan </option>
+                                    <option value="revisi">Perbaikan </option>
+                                </Input>
+                            </div>
+                            {errors.jenis_reject ? (
+                                <text className={style.txtError}>{errors.jenis_reject}</text>
+                            ) : null}
+                            <div className={style.alasan}>
+                                <text className="col-md-3">
                                     Alasan
                                 </text>
                                 <Input 
                                 type="name" 
-                                name="select" 
+                                name="alasan" 
                                 className="col-md-9"
                                 value={values.alasan}
                                 onChange={handleChange('alasan')}
@@ -1152,8 +1202,8 @@ class Disposal extends Component {
                                 />
                             </div>
                             {errors.alasan ? (
-                                    <text className={style.txtError}>{errors.alasan}</text>
-                                ) : null}
+                                <text className={style.txtError}>{errors.alasan}</text>
+                            ) : null}
                             <div className={style.btnApprove}>
                                 <Button color="primary" onClick={handleSubmit}>Ya</Button>
                                 <Button color="secondary" onClick={this.openModalReject}>Tidak</Button>
@@ -1161,10 +1211,10 @@ class Disposal extends Component {
                         </div>
                         )}
                         </Formik>
-                    </Modal.Body>
+                    </ModalBody>
                 </Modal>
-                <Modal show={this.state.openApprove} onHide={this.openModalApprove} centered={true}>
-                    <Modal.Body>
+                <Modal isOpen={this.state.openApprove} toggle={this.openModalApprove} centered={true}>
+                    <ModalBody>
                         <div className={style.modalApprove}>
                             <div>
                                 <text>
@@ -1179,11 +1229,11 @@ class Disposal extends Component {
                                 <Button color="secondary" onClick={this.openModalApprove}>Tidak</Button>
                             </div>
                         </div>
-                    </Modal.Body>
+                    </ModalBody>
                 </Modal>
-                <Modal show={this.state.openPdf} size="xl" onHide={this.openModalPdf} centered={true}>
-                <Modal.Header>Dokumen</Modal.Header>
-                    <Modal.Body>
+                <Modal isOpen={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
+                <ModalHeader>Dokumen</ModalHeader>
+                    <ModalBody>
                         <div className={style.readPdf}>
                             <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
                         </div>
@@ -1192,19 +1242,19 @@ class Disposal extends Component {
                             <div>
                                 <Button color="success" onClick={() => this.downloadData()}>Download</Button>
                             </div>
-                        {level === '5' ? (
-                            <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                        {level === '12' || level === '2' ? (
+                             <div>
+                                <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
+                                <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
+                            </div>
                             ) : (
-                                <div>
-                                    <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
-                                    <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
-                                </div>
+                                <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
                             )}
                         </div>
-                    </Modal.Body>
+                    </ModalBody>
                 </Modal>
-                <Modal show={this.state.openApproveDis} onHide={this.openModalApproveDis} centered={true}>
-                    <Modal.Body>
+                <Modal isOpen={this.state.openApproveDis} toggle={this.openModalApproveDis} centered={true}>
+                    <ModalBody>
                         <div className={style.modalApprove}>
                             <div>
                                 <text>
@@ -1219,10 +1269,10 @@ class Disposal extends Component {
                                 <Button color="secondary" onClick={this.openModalApproveDis}>Tidak</Button>
                             </div>
                         </div>
-                    </Modal.Body>
+                    </ModalBody>
                 </Modal>
-                <Modal show={this.state.openRejectDis} onHide={this.openModalRejectDis} centered={true}>
-                    <Modal.Body>
+                <Modal isOpen={this.state.openRejectDis} toggle={this.openModalRejectDis} centered={true}>
+                    <ModalBody>
                     <Formik
                     initialValues={{
                     alasan: "",
@@ -1256,7 +1306,122 @@ class Disposal extends Component {
                         </div>
                         )}
                         </Formik>
-                    </Modal.Body>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="sm">
+                    <ModalBody>
+                        {this.state.confirm === 'edit' ? (
+                        <div className={style.cekUpdate}>
+                            <AiFillCheckCircle size={80} className={style.green} />
+                            <div className={[style.sucUpdate, style.green]}>Berhasil Update Dokumen</div>
+                        </div>
+                        ) : this.state.confirm === 'add' ? (
+                            <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Menambah Dokumen</div>
+                            </div>
+                        ) : this.state.confirm === 'approve' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Approve Dokumen</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'reject' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Reject Dokumen</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'rejApprove' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Approve Dokumen</div>
+                                <div className="errApprove mt-2">{this.props.disposal.alertM === undefined ? '' : this.props.disposal.alertM}</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'rejReject' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Reject Dokumen</div>
+                                <div className="errApprove mt-2">{this.props.disposal.alertM === undefined ? '' : this.props.disposal.alertM}</div>
+                            </div>
+                            </div>
+                        ) : (
+                            <div></div>
+                        )}
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.submitPre} toggle={this.modalSubmitPre} size="xl">
+                    <ModalBody>
+                    <div className="bodyPer">
+                            <div>PT. Pinus Merah Abadi</div>
+                            <div className="modalDis">
+                                <text className="titleModDis">Persetujuan Disposal Asset</text>
+                            </div>
+                            <div className="mb-2"><text className="txtTrans">Bandung</text>, {moment().format('DD MMMM YYYY ')}</div>
+                            <Row>
+                                <Col md={2} className="mb-3">
+                                Hal : Persetujuan Disposal Asset
+                                </Col>
+                            </Row>
+                            <div>Kepada Yth.</div>
+                            <div className="mb-3">Bpk. Erwin Lesmana</div>
+                            <div className="mb-3">Dengan Hormat,</div>
+                            <div>Sehubungan dengan surat permohonan disposal aset area PMA terlampir</div>
+                            <div className="mb-3">Dengan ini kami mohon persetujuan untuk melakukan disposal aset dengan perincian sbb :</div>
+                            <Table striped bordered responsive hover className="tableDis mb-3">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nomor Aset / Inventaris</th>
+                                        <th>Area (Cabang/Depo/CP)</th>
+                                        <th>Nama Barang</th>
+                                        <th>Nilai Buku</th>
+                                        <th>Nilai Jual</th>
+                                        <th>Tanggal Perolehan</th>
+                                        <th>Keterangan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {dataSubmit.length !== 0 ? dataSubmit.map(item => {
+                                        return (
+                                            <tr>
+                                                <th scope="row">{dataSubmit.indexOf(item) + 1}</th>
+                                                <td>{item.no_asset}</td>
+                                                <td>{item.area}</td>
+                                                <td>{item.nama_asset}</td>
+                                                <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                <td>{moment(item.dataAsset.tanggal).format('DD/MM/YYYY')}</td>
+                                                <td>{item.keterangan}</td>
+                                            </tr>
+                                        )
+                                    }) : (
+                                        <tr>
+                                            <th scope="row">1</th>
+                                            <td> </td>
+                                            <td> </td>
+                                            <td> </td>
+                                            <td> </td>
+                                            <td> </td>
+                                            <td> </td>
+                                            <td> </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </Table>
+                            <div className="mb-3">Demikian hal yang dapat kami sampaikan perihal persetujuan disposal aset, atas perhatiannya kami mengucapkan terima kasih.</div>
+                            <div className="btnFoot">
+                                <Button className="mr-2" color="success" onClick={this.goSetDispos}>
+                                    Submit
+                                </Button>
+                            </div>
+                        </div>
+                    </ModalBody>
                 </Modal>
             </>
         )
@@ -1268,7 +1433,8 @@ const mapStateToProps = state => ({
     disposal: state.disposal,
     approve: state.approve,
     pengadaan: state.pengadaan,
-    setuju: state.setuju
+    setuju: state.setuju,
+    notif: state.notif
 })
 
 const mapDispatchToProps = {
@@ -1289,7 +1455,11 @@ const mapDispatchToProps = {
     rejectDocDis: disposal.rejectDocDis,
     showDokumen: pengadaan.showDokumen,
     resetDis: disposal.reset,
-    getSetDisposal: setuju.getSetDisposal
+    submitSetDisposal: setuju.submitSetDisposal,
+    addSell: disposal.addSell,
+    resAppRej: disposal.resAppRej,
+    getSubmitDisposal: disposal.getSubmitDisposal,
+    getNotif: notif.getNotif
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Disposal)

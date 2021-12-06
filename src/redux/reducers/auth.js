@@ -26,6 +26,7 @@ export default (state=authState, action) => {
                 localStorage.setItem('email', action.payload.data.user.email)
                 localStorage.setItem('kode', action.payload.data.user.kode_plant)
                 localStorage.setItem('id', action.payload.data.user.id)
+                localStorage.setItem('role', action.payload.data.user.role)
                 return {
                     ...state,
                     level: action.payload.data.user.user_level,

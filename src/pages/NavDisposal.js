@@ -64,6 +64,11 @@ export default class NavDisposal extends Component {
                                         Edit Eksekusi Disposal
                                     </div>
                                 </button>
+                                <button className="cardNav1" onClick={() => this.goRoute('trackdis')}>
+                                    <div className="titCard">
+                                        Tracking Disposal
+                                    </div>
+                                </button>
                             </Row>
                         ) : (
                             <Row className="mainBody">
