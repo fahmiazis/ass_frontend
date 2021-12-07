@@ -583,7 +583,7 @@ class MonitoringDisposal extends Component {
                                                 <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
                                                     {detailDis[0] !== undefined && detailDis[0].appForm.length && detailDis[0].appForm.slice(0).reverse().map(item => {
                                                         return (
-                                                            <div class={item.status === 1 ? 'step completed' : item.status === 0 ? 'step' : 'step'}>
+                                                            <div class={item.status === 1 ? 'step completed' : item.status === 0 ? 'step reject' : 'step'}>
                                                                 <div class="step-icon-wrap">
                                                                 <button class="step-icon"><FaFileSignature size={30} className="center2" /></button>
                                                                 </div>
@@ -649,13 +649,13 @@ class MonitoringDisposal extends Component {
                                                 </div>
                                             ) : this.state.tipeCol === 'Purchasing' && (
                                                 <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
-                                                    <div class={detailDis[0] === undefined ? 'step' : detailDis[0].status_form === 26 || detailDis[0].status_form > 2 ? "step completed" : 'step'}>
+                                                    <div class={detailDis[0] === undefined ? 'step' : detailDis[0].status_form === 26 || (detailDis[0].status_form > 2 || detailDis[0].status_form === 2) ? "step completed" : 'step'}>
                                                         <div class="step-icon-wrap">
                                                         <button class="step-icon" ><FiUpload size={30} className="center2" /></button>
                                                         </div>
                                                         <h4 class="step-title">Upload Dokumen oleh Purchasing</h4>
                                                     </div>
-                                                    <div class={detailDis[0] === undefined ? 'step' : detailDis[0].status_form !== 26 && detailDis[0].status_form > 2 ? "step completed" : 'step'}>
+                                                    <div class={detailDis[0] === undefined ? 'step' : detailDis[0].status_form !== 26 && (detailDis[0].status_form > 2 || detailDis[0].status_form === 2) ? "step completed" : 'step'}>
                                                         <div class="step-icon-wrap">
                                                         <button class="step-icon" ><AiOutlineCheck size={30} className="center2" /></button>
                                                         </div>

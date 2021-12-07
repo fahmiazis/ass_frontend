@@ -1003,6 +1003,15 @@ body{margin-top:20px;}
     background-color: #0da9ef;
     color: #fff
 }
+.steps .step.reject .step-icon-wrap::before,
+.steps .step.reject .step-icon-wrap::after {
+    background-color: red
+}
+.steps .step.reject .step-icon {
+    border-color: red;
+    background-color: red;
+    color: #fff
+}
 @media (max-width: 576px) {
     .flex-sm-nowrap .step .step-icon-wrap::before,
     .flex-sm-nowrap .step .step-icon-wrap::after {
