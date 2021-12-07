@@ -596,7 +596,7 @@ class MonitoringDisposal extends Component {
                                                 <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
                                                     {detailDis[0] !== undefined && detailDis[0].ttdSet.length > 0 && detailDis[0].ttdSet.slice(0).reverse().map(item => {
                                                         return (
-                                                            <div class={item.status === 1 ? 'step completed' : item.status === 0 ? 'step' : 'step'}>
+                                                            <div class={item.status === 1 ? 'step completed' : item.status === 0 ? 'step reject' : 'step'}>
                                                                 <div class="step-icon-wrap">
                                                                 <button class="step-icon"><FaFileSignature size={30} className="center2" /></button>
                                                                 </div>
