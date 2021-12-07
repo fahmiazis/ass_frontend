@@ -11,7 +11,7 @@ import {FaSearch, FaUserCircle, FaBars, FaTrash, FaFileSignature} from 'react-ic
 import {AiOutlineFileExcel, AiFillCheckCircle,  AiOutlineCheck, AiOutlineClose} from 'react-icons/ai'
 import {BsCircle, BsDashCircleFill, BsFillCircleFill} from 'react-icons/bs'
 import {MdAssignment} from 'react-icons/md'
-import {FiSend, FiTruck, FiSettings} from 'react-icons/fi'
+import {FiSend, FiTruck, FiSettings, FiUpload} from 'react-icons/fi'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
 import pengadaan from '../redux/actions/pengadaan'
@@ -489,6 +489,16 @@ class MonitoringDisposal extends Component {
                                 </div>
                                 <h4 class="step-title">Submit Disposal</h4>
                             </div>
+                            {detailDis[0] === undefined ? (
+                                <div></div>
+                            ) : detailDis.find(({nilai_jual}) => nilai_jual !== '0') && (
+                                <div class={detailDis[0] === undefined ? 'step' : detailDis[0].status_form !== 26 && detailDis[0].status_form !== 9 && (detailDis[0].status_form === 2 || detailDis[0].status_form > 2) ? "step completed" : 'step'}>
+                                    <div class="step-icon-wrap">
+                                        <button class="step-icon" onClick={() => this.showCollap('Purchasing')}><FiSettings size={40} className="center" /></button>
+                                    </div>
+                                    <h4 class="step-title">Proses Purchasing</h4>
+                                </div>
+                            )}
                             <div class={detailDis[0] === undefined ? 'step' : detailDis[0].status_form !== 26 && detailDis[0].status_form > 2 ? "step completed" : 'step'} >
                                 <div class="step-icon-wrap">
                                     <button class="step-icon" onClick={() => this.showCollap('Pengajuan')}><MdAssignment size={40} className="center" /></button>
@@ -616,13 +626,13 @@ class MonitoringDisposal extends Component {
                                                         <h4 class="step-title">Selesai</h4>
                                                     </div>
                                                 </div>
-                                            ) : this.state.tipeCol === 'Proses Tax and Finance' && (
+                                            ) : this.state.tipeCol === 'Proses Tax and Finance' ? (
                                                 <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
                                                     <div class={detailDis[0] === undefined ? 'step' : detailDis[0].status_form !== 26 && detailDis[0].status_form !== 9 && (detailDis[0].status_form > 6 || detailDis[0].status_form === 6) ? "step completed" : 'step'}>
                                                         <div class="step-icon-wrap">
-                                                        <button class="step-icon" ><FiSettings size={30} className="center2" /></button>
+                                                        <button class="step-icon" ><FiUpload size={30} className="center2" /></button>
                                                         </div>
-                                                        <h4 class="step-title">Proses Tax and Finance</h4>
+                                                        <h4 class="step-title">Upload Dokumen oleh Tax and Finance</h4>
                                                     </div>
                                                     <div class={detailDis[0] === undefined ? 'step' : detailDis[0].status_form !== 26 && detailDis[0].status_form !== 9 && detailDis[0].status_form > 7 ? "step completed" : 'step'}>
                                                         <div class="step-icon-wrap">
@@ -631,6 +641,21 @@ class MonitoringDisposal extends Component {
                                                         <h4 class="step-title">Check Dokumen Tax and Finance Oleh Asset</h4>
                                                     </div>
                                                     <div class={detailDis[0] === undefined ? 'step' : detailDis[0].status_form !== 26 && detailDis[0].status_form !== 9 && detailDis[0].status_form > 7 ? "step completed" : 'step'}>
+                                                        <div class="step-icon-wrap">
+                                                        <button class="step-icon" ><AiOutlineCheck size={30} className="center2" /></button>
+                                                        </div>
+                                                        <h4 class="step-title">Selesai</h4>
+                                                    </div>
+                                                </div>
+                                            ) : this.state.tipeCol === 'Purchasing' && (
+                                                <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
+                                                    <div class={detailDis[0] === undefined ? 'step' : detailDis[0].status_form === 26 || detailDis[0].status_form > 2 ? "step completed" : 'step'}>
+                                                        <div class="step-icon-wrap">
+                                                        <button class="step-icon" ><FiUpload size={30} className="center2" /></button>
+                                                        </div>
+                                                        <h4 class="step-title">Upload Dokumen oleh Purchasing</h4>
+                                                    </div>
+                                                    <div class={detailDis[0] === undefined ? 'step' : detailDis[0].status_form !== 26 && detailDis[0].status_form > 2 ? "step completed" : 'step'}>
                                                         <div class="step-icon-wrap">
                                                         <button class="step-icon" ><AiOutlineCheck size={30} className="center2" /></button>
                                                         </div>
