@@ -503,7 +503,6 @@ class Disposal extends Component {
                     }
                 }
             }
-            console.log(newDis)
             this.setState({view: val, newDis: newDis})
         } else {
             const newDis = []
