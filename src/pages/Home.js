@@ -3,7 +3,7 @@ import React, { Component } from 'react'
 import Sidebar from '../components/Sidebar'
 import auth from '../redux/actions/auth'
 import { Input, Button, Modal, ModalHeader, ModalBody, Alert, 
-    UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap'
+    UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem, Dropdown } from 'reactstrap'
 import {connect} from 'react-redux'
 import addPicture from '../assets/img/add.png'
 import disposPicture from '../assets/img/disposal.png'
@@ -20,6 +20,7 @@ import style from '../assets/css/input.module.css'
 import moment from 'moment'
 import {BsFillCircleFill, BsBell} from 'react-icons/bs'
 import { FaFileSignature } from 'react-icons/fa'
+import { FiLogOut } from 'react-icons/fi'
 
 const userEditSchema = Yup.object().shape({
     fullname: Yup.string().required('must be filled'),
@@ -31,7 +32,8 @@ class Home extends Component {
     state = {
         modalEdit: false,
         relog: false,
-        alert: false
+        alert: false,
+        setting: false
     }
 
     openModalEdit = () => {
@@ -46,6 +48,10 @@ class Home extends Component {
                 alert: false
             })
          }, 10000)
+    }
+
+    settingUser = () => {
+        this.setState({setting: !this.state.setting})
     }
 
     relogin = () => {
@@ -106,6 +112,11 @@ class Home extends Component {
         } else if (id === null) {
             this.relogin()
         }
+    }
+
+    logout = () => {
+        this.props.logout()
+        this.props.history.push('/login')
     }
 
     render() {
@@ -184,8 +195,21 @@ class Home extends Component {
                                     )}
                                 </DropdownMenu>
                             </UncontrolledDropdown>
-                            <VscAccount size={30} className="mr-2" />
-                            <text>{level === '1' ? 'Super Admin' : names}</text>
+                            <UncontrolledDropdown>
+                                <DropdownToggle nav>
+                                    <VscAccount size={30} className="mr-2 black" />
+                                    <text className="black">{level === '1' ? 'Super Admin' : names}</text>
+                                </DropdownToggle>
+                                <DropdownMenu right>
+                                    <DropdownItem>
+                                        Change Password
+                                    </DropdownItem>
+                                    <DropdownItem onClick={() => this.logout()}>
+                                        <FiLogOut size={15} />
+                                        <text className="txtMenu2">Logout</text>
+                                    </DropdownItem>
+                                </DropdownMenu>
+                            </UncontrolledDropdown>
                         </div>
                     </div>
                     <div>
@@ -282,8 +306,13 @@ class Home extends Component {
                     )}
                 </Formik>
             </Modal>
+            <Modal>
+                <ModalBody>
+                    
+                </ModalBody>
+            </Modal>
             <Modal isOpen={this.state.relog}>
-            <ModalBody>
+                <ModalBody>
                     <div className={style.modalApprove}>
                         <div className="relogin">
                             System membutuhkan anda untuk login ulang

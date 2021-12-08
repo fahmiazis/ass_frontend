@@ -256,7 +256,7 @@ export default (state=disposalState, action) => {
                     isError: true,
                     isLoading: false,
                     alertMsg: "Unable connect to server",
-                    alertM: action.payload.response.data.message
+                    alertM: action.payload.response.data === undefined ? 'unable connect to server': action.payload.response.data.message
                 };
             }
             case 'SUBMIT_DISPOSAL_PENDING': {
@@ -303,7 +303,7 @@ export default (state=disposalState, action) => {
                     isLoading: false,
                     rejApprove: true,
                     alertMsg: "Unable connect to server",
-                    alertM: action.payload.response.data.message
+                    alertM: action.payload.response.data === undefined ? 'unable connect to server': action.payload.response.data.message
                 };
             }
             case 'REJECT_DIS_PENDING': {
@@ -327,7 +327,7 @@ export default (state=disposalState, action) => {
                     rejReject: true,
                     isLoading: false,
                     alertMsg: "Unable connect to server",
-                    alertM: action.payload.response.data.message
+                    alertM: action.payload.response.data === undefined ? 'unable connect to server': action.payload.response.data.message
                 };
             }
             case 'GET_DOCDIS_PENDING': {
