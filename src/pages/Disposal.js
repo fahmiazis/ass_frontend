@@ -1484,9 +1484,9 @@ class Disposal extends Component {
                         ) : this.state.confirm === 'reject' ?(
                             <div>
                                 <div className={style.cekUpdate}>
-                                <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={[style.sucUpdate, style.green]}>Berhasil Reject Dokumen</div>
-                            </div>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Reject Dokumen</div>
+                                </div>
                             </div>
                         ) : this.state.confirm === 'rejApprove' ?(
                             <div>

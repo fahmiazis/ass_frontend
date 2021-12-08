@@ -39,6 +39,10 @@ export default {
         type: 'GET_ROLE',
         payload: http(token).get(`/user/role/get`)
     }),
+    changePassword: (token, data) => ({
+        type: 'CHANGE_PW',
+        payload: http(token).patch('/user/password', qs.stringify(data))
+    }),
     resetError: () => ({
         type: 'RESET'
     })

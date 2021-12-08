@@ -18,7 +18,8 @@ const userState = {
     alertUpload: [],
     page: {},
     isExport: false,
-    link: ''
+    link: '',
+    isChange: false
 };
 
 export default (state=userState, action) => {
@@ -236,13 +237,39 @@ export default (state=userState, action) => {
                     alertUpload: action.payload.response.data.result
                 };
             }
+            case 'CHANGE_PW_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'CHANGE_PW_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isChange: true,
+                    isError: false,
+                    alertMsg: 'change pw succesfully'
+                };
+            }
+            case 'CHANGE_PW_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isChange: false,
+                    isError: true,
+                    alertMsg: 'unable connect to server',
+                };
+            }
             case 'RESET': {
                 return {
                     ...state,
                     isError: false,
                     isUpload: false,
                     isExport: false,
-                    isUpdate: false
+                    isUpdate: false,
+                    isChange: false,
                 }
             }
             default: {

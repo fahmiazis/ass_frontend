@@ -13,9 +13,11 @@ import style from '../assets/css/input.module.css'
 import moment from 'moment'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
+import {AiOutlineClose} from 'react-icons/ai'
 
 const changeSchema = Yup.object().shape({
-    old_password: Yup.string().required('must be filled'),
+    current_password: Yup.string().required('must be filled'),
+    confirm_password: Yup.string().required('must be filled'),
     new_password: Yup.string().required('must be filled')
 });
 
@@ -25,7 +27,8 @@ class NavBar extends Component {
         modalEdit: false,
         relog: false,
         alert: false,
-        setting: false
+        setting: false,
+        modalConfirm: false
     }
 
     getNotif = async () => {
@@ -41,8 +44,33 @@ class NavBar extends Component {
          this.getNotif()
      }
 
+     editUser = async (val) => {
+        const token = localStorage.getItem("token")
+        const data = {
+            new: val.new_password,
+            current: val.current_password
+        }
+        await this.props.changePassword(token, data)
+     }
+
      openModalEdit = () => {
         this.setState({modalEdit: !this.state.modalEdit})
+    }
+
+    openConfirm = () => {
+        this.setState({modalConfirm: !this.state.modalConfirm})
+    }
+
+    componentDidUpdate() {
+        const {isChange, isError} = this.props.user
+        if (isChange) {
+            this.openModalEdit()
+            this.setState({relog: true})
+            this.props.reset()
+        } else if (isError) {
+            this.openConfirm()
+            this.props.reset()
+        }
     }
 
     render() {
@@ -132,11 +160,12 @@ class NavBar extends Component {
                 <ModalHeader>Change Password</ModalHeader>
                 <Formik
                 initialValues={{
-                old_password: '',
+                current_password: '',
+                confirm_password: '',
                 new_password: ''
                 }}
                 validationSchema={changeSchema}
-                onSubmit={(values) => {this.editUser(values, id)}}
+                onSubmit={(values) => {this.editUser(values)}}
                 >
                     {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
                 <ModalBody>
@@ -145,13 +174,30 @@ class NavBar extends Component {
                         <div>{alertM}</div>
                     </Alert> */}
                     <div className={style.addModalDepo}>
-                        <text className="col-md-3">
-                            New Password
+                        <text className="col-md-4">
+                            Current password
                         </text>
-                        <div className="col-md-9">
+                        <div className="col-md-8">
                             <Input 
-                            type="name" 
-                            name="old_password"
+                            type='password' 
+                            name="current_password"
+                            value={values.current_password}
+                            onBlur={handleBlur("current_password")}
+                            onChange={handleChange("current_password")}
+                            />
+                            {errors.current_password ? (
+                                <text className={style.txtError}>{errors.current_password}</text>
+                            ) : null}
+                        </div>
+                    </div>
+                    <div className={style.addModalDepo}>
+                        <text className="col-md-4">
+                            New password
+                        </text>
+                        <div className="col-md-8">
+                            <Input 
+                            type='password' 
+                            name="new_password"
                             value={values.new_password}
                             onBlur={handleBlur("new_password")}
                             onChange={handleChange("new_password")}
@@ -162,19 +208,19 @@ class NavBar extends Component {
                         </div>
                     </div>
                     <div className={style.addModalDepo}>
-                        <text className="col-md-3">
-                            Old Password
+                        <text className="col-md-4">
+                            Confirm password
                         </text>
-                        <div className="col-md-9">
+                        <div className="col-md-8">
                             <Input 
-                            type="name" 
-                            name="old_password"
-                            value={values.old_password}
-                            onBlur={handleBlur("old_password")}
-                            onChange={handleChange("old_password")}
+                            type='password' 
+                            name="confirm_password"
+                            value={values.confirm_password}
+                            onBlur={handleBlur("confirm_password")}
+                            onChange={handleChange("confirm_password")}
                             />
-                            {errors.old_password ? (
-                                <text className={style.txtError}>{errors.old_password}</text>
+                            {values.confirm_password !== values.new_password ? (
+                                <text className={style.txtError}>Password do not match</text>
                             ) : null}
                         </div>
                     </div>
@@ -189,6 +235,26 @@ class NavBar extends Component {
                 </ModalBody>
                     )}
                 </Formik>
+            </Modal>
+            <Modal isOpen={this.state.relog}>
+                <ModalBody>
+                    <div className={style.modalApprove}>
+                        <div className="relogin">
+                            System membutuhkan anda untuk login ulang
+                        </div>
+                        <div className={style.btnApprove}>
+                            <Button color="primary" onClick={this.logout}>Relogin</Button>
+                        </div>
+                    </div>
+                </ModalBody>
+            </Modal>
+            <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="sm">
+                <div>
+                    <div className={style.cekUpdate}>
+                        <AiOutlineClose size={80} className={style.red} />
+                        <div className={[style.sucUpdate, style.green]}>Failed Change Password</div>
+                    </div>
+                </div>
             </Modal>
             </>
         )
@@ -205,7 +271,8 @@ const mapDispatchToProps = {
     updateUser: user.updateUser,
     reset: user.resetError,
     logout: auth.logout,
-    getNotif: notif.getNotif
+    getNotif: notif.getNotif,
+    changePassword: user.changePassword
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(NavBar)
