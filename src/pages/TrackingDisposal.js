@@ -560,7 +560,7 @@ class MonitoringDisposal extends Component {
                                         <tbody>
                                             {detailDis.length !== 0 && detailDis.map(item => {
                                                 return (
-                                                    <tr onClick={() => this.openRinciAdmin(this.setState({dataRinci: item}))}>
+                                                    <tr>
                                                         <th scope="row">{detailDis.indexOf(item) + 1}</th>
                                                         <td>{item.no_asset}</td>
                                                         <td>{item.nama_asset}</td>
