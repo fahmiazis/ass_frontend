@@ -40,10 +40,6 @@ class NavBar extends Component {
         this.props.logout()
     }
 
-     componentDidMount() {
-         this.getNotif()
-     }
-
      editUser = async (val) => {
         const token = localStorage.getItem("token")
         const data = {
@@ -76,7 +72,7 @@ class NavBar extends Component {
     render() {
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
-        const dataNotif = this.props.notif.data
+        const dataNotif = this.props.dataNotif
         const id = localStorage.getItem('id')
         return (
             <>

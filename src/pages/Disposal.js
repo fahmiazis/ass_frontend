@@ -450,7 +450,6 @@ class Disposal extends Component {
         const search = value === undefined ? '' : this.state.search
         const limit = value === undefined ? this.state.limit : value.limit
         await this.props.getDisposal(token, limit, search, page.currentPage, 2)
-        await this.props.getNameApprove(token)
         this.changeView('available')
         this.setState({limit: value === undefined ? 10 : value.limit})
     }
@@ -486,6 +485,7 @@ class Disposal extends Component {
     changeView = (val) => {
         const { dataDis, noDis } = this.props.disposal
         const role = localStorage.getItem('role')
+        console.log(val)
         if (val === 'available') {
             const newDis = []
             for (let i = 0; i < noDis.length; i++) {
@@ -498,7 +498,7 @@ class Disposal extends Component {
                             newDis.push(dataDis[index])
                         }
                     } else {
-                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null) {
+                        if ((app.length === 0 && role === 'BM') || (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null)) {
                             newDis.push(dataDis[index])
                         }
                     }
@@ -545,7 +545,7 @@ class Disposal extends Component {
                     >
                     <FaBars size={20} className={style.white} />
                 </NavbarBrand>
-                <NavBar />
+                <NavBar dataNotif={dataNotif} />
             </div>
         )
 

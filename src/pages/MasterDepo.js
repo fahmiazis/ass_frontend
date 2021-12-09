@@ -29,9 +29,10 @@ const depoSchema = Yup.object().shape({
     profit_center: Yup.string().required('must be filled'),
     cost_center: Yup.string().required('must be filled'),
     kode_sap_1: Yup.string().required('must be filled'),
-    kode_sap_2: Yup.string().required('must be filled'),
-    nama_grom: Yup.string().required('must be filled'),
-    nama_rom: Yup.string().required('must be filled'),
+    kode_sap_2: Yup.string(),
+    nama_nom: Yup.string().required('must be filled'),
+    nama_om: Yup.string().required('must be filled'),
+    nama_bm: Yup.string().required('must be filled'),
     nama_aos: Yup.string(),
     nama_pic_1: Yup.string(),
     nama_pic_2: Yup.string(),
@@ -378,7 +379,7 @@ class MasterDepo extends Component {
                                                 <th>Cost Center</th>
                                                 <th>Kode SAP 1</th>
                                                 <th>Kode SAP 2</th>
-                                                <th>Nama GROM</th>
+                                                <th>Nama NOM</th>
                                                 <th>Nama OM</th>
                                                 <th>Nama BM</th>
                                                 <th>Nama AOS</th>
@@ -412,7 +413,7 @@ class MasterDepo extends Component {
                                                 <th>Cost Center</th>
                                                 <th>Kode SAP 1</th>
                                                 <th>Kode SAP 2</th>
-                                                <th>Nama GROM</th>
+                                                <th>Nama NOM</th>
                                                 <th>Nama OM</th>
                                                 <th>Nama BM</th>
                                                 <th>Nama AOS</th>
@@ -436,7 +437,7 @@ class MasterDepo extends Component {
                                                     <td>{item.cost_center}</td>
                                                     <td>{item.kode_sap_1}</td>
                                                     <td>{item.kode_sap_2}</td>
-                                                    <td>{item.nama_grom}</td>
+                                                    <td>{item.nama_nom}</td>
                                                     <td>{item.nama_om}</td>
                                                     <td>{item.nama_bm}</td>
                                                     <td>{item.nama_aos}</td>
@@ -797,22 +798,23 @@ class MasterDepo extends Component {
                     <ModalHeader toggle={this.openModalEdit}>Edit Master Depo</ModalHeader>
                     <Formik
                     initialValues={{
-                        nama_area: detail.nama_area,
-                        channel: detail.channel,
-                        distribution: detail.distribution,
-                        status_area: detail.status_area,
-                        profit_center: detail.profit_center,
-                        cost_center: detail.cost_center,
-                        kode_sap_1: detail.kode_sap_1,
-                        kode_sap_2: detail.kode_sap_2,
-                        kode_plant: detail.kode_plant,
-                        nama_grom: detail.nama_grom,
-                        nama_rom: detail.nama_rom,
-                        nama_aos: detail.nama_aos,
-                        nama_pic_1: detail.nama_pic_1,
-                        nama_pic_2: detail.nama_pic_2,
-                        nama_pic_3: detail.nama_pic_3,
-                        nama_pic_4: detail.nama_pic_4
+                        nama_area: detail.nama_area === null ? '' : detail.nama_area,
+                        channel: detail.channel === null ? '' : detail.channel,
+                        distribution: detail.distribution === null ? '' : detail.distribution,
+                        status_area: detail.status_area === null ? '' : detail.status_area,
+                        profit_center: detail.profit_center === null ? '' : detail.profit_center,
+                        cost_center: detail.cost_center === null ? '' : detail.cost_center,
+                        kode_sap_1: detail.kode_sap_1 === null ? '' : detail.kode_sap_1,
+                        kode_sap_2: detail.kode_sap_2 === null ? '' : detail.kode_sap_2,
+                        kode_plant: detail.kode_plant === null ? '' : detail.kode_plant,
+                        nama_nom: detail.nama_nom === null ? '' : detail.nama_nom,
+                        nama_om: detail.nama_om === null ? '' : detail.nama_om,
+                        nama_bm: detail.nama_bm === null ? '' : detail.nama_bm,
+                        nama_aos: detail.nama_aos === null ? '' : detail.nama_aos,
+                        nama_pic_1: detail.nama_pic_1 === null ? '' : detail.nama_pic_1,
+                        nama_pic_2: detail.nama_pic_2 === null ? '' : detail.nama_pic_2,
+                        nama_pic_3: detail.nama_pic_3 === null ? '' : detail.nama_pic_3,
+                        nama_pic_4: detail.nama_pic_4 === null ? '' : detail.nama_pic_4
                     }}
                     validationSchema={depoSchema}
                     onSubmit={(values) => {this.editDepo(values, detail.id)}}
@@ -992,18 +994,18 @@ class MasterDepo extends Component {
                         <div className="col-md-6">
                             <div className={style.addModalDepo}>
                                 <text className="col-md-4">
-                                    Nama GROM
+                                    Nama NOM
                                 </text>
                                 <div className="col-md-8">
                                 <Input 
                                 type="name" 
                                 name="nama_spv"
-                                value={values.nama_grom}
-                                onBlur={handleBlur("nama_grom")}
-                                onChange={handleChange("nama_grom")}
+                                value={values.nama_nom}
+                                onBlur={handleBlur("nama_nom")}
+                                onChange={handleChange("nama_nom")}
                                 />
-                                   {errors.nama_grom ? (
-                                        <text className={style.txtError}>{errors.nama_grom}</text>
+                                   {errors.nama_nom ? (
+                                        <text className={style.txtError}>{errors.nama_nom}</text>
                                     ) : null}
                                 </div>    
                             </div>
@@ -1015,12 +1017,29 @@ class MasterDepo extends Component {
                                 <Input 
                                 type="name" 
                                 name="nama_spv"
-                                value={values.nama_rom}
-                                onBlur={handleBlur("nama_rom")}
-                                onChange={handleChange("nama_rom")}
+                                value={values.nama_om}
+                                onBlur={handleBlur("nama_om")}
+                                onChange={handleChange("nama_om")}
                                 />
-                                    {errors.nama_rom ? (
-                                        <text className={style.txtError}>{errors.nama_rom}</text>
+                                    {errors.nama_om ? (
+                                        <text className={style.txtError}>{errors.nama_om}</text>
+                                    ) : null}
+                                </div>    
+                            </div>
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-4">
+                                    Nama BM
+                                </text>
+                                <div className="col-md-8">
+                                <Input 
+                                type="name" 
+                                name="nama_bm"
+                                value={values.nama_bm}
+                                onBlur={handleBlur("nama_bm")}
+                                onChange={handleChange("nama_bm")}
+                                />
+                                    {errors.nama_bm ? (
+                                        <text className={style.txtError}>{errors.nama_bm}</text>
                                     ) : null}
                                 </div>    
                             </div>
