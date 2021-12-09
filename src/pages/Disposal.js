@@ -594,14 +594,14 @@ class Disposal extends Component {
                                         <div className="mt-5">
                                             <Button onClick={this.getSubmitDisposal} color="info" size="lg" className="btnGoCart mb-4">Submit</Button>
                                             <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
-                                                <option value="not available">All</option>
+                                                <option value="not available">Not Available To Approve</option>
                                                 <option value="available">Available To Approve</option>
                                             </Input>
                                         </div>
                                     ) : (
                                         <div className="mt-3">
                                             <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
-                                                <option value="not available">All</option>
+                                                <option value="not available">Not Available To Approve</option>
                                                 <option value="available">Available To Approve</option>
                                             </Input>
                                         </div>
