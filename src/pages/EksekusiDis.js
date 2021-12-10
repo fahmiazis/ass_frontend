@@ -101,8 +101,11 @@ class EksekusiDisposal extends Component {
          }, 5000)
     }
 
-    goReport = () => {
-        this.props.history.push('/report')
+    goReport = (val) => {
+        this.props.history.push({
+            pathname: '/report',
+            state: val
+        })
     }
 
     showDokumen = async (value) => {
@@ -565,7 +568,7 @@ class EksekusiDisposal extends Component {
                 <ModalBody>
                     <div className="mainRinci">
                         <div className="leftRinci">
-                            <Button color="success" onClick={this.goReport}>Show Report</Button>
+                            <Button color="success" onClick={() => this.goReport(dataRinci.no_asset)}>Show Report</Button>
                             <img src={dataRinci.no_asset === '4100000150' ? b : dataRinci.no_asset === '4300001770' ? e : placeholder} className="imgRinci" />
                             <div className="secImgSmall">
                                 <button className="btnSmallImg">
