@@ -765,18 +765,18 @@ class Disposal extends Component {
                                         {level === '5' ? (
                                             <text>Showing {page === undefined ? 1 : page.currentPage} of {page.pages === undefined ? 1 : page.pages} pages</text>
                                         ) : (
-                                            <text>Showing {pages === undefined ? 1 : pages.currentPage} of {pages === undefined ? 1 : pages.pages} pages</text>
+                                            <text>Showing 1 of 1 pages</text>
                                         )}
                                         <div className={style.pageButton}>
                                             {level === '5' ? (
                                                 <button className={style.btnPrev} color="info" disabled={page.prevLink === undefined || page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
                                             ) : (
-                                                <button className={style.btnPrev} color="info" disabled={pages.prevLink === undefined || pages.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
+                                                <button className={style.btnPrev} color="info" disabled>Prev</button>
                                             )}
                                             {level === '5' ? (
                                                 <button className={style.btnPrev} color="info" disabled={page.nextLink === undefined || page.nextLink === null ? true : false} onClick={this.next}>Next</button>
                                             ) : (
-                                                <button className={style.btnPrev} color="info" disabled={pages.nextLink === undefined || pages.nextLink === null  ? true : false} onClick={this.next}>Next</button>
+                                                <button className={style.btnPrev} color="info" disabled>Next</button>
                                             )}
                                         </div>
                                     </div>
