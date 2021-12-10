@@ -14,6 +14,7 @@ import stock from './stock'
 import mutasi from './mutasi'
 import notif from './notif'
 import tracking from './tracking'
+import report from './report'
 
 export default combineReducers({
   pengadaan,
@@ -29,5 +30,6 @@ export default combineReducers({
   stock,
   mutasi,
   notif,
-  tracking
+  tracking,
+  report
 })

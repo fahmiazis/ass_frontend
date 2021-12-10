@@ -1,16 +1,16 @@
+/* eslint-disable default-case */
 /* eslint-disable import/no-anonymous-default-export */
-const trackingState = {
+const reportState = {
     isGet: false,
     isLoading: false,
     isError: false,
     alertMsg: '',
-    dataDis: [],
-    noDis: [],
-}
+    dataRep: [],
+};
 
-export default (state=trackingState, action) => {
+export default (state=reportState, action) => {
     switch(action.type){
-        case 'GET_TRACK_PENDING': {
+        case 'GET_REPORTDIS_PENDING': {
             return {
                 ...state,
                 isGet: false,
@@ -18,21 +18,20 @@ export default (state=trackingState, action) => {
                 alertMsg: 'Waiting ...'
             };
         }
-        case 'GET_TRACK_FULFILLED': {
-            return {
-                ...state,
-                isGet: true,
-                dataDis: action.payload.data.result.rows,
-                noDis: action.payload.data.noDis,
-                alertMsg: 'get data tracking Succesfully'
-            };
-        }
-        case 'GET_TRACK_REJECTED': {
+        case 'GET_REPORTDIS_FULFILLED': {
             return {
                 ...state,
                 isLoading: false,
-                isGet: false,
+                isGet: true,
+                dataRep: action.payload.data.result.rows,
+                alertMsg: 'get disposal Succesfully',
+            };
+        }
+        case 'GET_REPORTDIS_REJECTED': {
+            return {
+                ...state,
                 isError: true,
+                isLoading: false,
                 alertMsg: "Unable connect to server"
             };
         }

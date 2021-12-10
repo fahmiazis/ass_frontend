@@ -6,6 +6,7 @@ import style from '../assets/css/input.module.css'
 import {FaSearch, FaUserCircle, FaBars} from 'react-icons/fa'
 import {AiFillCheckCircle, AiOutlineFileExcel} from 'react-icons/ai'
 import depo from '../redux/actions/depo'
+import report from '../redux/actions/report'
 import disposal from '../redux/actions/disposal'
 import user from '../redux/actions/user'
 import moment from 'moment'
@@ -214,13 +215,13 @@ class MasterUser extends Component {
     }
 
     componentDidMount() {
-        this.getDataDisposal()
+        this.getDataReportDisposal()
     }
 
-    getDataDisposal = async () => {
+    getDataReportDisposal = async () => {
         const token = localStorage.getItem("token")
         const search = this.props.location.state === undefined ? '' : this.props.location.state
-        await this.props.getDisposal(token, 1, search, 1, 7)
+        await this.props.getReportDis(token, 1, search, 1)
     }
 
     menuButtonClick(ev) {
@@ -235,7 +236,7 @@ class MasterUser extends Component {
     render() {
         const {isOpen, dropOpen, dropOpenNum, detail, level, upload, errMsg} = this.state
         const {dataUser, isGet, alertM, alertMsg, alertUpload, page, dataRole} = this.props.user
-        const { dataDis, noDis } = this.props.disposal
+        const { dataRep } = this.props.report
         const { dataDepo } = this.props.depo
         const levels = localStorage.getItem('level')
         const names = localStorage.getItem('name')
@@ -319,7 +320,7 @@ class MasterUser extends Component {
                                     <div>
                                     </div>
                                 </div>
-                                {dataDis.length === 0 ? (
+                                {dataRep.length === 0 ? (
                                     <div className={style.tableDashboard}>
                                     <Table bordered responsive hover className={style.tab}>
                                         <thead>
@@ -397,7 +398,7 @@ class MasterUser extends Component {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                        {dataDis.length !== 0 && dataDis.map(item => {
+                                        {dataRep.length !== 0 && dataRep.map(item => {
                                                 return (
                                                 <tr>
                                                     <th scope="row">1</th>
@@ -801,7 +802,8 @@ class MasterUser extends Component {
 const mapStateToProps = state => ({
     user: state.user,
     depo: state.depo,
-    disposal: state.disposal
+    disposal: state.disposal,
+    report: state.report
 })
 
 const mapDispatchToProps = {
@@ -816,6 +818,7 @@ const mapDispatchToProps = {
     exportMaster: user.exportMaster,
     getRole: user.getRole,
     getDisposal: disposal.getDisposal,
+    getReportDis: report.getReportDisposal
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(MasterUser)
