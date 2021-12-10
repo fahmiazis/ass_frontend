@@ -326,6 +326,13 @@ class TaxFinDisposal extends Component {
         this.getDataDisposal()
     }
 
+    goReport = (val) => {
+        this.props.history.push({
+            pathname: '/report',
+            state: val
+        })
+    }
+
     componentDidUpdate() {
         const {isError, isUpload, isSubmit} = this.props.disposal
         const error = this.props.setuju.isError
@@ -998,7 +1005,8 @@ class TaxFinDisposal extends Component {
                                         <Button className="btnFootRinci3" size="md" color="danger" outline onClick={() => this.pengajuanDisposal(dataRinci.no_disposal)}>Form Pengajuan</Button>
                                         <Button className="btnFootRinci3" size="md" color="info" outline onClick={() => this.persetujuanDisposal(dataRinci.status_app)}>Form Persetujuan</Button>
                                         <Button className="btnFootRinci3" size="md" color="primary" outline onClick={() => this.openDocEksekusi()}>Doc Eksekusi</Button>
-                                        <Button className="btnFootRinci3 mb-5" size="md" color="success" outline onClick={() => this.openProsesDocPeng()}>Doc Pengajuan</Button>
+                                        <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocPeng()}>Doc Pengajuan</Button>
+                                        <Button className="btnFootRinci3 mb-5" size="md" color="danger" outline onClick={() => this.goReport(dataRinci.no_asset)}>Show Report</Button>
                                     </Row>
                                 ) : (
                                     <Row className="footRinci1 ml-2">
