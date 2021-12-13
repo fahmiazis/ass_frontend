@@ -13,7 +13,7 @@ export default {
     }),
     getApproveSetDisposal: (token, no, nama) => ({
         type: 'GET_APPSET',
-        payload: http(token).get(`/disposal/setuju/approve/${no}/${nama}`)
+        payload: http(token).get(`/disposal/setuju/approve/${no}?nama=${nama}`)
     }),
     approveSetDisposal: (token, no) => ({
         type: 'APPROVE_SETDIS',

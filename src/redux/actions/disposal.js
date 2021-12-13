@@ -41,7 +41,7 @@ export default {
     }),
     getApproveDisposal: (token, no, nama) => ({
         type: 'GET_APPDIS',
-        payload: http(token).get(`/disposal/approve/${no}/${nama}`)
+        payload: http(token).get(`/disposal/approve/${no}?nama=${nama}`)
     }),
     approveDisposal: (token, no) => ({
         type: 'APPROVE_DIS',
