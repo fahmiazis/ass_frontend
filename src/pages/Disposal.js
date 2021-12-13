@@ -440,7 +440,7 @@ class Disposal extends Component {
         const { page } = this.props.asset
         const search = value === undefined ? '' : this.state.search
         const limit = value === undefined ? this.state.limit : value.limit
-        await this.props.getAsset(token, limit, search, page.currentPage, 'disposal')
+        await this.props.getAsset(token, limit, search, page === undefined || page.currentPage === undefined ? 1 : page.currentPage, 'disposal')
         this.setState({limit: value === undefined ? 12 : value.limit})
     }
 
@@ -449,7 +449,7 @@ class Disposal extends Component {
         const { page } = this.props.disposal
         const search = value === undefined ? '' : this.state.search
         const limit = value === undefined ? this.state.limit : value.limit
-        await this.props.getDisposal(token, limit, search, page.currentPage, 2)
+        await this.props.getDisposal(token, limit, search, page === undefined || page.currentPage === undefined ? 1 : page.currentPage, 2)
         this.changeView('available')
         this.setState({limit: value === undefined ? 10 : value.limit})
     }

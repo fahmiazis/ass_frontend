@@ -568,7 +568,6 @@ class EksekusiDisposal extends Component {
                 <ModalBody>
                     <div className="mainRinci">
                         <div className="leftRinci">
-                            <Button color="success" onClick={() => this.goReport(dataRinci.no_asset)}>Show Report</Button>
                             <img src={dataRinci.no_asset === '4100000150' ? b : dataRinci.no_asset === '4300001770' ? e : placeholder} className="imgRinci" />
                             <div className="secImgSmall">
                                 <button className="btnSmallImg">
@@ -707,6 +706,7 @@ class EksekusiDisposal extends Component {
                                         <Button className="btnFootRinci3" size="md" color="danger" outline onClick={() => this.pengajuanDisposal(dataRinci.no_disposal)}>Form Pengajuan</Button>
                                         <Button className="btnFootRinci3" size="md" color="info" outline onClick={() => this.persetujuanDisposal(dataRinci.status_app)}>Form Persetujuan</Button>
                                         <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocPeng()}>Doc Pengajuan</Button>
+                                        <Button className="btnFootRinci3 mb-5" size="md" color="danger" outline onClick={() => this.goReport(dataRinci.no_asset)}>Show Report</Button>
                                         <Button className="btnFootRinci3 mb-5" size="md" color="secondary" outline onClick={() => this.openModalRinci()}>Close</Button>
                                     </Row>
                             </div>

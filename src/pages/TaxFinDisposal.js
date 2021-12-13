@@ -1007,6 +1007,7 @@ class TaxFinDisposal extends Component {
                                         <Button className="btnFootRinci3" size="md" color="primary" outline onClick={() => this.openDocEksekusi()}>Doc Eksekusi</Button>
                                         <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocPeng()}>Doc Pengajuan</Button>
                                         <Button className="btnFootRinci3 mb-5" size="md" color="danger" outline onClick={() => this.goReport(dataRinci.no_asset)}>Show Report</Button>
+                                        <Button className="btnFootRinci3 mb-5" size="md" color="secondary" outline onClick={() => this.openModalRinci()}>Close</Button>
                                     </Row>
                                 ) : (
                                     <Row className="footRinci1 ml-2">
