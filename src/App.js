@@ -36,6 +36,9 @@ import EditEksekusi from './pages/EditEksekusi'
 import TrackingDisposal from './pages/TrackingDisposal'
 import EditTaxFin from './pages/EditTaxFin'
 import TablePdf from './components/Table'
+import TerimaMutasi from './pages/TerimaMutasi'
+import TrackingMutasi from './pages/TrackingMutasi'
+import NavMut from './pages/NavMut'
 
 class App extends Component {
 
@@ -110,8 +113,17 @@ class App extends Component {
                 <PrivateRoute path='/purchdis'>
                     <PurchDisposal />
                 </PrivateRoute>
+                <PrivateRoute path='/navmut'>
+                    <NavMut />
+                </PrivateRoute>
                 <PrivateRoute path='/mutasi'>
                     <Mutasi />
+                </PrivateRoute>
+                <PrivateRoute path='/termut'>
+                    <TerimaMutasi />
+                </PrivateRoute>
+                <PrivateRoute path='/trackmut'>
+                    <TrackingMutasi />
                 </PrivateRoute>
                 <PrivateRoute path='/cartmut'>
                     <CartMutasi />

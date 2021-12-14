@@ -75,7 +75,7 @@ export default (state=setujuState, action) => {
                     isLoading: false,
                     isSubmitEks: false,
                     isError: true,
-                    alertM: action.payload.response.data === undefined ? 'unable connect to server': action.payload.response.data.message,
+                    alertM: action.payload.response === undefined || action.payload.response.data === undefined ? 'unable connect to server': action.payload.response.data.message,
                     alertMsg: "Unable connect to server"
                 };
             }
@@ -128,7 +128,7 @@ export default (state=setujuState, action) => {
                     isLoading: false,
                     isSubmitFinal: false,
                     isError: true,
-                    alertM: action.payload.response.data === undefined ? 'unable connect to server': action.payload.response.data.message,
+                    alertM: action.payload.response === undefined || action.payload.response.data === undefined ? 'unable connect to server': action.payload.response.data.message,
                     alertMsg: "Unable connect to server"
                 };
             }
@@ -156,7 +156,7 @@ export default (state=setujuState, action) => {
                     isSubmitPurch: false,
                     isError: true,
                     alertMsg: "Unable connect to server",
-                    alertM: action.payload.response.data === undefined ? 'unable connect to server': action.payload.response.data.message
+                    alertM: action.payload.response === undefined || action.payload.response.data === undefined ? 'unable connect to server': action.payload.response.data.message
                 };
             }
             case 'GET_SETDIS_PENDING': {
@@ -230,7 +230,7 @@ export default (state=setujuState, action) => {
                     isLoading: false,
                     errorApp: true,
                     alertMsg: "Unable connect to server",
-                    alertM: action.payload.response.data === undefined ? 'unable connect to server': action.payload.response.data.message
+                    alertM: action.payload.response === undefined || action.payload.response.data === undefined ? 'unable connect to server': action.payload.response.data.message
                 };
             }
             case 'REJECT_SETDIS_PENDING': {
@@ -254,7 +254,7 @@ export default (state=setujuState, action) => {
                     isLoading: false,
                     errorRej: true,
                     alertMsg: "Unable connect to server",
-                    alertM: action.payload.response.data === undefined ? 'unable connect to server': action.payload.response.data.message
+                    alertM: action.payload.response === undefined || action.payload.response.data === undefined ? 'unable connect to server': action.payload.response.data.message
                 };
             }
             case 'SUBMIT_EDIT_TAXFIN_PENDING': {

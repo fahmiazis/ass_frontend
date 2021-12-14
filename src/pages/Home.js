@@ -234,7 +234,7 @@ class Home extends Component {
                                     Stock Opname Asset
                                 </div>
                             </button>
-                            <button className="cardHome1" onClick={() => this.goRoute('mutasi')}>
+                            <button className="cardHome1" onClick={() => this.goRoute('navmut')}>
                                 <img src={mutasiPicture} className="picHome" />
                                 <div className="titCard mt-4">
                                     Mutasi
