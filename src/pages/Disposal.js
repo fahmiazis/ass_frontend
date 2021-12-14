@@ -497,8 +497,12 @@ class Disposal extends Component {
                         if (app[find] !== undefined && app[find + 1].status === 1) {
                             newDis.push(dataDis[index])
                         }
+                    } else if (role === 'BM') {
+                        if ((app.length === 0 || app[0].status === null) || (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null)) {
+                            newDis.push(dataDis[index])
+                        }
                     } else {
-                        if ((app.length === 0 && role === 'BM') || (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null)) {
+                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null) {
                             newDis.push(dataDis[index])
                         }
                     }
