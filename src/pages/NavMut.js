@@ -39,21 +39,31 @@ export default class NavMut extends Component {
                                     Pengajuan mutasi
                                 </div>
                             </button>
-                            <button className="cardNav1" onClick={() => this.goRoute('termut')}>
-                                <div className="titCard">
-                                    Terima mutasi
-                                </div>
-                            </button>
-                            <button className="cardNav1" onClick={() => this.goRoute('trackmut')}>
-                                <div className="titCard">
-                                    Tracking mutasi
-                                </div>
-                            </button>
-                            <button className="cardNav1" onClick={() => this.goRoute('report')}>
-                                <div className="titCard">
-                                    Report mutasi
-                                </div>
-                            </button>
+                            {level === '5' ? (
+                                <>
+                                    <button className="cardNav1" onClick={() => this.goRoute('termut')}>
+                                        <div className="titCard">
+                                            Terima mutasi
+                                        </div>
+                                    </button>
+                                    <button className="cardNav1" onClick={() => this.goRoute('trackmut')}>
+                                        <div className="titCard">
+                                            Tracking mutasi
+                                        </div>
+                                    </button>
+                                </>
+                            ) : (
+                                <div></div>
+                            )}
+                            {level === '2' ? (
+                                <button className="cardNav1" onClick={() => this.goRoute('report')}>
+                                    <div className="titCard">
+                                        Report mutasi
+                                    </div>
+                                </button>
+                            ) : (
+                                <div></div>
+                            )}                            
                         </div>
                     </div>
                 </div>

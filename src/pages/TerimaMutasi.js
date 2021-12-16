@@ -120,11 +120,7 @@ class Mutasi extends Component {
 
     componentDidMount() {
         const level = localStorage.getItem('level')
-        if (level === "5" ) {
-            this.getDataAsset()
-        } else {
-            this.getDataMutasi()
-        }
+        this.getDataMutasiRec()
     }
 
     componentDidUpdate() {
@@ -218,14 +214,6 @@ class Mutasi extends Component {
     }
 
     changeView = async (val) => {
-        if (val === 'terima') {
-            this.getDataMutasiRec()
-        } else if (val === 'pengajuan') {
-            this.getDataAsset()
-        } else {
-            console.log('proses')
-        }
-        this.setState({view: val})
     }
 
     chooseDepo = (e) => {
@@ -326,17 +314,11 @@ class Mutasi extends Component {
                                     </div>
                                     <div className={style.secEmail}>
                                     {level === '5' ? (
-                                        <div>
-                                            <div className={style.headEmail}>
-                                                <button onClick={this.goCartMut} className="btnGoCart"><FaCartPlus size={60} className="green ml-2" /></button>
-                                            </div>
-                                            <div className="mt-3">
-                                                <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
-                                                    <option value="pengajuan">Pengajuan Mutasi</option>
-                                                    <option value="terima">Terima Mutasi</option>
-                                                    <option value="proses">Proses Mutasi</option>
-                                                </Input>
-                                            </div>
+                                        <div className={style.headEmail}>
+                                            <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
+                                                <option value="available">Available To Approve</option>
+                                                <option value="not available">Not Available To Approve</option>
+                                            </Input>
                                         </div>
                                     ) : (
                                         <div className={style.headEmail}>
@@ -355,117 +337,9 @@ class Mutasi extends Component {
                                     </div>
                                 </div>
                                 {level === '5' ? (
-                                    this.props.asset.isGet === false ? (
-                                        <div></div>
-                                    ) : (
-                                        this.state.view === 'pengajuan' ? (
-                                            <Row className="bodyDispos">
-                                            {dataAsset.length !== 0 && dataAsset.map(item => {
-                                                return (
-                                                    <div className="bodyCard">
-                                                        <button className="btnDispos" disabled={item.status === '1' ? true : false}>
-                                                            <img src={item.pict.length > 0 ? `${REACT_APP_BACKEND_URL}/${item.pict[0].path}` : placeholder} className="imgCard" />
-                                                            <div className="txtDoc mb-2">
-                                                                {item.nama_asset}
-                                                            </div>
-                                                            <Row className="mb-2">
-                                                                <Col md={4} className="txtDoc">No Asset</Col>
-                                                                <Col md={8} className="txtDoc">: {item.no_asset}</Col>
-                                                            </Row>
-                                                            <Row className="mb-2">
-                                                                <Col md={4} className="txtDoc">Nilai Buku</Col>
-                                                                <Col md={8} className="txtDoc">: {item.nilai_buku}</Col>
-                                                            </Row>
-                                                            <Row className="mb-2">
-                                                                <Col md={4} className="txtDoc">Kategori</Col>
-                                                                <Col md={8} className="txtDoc">: {item.kategori}</Col>
-                                                            </Row>
-                                                        </button>
-                                                        {item.status === '1' ? (
-                                                            <Row className="footCard">
-                                                                <Col md={12} xl={12}>
-                                                                    <Button disabled className="btnSell" color="secondary">On Proses Disposal</Button>
-                                                                </Col>
-                                                            </Row>
-                                                        ) : item.status === '11' ? (
-                                                            <Row className="footCard">
-                                                                <Col md={12} xl={12}>
-                                                                    <Button disabled className="btnSell" color="secondary">On Proses Mutasi</Button>
-                                                                </Col>
-                                                            </Row>
-                                                        ) : (
-                                                            <Row className="footCard">
-                                                                <Col md={12} xl={12}>
-                                                                    <Button className="btnSell" color="primary" onClick={() => this.openRinciAdmin(this.setState({dataRinci: item, kode: '', img: item.pict.length > 0 ? item.pict[0].path : ''}))}>Mutasi</Button>
-                                                                </Col>
-                                                            </Row>
-                                                        )}
-                                                    </div>
-                                                )
-                                            })}
-                                        </Row>
-                                        ) : this.state.view === 'terima' ? (
-                                            <Row className="bodyDispos">
-                                                {noMut.length !== 0 && noMut.map(x => {
-                                                    return (
-                                                        <div className="bodyCard">
-                                                            <img src={placeholder} className="imgCard" />
-                                                            <Button size="sm" color="danger" className="labelBut">Mutasi</Button>
-                                                            <div className="ml-2">
-                                                                <div className="txtDoc mb-2">
-                                                                    Terima Mutasi Aset
-                                                                </div>
-                                                                <Row className="mb-2">
-                                                                    <Col md={6} className="txtDoc">
-                                                                    Kode Plant
-                                                                    </Col>
-                                                                    <Col md={6} className="txtDoc">
-                                                                    : {dataMut.find(({no_mutasi}) => no_mutasi === x).kode_plant}
-                                                                    </Col>
-                                                                </Row>
-                                                                <Row className="mb-2">
-                                                                    <Col md={6} className="txtDoc">
-                                                                    Area asal
-                                                                    </Col>
-                                                                    <Col md={6} className="txtDoc">
-                                                                    : {dataMut.find(({no_mutasi}) => no_mutasi === x).area}
-                                                                    </Col>
-                                                                </Row>
-                                                                <Row className="mb-2">
-                                                                    <Col md={6} className="txtDoc">
-                                                                    Area tujuan
-                                                                    </Col>
-                                                                    <Col md={6} className="txtDoc">
-                                                                    : {dataMut.find(({no_mutasi}) => no_mutasi === x).area_rec}
-                                                                    </Col>
-                                                                </Row>
-                                                                <Row className="mb-2">
-                                                                    <Col md={6} className="txtDoc">
-                                                                    No Mutasi
-                                                                    </Col>
-                                                                    <Col md={6} className="txtDoc">
-                                                                    : {dataMut.find(({no_mutasi}) => no_mutasi === x).no_mutasi}
-                                                                    </Col>
-                                                                </Row>
-                                                            </div>
-                                                            <Row className="footCard mb-3 mt-3">
-                                                                <Col md={12} xl={12}>
-                                                                    <Button className="btnSell" color="primary" onClick={() => this.openDetailMut(dataMut.find(({no_mutasi}) => no_mutasi === x).no_mutasi)}>Proses</Button>
-                                                                </Col>
-                                                            </Row>
-                                                        </div>
-                                                    )
-                                                })}
-                                            </Row>
-                                        ) : (
-                                            <Row className="bodyDispos">
-                                            </Row>
-                                        )
-                                    )
-                                ) : (
                                     noMut === undefined ? (
                                         <div></div>
-                                    ) : (
+                                    ) : ( 
                                         <Row className="bodyDispos">
                                         {noMut.length !== 0 && noMut.map(x => {
                                             return (
@@ -474,16 +348,8 @@ class Mutasi extends Component {
                                                     <Button size="sm" color="danger" className="labelBut">Mutasi</Button>
                                                     <div className="ml-2">
                                                         <div className="txtDoc mb-2">
-                                                            Pengajuan Mutasi Aset
+                                                            Terima Mutasi Aset
                                                         </div>
-                                                        <Row className="mb-2">
-                                                            <Col md={6} className="txtDoc">
-                                                            Kode Plant
-                                                            </Col>
-                                                            <Col md={6} className="txtDoc">
-                                                            : {dataMut.find(({no_mutasi}) => no_mutasi === x).kode_plant}
-                                                            </Col>
-                                                        </Row>
                                                         <Row className="mb-2">
                                                             <Col md={6} className="txtDoc">
                                                             Area asal
@@ -508,7 +374,7 @@ class Mutasi extends Component {
                                                             : {dataMut.find(({no_mutasi}) => no_mutasi === x).no_mutasi}
                                                             </Col>
                                                         </Row>
-                                                        {/* <Row className="mb-2">
+                                                        <Row className="mb-2">
                                                             <Col md={6} className="txtDoc">
                                                             Status Approval
                                                             </Col>
@@ -525,8 +391,7 @@ class Mutasi extends Component {
                                                                 : -
                                                                 </Col>
                                                             )}
-                                                            
-                                                        </Row> */}
+                                                        </Row>
                                                     </div>
                                                     <Row className="footCard mb-3 mt-3">
                                                         <Col md={12} xl={12}>
@@ -538,6 +403,8 @@ class Mutasi extends Component {
                                         })}
                                         </Row>
                                     )
+                                ) : (
+                                    <div></div>
                                 )}
                                 <div>
                                     <div className={style.infoPageEmail}>

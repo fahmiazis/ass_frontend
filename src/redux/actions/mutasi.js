@@ -45,5 +45,8 @@ export default {
     }),
     resetAddMut: () => ({
         type: 'RESET_ADD_MUT'
+    }),
+    resetAppRej: () => ({
+        type: 'RESET_APPREJMUT'
     })
 }

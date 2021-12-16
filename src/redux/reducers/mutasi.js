@@ -22,7 +22,9 @@ const mutasiState = {
     page: {},
     noMut: [],
     dataDoc: [],
-    errorAdd: false
+    errorAdd: false,
+    rejReject: false,
+    rejApprove: false
 };
 
 export default (state=mutasiState, action) => {
@@ -252,6 +254,15 @@ export default (state=mutasiState, action) => {
                     ...state,
                     errorAdd: false
                 };
+            }
+            case 'RESET_APPREJMUT': {
+                return {
+                    ...state,
+                    isApprove: false,
+                    rejApprove: false,
+                    isReject: false,
+                    rejReject: false
+                }
             }
             default: {
                 return state;

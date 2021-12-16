@@ -157,7 +157,7 @@ class CartMutasi extends Component {
                                                                 <div className="nameCart">{item.nama_asset}</div>
                                                                 <div className="noCart">No asset {item.no_asset}</div>
                                                             </div>
-                                                            <Button color="primary" onClick={() => this.prosesRinci(this.setState({dataRinci: item, img: item.pict[item.pict.length - 1].path}))}>Rincian</Button>
+                                                            <Button color="primary" onClick={() => this.prosesRinci(this.setState({dataRinci: item, img: item.pict.length > 0 ? item.pict[item.pict.length - 1].path : ''}))}>Rincian</Button>
                                                         </div>
                                                     </div>
                                                     <div className="footCart">
