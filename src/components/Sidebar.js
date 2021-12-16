@@ -28,7 +28,7 @@ function Sidebar(props) {
     }
 
     function goDisposal() {
-        history.push('/disposal')
+        history.push('/navdis')
     }
 
     function goAsset() {

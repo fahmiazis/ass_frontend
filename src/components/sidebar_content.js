@@ -86,7 +86,7 @@ const SidebarContent = props => {
         <FaCartPlus size={20} className="mr-2" />
         <text className={stile.txtSide}>Pengadaan Asset</text>
       </button>
-      <button className={stile.btnSide} onClick={() => goHome('disposal')}>
+      <button className={stile.btnSide} onClick={() => goHome('navdis')}>
           <FaRecycle size={20} className="mr-2" />
           <text className={stile.txtSide}>Disposal Asset</text>
       </button>
