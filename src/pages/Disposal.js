@@ -514,17 +514,7 @@ class Disposal extends Component {
             for (let i = 0; i < noDis.length; i++) {
                 const index = dataDis.indexOf(dataDis.find(({no_disposal}) => no_disposal === noDis[i]))
                 if (dataDis[index] !== undefined) {
-                    const app = dataDis[index].appForm
-                    const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
-                    if (role === 'CM') {
-                        if (app[find] !== undefined && app[find + 1].status !== 1) {
-                            newDis.push(dataDis[index])
-                        }
-                    } else {
-                        if (app[find] !== undefined) {
-                            newDis.push(dataDis[index])
-                        }
-                    }
+                    newDis.push(dataDis[index])
                 }
             }
             this.setState({view: val, newDis: newDis})
@@ -598,14 +588,14 @@ class Disposal extends Component {
                                         <div className="mt-5">
                                             <Button onClick={this.getSubmitDisposal} color="info" size="lg" className="btnGoCart mb-4">Submit</Button>
                                             <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
-                                                <option value="not available">Not Available To Approve</option>
+                                                <option value="not available">All</option>
                                                 <option value="available">Available To Approve</option>
                                             </Input>
                                         </div>
                                     ) : (
                                         <div className="mt-3">
                                             <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
-                                                <option value="not available">Not Available To Approve</option>
+                                                <option value="not available">All</option>
                                                 <option value="available">Available To Approve</option>
                                             </Input>
                                         </div>
