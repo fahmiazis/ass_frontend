@@ -408,18 +408,8 @@ class Mutasi extends Component {
                                 )}
                                 <div>
                                     <div className={style.infoPageEmail}>
-                                        <text>Showing {level === '5' ? page.currentPage : pages.currentPage} of {level === '5' ? page.pages : pages.pages} pages</text>
+                                        <text>Showing 1 of 1 pages</text>
                                         <div className={style.pageButton}>
-                                            {level === '5' ? (
-                                                <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
-                                            ) : (
-                                                <button className={style.btnPrev} color="info" disabled={pages.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
-                                            )}
-                                            {level === '5' ? (
-                                                <button className={style.btnPrev} color="info" disabled={page.nextLink === null ? true : false} onClick={this.next}>Next</button>
-                                            ) : (
-                                                <button className={style.btnPrev} color="info" disabled={pages.nextLink === null ? true : false} onClick={this.next}>Next</button>
-                                            )}
                                         </div>
                                     </div>
                                 </div>

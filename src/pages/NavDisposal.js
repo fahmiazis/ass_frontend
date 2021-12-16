@@ -70,6 +70,19 @@ export default class NavDisposal extends Component {
                                     </div>
                                 </button>
                             </Row>
+                        ) : level === '4' || level === '3' ? (
+                            <Row className="mainBody">
+                                <button className="cardNav1" onClick={() => this.goRoute('taxfin')}>
+                                    <div className="titCard">
+                                        Tax & Finance disposal
+                                    </div>
+                                </button>
+                                <button className="cardNav1" onClick={() => this.goRoute('edittax')}>
+                                    <div className="titCard">
+                                        Edit Tax & Finance Disposal
+                                    </div>
+                                </button>
+                            </Row>
                         ) : (
                             <Row className="mainBody">
                                 <button className="cardNav1" onClick={() => this.goRoute('disposal')}>
@@ -92,31 +105,15 @@ export default class NavDisposal extends Component {
                                         Tax & Finance disposal
                                     </div>
                                 </button>
-                                <button className="cardNav1" onClick={() => this.goRoute('purchdis')}>
-                                    <div className="titCard">
-                                        Purchasing disposal
-                                    </div>
-                                </button>
-                                <button className="cardNav1" onClick={() => this.goRoute('editdis')}>
-                                    <div className="titCard">
-                                        Edit Pengajuan Disposal
-                                    </div>
-                                </button>
-                                <button className="cardNav1" onClick={() => this.goRoute('edittax')}>
-                                    <div className="titCard">
-                                        Edit Tax & Finance Disposal
-                                    </div>
-                                </button>
-                                <button className="cardNav1" onClick={() => this.goRoute('editeks')}>
-                                    <div className="titCard">
-                                        Edit Eksekusi Disposal
-                                    </div>
-                                </button>
-                                <button className="cardNav1" onClick={() => this.goRoute('report')}>
-                                    <div className="titCard">
-                                        Report disposal
-                                    </div>
-                                </button>
+                                {level === 2 ? (
+                                    <button className="cardNav1" onClick={() => this.goRoute('report')}>
+                                        <div className="titCard">
+                                            Report disposal
+                                        </div>
+                                    </button>
+                                ) : (
+                                    <div></div>
+                                )}
                             </Row>
                         )}
                     </div>
