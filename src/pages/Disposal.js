@@ -485,7 +485,6 @@ class Disposal extends Component {
     changeView = (val) => {
         const { dataDis, noDis } = this.props.disposal
         const role = localStorage.getItem('role')
-        console.log(val)
         if (val === 'available') {
             const newDis = []
             for (let i = 0; i < noDis.length; i++) {
@@ -530,6 +529,7 @@ class Disposal extends Component {
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
         const dataNotif = this.props.notif.data
+        const role = localStorage.getItem('role')
 
         const contentHeader =  (
             <div className={style.navbar}>
@@ -1392,8 +1392,18 @@ class Disposal extends Component {
                             </div>
                         {level === '12' || level === '2' ? (
                              <div>
-                                <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
-                                <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
+                                 {dataRinci.appForm === undefined || dataRinci.appForm.length === 0 ? (
+                                     <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                                 ) : (
+                                     dataRinci.appForm[dataRinci.appForm.indexOf(dataRinci.appForm.find(({jabatan}) => jabatan === role))] !== undefined && dataRinci.appForm[dataRinci.appForm.indexOf(dataRinci.appForm.find(({jabatan}) => jabatan === role)) + 1] === null ? (
+                                        <>
+                                            <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
+                                            <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
+                                        </>
+                                     ) : (
+                                        <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                                     )
+                                 )}
                             </div>
                             ) : (
                                 <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
