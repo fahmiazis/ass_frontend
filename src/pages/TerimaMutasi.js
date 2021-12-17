@@ -4,7 +4,7 @@ import React, { Component } from 'react'
 import { FaUserCircle, FaBars, FaSearch, FaCartPlus } from 'react-icons/fa'
 import style from '../assets/css/input.module.css'
 import {NavbarBrand, Row, Col, Button, Input, Modal, ModalBody, ModalHeader, Table,
-        Container, Alert, ModalFooter} from 'reactstrap'
+        Container, Alert, ModalFooter, Spinner} from 'reactstrap'
 import {BsCircle} from 'react-icons/bs'
 import { AiOutlineCheck, AiOutlineClose} from 'react-icons/ai'
 import SidebarContent from "../components/sidebar_content"
@@ -1033,6 +1033,16 @@ class Mutasi extends Component {
                         )}
                     </ModalBody>
                 </Modal>
+            <Modal isOpen={this.props.mutasi.isLoading ? true: false} size="sm">
+                <ModalBody>
+                    <div>
+                        <div className={style.cekUpdate}>
+                            <Spinner />
+                            <div sucUpdate>Waiting....</div>
+                        </div>
+                    </div>
+                </ModalBody>
+            </Modal>
             </>
         )
     }
