@@ -246,8 +246,14 @@ class Mutasi extends Component {
                 if (dataMut[index] !== undefined) {
                     const app = dataMut[index].appForm
                     const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
-                    if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null) {
-                        newMut.push(dataMut[index])
+                    if (role === 'BM') {
+                        if ((app.length === 0 || app[app.length - 1].status === null) || (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (app[find].status === null || app[find].status === 0))) {
+                            newMut.push(dataMut[index])
+                        }
+                    } else {
+                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null) {
+                            newMut.push(dataMut[index])
+                        }
                     }
                 }
             }
@@ -277,12 +283,14 @@ class Mutasi extends Component {
         const { detailMut } = this.state
         const token = localStorage.getItem("token")
         await this.props.approveMut(token, detailMut[0].no_mutasi)
+        this.getDataMutasi()
     }
 
     rejectMutasi = async (val) => {
         const { detailMut } = this.state
         const token = localStorage.getItem("token")
         await this.props.rejectMut(token, detailMut[0].no_mutasi, val)
+        this.getDataMutasi()
     }
 
     prepareSelect = async () => {
