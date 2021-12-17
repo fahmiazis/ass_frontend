@@ -1395,14 +1395,10 @@ class Disposal extends Component {
                                  {dataRinci.appForm === undefined || dataRinci.appForm.length === 0 ? (
                                      <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
                                  ) : (
-                                     dataRinci.appForm[dataRinci.appForm.indexOf(dataRinci.appForm.find(({jabatan}) => jabatan === role))] !== undefined && dataRinci.appForm[dataRinci.appForm.indexOf(dataRinci.appForm.find(({jabatan}) => jabatan === role)) + 1] === null ? (
-                                        <>
-                                            <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
-                                            <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
-                                        </>
-                                     ) : (
-                                        <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
-                                     )
+                                    <>
+                                        <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
+                                        <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
+                                    </>
                                  )}
                             </div>
                             ) : (
