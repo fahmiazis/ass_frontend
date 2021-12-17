@@ -1109,7 +1109,7 @@ class Disposal extends Component {
                                     </div>
                                     <div className="secSmallRinci">
                                         <div className="titSmallRinci">Nilai Buku</div>
-                                        <div className="txtAreaRinci">{dataRinci.nilai_buku !== undefined ? dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") : dataRinci.nilai_buku}</div>
+                                        <div className="txtAreaRinci">{dataRinci.nilai_buku === undefined || dataRinci.nilai_buku === null ? 0 : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</div>
                                     </div>
                                     <div className="secSmallRinci">
                                         <div className="titSmallRinci">Kategori</div>
