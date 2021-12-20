@@ -100,7 +100,9 @@ class Disposal extends Component {
             submitPre: false,
             date: '',
             view: '',
-            newDis: []
+            newDis: [],
+            app: [],
+            find: null
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -116,6 +118,11 @@ class Disposal extends Component {
     }
 
     openRinciAdmin = () => {
+        const role = localStorage.getItem('role')
+        const {dataRinci} = this.state
+        const app = dataRinci.appForm
+        const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
+        this.setState({app: app, find: find})
         this.setState({rinciAdmin: !this.state.rinciAdmin})
     }
 
@@ -521,7 +528,7 @@ class Disposal extends Component {
     }
 
     render() {
-        const {alert, upload, errMsg, detailDis} = this.state
+        const {alert, upload, errMsg, detailDis, app, find, fileName} = this.state
         const {dataAsset, alertM, alertMsg, alertUpload, page} = this.props.asset
         const pages = this.props.disposal.page 
         const { dataDis, noDis, dataDoc, disApp, dataSubmit } = this.props.disposal
@@ -1395,10 +1402,14 @@ class Disposal extends Component {
                                  {dataRinci.appForm === undefined || dataRinci.appForm.length === 0 ? (
                                      <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
                                  ) : (
-                                    <>
-                                        <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
-                                        <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
-                                    </>
+                                    app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (fileName.status !== 0) ? (
+                                        <>
+                                            <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
+                                            <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
+                                        </>
+                                     ) : (
+                                        <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                                     )
                                  )}
                             </div>
                             ) : (
