@@ -121,7 +121,7 @@ class Disposal extends Component {
         const role = localStorage.getItem('role')
         const {dataRinci} = this.state
         const app = dataRinci.appForm
-        console.log(app)
+        console.log(dataRinci)
         // const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
         this.setState({app: app, find: undefined})
         this.setState({rinciAdmin: !this.state.rinciAdmin})
@@ -1403,14 +1403,14 @@ class Disposal extends Component {
                                  {dataRinci.appForm === undefined || dataRinci.appForm.length === 0 ? (
                                      <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
                                  ) : (
-                                    app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (fileName.status !== 0) ? (
-                                        <>
-                                            <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
-                                            <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
-                                        </>
-                                     ) : (
+                                    // app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (fileName.status !== 0) ? (
+                                    //     <>
+                                    //         <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
+                                    //         <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
+                                    //     </>
+                                    //  ) : (
                                         <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
-                                     )
+                                    //  )
                                  )}
                             </div>
                             ) : (
