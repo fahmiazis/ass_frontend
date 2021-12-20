@@ -121,7 +121,8 @@ class Disposal extends Component {
         const role = localStorage.getItem('role')
         const {dataRinci} = this.state
         const app = dataRinci.appForm
-        const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
+        console.log(app)
+        // const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
         this.setState({app: app, find: find})
         this.setState({rinciAdmin: !this.state.rinciAdmin})
     }
