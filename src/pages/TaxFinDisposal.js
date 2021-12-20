@@ -560,9 +560,9 @@ class TaxFinDisposal extends Component {
                                         <Col md={12} xl={12} sm={12} className="mb-5 mt-5">
                                         {dataDis.length !== 0 && dataDis.map(item => {
                                             return (
-                                                item.no_io === '3' ? (
+                                                item.no_io === '3' || item.no_io === 3 ? (
                                                     <Col md={8} xl={8} sm={12}>
-                                                        <div className="txtDisposEmpty">Tidak ada data disposal</div>
+                                                        <div className="txtDisposEmpty"></div>
                                                     </Col>
                                                 ) : (
                                                     <div className="cart1">
@@ -612,9 +612,9 @@ class TaxFinDisposal extends Component {
                                         <Col md={12} xl={12} sm={12} className="mb-5 mt-5">
                                         {dataDis.length !== 0 && dataDis.map(item => {
                                             return (
-                                                item.no_io === '4' ? (
+                                                item.no_io === '4' || item.no_io === 4 ? (
                                                     <Col md={8} xl={8} sm={12}>
-                                                        <div className="txtDisposEmpty">Tidak ada data disposal</div>
+                                                        <div className="txtDisposEmpty"></div>
                                                     </Col> 
                                                 ) : (
                                                     <div className="cart1">
