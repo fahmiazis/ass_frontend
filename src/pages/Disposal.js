@@ -118,12 +118,6 @@ class Disposal extends Component {
     }
 
     openRinciAdmin = () => {
-        const role = localStorage.getItem('role')
-        const {dataRinci} = this.state
-        const app = dataRinci.appForm
-        console.log(dataRinci)
-        // const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
-        this.setState({app: app, find: undefined})
         this.setState({rinciAdmin: !this.state.rinciAdmin})
     }
 
@@ -488,6 +482,15 @@ class Disposal extends Component {
         const token = localStorage.getItem("token")
         await this.props.addSell(token, value)
         this.getDataAsset()
+    }
+
+    openDataRinci = (val) => {
+        this.setState({dataRinci: val})
+        const role = localStorage.getItem('role')
+        const app = val.appForm
+        const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
+        this.setState({app: app, find: find})
+        this.openRinciAdmin()
     }
 
     changeView = (val) => {
@@ -867,7 +870,7 @@ class Disposal extends Component {
                             <tbody>
                                 {detailDis.length !== 0 && detailDis.map(item => {
                                     return (
-                                        <tr onClick={() => this.openRinciAdmin(this.setState({dataRinci: item}))}>
+                                        <tr onClick={() => this.openDataRinci(item)}>
                                             <th scope="row">{detailDis.indexOf(item) + 1}</th>
                                             <td>{item.no_asset}</td>
                                             <td>{item.nama_asset}</td>
@@ -1403,14 +1406,14 @@ class Disposal extends Component {
                                  {dataRinci.appForm === undefined || dataRinci.appForm.length === 0 ? (
                                      <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
                                  ) : (
-                                    // app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (fileName.status !== 0) ? (
-                                    //     <>
-                                    //         <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
-                                    //         <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
-                                    //     </>
-                                    //  ) : (
+                                    app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (fileName.status !== 0) ? (
+                                        <>
+                                            <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
+                                            <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
+                                        </>
+                                    ) : (
                                         <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
-                                    //  )
+                                    )
                                  )}
                             </div>
                             ) : (
