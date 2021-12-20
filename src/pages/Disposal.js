@@ -123,7 +123,7 @@ class Disposal extends Component {
         const app = dataRinci.appForm
         console.log(app)
         // const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
-        this.setState({app: app, find: find})
+        this.setState({app: app, find: undefined})
         this.setState({rinciAdmin: !this.state.rinciAdmin})
     }
 
