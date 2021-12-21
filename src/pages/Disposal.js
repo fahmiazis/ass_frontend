@@ -496,6 +496,7 @@ class Disposal extends Component {
     changeView = (val) => {
         const { dataDis, noDis } = this.props.disposal
         const role = localStorage.getItem('role')
+        const level = localStorage.getItem('level')
         if (val === 'available') {
             const newDis = []
             for (let i = 0; i < noDis.length; i++) {
@@ -503,11 +504,11 @@ class Disposal extends Component {
                 if (dataDis[index] !== undefined && dataDis[index].status_form !== 26) {
                     const app = dataDis[index].appForm
                     const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
-                    if (role === 'CM') {
-                        if (app[find] !== undefined && app[find + 1].status === 1) {
+                    if (level === '11') {
+                        if (app[find] !== undefined && app[find + 1].status === 1 && (app[find].status === null || app[find].status === 0)) {
                             newDis.push(dataDis[index])
                         }
-                    } else if (role === 'BM') {
+                    } else if (level === '12') {
                         if ((app.length === 0 || app[app.length - 1].status === null) || (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (app[find].status === null || app[find].status === 0))) {
                             newDis.push(dataDis[index])
                         }
@@ -1406,13 +1407,24 @@ class Disposal extends Component {
                                  {dataRinci.appForm === undefined || dataRinci.appForm.length === 0 ? (
                                      <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
                                  ) : (
-                                    app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (fileName.status !== 0) ? (
-                                        <>
-                                            <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
-                                            <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
-                                        </>
+                                    level === '12' ? (
+                                        (app.length === 0 && fileName.status !== 0) || (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && fileName.status !== 0) ? (
+                                            <>
+                                                <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
+                                                <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
+                                            </>
+                                        ) : (
+                                            <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                                        )
                                     ) : (
-                                        <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                                        app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (fileName.status !== 0) ? (
+                                            <>
+                                                <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
+                                                <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
+                                            </>
+                                        ) : (
+                                            <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                                        )
                                     )
                                  )}
                             </div>
