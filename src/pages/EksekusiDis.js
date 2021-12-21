@@ -197,8 +197,8 @@ class EksekusiDisposal extends Component {
     rejectDokumen = async (value) => {
         const {fileName, dataRinci} = this.state
         const token = localStorage.getItem('token')
-        await this.props.rejectDocDis(token, fileName.id, value, 'edit', 'eks')
         this.setState({openRejectDis: !this.state.openRejectDis})
+        await this.props.rejectDocDis(token, fileName.id, value, 'edit', 'eks')
         await this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', dataRinci.nilai_jual === "0" ? 'dispose' : 'sell', 'ada')
         this.openModalPdf()
     }
