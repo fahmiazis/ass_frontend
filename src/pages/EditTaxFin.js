@@ -274,6 +274,7 @@ class TaxFinDisposal extends Component {
         const {isError, isUpload, isSubmit} = this.props.disposal
         const token = localStorage.getItem('token')
         const level = localStorage.getItem('level')
+        const error = this.props.setuju.isError
         const {dataRinci} = this.state
         if (isError) {
             this.props.resetError()
@@ -295,6 +296,15 @@ class TaxFinDisposal extends Component {
             setTimeout(() => {
                 this.getDataDisposal()
              }, 1000)
+        } else if (error) {
+            this.props.resetSetuju()
+            this.setState({alertSubmit: true})
+       
+            setTimeout(() => {
+               this.setState({
+                   alertSubmit: false
+               })
+            }, 10000)
         }
     }
 
@@ -424,7 +434,7 @@ class TaxFinDisposal extends Component {
                                     <div className={style.titleDashboard1}>Tax Disposal</div>
                                 </div>
                                 <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit}>
-                                    <div>Lengkapi data asset terlebih dahulu</div>
+                                    <div>Revisi dokumen terlebih dahulu</div>
                                 </Alert>
                                 <Row className="cartDisposal2">
                                     {dataDis.length === 0 ? (
@@ -474,7 +484,7 @@ class TaxFinDisposal extends Component {
                                     <div className={style.titleDashboard1}>Finance Disposal</div>
                                 </div>
                                 <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit}>
-                                    <div>Lengkapi data asset terlebih dahulu</div>
+                                    <div>Revisi dokumen terlebih dahulu</div>
                                 </Alert>
                                 <Row className="cartDisposal2">
                                     {dataDis.length === 0 ? (
@@ -1168,7 +1178,8 @@ const mapDispatchToProps = {
     getDetailDis: disposal.getDetailDisposal,
     showDokumen: pengadaan.showDokumen,
     getApproveDisposal: disposal.getApproveDisposal,
-    submitEdit: setuju.submitEditTaxFin
+    submitEdit: setuju.submitEditTaxFin,
+    resetSetuju: setuju.resetSetuju
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(TaxFinDisposal)
