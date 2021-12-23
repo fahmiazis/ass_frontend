@@ -376,19 +376,6 @@
     background-color: #9b9b9b;
     border: 1px solid black;
 }
-.table > tbody > tr > th{
-    border: 1px solid #9b9b9b;
-    color: black;
-}
-.table > tbody > tr > td{
-    border: 1px solid #9b9b9b;
-    color: black;
-}
-.table > thead > tr > th{
-    border: 1px solid #9b9b9b;
-    background-color: #76923B;
-    color: black;
-}
 .modalFoot {
     display: flex;
     flex-direction: row;

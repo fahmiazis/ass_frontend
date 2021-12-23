@@ -752,7 +752,7 @@ class Disposal extends Component {
                                                                 </Col>
                                                             )}
                                                         </Row>
-                                                        {item.appForm.find(({status}) => status === 0) !== undefined && (item.appForm.find(({status}) => status === 0).jabatan === 'asset' || item.appForm.find(({status}) => status === 0).jabatan === 'BM') && (
+                                                        {(level === '12' || level === '2') && item.appForm.find(({status}) => status === 0) !== undefined && (
                                                             <Row className="mb-2">
                                                             <Col md={6} className="txtDoc">
                                                             Status Revisi

@@ -378,7 +378,7 @@ class MasterUser extends Component {
                                     </div>
                                 ) : (
                                     <div className={style.tableDashboard}>
-                                    <Table bordered responsive hover id="table-to-xls" className="demo-table">
+                                    <Table bordered responsive hover id="table-to-xls" className={style.tab}>
                                         <thead>
                                             <tr>
                                                 <th style={{backgroundColor: '#76923B'}}>No</th>
