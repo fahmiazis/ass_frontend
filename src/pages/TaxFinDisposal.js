@@ -679,8 +679,8 @@ class TaxFinDisposal extends Component {
                                                                 <div className="noCart mb-3">{item.keterangan}</div>
                                                                 <div className="btnVerTax">
                                                                     <Button color="success" disabled={item.no_io === 'finance' || item.no_io === 'tax' || item.no_io === 'taxfin' ? true : false} onClick={() => this.submitFinalDisposal(item)}>Approve</Button>
-                                                                    <Button color="danger ml-2" onClick={() => this.rejectTaxFinDis({val: item, tipe: 'tax'})} >Reject Tax</Button>
-                                                                    <Button color="danger ml-2" onClick={() => this.rejectTaxFinDis({val: item, tipe: 'finance'})} >Reject Finance</Button>
+                                                                    <Button color="danger ml-2" disabled={item.no_io === 'tax' || item.no_io === 'taxfin' ? true : false} onClick={() => this.rejectTaxFinDis({val: item, tipe: 'tax'})} >Reject Tax</Button>
+                                                                    <Button color="danger ml-2" disabled={item.no_io === 'finance' || item.no_io === 'taxfin' ? true : false} onClick={() => this.rejectTaxFinDis({val: item, tipe: 'finance'})} >Reject Finance</Button>
                                                                 </div>
                                                             </div>
                                                         </div>

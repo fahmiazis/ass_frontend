@@ -18,6 +18,7 @@ import {default as axios} from 'axios'
 import Sidebar from "../components/Header";
 import MaterialTitlePanel from "../components/material_title_panel";
 import SidebarContent from "../components/sidebar_content";
+import ReactHtmlToExcel from "react-html-table-to-excel"
 const {REACT_APP_BACKEND_URL} = process.env
 
 const userSchema = Yup.object().shape({
@@ -218,10 +219,12 @@ class MasterUser extends Component {
         this.getDataReportDisposal()
     }
 
-    getDataReportDisposal = async () => {
+    getDataReportDisposal = async (val) => {
+        const limit = val === undefined || val.limit === undefined ? 10 : val.limit
         const token = localStorage.getItem("token")
         const search = this.props.location.state === undefined ? '' : this.props.location.state
-        await this.props.getReportDis(token, 1, search, 1)
+        this.setState({limit: limit === null ? 'All' : limit})
+        await this.props.getReportDis(token, limit, search, 1)
     }
 
     menuButtonClick(ev) {
@@ -305,9 +308,11 @@ class MasterUser extends Component {
                                             {this.state.limit}
                                         </DropdownToggle>
                                         <DropdownMenu>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataUser({limit: 10, search: ''})}>10</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataUser({limit: 20, search: ''})}>20</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataUser({limit: 50, search: ''})}>50</DropdownItem>
+                                            <DropdownItem className={style.item} onClick={() => this.getDataReportDisposal({limit: 10, search: ''})}>10</DropdownItem>
+                                            <DropdownItem className={style.item} onClick={() => this.getDataReportDisposal({limit: 20, search: ''})}>20</DropdownItem>
+                                            <DropdownItem className={style.item} onClick={() => this.getDataReportDisposal({limit: 50, search: ''})}>50</DropdownItem>
+                                            <DropdownItem className={style.item} onClick={() => this.getDataReportDisposal({limit: 100, search: ''})}>100</DropdownItem>
+                                            <DropdownItem className={style.item} onClick={() => this.getDataReportDisposal({limit: 'All', search: ''})}>All</DropdownItem>
                                         </DropdownMenu>
                                         </ButtonDropdown>
                                         <text className={style.textEntries}>entries</text>
@@ -315,7 +320,15 @@ class MasterUser extends Component {
                                 </div>
                                 <div className={style.secEmail}>
                                     <div className={style.headEmail}>
-                                        <Button onClick={this.ExportMaster} disabled color="success" size="lg">Download</Button>
+                                        <ReactHtmlToExcel
+                                            id="test-table-xls-button"
+                                            className="btn btn-success"
+                                            table="table-to-xls"
+                                            filename="Report Disposal"
+                                            sheet="Report"
+                                            buttonText="Download Report"
+                                        />
+                                        {/* <Button onClick={this.ExportMaster} disabled color="success" size="lg">Download</Button> */}
                                     </div>
                                     <div>
                                     </div>
@@ -365,63 +378,63 @@ class MasterUser extends Component {
                                     </div>
                                 ) : (
                                     <div className={style.tableDashboard}>
-                                    <Table bordered responsive hover className={style.tab}>
+                                    <Table bordered responsive hover id="table-to-xls" className="demo-table">
                                         <thead>
                                             <tr>
-                                                <th>No</th>
-                                                <th>No Pengajuan Disposal</th>
-                                                <th>No Persetujuan Disposal</th>
-                                                <th>Nomor Asset</th>
-                                                <th>Nama Barang</th>
-                                                <th>Kategori</th>
-                                                <th>Cost Center</th>
-                                                <th>Cost Center Name</th>
-                                                <th>Tgl Perolehan</th>
-                                                <th>Nilai Akuisisi</th>
-                                                <th>Nilai Buku saat pengajuan Disposal aset</th>
-                                                <th>Nilai jual</th>
-                                                <th>Keterangan pengajuan disposal aset</th>
-                                                <th>Nilai Buku saat persetujuan Disposal</th>
-                                                <th>Keterangan persetujuan disposal aset</th>
-                                                <th>Grouping eksekusi</th>
-                                                <th>Akumulasi Aset</th>
-                                                <th>Nilai Buku Saat eksekusi</th>
-                                                <th>DPP</th>
-                                                <th>PPN</th>
-                                                <th>Profit/LOSS</th>
-                                                <th>Tanggal Eksekusi disposal di SAP</th>
-                                                <th>No Doc Jurnal Uang Masuk</th>
-                                                <th>Nomor Faktur Pajak</th>
-                                                <th>No Doc Disposal</th>
-                                                <th>No Doc Clearing</th>
-                                                <th>PIC ASET</th>
+                                                <th style={{backgroundColor: '#76923B'}}>No</th>
+                                                <th style={{backgroundColor: '#76923B'}}>No Pengajuan Disposal</th>
+                                                <th style={{backgroundColor: '#76923B'}}>No Persetujuan Disposal</th>
+                                                <th style={{backgroundColor: '#76923B'}}>Nomor Asset</th>
+                                                <th style={{backgroundColor: '#76923B'}}>Nama Barang</th>
+                                                <th style={{backgroundColor: '#76923B'}}>Kategori</th>
+                                                <th style={{backgroundColor: '#76923B'}}>Cost Center</th>
+                                                <th style={{backgroundColor: '#76923B'}}>Cost Center Name</th>
+                                                <th style={{backgroundColor: '#76923B'}}>Tgl Perolehan</th>
+                                                <th style={{backgroundColor: '#76923B'}}>Nilai Akuisisi</th>
+                                                <th style={{backgroundColor: '#76923B'}}>Nilai Buku saat pengajuan Disposal aset</th>
+                                                <th style={{backgroundColor: '#76923B'}}>Nilai jual</th>
+                                                <th style={{backgroundColor: '#76923B'}}>Keterangan pengajuan disposal aset</th>
+                                                <th style={{backgroundColor: '#76923B'}}>Nilai Buku saat persetujuan Disposal</th>
+                                                <th style={{backgroundColor: '#76923B'}}>Keterangan persetujuan disposal aset</th>
+                                                <th style={{backgroundColor: '#76923B'}}>Grouping eksekusi</th>
+                                                <th style={{backgroundColor: '#76923B'}}>Akumulasi Aset</th>
+                                                <th style={{backgroundColor: '#76923B'}}>Nilai Buku Saat eksekusi</th>
+                                                <th style={{backgroundColor: '#76923B'}}>DPP</th>
+                                                <th style={{backgroundColor: '#76923B'}}>PPN</th>
+                                                <th style={{backgroundColor: '#76923B'}}>Profit/LOSS</th>
+                                                <th style={{backgroundColor: '#76923B'}}>Tanggal Eksekusi disposal di SAP</th>
+                                                <th style={{backgroundColor: '#76923B'}}>No Doc Jurnal Uang Masuk</th>
+                                                <th style={{backgroundColor: '#76923B'}}>Nomor Faktur Pajak</th>
+                                                <th style={{backgroundColor: '#76923B'}}>No Doc Disposal</th>
+                                                <th style={{backgroundColor: '#76923B'}}>No Doc Clearing</th>
+                                                <th style={{backgroundColor: '#76923B'}}>PIC ASET</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                         {dataRep.length !== 0 && dataRep.map(item => {
                                                 return (
                                                 <tr>
-                                                    <th scope="row">1</th>
-                                                    <td>D{item.no_disposal}</td>
+                                                    <th scope="row">{dataRep.indexOf(item) + 1}</th>
+                                                    <td>{item.no_disposal === null ? '-' : `D${item.no_disposal}`}</td>
                                                     <td>{item.status_app}</td>
                                                     <td>{item.no_asset}</td>
                                                     <td>{item.nama_asset}</td>
-                                                    <td>{item.dataAsset.kategori}</td>
+                                                    <td>{item.dataAsset === null ? '-' : item.dataAsset.kategori}</td>
                                                     <td>{item.cost_center}</td>
                                                     <td>{item.area}</td>
-                                                    <td>{moment(item.dataAsset.tanggal).format('DD/MM/YYYY')}</td>
-                                                    <td>{item.dataAsset.nilai_acquis === null ? '-' : item.dataAsset.nilai_acquis.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                    <td>{item.dataAsset === null ? '-' : moment(item.dataAsset.tanggal).format('DD/MM/YYYY')}</td>
+                                                    <td>{item.dataAsset === null ? '-' : item.dataAsset.nilai_acquis === null ? '-' : item.dataAsset.nilai_acquis.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                     <td>{item.nilai_buku === null ? '-' : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                    <td>{item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                    <td>{item.nilai_jual === null ? '-' : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                     <td>{item.keterangan}</td>
-                                                    <td>{item.dataAsset.nilai_buku === null ? '-' : item.dataAsset.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                    <td>{item.dataAsset === null ? '-' : item.dataAsset.nilai_buku === null ? '-' : item.dataAsset.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                     <td>{item.keterangan}</td>
                                                     <td>{item.nilai_jual === '0' ? 'Dispose' : 'Sell'}</td>
-                                                    <td>{item.dataAsset.accum_dep === null ? '-' : item.dataAsset.accum_dep.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                    <td>{item.dataAsset === null ? '-' : item.dataAsset.accum_dep === null ? '-' : item.dataAsset.accum_dep.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                     <td>{item.nilai_buku === null ? '-' : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                     <td>{item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) / (11/10)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                     <td>{item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) - Math.round(parseInt(item.nilai_jual) / (11/10))).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                    <td>{item.nilai_jual === '0' ? '-' : Math.round(Math.round(parseInt(item.nilai_jual) / (11/10))-parseInt(item.dataAsset.nilai_buku)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                    <td>{item.nilai_jual === '0' ? '-' : Math.round(Math.round(parseInt(item.nilai_jual) / (11/10))-parseInt(item.dataAsset === null ? 0 : item.dataAsset.nilai_buku)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                     <td>{}</td>
                                                     <td>{item.no_sap}</td>
                                                     <td>{item.no_fp}</td>
@@ -775,6 +788,16 @@ class MasterUser extends Component {
                     </ModalBody>
                 </Modal>
                 <Modal isOpen={this.props.user.isLoading ? true: false} size="sm">
+                        <ModalBody>
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <Spinner />
+                                <div sucUpdate>Waiting....</div>
+                            </div>
+                        </div>
+                        </ModalBody>
+                </Modal>
+                <Modal isOpen={this.props.report.isLoading ? true: false} size="sm">
                         <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>
