@@ -751,8 +751,35 @@ class Disposal extends Component {
                                                                 : -
                                                                 </Col>
                                                             )}
-                                                            
                                                         </Row>
+                                                        {item.appForm.find(({status}) => status === 0) !== undefined && (item.appForm.find(({status}) => status === 0).jabatan === 'asset' || item.appForm.find(({status}) => status === 0).jabatan === 'BM') && (
+                                                            <Row className="mb-2">
+                                                            <Col md={6} className="txtDoc">
+                                                            Status Revisi
+                                                            </Col>
+                                                            {level === '12' ? (
+                                                                item.docAsset.find(({status}) => status === 0) !== undefined ? (
+                                                                    <Col md={6} className="txtDoc">
+                                                                    : Proses Revisi
+                                                                    </Col>
+                                                                ) : (
+                                                                    <Col md={6} className="txtDoc">
+                                                                    : Selesai Revisi
+                                                                    </Col>
+                                                                )
+                                                            ) : (
+                                                                item.docAsset.find(({divisi}) => divisi === '0') !== undefined ? (
+                                                                    <Col md={6} className="txtDoc">
+                                                                    : Proses Revisi
+                                                                    </Col>
+                                                                ) : (
+                                                                    <Col md={6} className="txtDoc">
+                                                                    : Selesai Revisi
+                                                                    </Col>
+                                                                )
+                                                            )}
+                                                        </Row>
+                                                        )}
                                                     </div>
                                                     <Row className="footCard mb-3 mt-3">
                                                         <Col md={12} xl={12}>
