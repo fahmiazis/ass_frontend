@@ -32,6 +32,7 @@ export default (state=authState, action) => {
                     level: action.payload.data.user.user_level,
                     isLogin: true,
                     isError: false,
+                    isLoading: false,
                     token: action.payload.data.Token,
                     alertMsg: 'Login Succesfully'
                 };
@@ -39,6 +40,7 @@ export default (state=authState, action) => {
             case 'AUTH_USER_REJECTED': {
                 return {
                     ...state,
+                    isLoading: false,
                     isLogin: false,
                     isError: true,
                     alertMsg: 'Login Failed'
