@@ -645,7 +645,7 @@ class Mutasi extends Component {
                 </Modal>
                 <Modal isOpen={this.state.rincian} toggle={this.openRinci} size="xl">
                     <ModalHeader>
-                        Terima Mutasi
+                        Rincian
                     </ModalHeader>
                     <ModalBody>
                         <div className="mainRinci">
@@ -686,6 +686,22 @@ class Mutasi extends Component {
                                     <div>
                                         <div className="titRinci">{dataRinci.nama_asset}</div>
                                         <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Area Pengirim</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.area} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Cost Center Pengirim</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Area Penerima</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.area_rec} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Cost Center Penerima</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center_rec} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>No Asset</Col>
                                             <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
                                         </Row>
@@ -709,30 +725,14 @@ class Mutasi extends Component {
                                             </Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Cost Center</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
-                                        </Row>
-                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Nilai Buku</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null ? '-' : dataRinci.nilai_buku} disabled /></Col>
-                                        </Row>
-                                        <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Keterangan</Col>
-                                            <Col md={9} className="colRinci">:  <Input
-                                                className="inputRinci" 
-                                                type="text" 
-                                                value={dataRinci.keterangan === null ? '-' : dataRinci.keterangan} 
-                                                disabled
-                                                />
-                                            </Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null || dataRinci.nilai_buku === undefined ? '0' : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
                                         </Row>
                                     </div>
                                     <div className="footRinci3 mt-4">
                                         <Col md={6}>
-                                            <Button className="btnFootRinci2" size="lg" block color="success" onClick={this.openProsesModalDoc}>Upload Dokumen</Button>
                                         </Col>
                                         <Col md={6}>
-                                            <Button className="btnFootRinci2" size="lg" block outline  color="secondary" onClick={() => this.openRinciAdmin()}>Close</Button>
                                         </Col>
                                     </div>
                                 </div>

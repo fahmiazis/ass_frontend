@@ -342,8 +342,8 @@ class Mutasi extends Component {
                                     {level === '5' ? (
                                         <div className={style.headEmail}>
                                             <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
+                                                <option value="not available">All</option>
                                                 <option value="available">Available To Approve</option>
-                                                <option value="not available">Not Available To Approve</option>
                                             </Input>
                                         </div>
                                     ) : (
@@ -352,7 +352,7 @@ class Mutasi extends Component {
                                     )}
                                     <div className={style.searchEmail1}>
                                         <text>Search: </text>
-                                        <Input 
+                                        <Input
                                         className={style.search}
                                         onChange={this.onSearch}
                                         value={this.state.search}
@@ -502,21 +502,11 @@ class Mutasi extends Component {
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Cost Center</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={detailDepo.cost_center} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Nilai Buku</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null ? '-' : dataRinci.nilai_buku} disabled /></Col>
-                                        </Row>
-                                        <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Keterangan</Col>
-                                            <Col md={9} className="colRinci">:  <Input
-                                                className="inputRinci" 
-                                                type="text" 
-                                                value={dataRinci.keterangan === null ? '-' : dataRinci.keterangan} 
-                                                disabled
-                                                />
-                                            </Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null ? '0' : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
                                         </Row>
                                         <Row  className="mb-3 rowRinci">
                                             <Col md={3}>Area Tujuan</Col>
@@ -589,6 +579,14 @@ class Mutasi extends Component {
                                     <div>
                                         <div className="titRinci">{dataRinci.nama_asset}</div>
                                         <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Area Pengirim</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.area} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Cost Center Pengirim</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>No Asset</Col>
                                             <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
                                         </Row>
@@ -612,30 +610,12 @@ class Mutasi extends Component {
                                             </Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Cost Center</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
-                                        </Row>
-                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Nilai Buku</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null ? '-' : dataRinci.nilai_buku} disabled /></Col>
-                                        </Row>
-                                        <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Keterangan</Col>
-                                            <Col md={9} className="colRinci">:  <Input
-                                                className="inputRinci" 
-                                                type="text" 
-                                                value={dataRinci.keterangan === null ? '-' : dataRinci.keterangan} 
-                                                disabled
-                                                />
-                                            </Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null || dataRinci.nilai_buku === undefined ? '0' : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
                                         </Row>
                                     </div>
                                     <div className="footRinci3 mt-4">
                                         <Col md={6}>
-                                            <Button className="btnFootRinci2" size="lg" block color="success" onClick={this.openProsesModalDoc}>Upload Dokumen</Button>
-                                        </Col>
-                                        <Col md={6}>
-                                            <Button className="btnFootRinci2" size="lg" block outline  color="secondary" onClick={() => this.openRinciAdmin()}>Close</Button>
                                         </Col>
                                     </div>
                                 </div>
@@ -645,6 +625,9 @@ class Mutasi extends Component {
                     </ModalBody>
                 </Modal>
                 <Modal isOpen={this.state.formMut} toggle={this.openModalMut} size="xl">
+                    <Alert color="danger" className={style.alertWrong} isOpen={true}>
+                        <div>Mohon upload dokumen terlebih dahulu sebelum approve</div>
+                    </Alert>
                     <ModalBody>
                         {/* <div className="mb-2"><text className="txtTrans">{detailDis[0] !== undefined && detailDis[0].area}</text>, {moment(detailDis[0] !== undefined && detailDis[0].createdAt).locale('idn').format('DD MMMM YYYY ')}</div> */}
                         <Row className="mb-5">
@@ -717,7 +700,10 @@ class Mutasi extends Component {
                     <hr />
                     <div className="modalFoot ml-3">
                     {/* onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})} */}
-                        <Button color="primary" onClick={this.getDataApprove}>Preview</Button>
+                        <div className="btnFoot">
+                            <Button className="mr-2" color="primary" onClick={this.getDataApprove}>Preview</Button>
+                            <Button color='success' onClick={this.openProsesModalDoc}>Upload dokumen</Button>
+                        </div>
                         <div className="btnFoot">
                             <Button className="mr-2" color="danger" onClick={() => this.openReject()}>
                                 Reject
@@ -915,14 +901,8 @@ class Mutasi extends Component {
                     <hr />
                     <div className="modalFoot ml-3">
                     {/* onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})} */}
-                        <Button color="primary">Preview</Button>
+                        <Button color="primary" onClick={this.openModalPre}>Close</Button>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="danger" onClick={() => this.openReject()}>
-                                Reject
-                            </Button>
-                            <Button color="success" onClick={() => this.openApprove()}>
-                                Approve
-                            </Button>
                         </div>
                     </div>
                 </Modal>
