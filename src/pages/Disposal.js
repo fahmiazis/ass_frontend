@@ -1435,7 +1435,7 @@ class Disposal extends Component {
                                      <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
                                  ) : (
                                     level === '12' ? (
-                                        (app.length === 0 && fileName.status !== 0 && fileName.status !== 1) || (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && fileName.status !== 0 && fileName.status !== 1) ? (
+                                        (app.length === 0 && fileName.status !== 0 && fileName.status !== 1) || (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && fileName.status !== 0 && fileName.status !== 3) ? (
                                             <>
                                                 <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
                                                 <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
@@ -1444,7 +1444,7 @@ class Disposal extends Component {
                                             <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
                                         )
                                     ) : (
-                                        app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (fileName.divisi !== '0' && fileName.divisi !== '1') ? (
+                                        app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (fileName.divisi !== '0' && fileName.divisi !== '3') ? (
                                             <>
                                                 <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
                                                 <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
