@@ -505,16 +505,57 @@ class Disposal extends Component {
                     const app = dataDis[index].appForm
                     const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
                     if (level === '11') {
-                        if (app[find] !== undefined && app[find + 1].status === 1 && (app[find].status === null || app[find].status === 0)) {
+                        if (app[find] !== undefined && app[find + 1].status === 1 && (app[find].status === null)) {
                             newDis.push(dataDis[index])
                         }
                     } else if (level === '12') {
-                        if ((app.length === 0 || app[app.length - 1].status === null) || (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (app[find].status === null || app[find].status === 0))) {
+                        if ((app.length === 0 || app[app.length - 1].status === null) || (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (app[find].status === null))) {
                             newDis.push(dataDis[index])
                         }
                     } else {
-                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (app[find].status === null || app[find].status === 0)) {
+                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (app[find].status === null)) {
                             newDis.push(dataDis[index])
+                        }
+                    }
+                }
+            }
+            this.setState({view: val, newDis: newDis})
+        } else if (val === 'revisi') {
+            const newDis = []
+            for (let i = 0; i < noDis.length; i++) {
+                const index = dataDis.indexOf(dataDis.find(({no_disposal}) => no_disposal === noDis[i]))
+                if (dataDis[index] !== undefined && dataDis[index].status_form !== 26) {
+                    const app = dataDis[index].appForm
+                    const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
+                    if (app[find] !== undefined && app[find].status === 0) {
+                        for (let j = 0; j < dataDis.length; j++) {
+                            if (dataDis[j].no_disposal === dataDis[index].no_disposal) {
+                                const scan = dataDis[j].docAsset.find(({status}) => status === 0) !== undefined
+                                const scanAss = dataDis[j].docAsset.find(({divisi}) => divisi === '0') !== undefined
+                                if (scan || scanAss) {
+                                    const find = newDis.find(({no_disposal}) => no_disposal === dataDis[j].no_disposal)
+                                    if (find === undefined) {
+                                        const obj = Object.assign(dataDis[index], { revisi: 'Proses Revisi' })
+                                        newDis.push(obj)   
+                                    } else {
+                                        if (find.revisi === 'Selesai Revisi') {
+                                            newDis.splice(find, 1)
+                                            const obj = Object.assign(dataDis[index], { revisi: 'Proses Revisi' })
+                                            newDis.push(obj)
+                                        }
+                                    }
+                                } else {
+                                    const find = newDis.find(({no_disposal}) => no_disposal === dataDis[j].no_disposal)
+                                    if (find === undefined) {
+                                        const obj = Object.assign(dataDis[index], { revisi: 'Selesai Revisi' })
+                                        newDis.push(obj)   
+                                    } else {
+                                        if (find.revisi === 'Selesai Revisi') {
+                                            console.log('selesai')
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -596,12 +637,13 @@ class Disposal extends Component {
                                         <div className={style.headEmail}>
                                             <button onClick={this.goCartDispos} className="btnGoCart"><FaCartPlus size={60} className="green ml-2" /></button>
                                         </div>
-                                    ) : level === '2' ? (
+                                    ) : level === '2' || level === '12' ? (
                                         <div className="mt-5">
                                             <Button onClick={this.getSubmitDisposal} color="info" size="lg" className="btnGoCart mb-4">Submit</Button>
                                             <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
                                                 <option value="not available">All</option>
                                                 <option value="available">Available To Approve</option>
+                                                <option value="revisi">Revisi</option>
                                             </Input>
                                         </div>
                                     ) : (
@@ -752,33 +794,15 @@ class Disposal extends Component {
                                                                 </Col>
                                                             )}
                                                         </Row>
-                                                        {(level === '12' || level === '2') && item.appForm.find(({status}) => status === 0) !== undefined && (
+                                                        {(this.state.view === 'revisi') && (
                                                             <Row className="mb-2">
-                                                            <Col md={6} className="txtDoc">
-                                                            Status Revisi
-                                                            </Col>
-                                                            {level === '12' ? (
-                                                                item.docAsset.find(({status}) => status === 0) !== undefined ? (
-                                                                    <Col md={6} className="txtDoc">
-                                                                    : Proses Revisi
-                                                                    </Col>
-                                                                ) : (
-                                                                    <Col md={6} className="txtDoc">
-                                                                    : Selesai Revisi
-                                                                    </Col>
-                                                                )
-                                                            ) : (
-                                                                item.docAsset.find(({divisi}) => divisi === '0') !== undefined ? (
-                                                                    <Col md={6} className="txtDoc">
-                                                                    : Proses Revisi
-                                                                    </Col>
-                                                                ) : (
-                                                                    <Col md={6} className="txtDoc">
-                                                                    : Selesai Revisi
-                                                                    </Col>
-                                                                )
-                                                            )}
-                                                        </Row>
+                                                                <Col md={6} className="txtDoc">
+                                                                    Status Revisi
+                                                                </Col>
+                                                                <Col md={6} className="txtDoc">
+                                                                : {item.revisi}
+                                                                </Col>
+                                                            </Row>
                                                         )}
                                                     </div>
                                                     <Row className="footCard mb-3 mt-3">
