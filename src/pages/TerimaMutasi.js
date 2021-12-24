@@ -56,11 +56,12 @@ class Mutasi extends Component {
             reject: false,
             approve: false,
             preview: false,
-            view: 'pengajuan',
+            view: '',
             rincian: false,
             openModalDoc: false,
             confirm: '',
             modalConfirm: false,
+            newMut: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -119,7 +120,6 @@ class Mutasi extends Component {
     }
 
     componentDidMount() {
-        const level = localStorage.getItem('level')
         this.getDataMutasiRec()
     }
 
@@ -211,9 +211,35 @@ class Mutasi extends Component {
     getDataMutasiRec = async () => {
         const token = localStorage.getItem('token')
         await this.props.getMutasiRec(token)
+        this.changeView('available')
     }
 
     changeView = async (val) => {
+        const { dataMut, noMut } = this.props.mutasi
+        const role = localStorage.getItem('role')
+        if (val === 'available') {
+            const newMut = []
+            for (let i = 0; i < noMut.length; i++) {
+                const index = dataMut.indexOf(dataMut.find(({no_mutasi}) => no_mutasi === noMut[i]))
+                if (dataMut[index] !== undefined) {
+                    const app = dataMut[index].appForm
+                    const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
+                    if (app[find] !== undefined && app[find + 1].status === 1) {
+                        newMut.push(dataMut[index])
+                    }
+                }
+            }
+            this.setState({view: val, newMut: newMut})
+        } else {
+            const newMut = []
+            for (let i = 0; i < noMut.length; i++) {
+                const index = dataMut.indexOf(dataMut.find(({no_mutasi}) => no_mutasi === noMut[i]))
+                if (dataMut[index] !== undefined) {
+                    newMut.push(dataMut[index])
+                }
+            }
+            this.setState({view: val, newMut: newMut})
+        }
     }
 
     chooseDepo = (e) => {
@@ -262,7 +288,7 @@ class Mutasi extends Component {
     render() {
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
-        const { dataRinci, detailMut } = this.state
+        const { dataRinci, detailMut, newMut } = this.state
         const { detailDepo } = this.props.depo
         const { dataMut, noMut, mutApp, dataDoc } = this.props.mutasi
         const { dataAsset, page } = this.props.asset
@@ -337,11 +363,11 @@ class Mutasi extends Component {
                                     </div>
                                 </div>
                                 {level === '5' ? (
-                                    noMut === undefined ? (
+                                    newMut === undefined ? (
                                         <div></div>
                                     ) : ( 
                                         <Row className="bodyDispos">
-                                        {noMut.length !== 0 && noMut.map(x => {
+                                        {newMut.length !== 0 && newMut.map(item => {
                                             return (
                                                 <div className="bodyCard">
                                                     <img src={placeholder} className="imgCard1" />
@@ -352,18 +378,10 @@ class Mutasi extends Component {
                                                         </div>
                                                         <Row className="mb-2">
                                                             <Col md={6} className="txtDoc">
-                                                            Area asal
+                                                            Area Pengirim
                                                             </Col>
                                                             <Col md={6} className="txtDoc">
-                                                            : {dataMut.find(({no_mutasi}) => no_mutasi === x).area}
-                                                            </Col>
-                                                        </Row>
-                                                        <Row className="mb-2">
-                                                            <Col md={6} className="txtDoc">
-                                                            Area tujuan
-                                                            </Col>
-                                                            <Col md={6} className="txtDoc">
-                                                            : {dataMut.find(({no_mutasi}) => no_mutasi === x).area_rec}
+                                                            : {item.area}
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">
@@ -371,20 +389,20 @@ class Mutasi extends Component {
                                                             No Mutasi
                                                             </Col>
                                                             <Col md={6} className="txtDoc">
-                                                            : {dataMut.find(({no_mutasi}) => no_mutasi === x).no_mutasi}
+                                                            : {item.no_mutasi}
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">
                                                             <Col md={6} className="txtDoc">
                                                             Status Approval
                                                             </Col>
-                                                            {dataMut.find(({no_mutasi}) => no_mutasi === x).appForm.find(({status}) => status === 0) !== undefined ? (
+                                                            {item.appForm.find(({status}) => status === 0) !== undefined ? (
                                                                 <Col md={6} className="txtDoc">
-                                                                : Reject {dataMut.find(({no_mutasi}) => no_mutasi === x).appForm.find(({status}) => status === 0).jabatan}
+                                                                : Reject {item.appForm.find(({status}) => status === 0).jabatan}
                                                                 </Col>
-                                                            ) : dataMut.find(({no_mutasi}) => no_mutasi === x).appForm.find(({status}) => status === 1) !== undefined ? (
+                                                            ) : item.appForm.find(({status}) => status === 1) !== undefined ? (
                                                                 <Col md={6} className="txtDoc">
-                                                                : Approve {dataMut.find(({no_mutasi}) => no_mutasi === x).appForm.find(({status}) => status === 1).jabatan}
+                                                                : Approve {item.appForm.find(({status}) => status === 1).jabatan}
                                                                 </Col>
                                                             ) : (
                                                                 <Col md={6} className="txtDoc">
@@ -395,7 +413,7 @@ class Mutasi extends Component {
                                                     </div>
                                                     <Row className="footCard mb-3 mt-3">
                                                         <Col md={12} xl={12}>
-                                                            <Button className="btnSell" color="primary" onClick={() => this.openDetailMut(dataMut.find(({no_mutasi}) => no_mutasi === x).no_mutasi)}>Proses</Button>
+                                                            <Button className="btnSell" color="primary" onClick={() => this.openDetailMut(item.no_mutasi)}>Proses</Button>
                                                         </Col>
                                                     </Row>
                                                 </div>

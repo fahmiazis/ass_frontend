@@ -3,7 +3,7 @@ import {Formik} from 'formik'
 import * as Yup from 'yup'
 import auth from '../redux/actions/auth'
 import {connect} from 'react-redux'
-import { Input, Container, Form, Alert } from 'reactstrap'
+import { Input, Container, Form, Alert, Modal, ModalBody, Spinner } from 'reactstrap'
 import logo from '../assets/img/logo.png'
 import style from '../assets/css/input.module.css'
 import { AiOutlineCopyrightCircle } from "react-icons/ai"
@@ -92,6 +92,16 @@ class Login extends Component {
                 </Form>
                 )}
                 </Formik>
+                <Modal isOpen={this.props.auth.isLoading ? true: false} size="sm">
+                    <ModalBody>
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <Spinner />
+                                <div sucUpdate>Waiting....</div>
+                            </div>
+                        </div>
+                    </ModalBody>
+                </Modal>
             </>
         )
     }

@@ -56,7 +56,7 @@ class Mutasi extends Component {
             reject: false,
             approve: false,
             preview: false,
-            view: 'pengajuan',
+            view: '',
             rincian: false,
             openModalDoc: false,
             confirm: '',
@@ -268,7 +268,6 @@ class Mutasi extends Component {
             }
             this.setState({view: val, newMut: newMut})
         }
-        this.setState({view: val})
     }
 
     chooseDepo = (e) => {
