@@ -435,7 +435,7 @@ class MasterUser extends Component {
                                                     <td>{item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) / (11/10)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                     <td>{item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) - Math.round(parseInt(item.nilai_jual) / (11/10))).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                     <td>{item.nilai_jual === '0' ? '-' : Math.round(Math.round(parseInt(item.nilai_jual) / (11/10))-parseInt(item.dataAsset === null ? 0 : item.dataAsset.nilai_buku)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                    <td>{}</td>
+                                                    <td>{item.nilai_buku_eks === null ? '-' : item.nilai_buku_eks.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                     <td>{item.no_sap}</td>
                                                     <td>{item.no_fp}</td>
                                                     <td>{item.doc_sap}</td>
