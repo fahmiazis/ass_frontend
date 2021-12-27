@@ -396,6 +396,7 @@ class EditDisposal extends Component {
                                                             <div className="nameCart mb-3">{item.nama_asset}</div>
                                                             <div className="noCart mb-3">No asset : {item.no_asset}</div>
                                                             <div className="noCart mb-3">No disposal : D{item.no_disposal}</div>
+                                                            <div className="noCart mb-3">Status lampiran : {item.docAsset.find(({status}) => status === 0) !== undefined ? 'Perlu diperbaiki' : item.docAsset.find(({divisi}) => divisi === '0') !== undefined ? 'Perlu diperbaiki' : 'Sesuai / Telah diperbaiki'}</div>
                                                             <div className="noCart mb-3">Alasan reject: {item.ttdSet.find(({path}) => path !== null) !== undefined ? item.ttdSet.find(({path}) => path !== null).path : item.appForm.find(({path}) => path !== null) !== undefined ? item.appForm.find(({path}) => path !== null).path : 'Salah satu dokumen tidak sesuai'}</div>
                                                         </div>
                                                     </div>

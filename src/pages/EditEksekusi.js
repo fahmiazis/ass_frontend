@@ -335,6 +335,7 @@ class EditEksekusi extends Component {
                                                                     <div className="noCart mb-3">No asset : {item.no_asset}</div>
                                                                     <div className="noCart mb-3">No disposal : D{item.no_disposal}</div>
                                                                     <div className="noCart mb-3">{item.keterangan}</div>
+                                                                    <div className="noCart mb-3">Status lampiran : {item.docAsset.find(({divisi}) => divisi === '0') !== undefined ? 'Perlu diperbaiki' : 'Sesuai / Telah diperbaiki'}</div>
                                                                 </div>
                                                             </div>
                                                         </div>
