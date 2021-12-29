@@ -39,6 +39,7 @@ import TablePdf from './components/Table'
 import TerimaMutasi from './pages/TerimaMutasi'
 import TrackingMutasi from './pages/TrackingMutasi'
 import NavMut from './pages/NavMut'
+import EksekusiMut from './pages/EksekusiMut'
 
 class App extends Component {
 
@@ -145,6 +146,9 @@ class App extends Component {
                 </PrivateRoute>
                 <PrivateRoute path='/trackdis'>
                     <TrackingDisposal />
+                </PrivateRoute>
+                <PrivateRoute path='/eksmut'>
+                    <EksekusiMut />
                 </PrivateRoute>
             </Switch>
         </BrowserRouter>

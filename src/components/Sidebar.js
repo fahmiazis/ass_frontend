@@ -36,7 +36,7 @@ function Sidebar(props) {
     }
 
     function goStock() {
-        history.push('/stock')
+        history.push('/navstock')
     }
 
     function goReport() {

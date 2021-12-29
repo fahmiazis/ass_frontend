@@ -21,6 +21,10 @@ import {Formik} from 'formik'
 import * as Yup from 'yup'
 import logo from '../assets/img/logo.png'
 import moment from 'moment'
+import disposal from '../redux/actions/disposal'
+import pengadaan from '../redux/actions/pengadaan'
+import Pdf from "../components/Pdf"
+import {default as axios} from 'axios'
 const {REACT_APP_BACKEND_URL} = process.env
 
 
@@ -61,7 +65,11 @@ class Mutasi extends Component {
             openModalDoc: false,
             confirm: '',
             modalConfirm: false,
-            newMut: []
+            newMut: [],
+            openPdf: false,
+            idDoc: 0,
+            fileName: {},
+            date: '',
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -89,6 +97,21 @@ class Mutasi extends Component {
         ev.preventDefault();
         this.onSetOpen(!this.state.open);
     }
+
+    showDokumen = async (value) => {
+        const token = localStorage.getItem('token')
+        await this.props.showDokumen(token, value.id)
+        this.setState({date: value.updatedAt, idDoc: value.id, fileName: value})
+        const {isShow} = this.props.pengadaan
+        if (isShow) {
+            this.openModalPdf()
+        }
+    }
+
+    openModalPdf = () => {
+        this.setState({openPdf: !this.state.openPdf})
+    }
+
 
     next = async () => {
         const { page } = this.props.asset
@@ -125,16 +148,26 @@ class Mutasi extends Component {
 
     componentDidUpdate() {
         const { errorAdd } = this.props.mutasi
+        const {isUpload} = this.props.disposal
+        const token = localStorage.getItem('token')
+        const { detailMut } = this.state
         if (errorAdd) {
             this.openConfirm(this.setState({confirm: 'addmutasi'}))
             this.props.resetAddMut()
+        } else if (isUpload) {
+            setTimeout(() => {
+                this.props.resetDis()
+             }, 1000)
+             setTimeout(() => {
+                this.props.getDocumentMut(token, detailMut[0].no_asset, detailMut[0].no_mutasi)
+             }, 1100)
         }
     }
 
-    openProsesModalDoc = async () => {
+    openProsesModalDoc = async (val) => {
         const token = localStorage.getItem('token')
-        const { dataRinci } = this.state
-        await this.props.getDocumentMut(token, dataRinci.no_asset, dataRinci.no_mutasi)
+        const { detailMut } = this.state
+        await this.props.getDocumentMut(token, detailMut[0].no_asset, detailMut[0].no_mutasi)
         this.closeProsesModalDoc()
     }
 
@@ -167,6 +200,24 @@ class Mutasi extends Component {
         }
         this.setState({detailMut: detail})
         this.openModalMut()
+    }
+
+    downloadData = () => {
+        const { fileName } = this.state
+        const download = fileName.path.split('/')
+        const cek = download[2].split('.')
+        axios({
+            url: `${REACT_APP_BACKEND_URL}/uploads/${download[2]}`,
+            method: 'GET',
+            responseType: 'blob', // important
+        }).then((response) => {
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${fileName.nama_dokumen}.${cek[1]}`); //or any other extension
+            document.body.appendChild(link);
+            link.click();
+        });
     }
 
     openApprove = () => {
@@ -224,7 +275,7 @@ class Mutasi extends Component {
                 if (dataMut[index] !== undefined) {
                     const app = dataMut[index].appForm
                     const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
-                    if (app[find] !== undefined && app[find + 1].status === 1) {
+                    if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
                         newMut.push(dataMut[index])
                     }
                 }
@@ -625,7 +676,7 @@ class Mutasi extends Component {
                     </ModalBody>
                 </Modal>
                 <Modal isOpen={this.state.formMut} toggle={this.openModalMut} size="xl">
-                    <Alert color="danger" className={style.alertWrong} isOpen={true}>
+                    <Alert color="danger" className={style.alertWrong} isOpen={detailMut[0] === undefined || detailMut[0].docAsset.find(({status}) => status === 1) === undefined ? true : false}>
                         <div>Mohon upload dokumen terlebih dahulu sebelum approve</div>
                     </Alert>
                     <ModalBody>
@@ -705,10 +756,10 @@ class Mutasi extends Component {
                             <Button color='success' onClick={this.openProsesModalDoc}>Upload dokumen</Button>
                         </div>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="danger" onClick={() => this.openReject()}>
+                            <Button className="mr-2" color="danger" disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({status}) => status === 1) === undefined ? true : false} onClick={() => this.openReject()}>
                                 Reject
                             </Button>
-                            <Button color="success" onClick={() => this.openApprove()}>
+                            <Button color="success" disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({status}) => status === 1) === undefined ? true : false} onClick={() => this.openApprove()}>
                                 Approve
                             </Button>
                         </div>
@@ -983,23 +1034,25 @@ class Mutasi extends Component {
                                                 <BsCircle size={20} />
                                             )}
                                             <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
-                                            <div>
+                                            <div className="colDoc">
                                                 <input
                                                 className="ml-4"
                                                 type="file"
                                                 onClick={() => this.setState({detail: x})}
                                                 onChange={this.onChangeUpload}
                                                 />
+                                                <text className="txtError ml-4">Maximum file upload is 20 Mb</text>
                                             </div>
                                         </Col>
                                     ) : (
-                                        <Col md={6} lg={6} >
+                                        <Col md={6} lg={6} className="colDoc">
                                             <input
                                             className="ml-4"
                                             type="file"
                                             onClick={() => this.setState({detail: x})}
                                             onChange={this.onChangeUpload}
                                             />
+                                            <text className="txtError ml-4">Maximum file upload is 20 Mb</text>
                                         </Col>
                                     )}
                                 </Row>
@@ -1041,6 +1094,21 @@ class Mutasi extends Component {
                     </div>
                 </ModalBody>
             </Modal>
+            <Modal isOpen={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
+                <ModalHeader>Dokumen</ModalHeader>
+                <ModalBody>
+                    <div className={style.readPdf}>
+                        <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
+                    </div>
+                    <hr/>
+                    <div className={style.foot}>
+                        <div>
+                            <Button color="success" onClick={() => this.downloadData()}>Download</Button>
+                        </div>
+                        <Button color="primary" onClick={this.openModalPdf}>Close</Button>
+                    </div>
+                </ModalBody>
+            </Modal>
             </>
         )
     }
@@ -1049,13 +1117,16 @@ class Mutasi extends Component {
 const mapStateToProps = state => ({
     asset: state.asset,
     depo: state.depo,
-    mutasi: state.mutasi
+    mutasi: state.mutasi,
+    disposal: state.disposal,
+    pengadaan: state.pengadaan
 })
 
 const mapDispatchToProps = {
     logout: auth.logout,
     getAsset: asset.getAsset,
     resetError: asset.resetError,
+    resetDis: disposal.reset,
     nextPage: asset.nextPage,
     getDetailDepo: depo.getDetailDepo,
     getDepo: depo.getDepo,
@@ -1066,7 +1137,9 @@ const mapDispatchToProps = {
     getApproveMut: mutasi.getApproveMutasi,
     getMutasiRec: mutasi.getMutasiRec,
     getDocumentMut: mutasi.getDocumentMut,
-    resetAddMut: mutasi.resetAddMut
+    uploadDocumentDis: disposal.uploadDocumentDis,
+    resetAddMut: mutasi.resetAddMut,
+    showDokumen: pengadaan.showDokumen,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Mutasi)

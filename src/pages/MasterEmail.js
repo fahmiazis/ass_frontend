@@ -769,18 +769,18 @@ class MasterEmail extends Component {
                         {this.state.confirm === 'edit' ? (
                         <div className={style.cekUpdate}>
                             <AiFillCheckCircle size={80} className={style.green} />
-                            <div className={style.sucUpdate}>Berhasil Memperbarui User</div>
+                            <div className={style.sucUpdate}>Berhasil Memperbarui Email</div>
                         </div>
                         ) : this.state.confirm === 'add' ? (
                             <div className={style.cekUpdate}>
                                     <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={style.sucUpdate}>Berhasil Menambahkan User</div>
+                                <div className={style.sucUpdate}>Berhasil Menambahkan Email</div>
                             </div>
                         ) : this.state.confirm === 'upload' ?(
                             <div>
                                 <div className={style.cekUpdate}>
                                     <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={style.sucUpdate}>Berhasil Mengupload Master User</div>
+                                <div className={style.sucUpdate}>Berhasil Mengupload Master Email</div>
                             </div>
                             </div>
                         ) : (

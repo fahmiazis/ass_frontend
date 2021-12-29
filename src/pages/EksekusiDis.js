@@ -413,7 +413,7 @@ class EksekusiDisposal extends Component {
                         <div className={style.backgroundLogo}>
                             <div className={style.bodyDashboard}>
                                 <div className={style.headMaster}>
-                                    <div className={style.titleDashboard1}>Disposal Eksekusi</div>
+                                    <div className={style.titleDashboard1}>Eksekusi Disposal </div>
                                 </div>
                                 <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit}>
                                     <div>Lengkapi no dokumen SAP sebelum submit</div>

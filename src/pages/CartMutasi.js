@@ -3,7 +3,7 @@
 import React, { Component } from 'react'
 import { FaUserCircle, FaBars, FaTrash } from 'react-icons/fa'
 import style from '../assets/css/input.module.css'
-import {NavbarBrand, Row, Col, Button, Input, Modal, ModalBody, ModalHeader} from 'reactstrap'
+import {NavbarBrand, Row, Col, Button, Input, Modal, ModalBody, ModalHeader, Spinner} from 'reactstrap'
 import SidebarContent from "../components/sidebar_content"
 import Sidebar from "../components/Header"
 import MaterialTitlePanel from "../components/material_title_panel"
@@ -263,7 +263,7 @@ class CartMutasi extends Component {
                                     </div>
                                     <div className="footRinci3 mt-4">
                                         <Col md={6}>
-                                            <Button className="btnFootRinci2" size="lg" block outline  color="secondary" onClick={() => this.prosesRinci()}>Close</Button>
+                                            {/* <Button className="btnFootRinci2" size="lg" block outline  color="secondary" onClick={() => this.prosesRinci()}>Close</Button> */}
                                         </Col>
                                     </div>
                                 </div>
@@ -288,6 +288,16 @@ class CartMutasi extends Component {
                         <button className="btnSum" disabled={this.state.alasan === '' ? true : false } onClick={() => this.submitMut()}>Submit</button>
                     </ModalBody>
                 </Modal>
+                <Modal isOpen={this.props.mutasi.isLoading ? true: false} size="sm">
+                <ModalBody>
+                    <div>
+                        <div className={style.cekUpdate}>
+                            <Spinner />
+                            <div sucUpdate>Waiting....</div>
+                        </div>
+                    </div>
+                </ModalBody>
+            </Modal>
             </>
         )
     }

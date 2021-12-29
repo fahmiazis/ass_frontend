@@ -1,15 +1,19 @@
 /* eslint-disable import/no-anonymous-default-export */
 import http from '../../helpers/http'
 import qs from 'qs'
+const headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+ };
 
 export default {
     addMutasi: (token, no, plant) => ({
         type: 'ADD_MUTASI',
         payload: http(token).post(`/mutasi/add/${no}/${plant}`)
     }),
-    getMutasi: (token) => ({
+    getMutasi: (token, status) => ({
         type: 'GET_MUTASI',
-        payload: http(token).get(`/mutasi/get`)
+        payload: http(token).get(`/mutasi/get?status=${status === undefined ? 2 : status}`)
     }),
     getMutasiRec: (token) => ({
         type: 'GET_MUTASI_REC',
@@ -37,7 +41,7 @@ export default {
     }),
     rejectMutasi: (token, no, data) => ({
         type: 'REJECT_MUTASI',
-        payload: http(token).patch(`/mutasi/app/${no}`, qs.stringify(data))
+        payload: http(token).patch(`/mutasi/rej/${no}`, qs.stringify(data))
     }),
     getDocumentMut: (token, no, nomut) => ({
         type: 'DOKUMEN_MUT',
