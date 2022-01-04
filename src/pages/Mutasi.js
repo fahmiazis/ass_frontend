@@ -150,7 +150,6 @@ class Mutasi extends Component {
 
     componentDidUpdate() {
         const { errorAdd, rejReject, rejApprove, isReject, isApprove } = this.props.mutasi
-        console.log(this.state.listMut)
         if (errorAdd) {
             this.openConfirm(this.setState({confirm: 'addmutasi'}))
             this.props.resetAddMut()
@@ -279,7 +278,7 @@ class Mutasi extends Component {
                             newMut.push(dataMut[index])
                         }
                     } else {
-                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null) {
+                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
                             newMut.push(dataMut[index])
                         }
                     }
@@ -348,6 +347,7 @@ class Mutasi extends Component {
     }
 
     render() {
+        const role = localStorage.getItem('role')
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
         const { dataRinci, detailMut, newMut, listMut } = this.state
@@ -814,7 +814,6 @@ class Mutasi extends Component {
                                     <th>Cost Center</th>
                                     <th>Cabang/Depo Penerima</th>
                                     <th>Cost Center Penerima</th>
-                                    <th>Select item to reject</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -830,13 +829,6 @@ class Mutasi extends Component {
                                             <td onClick={() => this.openRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.cost_center}</td>
                                             <td onClick={() => this.openRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.area_rec}</td>
                                             <td onClick={() => this.openRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.cost_center_rec}</td>
-                                            <td> 
-                                                <Input
-                                                addon
-                                                type="checkbox"
-                                                onClick={listMut.find(element => element === item.no_asset) === undefined ? () => this.chekRej(item.no_asset) : () => this.chekApp(item.no_asset)}
-                                                value={item.no_asset} />
-                                            </td>
                                         </tr>
                                     )
                                 })}
@@ -854,10 +846,10 @@ class Mutasi extends Component {
                     {/* onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})} */}
                         <Button color="primary" onClick={this.getDataApprove}>Preview</Button>
                         <div className="btnFoot">
-                            <Button className="mr-2" disabled={listMut.length === 0 ? true : false} color="danger" onClick={() => this.openReject()}>
+                            <Button className="mr-2" disabled={detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 1 ? true : false} color="danger" onClick={() => this.openReject()}>
                                 Reject
                             </Button>
-                            <Button color="success" disabled={listMut.length === 0 ? false : true} onClick={() => this.openApprove()}>
+                            <Button color="success" onClick={() => this.openApprove()}>
                                 Approve
                             </Button>
                         </div>
@@ -948,7 +940,7 @@ class Mutasi extends Component {
                                                     {mutApp.pembuat !== undefined && mutApp.pembuat.map(item => {
                                                         return (
                                                             <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
                                                                 <div>{item.nama === null ? "-" : item.nama}</div>
                                                             </th>
                                                         )
@@ -973,7 +965,7 @@ class Mutasi extends Component {
                                                     {mutApp.penerima !== undefined && mutApp.penerima.map(item => {
                                                         return (
                                                             <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
                                                                 <div>{item.nama === null ? "-" : item.nama}</div>
                                                             </th>
                                                         )
@@ -998,7 +990,7 @@ class Mutasi extends Component {
                                                     {mutApp.pemeriksa !== undefined && mutApp.pemeriksa.map(item => {
                                                         return (
                                                             <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
                                                                 <div>{item.nama === null ? "-" : item.nama}</div>
                                                             </th>
                                                         )
@@ -1023,7 +1015,7 @@ class Mutasi extends Component {
                                                     {mutApp.penyetuju !== undefined && mutApp.penyetuju.map(item => {
                                                         return (
                                                             <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
                                                                 <div>{item.nama === null ? "-" : item.nama}</div>
                                                             </th>
                                                         )
@@ -1048,13 +1040,11 @@ class Mutasi extends Component {
                     <hr />
                     <div className="modalFoot ml-3">
                     {/* onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})} */}
-                        <Button color="primary">Preview</Button>
+                        {/* <Button color="primary">Preview</Button> */}
+                        <div></div>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="danger" onClick={() => this.openReject()}>
-                                Reject
-                            </Button>
-                            <Button color="success" onClick={() => this.openApprove()}>
-                                Approve
+                            <Button className="mr-2" color="secondary" onClick={() => this.openModalPre()}>
+                                Close
                             </Button>
                         </div>
                     </div>
@@ -1190,7 +1180,6 @@ class Mutasi extends Component {
                             <div className={style.cekUpdate}>
                             <AiOutlineClose size={80} className={style.red} />
                             <div className={[style.sucUpdate, style.green]}>Gagal Approve Form Mutasi</div>
-                            <div className="errApprove mt-2">{this.props.disposal.alertM === undefined ? '' : this.props.disposal.alertM}</div>
                         </div>
                         </div>
                     ) : this.state.confirm === 'rejReject' ?(
@@ -1198,7 +1187,6 @@ class Mutasi extends Component {
                             <div className={style.cekUpdate}>
                             <AiOutlineClose size={80} className={style.red} />
                             <div className={[style.sucUpdate, style.green]}>Gagal Reject Form Mutasi</div>
-                            <div className="errApprove mt-2">{this.props.disposal.alertM === undefined ? '' : this.props.disposal.alertM}</div>
                         </div>
                         </div>
                     ) : this.state.confirm === 'addmutasi' ?(

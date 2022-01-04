@@ -43,9 +43,29 @@ export default {
         type: 'REJECT_MUTASI',
         payload: http(token).patch(`/mutasi/rej/${no}`, qs.stringify(data))
     }),
+    rejectEksekusi: (token, no, data) => ({
+        type: 'REJECT_EKS',
+        payload: http(token).patch(`/mutasi/rejeks/${no}`, qs.stringify(data))
+    }),
     getDocumentMut: (token, no, nomut) => ({
         type: 'DOKUMEN_MUT',
         payload: http(token).get(`/mutasi/doc/${no}/${nomut}`)
+    }),
+    rejectDocMut: (token, id, data, tipe) => ({
+        type:'REJECT_DOCMUT',
+        payload: http(token).patch(`/mutasi/docrej/${id}?tipe=${tipe}`, qs.stringify(data))
+    }),
+    updateBudget: (token, no, status) => ({
+        type:'STATUS_BUDGET',
+        payload: http(token).patch(`/mutasi/status/${no}/${status}`)
+    }),
+    submitEksekusi: (token, no) => ({
+        type:'SUBMIT_EKS',
+        payload: http(token).get(`/mutasi/eks/${no}`)
+    }),
+    submitBudget: (token, no) => ({
+        type:'SUBMIT_BUDGET',
+        payload: http(token).get(`/mutasi/budget/${no}`)
     }),
     resetAddMut: () => ({
         type: 'RESET_ADD_MUT'

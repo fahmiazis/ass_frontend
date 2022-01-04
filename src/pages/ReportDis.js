@@ -427,7 +427,7 @@ class MasterUser extends Component {
                                                     <td>{item.nilai_buku === null ? '-' : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                     <td>{item.nilai_jual === null ? '-' : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                     <td>{item.keterangan}</td>
-                                                    <td>{item.dataAsset === null ? '-' : item.dataAsset.nilai_buku === null ? '-' : item.dataAsset.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                    <td>{item.nilai_buku === null ? '-' : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                     <td>{item.keterangan}</td>
                                                     <td>{item.nilai_jual === '0' ? 'Dispose' : 'Sell'}</td>
                                                     <td>{item.dataAsset === null ? '-' : item.dataAsset.accum_dep === null ? '-' : item.dataAsset.accum_dep.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>

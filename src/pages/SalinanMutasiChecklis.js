@@ -21,10 +21,6 @@ import {Formik} from 'formik'
 import * as Yup from 'yup'
 import logo from '../assets/img/logo.png'
 import moment from 'moment'
-import disposal from '../redux/actions/disposal'
-import pengadaan from '../redux/actions/pengadaan'
-import Pdf from "../components/Pdf"
-import {default as axios} from 'axios'
 const {REACT_APP_BACKEND_URL} = process.env
 
 
@@ -66,10 +62,6 @@ class Mutasi extends Component {
             confirm: '',
             modalConfirm: false,
             newMut: [],
-            openPdf: false,
-            idDoc: 0,
-            fileName: {},
-            date: '',
             listMut: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
@@ -94,25 +86,29 @@ class Mutasi extends Component {
         }
     }
 
+    chekRej = (val) => {
+        const { listMut } = this.state
+        listMut.push(val)
+        this.setState({listMut: listMut})
+    }
+
+    chekApp = (val) => {
+        const { listMut } = this.state
+        const data = []
+        for (let i = 0; i < listMut.length; i++) {
+            if (listMut[i] === val) {
+                data.push()
+            } else {
+                data.push(listMut[i])
+            }
+        }
+        this.setState({listMut: data})
+    }
+
     menuButtonClick(ev) {
         ev.preventDefault();
         this.onSetOpen(!this.state.open);
     }
-
-    showDokumen = async (value) => {
-        const token = localStorage.getItem('token')
-        await this.props.showDokumen(token, value.id)
-        this.setState({date: value.updatedAt, idDoc: value.id, fileName: value})
-        const {isShow} = this.props.pengadaan
-        if (isShow) {
-            this.openModalPdf()
-        }
-    }
-
-    openModalPdf = () => {
-        this.setState({openPdf: !this.state.openPdf})
-    }
-
 
     next = async () => {
         const { page } = this.props.asset
@@ -136,7 +132,7 @@ class Mutasi extends Component {
 
 
     openModalMut = () => {
-        this.setState({formMut: !this.state.formMut})
+        this.setState({formMut: !this.state.formMut, listMut: []})
     }
 
     onSetOpen(open) {
@@ -144,27 +140,19 @@ class Mutasi extends Component {
     }
 
     componentDidMount() {
-        this.getDataMutasiRec()
+        const level = localStorage.getItem('level')
+        if (level === "5" ) {
+            this.getDataAsset()
+        } else {
+            this.getDataMutasi()
+        }
     }
 
     componentDidUpdate() {
         const { errorAdd, rejReject, rejApprove, isReject, isApprove } = this.props.mutasi
-        const {isUpload} = this.props.disposal
-        const token = localStorage.getItem('token')
-        const { detailMut } = this.state
         if (errorAdd) {
             this.openConfirm(this.setState({confirm: 'addmutasi'}))
             this.props.resetAddMut()
-        } else if (isUpload) {
-            setTimeout(() => {
-                this.props.resetDis()
-             }, 1000)
-             setTimeout(() => {
-                this.props.getDocumentMut(token, detailMut[0].no_asset, detailMut[0].no_mutasi)
-                this.closeProsesModalDoc()
-                this.openModalMut()
-                this.getDataMutasiRec()
-             }, 1100)
         } else if (isReject) {
             this.setState({listMut: []})
             this.openReject()
@@ -186,10 +174,10 @@ class Mutasi extends Component {
         }
     }
 
-    openProsesModalDoc = async (val) => {
+    openProsesModalDoc = async () => {
         const token = localStorage.getItem('token')
-        const { detailMut } = this.state
-        await this.props.getDocumentMut(token, detailMut[0].no_asset, detailMut[0].no_mutasi)
+        const { dataRinci } = this.state
+        await this.props.getDocumentMut(token, dataRinci.no_asset, dataRinci.no_mutasi)
         this.closeProsesModalDoc()
     }
 
@@ -208,6 +196,11 @@ class Mutasi extends Component {
         this.openModalPre()
     }
 
+    getDataApproveMut = async (val) => {
+        const token = localStorage.getItem('token')
+        await this.props.getApproveMut(token, val, 'Mutasi')
+    }
+
     openModalPre = () => {
         this.setState({preview: !this.state.preview})
     }
@@ -224,24 +217,6 @@ class Mutasi extends Component {
         this.openModalMut()
     }
 
-    downloadData = () => {
-        const { fileName } = this.state
-        const download = fileName.path.split('/')
-        const cek = download[2].split('.')
-        axios({
-            url: `${REACT_APP_BACKEND_URL}/uploads/${download[2]}`,
-            method: 'GET',
-            responseType: 'blob', // important
-        }).then((response) => {
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `${fileName.nama_dokumen}.${cek[1]}`); //or any other extension
-            document.body.appendChild(link);
-            link.click();
-        });
-    }
-
     openApprove = () => {
         this.setState({approve: !this.state.approve})
     }
@@ -253,6 +228,7 @@ class Mutasi extends Component {
     getDataMutasi = async () => {
         const token = localStorage.getItem('token')
         await this.props.getMutasi(token)
+        this.changeView('available')
     }
 
     getDataAsset = async (value) => {
@@ -297,8 +273,14 @@ class Mutasi extends Component {
                 if (dataMut[index] !== undefined) {
                     const app = dataMut[index].appForm
                     const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
-                    if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
-                        newMut.push(dataMut[index])
+                    if (role === 'BM') {
+                        if ((app.length === 0 || app[app.length - 1].status === null) || (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (app[find].status === null || app[find].status === 0))) {
+                            newMut.push(dataMut[index])
+                        }
+                    } else {
+                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null) {
+                            newMut.push(dataMut[index])
+                        }
                     }
                 }
             }
@@ -327,14 +309,18 @@ class Mutasi extends Component {
         const { detailMut } = this.state
         const token = localStorage.getItem("token")
         await this.props.approveMut(token, detailMut[0].no_mutasi)
-        this.getDataMutasiRec()
+        this.getDataMutasi()
     }
 
     rejectMutasi = async (val) => {
-        const { detailMut } = this.state
+        const { detailMut, listMut } = this.state
         const token = localStorage.getItem("token")
-        await this.props.rejectMut(token, detailMut[0].no_mutasi, val)
-        this.getDataMutasiRec()
+        const data = {
+            alasan: val.alasan,
+            listMut: listMut
+        }
+        await this.props.rejectMut(token, detailMut[0].no_mutasi, data)
+        this.getDataMutasi()
     }
 
     prepareSelect = async () => {
@@ -363,7 +349,7 @@ class Mutasi extends Component {
     render() {
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
-        const { dataRinci, detailMut, newMut } = this.state
+        const { dataRinci, detailMut, newMut, listMut } = this.state
         const { detailDepo } = this.props.depo
         const { dataMut, noMut, mutApp, dataDoc } = this.props.mutasi
         const { dataAsset, page } = this.props.asset
@@ -410,24 +396,25 @@ class Mutasi extends Component {
                     <MaterialTitlePanel title={contentHeader}>
                         <div className={style.backgroundLogo1}>
                             <div className={style.bodyDashboard}>
-                                <div className={style.headMaster}> 
-                                    <div className={style.titleDashboard}>Terima Mutasi Asset</div>
-                                </div>
-                                <div className={style.secEmail}>
+                                    <div className={style.headMaster}> 
+                                        <div className={style.titleDashboard}>Mutasi Asset</div>
+                                    </div>
+                                    <div className={style.secEmail}>
                                     {level === '5' ? (
                                         <div className={style.headEmail}>
-                                            <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
-                                                <option value="not available">All</option>
-                                                <option value="available">Available To Approve</option>
-                                            </Input>
+                                            <button onClick={this.goCartMut} className="btnGoCart"><FaCartPlus size={60} className="green ml-2" /></button>
                                         </div>
                                     ) : (
                                         <div className={style.headEmail}>
+                                            <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
+                                                <option value="available">Available To Approve</option>
+                                                <option value="not available">All</option>
+                                            </Input>
                                         </div>
                                     )}
                                     <div className={style.searchEmail1}>
                                         <text>Search: </text>
-                                        <Input
+                                        <Input 
                                         className={style.search}
                                         onChange={this.onSearch}
                                         value={this.state.search}
@@ -438,9 +425,59 @@ class Mutasi extends Component {
                                     </div>
                                 </div>
                                 {level === '5' ? (
-                                    newMut === undefined ? (
+                                    this.props.asset.isGet === false ? (
                                         <div></div>
-                                    ) : ( 
+                                    ) : (
+                                        <Row className="bodyDispos">
+                                        {dataAsset.length !== 0 && dataAsset.map(item => {
+                                            return (
+                                                <div className="bodyCard">
+                                                    <button className="btnDispos" disabled={item.status === '1' ? true : false}>
+                                                        <img src={item.pict.length > 0 ? `${REACT_APP_BACKEND_URL}/${item.pict[0].path}` : placeholder} className="imgCard" />
+                                                        <div className="txtDoc mb-2">
+                                                            {item.nama_asset}
+                                                        </div>
+                                                        <Row className="mb-2">
+                                                            <Col md={4} className="txtDoc">No Asset</Col>
+                                                            <Col md={8} className="txtDoc">: {item.no_asset}</Col>
+                                                        </Row>
+                                                        <Row className="mb-2">
+                                                            <Col md={4} className="txtDoc">Nilai Buku</Col>
+                                                            <Col md={8} className="txtDoc">: {item.nilai_buku}</Col>
+                                                        </Row>
+                                                        <Row className="mb-2">
+                                                            <Col md={4} className="txtDoc">Kategori</Col>
+                                                            <Col md={8} className="txtDoc">: {item.kategori}</Col>
+                                                        </Row>
+                                                    </button>
+                                                    {item.status === '1' ? (
+                                                        <Row className="footCard">
+                                                            <Col md={12} xl={12}>
+                                                                <Button disabled className="btnSell" color="secondary">On Proses Disposal</Button>
+                                                            </Col>
+                                                        </Row>
+                                                    ) : item.status === '11' ? (
+                                                        <Row className="footCard">
+                                                            <Col md={12} xl={12}>
+                                                                <Button disabled className="btnSell" color="secondary">On Proses Mutasi</Button>
+                                                            </Col>
+                                                        </Row>
+                                                    ) : (
+                                                        <Row className="footCard">
+                                                            <Col md={12} xl={12}>
+                                                                <Button className="btnSell" color="primary" onClick={() => this.openRinciAdmin(this.setState({dataRinci: item, kode: '', img: item.pict.length > 0 ? item.pict[0].path : ''}))}>Mutasi</Button>
+                                                            </Col>
+                                                        </Row>
+                                                    )}
+                                                </div>
+                                            )
+                                        })}
+                                    </Row>
+                                    )
+                                ) : (
+                                    noMut === undefined ? (
+                                        <div></div>
+                                    ) : (
                                         <Row className="bodyDispos">
                                         {newMut.length !== 0 && newMut.map(item => {
                                             return (
@@ -449,14 +486,22 @@ class Mutasi extends Component {
                                                     <Button size="sm" color="danger" className="labelBut">Mutasi</Button>
                                                     <div className="ml-2">
                                                         <div className="txtDoc mb-2">
-                                                            Terima Mutasi Aset
+                                                            Pengajuan Mutasi Aset
                                                         </div>
                                                         <Row className="mb-2">
                                                             <Col md={6} className="txtDoc">
-                                                            Area Pengirim
+                                                            Area asal
                                                             </Col>
                                                             <Col md={6} className="txtDoc">
                                                             : {item.area}
+                                                            </Col>
+                                                        </Row>
+                                                        <Row className="mb-2">
+                                                            <Col md={6} className="txtDoc">
+                                                            Area tujuan
+                                                            </Col>
+                                                            <Col md={6} className="txtDoc">
+                                                            : {item.area_rec}
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">
@@ -488,7 +533,7 @@ class Mutasi extends Component {
                                                     </div>
                                                     <Row className="footCard mb-3 mt-3">
                                                         <Col md={12} xl={12}>
-                                                            <Button className="btnSell" color="primary" onClick={() => this.openDetailMut(item.no_mutasi)}>Proses</Button>
+                                                            <Button className="btnSell" color="primary" onClick={() => {this.openDetailMut(item.no_mutasi); this.getDataApproveMut(item.no_mutasi)}}>Proses</Button>
                                                         </Col>
                                                     </Row>
                                                 </div>
@@ -496,13 +541,21 @@ class Mutasi extends Component {
                                         })}
                                         </Row>
                                     )
-                                ) : (
-                                    <div></div>
                                 )}
                                 <div>
                                     <div className={style.infoPageEmail}>
-                                        <text>Showing 1 of 1 pages</text>
+                                        <text>Showing {level === '5' ? page.currentPage : 1} of {level === '5' ? page.pages : 1} pages</text>
                                         <div className={style.pageButton}>
+                                            {level === '5' ? (
+                                                <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
+                                            ) : (
+                                                <div></div>
+                                            )}
+                                            {level === '5' ? (
+                                                <button className={style.btnPrev} color="info" disabled={page.nextLink === null ? true : false} onClick={this.next}>Next</button>
+                                            ) : (
+                                                <div></div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -577,11 +630,21 @@ class Mutasi extends Component {
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Cost Center</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={detailDepo.cost_center} disabled /></Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Nilai Buku</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null ? '0' : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null ? '-' : dataRinci.nilai_buku} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Keterangan</Col>
+                                            <Col md={9} className="colRinci">:  <Input
+                                                className="inputRinci" 
+                                                type="text" 
+                                                value={dataRinci.keterangan === null ? '-' : dataRinci.keterangan} 
+                                                disabled
+                                                />
+                                            </Col>
                                         </Row>
                                         <Row  className="mb-3 rowRinci">
                                             <Col md={3}>Area Tujuan</Col>
@@ -613,7 +676,7 @@ class Mutasi extends Component {
                 </Modal>
                 <Modal isOpen={this.state.rincian} toggle={this.openRinci} size="xl">
                     <ModalHeader>
-                        Terima Mutasi
+                        Rincian
                     </ModalHeader>
                     <ModalBody>
                         <div className="mainRinci">
@@ -662,6 +725,14 @@ class Mutasi extends Component {
                                             <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Area Penerima</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.area_rec} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Cost Center Penerima</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center_rec} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>No Asset</Col>
                                             <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
                                         </Row>
@@ -692,6 +763,8 @@ class Mutasi extends Component {
                                     <div className="footRinci3 mt-4">
                                         <Col md={6}>
                                         </Col>
+                                        <Col md={6}>
+                                        </Col>
                                     </div>
                                 </div>
                             )}
@@ -700,9 +773,6 @@ class Mutasi extends Component {
                     </ModalBody>
                 </Modal>
                 <Modal isOpen={this.state.formMut} toggle={this.openModalMut} size="xl">
-                    <Alert color="danger" className={style.alertWrong} isOpen={detailMut[0] === undefined || detailMut[0].docAsset.find(({status}) => status === 1) === undefined ? true : false}>
-                        <div>Mohon upload dokumen terlebih dahulu sebelum approve</div>
-                    </Alert>
                     <ModalBody>
                         {/* <div className="mb-2"><text className="txtTrans">{detailDis[0] !== undefined && detailDis[0].area}</text>, {moment(detailDis[0] !== undefined && detailDis[0].createdAt).locale('idn').format('DD MMMM YYYY ')}</div> */}
                         <Row className="mb-5">
@@ -743,21 +813,29 @@ class Mutasi extends Component {
                                     <th>Cost Center</th>
                                     <th>Cabang/Depo Penerima</th>
                                     <th>Cost Center Penerima</th>
+                                    <th>Select item to reject</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {detailMut.length !== 0 && detailMut.map(item => {
                                     return (
-                                        <tr onClick={() => this.openRinci(this.setState({dataRinci: item, kode: '', img: ''}))}>
-                                            <th scope="row">{detailMut.indexOf(item) + 1}</th>
-                                            <td>{item.no_asset}</td>
-                                            <td>{item.nama_asset}</td>
-                                            <td>{item.merk}</td>
-                                            <td>{item.kategori}</td>
-                                            <td>{item.area}</td>
-                                            <td>{item.cost_center}</td>
-                                            <td>{item.area_rec}</td>
-                                            <td>{item.cost_center_rec}</td>
+                                        <tr>
+                                            <th onClick={() => this.openRinci(this.setState({dataRinci: item, kode: '', img: ''}))} scope="row">{detailMut.indexOf(item) + 1}</th>
+                                            <td onClick={() => this.openRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.no_asset}</td>
+                                            <td onClick={() => this.openRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.nama_asset}</td>
+                                            <td onClick={() => this.openRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.merk}</td>
+                                            <td onClick={() => this.openRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.kategori}</td>
+                                            <td onClick={() => this.openRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.area}</td>
+                                            <td onClick={() => this.openRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.cost_center}</td>
+                                            <td onClick={() => this.openRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.area_rec}</td>
+                                            <td onClick={() => this.openRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.cost_center_rec}</td>
+                                            <td> 
+                                                <Input
+                                                addon
+                                                type="checkbox"
+                                                onClick={listMut.find(element => element === item.no_asset) === undefined ? () => this.chekRej(item.no_asset) : () => this.chekApp(item.no_asset)}
+                                                value={item.no_asset} />
+                                            </td>
                                         </tr>
                                     )
                                 })}
@@ -773,15 +851,12 @@ class Mutasi extends Component {
                     <hr />
                     <div className="modalFoot ml-3">
                     {/* onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})} */}
+                        <Button color="primary" onClick={this.getDataApprove}>Preview</Button>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="primary" onClick={this.getDataApprove}>Preview</Button>
-                            <Button color='success' onClick={this.openProsesModalDoc}>Upload dokumen</Button>
-                        </div>
-                        <div className="btnFoot">
-                            <Button className="mr-2" color="danger" disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({status}) => status === 1) === undefined ? true : false} onClick={() => this.openReject()}>
+                            <Button className="mr-2" disabled={listMut.length === 0 ? true : false} color="danger" onClick={() => this.openReject()}>
                                 Reject
                             </Button>
-                            <Button color="success" disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({status}) => status === 1) === undefined ? true : false} onClick={() => this.openApprove()}>
+                            <Button color="success" disabled={listMut.length === 0 ? false : true} onClick={() => this.openApprove()}>
                                 Approve
                             </Button>
                         </div>
@@ -828,7 +903,6 @@ class Mutasi extends Component {
                                     <th>Cost Center</th>
                                     <th>Cabang/Depo Penerima</th>
                                     <th>Cost Center Penerima</th>
-                                    <th>Keterangan</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -844,7 +918,6 @@ class Mutasi extends Component {
                                             <td>{item.cost_center}</td>
                                             <td>{item.area_rec}</td>
                                             <td>{item.cost_center_rec}</td>
-                                            <td>{item.keterangan}</td>
                                         </tr>
                                     )
                                 })}
@@ -974,8 +1047,14 @@ class Mutasi extends Component {
                     <hr />
                     <div className="modalFoot ml-3">
                     {/* onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})} */}
-                        <Button color="primary" onClick={this.openModalPre}>Close</Button>
+                        <Button color="primary">Preview</Button>
                         <div className="btnFoot">
+                            <Button className="mr-2" color="danger" onClick={() => this.openReject()}>
+                                Reject
+                            </Button>
+                            <Button color="success" onClick={() => this.openApprove()}>
+                                Approve
+                            </Button>
                         </div>
                     </div>
                 </Modal>
@@ -1056,25 +1135,23 @@ class Mutasi extends Component {
                                                 <BsCircle size={20} />
                                             )}
                                             <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
-                                            <div className="colDoc">
+                                            <div>
                                                 <input
                                                 className="ml-4"
                                                 type="file"
                                                 onClick={() => this.setState({detail: x})}
                                                 onChange={this.onChangeUpload}
                                                 />
-                                                <text className="txtError ml-4">Maximum file upload is 20 Mb</text>
                                             </div>
                                         </Col>
                                     ) : (
-                                        <Col md={6} lg={6} className="colDoc">
+                                        <Col md={6} lg={6} >
                                             <input
                                             className="ml-4"
                                             type="file"
                                             onClick={() => this.setState({detail: x})}
                                             onChange={this.onChangeUpload}
                                             />
-                                            <text className="txtError ml-4">Maximum file upload is 20 Mb</text>
                                         </Col>
                                     )}
                                 </Row>
@@ -1091,7 +1168,7 @@ class Mutasi extends Component {
                     </Button>
                 </ModalFooter>
             </Modal>
-            <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm}>
+            <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="sm">
                 <ModalBody>
                     {this.state.confirm === 'approve' ?(
                         <div>
@@ -1146,21 +1223,6 @@ class Mutasi extends Component {
                     </div>
                 </ModalBody>
             </Modal>
-            <Modal isOpen={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
-                <ModalHeader>Dokumen</ModalHeader>
-                <ModalBody>
-                    <div className={style.readPdf}>
-                        <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
-                    </div>
-                    <hr/>
-                    <div className={style.foot}>
-                        <div>
-                            <Button color="success" onClick={() => this.downloadData()}>Download</Button>
-                        </div>
-                        <Button color="primary" onClick={this.openModalPdf}>Close</Button>
-                    </div>
-                </ModalBody>
-            </Modal>
             </>
         )
     }
@@ -1169,16 +1231,13 @@ class Mutasi extends Component {
 const mapStateToProps = state => ({
     asset: state.asset,
     depo: state.depo,
-    mutasi: state.mutasi,
-    disposal: state.disposal,
-    pengadaan: state.pengadaan
+    mutasi: state.mutasi
 })
 
 const mapDispatchToProps = {
     logout: auth.logout,
     getAsset: asset.getAsset,
     resetError: asset.resetError,
-    resetDis: disposal.reset,
     nextPage: asset.nextPage,
     getDetailDepo: depo.getDetailDepo,
     getDepo: depo.getDepo,
@@ -1189,9 +1248,7 @@ const mapDispatchToProps = {
     getApproveMut: mutasi.getApproveMutasi,
     getMutasiRec: mutasi.getMutasiRec,
     getDocumentMut: mutasi.getDocumentMut,
-    uploadDocumentDis: disposal.uploadDocumentDis,
     resetAddMut: mutasi.resetAddMut,
-    showDokumen: pengadaan.showDokumen,
     resetAppRej: mutasi.resetAppRej
 }
 

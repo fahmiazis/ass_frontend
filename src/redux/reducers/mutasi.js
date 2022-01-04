@@ -13,7 +13,11 @@ const mutasiState = {
     isError: false,
     isApprove: false,
     isReject: false,
-    detailMut: {},
+    submitEks: false,
+    submitBud: false,
+    eksError: false,
+    budError: false,
+    detailMut: [],
     mutApp: {},
     nomor_mutasi: '',
     alertMsg: '',
@@ -24,7 +28,9 @@ const mutasiState = {
     dataDoc: [],
     errorAdd: false,
     rejReject: false,
-    rejApprove: false
+    rejApprove: false,
+    isRejDoc: false,
+    statusBudget: false
 };
 
 export default (state=mutasiState, action) => {
@@ -52,6 +58,75 @@ export default (state=mutasiState, action) => {
                     isError: true,
                     alertMsg: "Unable connect to server",
                     alertM: action.payload.response.data.message
+                };
+            }
+            case 'STATUS_BUDGET_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'STATUS_BUDGET_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    statusBudget: true,
+                    alertMsg: 'update status budget Succesfully'
+                };
+            }
+            case 'STATUS_BUDGET_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: true,
+                    alertMsg: 'unable connect to server'
+                };
+            }
+            case 'SUBMIT_EKS_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'SUBMIT_EKS_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    submitEks: true,
+                    alertMsg: 'update submit eksekusi Succesfully'
+                };
+            }
+            case 'SUBMIT_EKS_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    eksError: true,
+                    alertMsg: 'unable connect to server'
+                };
+            }
+            case 'SUBMIT_BUDGET_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'SUBMIT_BUDGET_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    submitBud: true,
+                    alertMsg: 'update submit budget Succesfully'
+                };
+            }
+            case 'SUBMIT_BUDGET_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    budError: true,
+                    alertMsg: 'unable connect to server'
                 };
             }
             case 'GET_MUTASI_PENDING': {
@@ -118,7 +193,7 @@ export default (state=mutasiState, action) => {
                     ...state,
                     isLoading: false,
                     isGetDet: true,
-                    dataMut: action.payload.data.result.rows,
+                    detailMut: action.payload.data.result,
                     alertMsg: 'get mutasi Succesfully',
                 };
             }
@@ -197,7 +272,7 @@ export default (state=mutasiState, action) => {
                 return {
                     ...state,
                     isLoading: false,
-                    isError: true,
+                    rejApprove: true,
                     alertMsg: "Unable connect to server"
                 };
             }
@@ -220,7 +295,30 @@ export default (state=mutasiState, action) => {
                 return {
                     ...state,
                     isLoading: false,
-                    isError: true,
+                    rejReject: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'REJECT_EKS_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'REJECT_EKS_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isReject: true,
+                    alertMsg: 'reject mutasi Succesfully'
+                };
+            }
+            case 'REJECT_EKS_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    rejReject: true,
                     alertMsg: "Unable connect to server"
                 };
             }
@@ -249,6 +347,29 @@ export default (state=mutasiState, action) => {
                     alertMsg: "Unable connect to server"
                 };
             }
+            case 'REJECT_DOCMUT_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'REJECT_DOCMUT_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isRejDoc: true,
+                    alertMsg: 'reject document disposal succesfully',
+                };
+            }
+            case 'REJECT_DOCMUT_REJECTED': {
+                return {
+                    ...state,
+                    isError: true,
+                    isLoading: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
             case 'RESET_ADD_MUT': {
                 return {
                     ...state,
@@ -261,7 +382,8 @@ export default (state=mutasiState, action) => {
                     isApprove: false,
                     rejApprove: false,
                     isReject: false,
-                    rejReject: false
+                    rejReject: false,
+                    isRejDoc: false
                 }
             }
             default: {

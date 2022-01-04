@@ -34,13 +34,13 @@ export default class NavMut extends Component {
                         <div className="titHome">Mutasi menu</div>
                         <div className="txtChoose">Please select an option</div>
                         <div className="mainBody">
-                            <button className="cardNav1" onClick={() => this.goRoute('mutasi')}>
-                                <div className="titCard">
-                                    Pengajuan mutasi
-                                </div>
-                            </button>
                             {level === '5' ? (
                                 <>
+                                    <button className="cardNav1" onClick={() => this.goRoute('mutasi')}>
+                                        <div className="titCard">
+                                            Pengajuan mutasi
+                                        </div>
+                                    </button>
                                     <button className="cardNav1" onClick={() => this.goRoute('termut')}>
                                         <div className="titCard">
                                             Terima mutasi
@@ -52,14 +52,21 @@ export default class NavMut extends Component {
                                         </div>
                                     </button>
                                 </>
-                            ) : (
-                                <div></div>
-                            )}
-                            {level === '2' ? (
+                            ) : level === '2' ? (
                                 <>
+                                    <button className="cardNav1" onClick={() => this.goRoute('mutasi')}>
+                                        <div className="titCard">
+                                            Pengajuan mutasi
+                                        </div>
+                                    </button>
                                     <button className="cardNav1" onClick={() => this.goRoute('eksmut')}>
                                         <div className="titCard">
                                             Eksekusi mutasi
+                                        </div>
+                                    </button>
+                                    <button className="cardNav1" onClick={() => this.goRoute('budmut')}>
+                                        <div className="titCard">
+                                            Budget mutasi
                                         </div>
                                     </button>
                                     <button className="cardNav1" onClick={() => this.goRoute('report')}>
@@ -68,9 +75,19 @@ export default class NavMut extends Component {
                                         </div>
                                     </button>
                                 </>
+                            ) : level === '8' ? (
+                                <button className="cardNav1" onClick={() => this.goRoute('budmut')}>
+                                    <div className="titCard">
+                                        Budget mutasi
+                                    </div>
+                                </button>
                             ) : (
-                                <div></div>
-                            )}                            
+                                <button className="cardNav1" onClick={() => this.goRoute('mutasi')}>
+                                    <div className="titCard">
+                                        Pengajuan mutasi
+                                    </div>
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

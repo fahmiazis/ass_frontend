@@ -362,6 +362,7 @@ class Asset extends Component {
                                                 <th>Nama Asset</th>
                                                 <th>Area</th>
                                                 <th>Keterangan</th>
+                                                <th>Status</th>
                                             </tr>
                                         </thead>
                                     </Table>
@@ -389,7 +390,7 @@ class Asset extends Component {
                                                 <td>{item.no_doc}</td>
                                                 <td>{item.nama_asset}</td>
                                                 <td>{item.area}</td>
-                                                <td>{item.keterangan}</td>
+                                                <td></td>
                                                 <td></td>
                                             </tr>
                                                 )})}

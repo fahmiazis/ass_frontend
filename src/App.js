@@ -40,6 +40,7 @@ import TerimaMutasi from './pages/TerimaMutasi'
 import TrackingMutasi from './pages/TrackingMutasi'
 import NavMut from './pages/NavMut'
 import EksekusiMut from './pages/EksekusiMut'
+import BudgetMutasi from './pages/BudgetMutasi'
 
 class App extends Component {
 
@@ -149,6 +150,9 @@ class App extends Component {
                 </PrivateRoute>
                 <PrivateRoute path='/eksmut'>
                     <EksekusiMut />
+                </PrivateRoute>
+                <PrivateRoute path='/budmut'>
+                    <BudgetMutasi />
                 </PrivateRoute>
             </Switch>
         </BrowserRouter>

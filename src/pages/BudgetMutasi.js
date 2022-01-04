@@ -35,7 +35,7 @@ const alasanSchema = Yup.object().shape({
     alasan: Yup.string().required()
 });
 
-class EksekusiMut extends Component {
+class BudgetMutasi extends Component {
 
     constructor(props) {
         super(props);
@@ -161,8 +161,9 @@ class EksekusiMut extends Component {
     }
 
     getDataMutasi = async () => {
+        const level = localStorage.getItem('level')
         const token = localStorage.getItem('token')
-        await this.props.getMutasi(token, 9)
+        await this.props.getMutasi(token, level === '2' ? 4 : 3)
         this.changeView()
     }
 
@@ -266,7 +267,7 @@ class EksekusiMut extends Component {
     approveMutasi = async () => {
         const { detailMut } = this.state
         const token = localStorage.getItem("token")
-        await this.props.submitEksekusi(token, detailMut[0].no_mutasi)
+        await this.props.submitBudget(token, detailMut[0].no_mutasi)
         this.getDataMutasi()
     }
 
@@ -294,8 +295,8 @@ class EksekusiMut extends Component {
 
     render() {
         const dataNotif = this.props.notif.data
-        const { dataRinci, newMut, listMut, fileName } = this.state
-        const { dataDoc, detailMut } = this.props.mutasi
+        const { dataRinci, newMut, listMut, fileName, detailMut } = this.state
+        const { dataDoc } = this.props.mutasi
         const level = localStorage.getItem('level')
 
         const contentHeader =  (
@@ -332,7 +333,7 @@ class EksekusiMut extends Component {
                         <div className={style.backgroundLogo1}>
                             <div className={style.bodyDashboard}>
                                 <div className={style.headMaster}> 
-                                    <div className={style.titleDashboard}>Eksekusi Mutasi</div>
+                                    <div className={style.titleDashboard}>Mutasi Budget</div>
                                 </div>
                                 <div className={style.secEmail}>
                                     <div className={style.headEmail}>
@@ -527,9 +528,6 @@ class EksekusiMut extends Component {
                     </ModalBody>
                 </Modal>
                 <Modal isOpen={this.state.formMut} toggle={this.openModalMut} size="xl">
-                    <Alert color="danger" className={style.alertWrong} isOpen={detailMut[0] === undefined || detailMut[0].docAsset.find(({divisi}) => divisi === '3') === undefined ? true : false}>
-                        <div>Mohon approve dokumen terlebih dahulu sebelum approve pengajuan mutasi</div>
-                    </Alert>
                     <ModalBody>
                         {/* <div className="mb-2"><text className="txtTrans">{detailDis[0] !== undefined && detailDis[0].area}</text>, {moment(detailDis[0] !== undefined && detailDis[0].createdAt).locale('idn').format('DD MMMM YYYY ')}</div> */}
                         <Row className="mb-5">
@@ -570,8 +568,6 @@ class EksekusiMut extends Component {
                                     <th>Cost Center</th>
                                     <th>Cabang/Depo Penerima</th>
                                     <th>Cost Center Penerima</th>
-                                    <th>Select item to reject</th>
-                                    <th>Konfirmasi Budget</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -587,35 +583,6 @@ class EksekusiMut extends Component {
                                             <td onClick={() => this.openModalRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.cost_center}</td>
                                             <td onClick={() => this.openModalRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.area_rec}</td>
                                             <td onClick={() => this.openModalRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.cost_center_rec}</td>
-                                            <td> 
-                                                <Input
-                                                addon
-                                                type="checkbox"
-                                                onClick={listMut.find(element => element === item.no_asset) === undefined ? () => this.chekRej(item.no_asset) : () => this.chekApp(item.no_asset)}
-                                                value={item.no_asset} />
-                                            </td>
-                                            <td>
-                                                <div>
-                                                    <Input
-                                                    addon
-                                                    disabled={listMut.find(element => element === item.no_asset) === undefined ? false : true}
-                                                    type="checkbox"
-                                                    checked={item.isbudget === 'ya' ? true : false}
-                                                    onClick={() => this.updateStatus({no: item.no_asset, stat: 'ya'})}
-                                                    value={item.no_asset} />
-                                                    <text className='ml-2'>Ya</text>
-                                                </div>
-                                                <div>
-                                                    <Input
-                                                    addon
-                                                    disabled={listMut.find(element => element === item.no_asset) === undefined ? false : true}
-                                                    type="checkbox"
-                                                    checked={item.isbudget === 'tidak' ? true : false}
-                                                    onClick={() => this.updateStatus({no: item.no_asset, stat: 'tidak'})}
-                                                    value={item.no_asset} />
-                                                    <text className='ml-2'>Tidak</text>
-                                                </div>
-                                            </td>
                                         </tr>
                                     )
                                 })}
@@ -632,13 +599,9 @@ class EksekusiMut extends Component {
                     <div className="modalFoot ml-3">
                     {/* onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})} */}
                         <div className="btnFoot">
-                            <Button className="mr-2" color="primary" onClick={this.openProsesModalDoc}>Dokumen</Button>
                         </div>
                         <div className="btnFoot">
-                            <Button className="mr-2" disabled={listMut.length === 0 ? true : false} color="danger" onClick={() => this.openReject()}>
-                                Reject
-                            </Button>
-                            <Button color="success" disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({divisi}) => divisi === '3') === undefined ? true :  detailMut.find(({isbudget}) => isbudget === null) !== undefined ? true : listMut.length === 0 ? false : true} onClick={() => this.openApprove()}>
+                            <Button color="success"  onClick={() => this.openApprove()}>
                                 Submit
                             </Button>
                         </div>
@@ -776,7 +739,7 @@ class EksekusiMut extends Component {
                     <div className={style.modalApprove}>
                         <div>
                             <text>
-                                Anda yakin untuk submit eksekusi
+                                Anda yakin untuk submit
                                 <text className={style.verif}> mutasi </text>
                                 pada tanggal
                                 <text className={style.verif}> {moment().format('LL')}</text> ?
@@ -909,7 +872,8 @@ const mapDispatchToProps = {
     rejectEks: mutasi.rejectEksekusi,
     getDetailMutasi: mutasi.getDetailMutasi,
     updateBudget: mutasi.updateBudget,
-    submitEksekusi: mutasi.submitEksekusi
+    submitEksekusi: mutasi.submitEksekusi,
+    submitBudget: mutasi.submitBudget
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(EksekusiMut)
+export default connect(mapStateToProps, mapDispatchToProps)(BudgetMutasi)
