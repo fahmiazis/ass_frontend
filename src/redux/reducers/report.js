@@ -6,6 +6,7 @@ const reportState = {
     isError: false,
     alertMsg: '',
     dataRep: [],
+    dataMut: [],
 };
 
 export default (state=reportState, action) => {
@@ -28,6 +29,31 @@ export default (state=reportState, action) => {
             };
         }
         case 'GET_REPORTDIS_REJECTED': {
+            return {
+                ...state,
+                isError: true,
+                isLoading: false,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'GET_REPORTMUT_PENDING': {
+            return {
+                ...state,
+                isGet: false,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'GET_REPORTMUT_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isGet: true,
+                dataMut: action.payload.data.result.rows,
+                alertMsg: 'get disposal Succesfully',
+            };
+        }
+        case 'GET_REPORTMUT_REJECTED': {
             return {
                 ...state,
                 isError: true,

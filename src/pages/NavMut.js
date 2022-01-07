@@ -69,7 +69,7 @@ export default class NavMut extends Component {
                                             Budget mutasi
                                         </div>
                                     </button>
-                                    <button className="cardNav1" onClick={() => this.goRoute('report')}>
+                                    <button className="cardNav1" onClick={() => this.goRoute('repmut')}>
                                         <div className="titCard">
                                             Report mutasi
                                         </div>
