@@ -35,6 +35,10 @@ const alasanSchema = Yup.object().shape({
     alasan: Yup.string().required()
 });
 
+const sapSchema = Yup.object().shape({
+    doc_sap: Yup.string().required()
+})
+
 class BudgetMutasi extends Component {
 
     constructor(props) {
@@ -174,7 +178,7 @@ class BudgetMutasi extends Component {
     openDetailMut = async (value) => {
         const { dataMut } = this.props.mutasi
         const token = localStorage.getItem('token')
-        await this.props.getDetailMutasi(token, value) 
+        await this.props.getDetailMutasi(token, value, 'budget') 
         const detail = []
         for (let i = 0; i < dataMut.length; i++) {
             if (dataMut[i].no_mutasi === value) {
@@ -223,7 +227,7 @@ class BudgetMutasi extends Component {
              }, 1000)
              setTimeout(() => {
                 this.props.getDocumentMut(token, detailMut[0].no_asset, detailMut[0].no_mutasi)
-                this.props.getDetailMutasi(token, detailMut[0].no_mutasi) 
+                this.props.getDetailMutasi(token, detailMut[0].no_mutasi, 'budget') 
                 this.getDataMutasi()
              }, 1100)
         }
@@ -271,6 +275,13 @@ class BudgetMutasi extends Component {
         this.getDataMutasi()
     }
 
+    updateEksekusi = async (val) => {
+        const token = localStorage.getItem('token')
+        const { dataRinci, detailMut } = this.state
+        await this.props.updateStatus(token, dataRinci.id, val)
+        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi, 'budget')
+    }
+
     rejectMutasi = async (val) => {
         const { detailMut, listMut } = this.state
         const token = localStorage.getItem("token")
@@ -290,13 +301,13 @@ class BudgetMutasi extends Component {
         const token = localStorage.getItem('token')
         const { detailMut } = this.state
         await this.props.updateBudget(token, val.no, val.stat)
-        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi) 
+        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi, 'budget') 
     }
 
     render() {
         const dataNotif = this.props.notif.data
-        const { dataRinci, newMut, listMut, fileName, detailMut } = this.state
-        const { dataDoc } = this.props.mutasi
+        const { dataRinci, newMut, listMut, fileName } = this.state
+        const { dataDoc, detailMut } = this.props.mutasi
         const level = localStorage.getItem('level')
 
         const contentHeader =  (
@@ -470,6 +481,14 @@ class BudgetMutasi extends Component {
                                     }
                                 </div>
                             </div>
+                            <Formik
+                            initialValues={{
+                            doc_sap: dataRinci.doc_sap
+                            }}
+                            validationSchema={sapSchema}
+                            onSubmit={(values) => {this.updateEksekusi(values)}}
+                            >
+                            {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
                                 <div className="rightRinci">
                                     <div>
                                         <div className="titRinci">{dataRinci.nama_asset}</div>
@@ -478,16 +497,8 @@ class BudgetMutasi extends Component {
                                             <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.area} disabled /></Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Cost Center Pengirim</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
-                                        </Row>
-                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Area Penerima</Col>
                                             <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.area_rec} disabled /></Col>
-                                        </Row>
-                                        <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Cost Center Penerima</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center_rec} disabled /></Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>No Asset</Col>
@@ -507,8 +518,8 @@ class BudgetMutasi extends Component {
                                             <Col md={3}>Kategori</Col>
                                             <Col md={9} className="katCheck">: 
                                                 <div className="katCheck">
-                                                    <div className="ml-2"><input type="checkbox" checked={dataRinci.kategori === 'IT' ? true : false}/> IT</div>
-                                                    <div className="ml-3"><input type="checkbox" checked={dataRinci.kategori === 'NON IT' ? true : false} /> Non IT</div>
+                                                    <div className="ml-2"><input type="checkbox" disabled checked={dataRinci.kategori === 'IT' ? true : false}/> IT</div>
+                                                    <div className="ml-3"><input type="checkbox" disabled checked={dataRinci.kategori === 'NON IT' ? true : false} /> Non IT</div>
                                                 </div>
                                             </Col>
                                         </Row>
@@ -516,18 +527,35 @@ class BudgetMutasi extends Component {
                                             <Col md={3}>Nilai Buku</Col>
                                             <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null || dataRinci.nilai_buku === undefined ? '0' : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
                                         </Row>
+                                        {level === '2' && (
+                                            <Row className="mb-2 rowRinci">
+                                                <Col md={3}>Nomor Doc SAP</Col>
+                                                <Col md={9} className="colRinci">:  <Input className="inputRinci" 
+                                                    value={values.doc_sap} 
+                                                    onBlur={handleBlur("doc_sap")}
+                                                    onChange={handleChange("doc_sap")} 
+                                                    />
+                                                </Col>
+                                            </Row>
+                                        )}
+                                        {errors.doc_sap && level === '2' ? (
+                                            <text className={style.txtError}>Must be filled</text>
+                                        ) : null}
                                     </div>
-                                    <div className="footRinci3 mt-4">
-                                        <Col md={6}>
-                                        </Col>
-                                        <Col md={6}>
-                                        </Col>
+                                    <div className="footRinci4 mt-4">
+                                        <Button className="btnFootRinci1" size="lg" color="primary" onClick={handleSubmit}>Save</Button>
+                                        <Button className="btnFootRinci1 ml-3" size="lg" color="secondary" onClick={() => this.openModalRinci()}>Close</Button>
                                     </div>
                                 </div>
+                            )}
+                            </Formik>
                         </div>
                     </ModalBody>
                 </Modal>
                 <Modal isOpen={this.state.formMut} toggle={this.openModalMut} size="xl">
+                <Alert color="danger" className={style.alertWrong} isOpen={level === '2' && (detailMut.find(({doc_sap}) => doc_sap === null) !== undefined || detailMut.find(({doc_sap}) => doc_sap === '') !== undefined) ? true : false}>
+                        <div>Mohon untuk isi no doc sap sebelum submit</div>
+                    </Alert>
                     <ModalBody>
                         {/* <div className="mb-2"><text className="txtTrans">{detailDis[0] !== undefined && detailDis[0].area}</text>, {moment(detailDis[0] !== undefined && detailDis[0].createdAt).locale('idn').format('DD MMMM YYYY ')}</div> */}
                         <Row className="mb-5">
@@ -601,7 +629,7 @@ class BudgetMutasi extends Component {
                         <div className="btnFoot">
                         </div>
                         <div className="btnFoot">
-                            <Button color="success"  onClick={() => this.openApprove()}>
+                            <Button color="success" disabled={level === '2' && (detailMut.find(({doc_sap}) => doc_sap === null) !== undefined || detailMut.find(({doc_sap}) => doc_sap === '') !== undefined) ? true : false} onClick={() => this.openApprove()}>
                                 Submit
                             </Button>
                         </div>
@@ -873,7 +901,8 @@ const mapDispatchToProps = {
     getDetailMutasi: mutasi.getDetailMutasi,
     updateBudget: mutasi.updateBudget,
     submitEksekusi: mutasi.submitEksekusi,
-    submitBudget: mutasi.submitBudget
+    submitBudget: mutasi.submitBudget,
+    updateStatus: mutasi.updateStatus
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(BudgetMutasi)

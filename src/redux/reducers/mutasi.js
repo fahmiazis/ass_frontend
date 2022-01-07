@@ -17,6 +17,7 @@ const mutasiState = {
     submitBud: false,
     eksError: false,
     budError: false,
+    updateEks: false,
     detailMut: [],
     mutApp: {},
     nomor_mutasi: '',
@@ -58,6 +59,29 @@ export default (state=mutasiState, action) => {
                     isError: true,
                     alertMsg: "Unable connect to server",
                     alertM: action.payload.response.data.message
+                };
+            }
+            case 'UPDATE_EKS_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'UPDATE_EKS_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    updateEks: true,
+                    alertMsg: 'update eksekusi Succesfully'
+                };
+            }
+            case 'UPDATE_EKS_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: true,
+                    alertMsg: "Unable connect to server"
                 };
             }
             case 'STATUS_BUDGET_PENDING': {

@@ -33,7 +33,15 @@ const {REACT_APP_BACKEND_URL} = process.env
 
 const alasanSchema = Yup.object().shape({
     alasan: Yup.string().required()
-});
+})
+
+const ioSchema = Yup.object().shape({
+    no_io: Yup.string().required()
+})
+
+const sapSchema = Yup.object().shape({
+    doc_sap: Yup.string().required()
+})
 
 class EksekusiMut extends Component {
 
@@ -189,6 +197,13 @@ class EksekusiMut extends Component {
         this.getDataMutasi()
     }
 
+    updateEksekusi = async (val) => {
+        const token = localStorage.getItem('token')
+        const { dataRinci, detailMut } = this.state
+        await this.props.updateStatus(token, dataRinci.id, val)
+        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi)
+    }
+
     componentDidUpdate() {
         const { errorAdd, rejReject, rejApprove, isReject, isApprove, isRejDoc } = this.props.mutasi
         const {isAppDoc} = this.props.disposal
@@ -288,7 +303,7 @@ class EksekusiMut extends Component {
     updateStatus = async (val) => {
         const token = localStorage.getItem('token')
         const { detailMut } = this.state
-        await this.props.updateBudget(token, val.no, val.stat)
+        await this.props.updateBudget(token, val.id, val.stat)
         await this.props.getDetailMutasi(token, detailMut[0].no_mutasi) 
     }
 
@@ -469,6 +484,15 @@ class EksekusiMut extends Component {
                                     }
                                 </div>
                             </div>
+                            <Formik
+                            initialValues={{
+                            no_io: detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? null : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'tidak' ? null : dataRinci.no_io,
+                            doc_sap: detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? null : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'ya' ? null : dataRinci.doc_sap
+                            }}
+                            validationSchema={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? '' : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'ya' ? ioSchema : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'tidak' ? sapSchema : ''}
+                            onSubmit={(values) => {this.updateEksekusi(values)}}
+                            >
+                            {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
                                 <div className="rightRinci">
                                     <div>
                                         <div className="titRinci">{dataRinci.nama_asset}</div>
@@ -477,16 +501,8 @@ class EksekusiMut extends Component {
                                             <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.area} disabled /></Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Cost Center Pengirim</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
-                                        </Row>
-                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Area Penerima</Col>
                                             <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.area_rec} disabled /></Col>
-                                        </Row>
-                                        <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Cost Center Penerima</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center_rec} disabled /></Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>No Asset</Col>
@@ -506,8 +522,8 @@ class EksekusiMut extends Component {
                                             <Col md={3}>Kategori</Col>
                                             <Col md={9} className="katCheck">: 
                                                 <div className="katCheck">
-                                                    <div className="ml-2"><input type="checkbox" checked={dataRinci.kategori === 'IT' ? true : false}/> IT</div>
-                                                    <div className="ml-3"><input type="checkbox" checked={dataRinci.kategori === 'NON IT' ? true : false} /> Non IT</div>
+                                                    <div className="ml-2"><input type="checkbox" disabled checked={dataRinci.kategori === 'IT' ? true : false}/> IT</div>
+                                                    <div className="ml-3"><input type="checkbox" disabled checked={dataRinci.kategori === 'NON IT' ? true : false} /> Non IT</div>
                                                 </div>
                                             </Col>
                                         </Row>
@@ -515,20 +531,70 @@ class EksekusiMut extends Component {
                                             <Col md={3}>Nilai Buku</Col>
                                             <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null || dataRinci.nilai_buku === undefined ? '0' : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
                                         </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Konfirmasi Budget</Col>
+                                            <Col md={9} className="katCheck">:  
+                                                <div className="ml-2">
+                                                    <Input
+                                                    addon
+                                                    disabled={listMut.find(element => element === dataRinci.no_asset) === undefined ? false : true}
+                                                    type="checkbox"
+                                                    checked={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? false : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'ya' ? true : false}
+                                                    onClick={() => this.updateStatus({id: dataRinci.id, stat: 'ya'})}
+                                                    value={dataRinci.no_asset} />  Ya
+                                                </div>
+                                                <div className="ml-3">
+                                                    <Input
+                                                    addon
+                                                    disabled={listMut.find(element => element === dataRinci.no_asset) === undefined ? false : true}
+                                                    type="checkbox"
+                                                    checked={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? false : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'tidak' ? true : false}
+                                                    onClick={() => this.updateStatus({id: dataRinci.id, stat: 'tidak'})}
+                                                    value={dataRinci.no_asset} />  Tidak
+                                                </div>
+                                            </Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Nomor IO</Col>
+                                            <Col md={9} className="colRinci">:  <Input 
+                                                className="inputRinci"
+                                                value={values.no_io} 
+                                                onBlur={handleBlur("no_io")}
+                                                onChange={handleChange("no_io")}
+                                                disabled={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? true : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'ya' ? false : true} />
+                                            </Col>
+                                        </Row>
+                                        {errors.no_io ? (
+                                            <text className={style.txtError}>Must be filled</text>
+                                        ) : null}
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Nomor Doc SAP</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" 
+                                            value={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? null : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'ya' ? null : values.doc_sap} 
+                                            onBlur={handleBlur("doc_sap")}
+                                            onChange={handleChange("doc_sap")} 
+                                            disabled={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? true : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'tidak' ? false : true} /></Col>
+                                        </Row>
+                                        {errors.doc_sap ? (
+                                            <text className={style.txtError}>Must be filled</text>
+                                        ) : null}
                                     </div>
-                                    <div className="footRinci3 mt-4">
-                                        <Col md={6}>
-                                        </Col>
-                                        <Col md={6}>
-                                        </Col>
+                                    <div className="footRinci4 mt-4">
+                                        <Button className="btnFootRinci1" size="lg" color="primary" onClick={handleSubmit}>Save</Button>
+                                        <Button className="btnFootRinci1 ml-3" size="lg" color="secondary" onClick={() => this.openModalRinci()}>Close</Button>
                                     </div>
                                 </div>
+                            )}
+                            </Formik>
                         </div>
                     </ModalBody>
                 </Modal>
                 <Modal isOpen={this.state.formMut} toggle={this.openModalMut} size="xl">
                     <Alert color="danger" className={style.alertWrong} isOpen={detailMut[0] === undefined || detailMut[0].docAsset.find(({divisi}) => divisi === '3') === undefined ? true : false}>
                         <div>Mohon approve dokumen terlebih dahulu sebelum approve pengajuan mutasi</div>
+                    </Alert>
+                    <Alert color="danger" className={style.alertWrong} isOpen={detailMut.find(({isbudget}) => isbudget === null) !== undefined ? true : false}>
+                        <div>Mohon untuk ceklis konfirmasi budget terlebih dahulu</div>
                     </Alert>
                     <ModalBody>
                         {/* <div className="mb-2"><text className="txtTrans">{detailDis[0] !== undefined && detailDis[0].area}</text>, {moment(detailDis[0] !== undefined && detailDis[0].createdAt).locale('idn').format('DD MMMM YYYY ')}</div> */}
@@ -571,7 +637,6 @@ class EksekusiMut extends Component {
                                     <th>Cabang/Depo Penerima</th>
                                     <th>Cost Center Penerima</th>
                                     <th>Select item to reject</th>
-                                    <th>Konfirmasi Budget</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -593,28 +658,6 @@ class EksekusiMut extends Component {
                                                 type="checkbox"
                                                 onClick={listMut.find(element => element === item.no_asset) === undefined ? () => this.chekRej(item.no_asset) : () => this.chekApp(item.no_asset)}
                                                 value={item.no_asset} />
-                                            </td>
-                                            <td>
-                                                <div>
-                                                    <Input
-                                                    addon
-                                                    disabled={listMut.find(element => element === item.no_asset) === undefined ? false : true}
-                                                    type="checkbox"
-                                                    checked={item.isbudget === 'ya' ? true : false}
-                                                    onClick={() => this.updateStatus({no: item.no_asset, stat: 'ya'})}
-                                                    value={item.no_asset} />
-                                                    <text className='ml-2'>Ya</text>
-                                                </div>
-                                                <div>
-                                                    <Input
-                                                    addon
-                                                    disabled={listMut.find(element => element === item.no_asset) === undefined ? false : true}
-                                                    type="checkbox"
-                                                    checked={item.isbudget === 'tidak' ? true : false}
-                                                    onClick={() => this.updateStatus({no: item.no_asset, stat: 'tidak'})}
-                                                    value={item.no_asset} />
-                                                    <text className='ml-2'>Tidak</text>
-                                                </div>
                                             </td>
                                         </tr>
                                     )
@@ -909,7 +952,8 @@ const mapDispatchToProps = {
     rejectEks: mutasi.rejectEksekusi,
     getDetailMutasi: mutasi.getDetailMutasi,
     updateBudget: mutasi.updateBudget,
-    submitEksekusi: mutasi.submitEksekusi
+    submitEksekusi: mutasi.submitEksekusi,
+    updateStatus: mutasi.updateStatus
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EksekusiMut)

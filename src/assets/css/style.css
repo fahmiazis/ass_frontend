@@ -689,6 +689,12 @@
     flex-direction: row;
     justify-self: flex-end;
 }
+.footRinci4 {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
 .btnFootRinci {
     width: 48%;
     border-radius: 50px;
