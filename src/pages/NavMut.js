@@ -51,6 +51,11 @@ export default class NavMut extends Component {
                                             Tracking mutasi
                                         </div>
                                     </button>
+                                    <button className="cardNav1" onClick={() => this.goRoute('editmut')}>
+                                        <div className="titCard">
+                                            Revisi dokumen mutasi
+                                        </div>
+                                    </button>
                                 </>
                             ) : level === '2' ? (
                                 <>

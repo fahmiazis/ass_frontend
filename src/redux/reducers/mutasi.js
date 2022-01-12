@@ -18,7 +18,9 @@ const mutasiState = {
     eksError: false,
     budError: false,
     updateEks: false,
+    submitEdit: false,
     detailMut: [],
+    changeDate: false,
     mutApp: {},
     nomor_mutasi: '',
     alertMsg: '',
@@ -61,6 +63,29 @@ export default (state=mutasiState, action) => {
                     alertM: action.payload.response.data.message
                 };
             }
+            case 'SUBMIT_EDIT_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'SUBMIT_EDIT_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    submitEdit: true,
+                    alertMsg: 'update submit eksekusi Succesfully'
+                };
+            }
+            case 'SUBMIT_EDIT_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: true,
+                    alertMsg: 'unable connect to server'
+                };
+            }
             case 'UPDATE_EKS_PENDING': {
                 return {
                     ...state,
@@ -77,6 +102,29 @@ export default (state=mutasiState, action) => {
                 };
             }
             case 'UPDATE_EKS_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'CHANGE_DATE_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'CHANGE_DATE_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    changeDate: true,
+                    alertMsg: 'update eksekusi Succesfully'
+                };
+            }
+            case 'CHANGE_DATE_REJECTED': {
                 return {
                     ...state,
                     isLoading: false,
@@ -407,7 +455,10 @@ export default (state=mutasiState, action) => {
                     rejApprove: false,
                     isReject: false,
                     rejReject: false,
-                    isRejDoc: false
+                    isRejDoc: false,
+                    submitEdit: false,
+                    submitEks: false,
+                    submitBud: false
                 }
             }
             default: {

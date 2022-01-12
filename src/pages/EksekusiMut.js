@@ -73,7 +73,8 @@ class EksekusiMut extends Component {
             openApproveDis: false,
             openRejectDis: false,
             approve: false,
-            reject: false
+            reject: false,
+            preview: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -82,6 +83,13 @@ class EksekusiMut extends Component {
     menuButtonClick(ev) {
         ev.preventDefault();
         this.onSetOpen(!this.state.open);
+    }
+
+    getDataApprove = async (val) => {
+        const {detailMut} = this.state
+        const token = localStorage.getItem('token')
+        await this.props.getApproveMut(token, detailMut[0].no_mutasi, 'Mutasi')
+        this.openModalPre()
     }
 
     downloadData = () => {
@@ -204,8 +212,12 @@ class EksekusiMut extends Component {
         await this.props.getDetailMutasi(token, detailMut[0].no_mutasi)
     }
 
+    openModalPre = () => {
+        this.setState({preview: !this.state.preview})
+    }
+
     componentDidUpdate() {
-        const { errorAdd, rejReject, rejApprove, isReject, isApprove, isRejDoc } = this.props.mutasi
+        const { errorAdd, rejReject, rejApprove, isReject, isApprove, isRejDoc, submitEks } = this.props.mutasi
         const {isAppDoc} = this.props.disposal
         const token = localStorage.getItem('token')
         const { detailMut } = this.state
@@ -218,7 +230,7 @@ class EksekusiMut extends Component {
             this.openConfirm(this.setState({confirm: 'reject'}))
             this.openModalMut()
             this.props.resetAppRej()
-        } else if (isApprove) {
+        } else if (submitEks) {
             this.openConfirm(this.setState({confirm: 'approve'}))
             this.openApprove()
             this.props.resetAppRej()
@@ -310,7 +322,7 @@ class EksekusiMut extends Component {
     render() {
         const dataNotif = this.props.notif.data
         const { dataRinci, newMut, listMut, fileName } = this.state
-        const { dataDoc, detailMut } = this.props.mutasi
+        const { dataDoc, detailMut, mutApp } = this.props.mutasi
         const level = localStorage.getItem('level')
 
         const contentHeader =  (
@@ -486,10 +498,11 @@ class EksekusiMut extends Component {
                             </div>
                             <Formik
                             initialValues={{
-                            no_io: detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? null : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'tidak' ? null : dataRinci.no_io,
+                            // no_io: detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? null : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'tidak' ? null : dataRinci.no_io,
                             doc_sap: detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? null : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'ya' ? null : dataRinci.doc_sap
                             }}
-                            validationSchema={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? '' : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'ya' ? ioSchema : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'tidak' ? sapSchema : ''}
+                            // validationSchema={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? '' : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'ya' ? ioSchema : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'tidak' ? sapSchema : ''}
+                            validationSchema={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? '' : detailMut.find(({isbudget}) => isbudget === 'ya') === undefined ? sapSchema : ''}
                             onSubmit={(values) => {this.updateEksekusi(values)}}
                             >
                             {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
@@ -561,33 +574,238 @@ class EksekusiMut extends Component {
                                                 value={values.no_io} 
                                                 onBlur={handleBlur("no_io")}
                                                 onChange={handleChange("no_io")}
-                                                disabled={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? true : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'ya' ? false : true} />
+                                                disabled
+                                                // disabled={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? true : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'ya' ? false : true} 
+                                                />
                                             </Col>
                                         </Row>
                                         {errors.no_io ? (
                                             <text className={style.txtError}>Must be filled</text>
                                         ) : null}
-                                        <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Nomor Doc SAP</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" 
-                                            value={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? null : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'ya' ? null : values.doc_sap} 
-                                            onBlur={handleBlur("doc_sap")}
-                                            onChange={handleChange("doc_sap")} 
-                                            disabled={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? true : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'tidak' ? false : true} /></Col>
-                                        </Row>
-                                        {errors.doc_sap ? (
-                                            <text className={style.txtError}>Must be filled</text>
-                                        ) : null}
+                                        {detailMut[0] === undefined ? (
+                                            <div></div>
+                                        ) : detailMut.find(({isbudget}) => isbudget === 'ya') === undefined && (
+                                            <>
+                                                <Row className="mb-2 rowRinci">
+                                                    <Col md={3}>Nomor Doc SAP</Col>
+                                                    <Col md={9} className="colRinci">:  <Input className="inputRinci" 
+                                                    value={values.doc_sap} 
+                                                    onBlur={handleBlur("doc_sap")}
+                                                    onChange={handleChange("doc_sap")}
+                                                    // disabled={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? true : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'tidak' ? false : true}
+                                                    /></Col>
+                                                </Row>
+                                                {errors.doc_sap ? (
+                                                    <text className={style.txtError}>Must be filled</text>
+                                                ) : null}
+                                            </>
+                                        )}
                                     </div>
-                                    <div className="footRinci4 mt-4">
-                                        <Button className="btnFootRinci1" size="lg" color="primary" onClick={handleSubmit}>Save</Button>
-                                        <Button className="btnFootRinci1 ml-3" size="lg" color="secondary" onClick={() => this.openModalRinci()}>Close</Button>
-                                    </div>
+                                    {detailMut[0] === undefined ? (
+                                        <div></div>
+                                    ) : detailMut.find(({isbudget}) => isbudget === 'ya') === undefined && (
+                                        <div className="footRinci4 mt-4">
+                                            <Button className="btnFootRinci1" size="lg" color="primary" onClick={handleSubmit}>Save</Button>
+                                            <Button className="btnFootRinci1 ml-3" size="lg" color="secondary" onClick={() => this.openModalRinci()}>Close</Button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                             </Formik>
                         </div>
                     </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.preview} toggle={this.openModalPre} size="xl">
+                    <ModalBody>
+                        {/* <div className="mb-2"><text className="txtTrans">{detailDis[0] !== undefined && detailDis[0].area}</text>, {moment(detailDis[0] !== undefined && detailDis[0].createdAt).locale('idn').format('DD MMMM YYYY ')}</div> */}
+                        <Row className="mb-5">
+                            <Col md={1}>
+                                <img src={logo} className="imgMut" />
+                            </Col>
+                            <Col md={7} className='titMut'>
+                                FORM MUTASI ASSET / INVENTARIS
+                            </Col>
+                            <Col md={4}>
+                                <Row>
+                                    <Col md={6}>No</Col>
+                                    <Col md={6}>: {detailMut.length !== 0 ? detailMut[0].no_mutasi : ''}</Col>
+                                </Row>
+                                <Row>
+                                    <Col md={6}>Tanggal Form</Col>
+                                    <Col md={6}>: {detailMut.length !== 0 ? moment(detailMut[0].createdAt).format('DD MMMM YYYY') : ''}</Col>
+                                </Row>
+                                <Row>
+                                    <Col md={6}>Tanggal Mutasi Fisik</Col>
+                                    <Col md={6}>: {detailMut.length !== 0 ? moment(detailMut[0].tgl_mutasifisik).format('DD MMMM YYYY') : ''}</Col>
+                                </Row>
+                                <Row>
+                                    <Col md={6}>Depo</Col>
+                                    <Col md={6}>: {detailMut.length !== 0 ? detailMut[0].area : ''}</Col>
+                                </Row>
+                            </Col>
+                        </Row>
+                        <Table striped bordered responsive hover className="tableDis mb-3">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Nomor Asset</th>
+                                    <th>Nama Asset</th>
+                                    <th>Merk/Type</th>
+                                    <th>Kategori</th>
+                                    <th>Cabang/Depo</th>
+                                    <th>Cost Center</th>
+                                    <th>Cabang/Depo Penerima</th>
+                                    <th>Cost Center Penerima</th>
+                                    <th>Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {detailMut.length !== 0 && detailMut.map(item => {
+                                    return (
+                                        <tr>
+                                            <th scope="row">{detailMut.indexOf(item) + 1}</th>
+                                            <td>{item.no_asset}</td>
+                                            <td>{item.nama_asset}</td>
+                                            <td>{item.merk}</td>
+                                            <td>{item.kategori}</td>
+                                            <td>{item.area}</td>
+                                            <td>{item.cost_center}</td>
+                                            <td>{item.area_rec}</td>
+                                            <td>{item.cost_center_rec}</td>
+                                            <td>{item.keterangan}</td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </Table>
+                        <div className="mb-3 mt-3 alMut">
+                            <div className="mr-2 alasanMut">
+                                <text className="titAlasan mb-3">Alasan Mutasi :</text>
+                                <text>{detailMut.length !== 0 ? detailMut[0].alasan : ''}</text>
+                            </div>
+                        </div>
+                        <Table borderless responsive className="tabPreview">
+                           <thead>
+                               <tr>
+                                   <th className="buatPre">Dibuat oleh,</th>
+                                   <th className="buatPre">Diterima oleh,</th>
+                                   <th className="buatPre">Diperiksa oleh,</th>
+                                   <th className="buatPre">Disetujui oleh,</th>
+                               </tr>
+                           </thead>
+                           <tbody className="tbodyPre">
+                               <tr>
+                                   <td className="restTable">
+                                       <Table bordered responsive className="divPre">
+                                            <thead>
+                                                <tr>
+                                                    {mutApp.pembuat !== undefined && mutApp.pembuat.map(item => {
+                                                        return (
+                                                            <th className="headPre">
+                                                                <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                <div>{item.nama === null ? "-" : item.nama}</div>
+                                                            </th>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                {mutApp.pembuat !== undefined && mutApp.pembuat.map(item => {
+                                                    return (
+                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                    )
+                                                })}
+                                                </tr>
+                                            </tbody>
+                                       </Table>
+                                   </td>
+                                   <td className="restTable">
+                                       <Table bordered responsive className="divPre">
+                                            <thead>
+                                                <tr>
+                                                    {mutApp.penerima !== undefined && mutApp.penerima.map(item => {
+                                                        return (
+                                                            <th className="headPre">
+                                                                <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                <div>{item.nama === null ? "-" : item.nama}</div>
+                                                            </th>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                {mutApp.penerima !== undefined && mutApp.penerima.map(item => {
+                                                    return (
+                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                    )
+                                                })}
+                                                </tr>
+                                            </tbody>
+                                       </Table>
+                                   </td>
+                                   <td className="restTable">
+                                       <Table bordered responsive className="divPre">
+                                            <thead>
+                                                <tr>
+                                                    {mutApp.pemeriksa !== undefined && mutApp.pemeriksa.map(item => {
+                                                        return (
+                                                            <th className="headPre">
+                                                                <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                <div>{item.nama === null ? "-" : item.nama}</div>
+                                                            </th>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    {mutApp.pemeriksa !== undefined && mutApp.pemeriksa.map(item => {
+                                                        return (
+                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </tbody>
+                                       </Table>
+                                   </td>
+                                   <td className="restTable">
+                                       <Table bordered responsive className="divPre">
+                                            <thead>
+                                                <tr>
+                                                    {mutApp.penyetuju !== undefined && mutApp.penyetuju.map(item => {
+                                                        return (
+                                                            <th className="headPre">
+                                                                <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
+                                                                <div>{item.nama === null ? "-" : item.nama}</div>
+                                                            </th>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    {mutApp.penyetuju !== undefined && mutApp.penyetuju.map(item => {
+                                                        return (
+                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </tbody>
+                                       </Table>
+                                   </td>
+                               </tr>
+                           </tbody>
+                       </Table>
+                    </ModalBody>
+                    <hr />
+                    <div className="modalFoot ml-3">
+                    {/* onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})} */}
+                        <Button color="primary" onClick={this.openModalPre}>Close</Button>
+                        <div className="btnFoot">
+                        </div>
+                    </div>
                 </Modal>
                 <Modal isOpen={this.state.formMut} toggle={this.openModalMut} size="xl">
                     <Alert color="danger" className={style.alertWrong} isOpen={detailMut[0] === undefined || detailMut[0].docAsset.find(({divisi}) => divisi === '3') === undefined ? true : false}>
@@ -616,7 +834,7 @@ class EksekusiMut extends Component {
                                 </Row>
                                 <Row>
                                     <Col md={6}>Tanggal Mutasi Fisik</Col>
-                                    <Col md={6}>:</Col>
+                                    <Col md={6}>: {detailMut.length !== 0 ? moment(detailMut[0].tgl_mutasifisik).format('DD MMMM YYYY') : ''}</Col>
                                 </Row>
                                 <Row>
                                     <Col md={6}>Depo</Col>
@@ -675,13 +893,15 @@ class EksekusiMut extends Component {
                     <div className="modalFoot ml-3">
                     {/* onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})} */}
                         <div className="btnFoot">
-                            <Button className="mr-2" color="primary" onClick={this.openProsesModalDoc}>Dokumen</Button>
+                            <Button className="mr-2" color="primary" onClick={this.getDataApprove}>Preview</Button>
+                            <Button color="warning" onClick={this.openProsesModalDoc}>Dokumen</Button>
                         </div>
                         <div className="btnFoot">
                             <Button className="mr-2" disabled={listMut.length === 0 ? true : false} color="danger" onClick={() => this.openReject()}>
                                 Reject
                             </Button>
-                            <Button color="success" disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({divisi}) => divisi === '3') === undefined ? true :  detailMut.find(({isbudget}) => isbudget === null) !== undefined ? true : listMut.length === 0 ? false : true} onClick={() => this.openApprove()}>
+                            {/* disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({divisi}) => divisi === '3') === undefined ? true :  detailMut.find(({isbudget}) => isbudget === null) !== undefined ? true : listMut.length === 0 ? false : true} */}
+                            <Button color="success" disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({divisi}) => divisi === '3') === undefined ? true : listMut.length === 0 ? false : true} onClick={() => this.openApprove()}>
                                 Submit
                             </Button>
                         </div>
@@ -757,7 +977,7 @@ class EksekusiMut extends Component {
                         <div>
                             <div className={style.cekUpdate}>
                             <AiFillCheckCircle size={80} className={style.green} />
-                            <div className={[style.sucUpdate, style.green]}>Berhasil Approve Form Mutasi</div>
+                            <div className={[style.sucUpdate, style.green]}>Berhasil Submit Eksekusi Mutasi</div>
                         </div>
                         </div>
                     ) : this.state.confirm === 'reject' ?(

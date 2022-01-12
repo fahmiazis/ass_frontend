@@ -214,6 +214,8 @@ class Mutasi extends Component {
             }
         }
         this.setState({detailMut: detail})
+        const token = localStorage.getItem('token')
+        await this.props.getDetailMutasi(token, value)
         this.openModalMut()
     }
 
@@ -309,6 +311,7 @@ class Mutasi extends Component {
         const { detailMut } = this.state
         const token = localStorage.getItem("token")
         await this.props.approveMut(token, detailMut[0].no_mutasi)
+        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi)
         this.getDataMutasi()
     }
 
@@ -350,9 +353,9 @@ class Mutasi extends Component {
         const role = localStorage.getItem('role')
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
-        const { dataRinci, detailMut, newMut, listMut } = this.state
+        const { dataRinci, newMut, listMut } = this.state
         const { detailDepo } = this.props.depo
-        const { dataMut, noMut, mutApp, dataDoc } = this.props.mutasi
+        const { dataMut, noMut, mutApp, dataDoc, detailMut  } = this.props.mutasi
         const { dataAsset, page } = this.props.asset
         const pages = this.props.mutasi.page
 
@@ -1238,7 +1241,8 @@ const mapDispatchToProps = {
     getMutasiRec: mutasi.getMutasiRec,
     getDocumentMut: mutasi.getDocumentMut,
     resetAddMut: mutasi.resetAddMut,
-    resetAppRej: mutasi.resetAppRej
+    resetAppRej: mutasi.resetAppRej,
+    getDetailMutasi: mutasi.getDetailMutasi,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Mutasi)

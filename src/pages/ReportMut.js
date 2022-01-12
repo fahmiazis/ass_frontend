@@ -397,10 +397,10 @@ class MasterUser extends Component {
                                                     <td>{item.area}</td>
                                                     <td>{item.area_rec}</td>
                                                     <td>{item.kategori}</td>
-                                                    <td>{item.tanggalMut === null ? '' : moment(item.tanggalMut).format('DD/MM/YYYY')}</td>
+                                                    <td>{item.tanggalMut === null ? '-' : moment(item.tanggalMut).format('DD/MM/YYYY')}</td>
                                                     <td>{item.status_form > 2 ? 'V' : '-'}</td>
-                                                    <td>-</td>
-                                                    <td>-</td>
+                                                    <td>{item.tgl_mutasifisik === null ? '-' : moment(item.tgl_mutasifisik).format('DD/MM/YYYY')}</td>
+                                                    <td>{item.tgl_mutasisap === null ? '-' : moment(item.tgl_mutasisap).format('DD/MM/YYYY')}</td>
                                                     <td>.....</td>
                                                     <td>{item.status_form === 1 ? 'Masih Dikeranjang' : item.status_form === 2 ? 'Proses Approve Pengajuan' : item.status_form === 3 ? 'Proses Budget' : item.status_form === 5 ? 'Proses Final' : item.status_form === 9 ? 'Proses Ekseskusi' : item.status_form === 8 ? 'Finish' : '-'}</td>
                                                     <td>{item.depo.nama_pic_1}</td>

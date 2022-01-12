@@ -40,7 +40,7 @@ const dateSchema = Yup.object().shape({
     tgl_mutasifisik: Yup.date().required()
 })
 
-class TerimaMutasi extends Component {
+class EditMutasi extends Component {
 
     constructor(props) {
         super(props);
@@ -95,7 +95,7 @@ class TerimaMutasi extends Component {
             const token = localStorage.getItem('token')
             const data = new FormData()
             data.append('document', e.target.files[0])
-            this.props.uploadDocumentDis(token, detail.id, data)
+            this.props.uploadDocumentDis(token, detail.id, data, 'mutasi')
         }
     }
 
@@ -160,7 +160,7 @@ class TerimaMutasi extends Component {
     }
 
     componentDidUpdate() {
-        const { errorAdd, rejReject, rejApprove, isReject, isApprove } = this.props.mutasi
+        const { errorAdd, rejReject, rejApprove, isReject, isApprove, submitEdit } = this.props.mutasi
         const {isUpload} = this.props.disposal
         const token = localStorage.getItem('token')
         const { detailMut } = this.state
@@ -181,7 +181,7 @@ class TerimaMutasi extends Component {
             this.openConfirm(this.setState({confirm: 'reject'}))
             this.openModalMut()
             this.props.resetAppRej()
-        } else if (isApprove) {
+        } else if (submitEdit) {
             this.openConfirm(this.setState({confirm: 'approve'}))
             this.openApprove()
             this.props.resetAppRej()
@@ -257,6 +257,13 @@ class TerimaMutasi extends Component {
         this.openDetailMut(detailMut[0].no_mutasi)
     }
 
+    submitEditRevisi = async () => {
+        const { detailMut } = this.state
+        const token = localStorage.getItem('token')
+        await this.props.submitEdit(token, detailMut[0].no_mutasi)
+        this.getDataMutasiRec()
+    }
+
     downloadData = () => {
         const { fileName } = this.state
         const download = fileName.path.split('/')
@@ -316,36 +323,24 @@ class TerimaMutasi extends Component {
 
     getDataMutasiRec = async () => {
         const token = localStorage.getItem('token')
-        await this.props.getMutasiRec(token)
+        await this.props.getMutasiRec(token, 'editdoc')
         this.changeView('available')
     }
 
     changeView = async (val) => {
         const { dataMut, noMut } = this.props.mutasi
         const role = localStorage.getItem('role')
-        if (val === 'available') {
-            const newMut = []
-            for (let i = 0; i < noMut.length; i++) {
-                const index = dataMut.indexOf(dataMut.find(({no_mutasi}) => no_mutasi === noMut[i]))
-                if (dataMut[index] !== undefined) {
-                    const app = dataMut[index].appForm
-                    const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
-                    if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
-                        newMut.push(dataMut[index])
-                    }
-                }
-            }
-            this.setState({view: val, newMut: newMut})
-        } else {
-            const newMut = []
-            for (let i = 0; i < noMut.length; i++) {
-                const index = dataMut.indexOf(dataMut.find(({no_mutasi}) => no_mutasi === noMut[i]))
-                if (dataMut[index] !== undefined) {
+        const newMut = []
+        for (let i = 0; i < noMut.length; i++) {
+            const index = dataMut.indexOf(dataMut.find(({no_mutasi}) => no_mutasi === noMut[i]))
+            if (dataMut[index] !== undefined) {
+                const app = dataMut[index].docAsset
+                if (app.find(({divisi}) => divisi === '0') !== undefined || app.find(({status}) => status === 4) !== undefined) {
                     newMut.push(dataMut[index])
                 }
             }
-            this.setState({view: val, newMut: newMut})
         }
+        this.setState({view: val, newMut: newMut})
     }
 
     chooseDepo = (e) => {
@@ -444,10 +439,10 @@ class TerimaMutasi extends Component {
                         <div className={style.backgroundLogo1}>
                             <div className={style.bodyDashboard}>
                                 <div className={style.headMaster}> 
-                                    <div className={style.titleDashboard}>Terima Mutasi Asset</div>
+                                    <div className={style.titleDashboard}>Revisi Dokumen Mutasi Asset</div>
                                 </div>
                                 <div className={style.secEmail}>
-                                    {level === '5' ? (
+                                    {/* {level === '5' ? (
                                         <div className={style.headEmail}>
                                             <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
                                                 <option value="not available">All</option>
@@ -457,7 +452,7 @@ class TerimaMutasi extends Component {
                                     ) : (
                                         <div className={style.headEmail}>
                                         </div>
-                                    )}
+                                    )} */}
                                     <div className={style.searchEmail1}>
                                         <text>Search: </text>
                                         <Input
@@ -502,21 +497,11 @@ class TerimaMutasi extends Component {
                                                         </Row>
                                                         <Row className="mb-2">
                                                             <Col md={6} className="txtDoc">
-                                                            Status Approval
+                                                            Status
                                                             </Col>
-                                                            {item.appForm.find(({status}) => status === 0) !== undefined ? (
-                                                                <Col md={6} className="txtDoc">
-                                                                : Reject {item.appForm.find(({status}) => status === 0).jabatan}
-                                                                </Col>
-                                                            ) : item.appForm.find(({status}) => status === 1) !== undefined ? (
-                                                                <Col md={6} className="txtDoc">
-                                                                : Approve {item.appForm.find(({status}) => status === 1).jabatan}
-                                                                </Col>
-                                                            ) : (
-                                                                <Col md={6} className="txtDoc">
-                                                                : -
-                                                                </Col>
-                                                            )}
+                                                            <Col md={6} className="txtDoc">
+                                                            : Reject Dokumen
+                                                            </Col>
                                                         </Row>
                                                     </div>
                                                     <Row className="footCard mb-3 mt-3">
@@ -733,8 +718,8 @@ class TerimaMutasi extends Component {
                     </ModalBody>
                 </Modal>
                 <Modal isOpen={this.state.formMut} toggle={this.openModalMut} size="xl">
-                    <Alert color="danger" className={style.alertWrong} isOpen={detailMut[0] === undefined || detailMut[0].docAsset.find(({status}) => status === 1) === undefined ? true : false}>
-                        <div>Mohon upload dokumen terlebih dahulu sebelum approve</div>
+                    <Alert color="danger" className={style.alertWrong} isOpen={detailMut[0] === undefined || detailMut[0].docAsset.find(({divisi}) => divisi === '0') !== undefined ? true : false}>
+                        <div>Mohon revisi dokumen terlebih dahulu sebelum submit</div>
                     </Alert>
                     <ModalBody>
                         {/* <div className="mb-2"><text className="txtTrans">{detailDis[0] !== undefined && detailDis[0].area}</text>, {moment(detailDis[0] !== undefined && detailDis[0].createdAt).locale('idn').format('DD MMMM YYYY ')}</div> */}
@@ -798,8 +783,8 @@ class TerimaMutasi extends Component {
                         </Table>
                         <div className="mb-3 mt-3 alMut">
                             <div className="mr-2 alasanMut">
-                                <text className="titAlasan mb-3">Alasan Mutasi :</text>
-                                <text>{detailMut.length !== 0 ? detailMut[0].alasan : ''}</text>
+                                <text className="titAlasan mb-3">Alasan Reject Dokumen:</text>
+                                <text>{detailMut.length !== 0 ? detailMut[0].docAsset[0].alasan : ''}</text>
                             </div>
                         </div>
                     </ModalBody>
@@ -807,15 +792,15 @@ class TerimaMutasi extends Component {
                     <div className="modalFoot ml-3">
                     {/* onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})} */}
                         <div className="btnFoot">
-                            <Button className="mr-2" color="primary" onClick={this.getDataApprove}>Preview</Button>
-                            <Button color='success' onClick={this.openProsesModalDoc}>Upload dokumen</Button>
+                            {/* <Button className="mr-2" color="primary" onClick={this.getDataApprove}>Preview</Button> */}
                         </div>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="danger" disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({status}) => status === 1) === undefined ? true : false} onClick={() => this.openReject()}>
+                            {/* <Button className="mr-2" color="danger" disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({status}) => status === 1) === undefined ? true : false} onClick={() => this.openReject()}>
                                 Reject
-                            </Button>
-                            <Button color="success" disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({status}) => status === 1) === undefined ? true : false} onClick={() => this.openApprove()}>
-                                Approve
+                            </Button> */}
+                            <Button className="mr-2" color='primary' onClick={this.openProsesModalDoc}>Upload dokumen</Button>
+                            <Button color="success" disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({divisi}) => divisi === '0') !== undefined ? true : false} onClick={() => this.openApprove()}>
+                                Submit
                             </Button>
                         </div>
                     </div>
@@ -841,7 +826,7 @@ class TerimaMutasi extends Component {
                                 </Row>
                                 <Row>
                                     <Col md={6}>Tanggal Mutasi Fisik</Col>
-                                    <Col md={6}>:</Col>
+                                    <Col md={6}>: {detailMut.length !== 0 ? moment(detailMut[0].tgl_mutasifisik).format('DD MMMM YYYY') : ''}</Col>
                                 </Row>
                                 <Row>
                                     <Col md={6}>Depo</Col>
@@ -1017,14 +1002,14 @@ class TerimaMutasi extends Component {
                         <div className={style.modalApprove}>
                             <div>
                                 <text>
-                                    Anda yakin untuk approve 
-                                    <text className={style.verif}> pengajuan mutasi</text>
+                                    Anda yakin untuk submit
+                                    <text className={style.verif}>  mutasi </text>
                                     pada tanggal
                                     <text className={style.verif}> {moment().format('LL')}</text> ?
                                 </text>
                             </div>
                             <div className={style.btnApprove}>
-                                <Button color="primary" onClick={this.approveMutasi}>Ya</Button>
+                                <Button color="primary" onClick={this.submitEditRevisi}>Ya</Button>
                                 <Button color="secondary" onClick={this.openApprove}>Tidak</Button>
                             </div>
                         </div>
@@ -1081,9 +1066,9 @@ class TerimaMutasi extends Component {
                                     </Col>
                                     {x.path !== null ? (
                                         <Col md={6} lg={6} >
-                                            {x.status === 0 ? (
+                                            {x.divisi === '0' ? (
                                                 <AiOutlineClose size={20} />
-                                            ) : x.status === 3 ? (
+                                            ) : x.divisi === '3' ? (
                                                 <AiOutlineCheck size={20} />
                                             ) : (
                                                 <BsCircle size={20} />
@@ -1130,7 +1115,7 @@ class TerimaMutasi extends Component {
                         <div>
                             <div className={style.cekUpdate}>
                             <AiFillCheckCircle size={80} className={style.green} />
-                            <div className={[style.sucUpdate, style.green]}>Berhasil Approve Form Mutasi</div>
+                            <div className={[style.sucUpdate, style.green]}>Berhasil Submit Revisi Mutasi</div>
                         </div>
                         </div>
                     ) : this.state.confirm === 'reject' ?(
@@ -1267,7 +1252,8 @@ const mapDispatchToProps = {
     showDokumen: pengadaan.showDokumen,
     resetAppRej: mutasi.resetAppRej,
     getDetailMutasi: mutasi.getDetailMutasi,
-    changeDate: mutasi.changeDate
+    changeDate: mutasi.changeDate,
+    submitEdit: mutasi.submitEdit
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(TerimaMutasi)
+export default connect(mapStateToProps, mapDispatchToProps)(EditMutasi)

@@ -161,7 +161,7 @@ class CartMutasi extends Component {
                                                         </div>
                                                     </div>
                                                     <div className="footCart">
-                                                        <div><FaTrash size={20} onClick={() => this.deleteItem(item.no_asset)} className="txtError"/></div>
+                                                        <div><FaTrash size={20} onClick={() => this.deleteItem(item.id)} className="txtError"/></div>
                                                     </div>
                                                 </div>
                                             )

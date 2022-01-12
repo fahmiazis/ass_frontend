@@ -177,8 +177,9 @@ class BudgetMutasi extends Component {
 
     openDetailMut = async (value) => {
         const { dataMut } = this.props.mutasi
+        const level = localStorage.getItem('level')
         const token = localStorage.getItem('token')
-        await this.props.getDetailMutasi(token, value, 'budget') 
+        await this.props.getDetailMutasi(token, value, level === '2' ? 'eks' : 'budget') 
         const detail = []
         for (let i = 0; i < dataMut.length; i++) {
             if (dataMut[i].no_mutasi === value) {
@@ -195,9 +196,10 @@ class BudgetMutasi extends Component {
     }
 
     componentDidUpdate() {
-        const { errorAdd, rejReject, rejApprove, isReject, isApprove, isRejDoc } = this.props.mutasi
+        const { errorAdd, rejReject, rejApprove, isReject, isApprove, isRejDoc, submitBud } = this.props.mutasi
         const {isAppDoc} = this.props.disposal
         const token = localStorage.getItem('token')
+        const level = localStorage.getItem('level')
         const { detailMut } = this.state
         if (errorAdd) {
             this.openConfirm(this.setState({confirm: 'addmutasi'}))
@@ -208,7 +210,7 @@ class BudgetMutasi extends Component {
             this.openConfirm(this.setState({confirm: 'reject'}))
             this.openModalMut()
             this.props.resetAppRej()
-        } else if (isApprove) {
+        } else if (submitBud) {
             this.openConfirm(this.setState({confirm: 'approve'}))
             this.openApprove()
             this.props.resetAppRej()
@@ -227,7 +229,7 @@ class BudgetMutasi extends Component {
              }, 1000)
              setTimeout(() => {
                 this.props.getDocumentMut(token, detailMut[0].no_asset, detailMut[0].no_mutasi)
-                this.props.getDetailMutasi(token, detailMut[0].no_mutasi, 'budget') 
+                this.props.getDetailMutasi(token, detailMut[0].no_mutasi, level === '2' ? 'eks' : 'budget') 
                 this.getDataMutasi()
              }, 1100)
         }
@@ -278,8 +280,9 @@ class BudgetMutasi extends Component {
     updateEksekusi = async (val) => {
         const token = localStorage.getItem('token')
         const { dataRinci, detailMut } = this.state
+        const level = localStorage.getItem('level')
         await this.props.updateStatus(token, dataRinci.id, val)
-        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi, 'budget')
+        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi, level === '2' ? 'eks' : 'budget')
     }
 
     rejectMutasi = async (val) => {
@@ -300,8 +303,9 @@ class BudgetMutasi extends Component {
     updateStatus = async (val) => {
         const token = localStorage.getItem('token')
         const { detailMut } = this.state
+        const level = localStorage.getItem('level')
         await this.props.updateBudget(token, val.no, val.stat)
-        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi, 'budget') 
+        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi, level === '2' ? 'eks' : 'budget') 
     }
 
     render() {
@@ -527,6 +531,30 @@ class BudgetMutasi extends Component {
                                             <Col md={3}>Nilai Buku</Col>
                                             <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null || dataRinci.nilai_buku === undefined ? '0' : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
                                         </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Nomor IO</Col>
+                                            <Col md={9} className="colRinci">:  <Input 
+                                                className="inputRinci"
+                                                value={dataRinci.no_io} 
+                                                onBlur={handleBlur("no_io")}
+                                                onChange={handleChange("no_io")}
+                                                disabled
+                                                // disabled={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? true : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'ya' ? false : true} 
+                                                />
+                                            </Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Cost Center Awal</Col>
+                                            <Col md={9} className="colRinci">:  <Input 
+                                                className="inputRinci"
+                                                value={dataRinci.cost_centerawal} 
+                                                onBlur={handleBlur("no_io")}
+                                                onChange={handleChange("no_io")}
+                                                disabled
+                                                // disabled={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? true : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'ya' ? false : true} 
+                                                />
+                                            </Col>
+                                        </Row>
                                         {level === '2' && (
                                             <Row className="mb-2 rowRinci">
                                                 <Col md={3}>Nomor Doc SAP</Col>
@@ -576,7 +604,7 @@ class BudgetMutasi extends Component {
                                 </Row>
                                 <Row>
                                     <Col md={6}>Tanggal Mutasi Fisik</Col>
-                                    <Col md={6}>:</Col>
+                                    <Col md={6}>: {detailMut.length !== 0 ? moment(detailMut[0].tgl_mutasifisik).format('DD MMMM YYYY') : ''}</Col>
                                 </Row>
                                 <Row>
                                     <Col md={6}>Depo</Col>
@@ -705,7 +733,7 @@ class BudgetMutasi extends Component {
                         <div>
                             <div className={style.cekUpdate}>
                             <AiFillCheckCircle size={80} className={style.green} />
-                            <div className={[style.sucUpdate, style.green]}>Berhasil Approve Form Mutasi</div>
+                            <div className={[style.sucUpdate, style.green]}>Berhasil Submit</div>
                         </div>
                         </div>
                     ) : this.state.confirm === 'reject' ?(

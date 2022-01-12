@@ -15,9 +15,9 @@ export default {
         type: 'GET_MUTASI',
         payload: http(token).get(`/mutasi/get?status=${status === undefined ? 2 : status}`)
     }),
-    getMutasiRec: (token) => ({
+    getMutasiRec: (token, tipe) => ({
         type: 'GET_MUTASI_REC',
-        payload: http(token).get(`/mutasi/rec`)
+        payload: http(token).get(`/mutasi/rec?tipe=${tipe}`)
     }),
     deleteMutasi: (token, no) => ({
         type: 'DELETE_MUTASI',
@@ -70,6 +70,14 @@ export default {
     updateStatus: (token, id, data) => ({
         type: 'UPDATE_EKS',
         payload: http(token).patch(`/mutasi/upstat/${id}`, qs.stringify(data))
+    }),
+    changeDate: (token, no, data) => ({
+        type: 'CHANGE_DATE',
+        payload: http(token).patch(`/mutasi/changeDate/${no}`, qs.stringify(data))
+    }),
+    submitEdit: (token, no) => ({
+        type: 'SUBMIT_EDIT',
+        payload: http(token).patch(`/mutasi/subedit/${no}`)
     }),
     resetAddMut: () => ({
         type: 'RESET_ADD_MUT'
