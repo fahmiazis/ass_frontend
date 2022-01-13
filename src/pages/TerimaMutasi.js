@@ -179,10 +179,12 @@ class TerimaMutasi extends Component {
             this.setState({listMut: []})
             this.openReject()
             this.openConfirm(this.setState({confirm: 'reject'}))
+            this.props.getDetailMutasi(token, detailMut[0].no_mutasi)
             this.openModalMut()
             this.props.resetAppRej()
         } else if (isApprove) {
             this.openConfirm(this.setState({confirm: 'approve'}))
+            this.props.getDetailMutasi(token, detailMut[0].no_mutasi)
             this.openApprove()
             this.props.resetAppRej()
         } else if (rejReject) {
@@ -401,6 +403,7 @@ class TerimaMutasi extends Component {
         const { dataMut, noMut, mutApp, detailMut, dataDoc } = this.props.mutasi
         const { dataAsset, page } = this.props.asset
         const pages = this.props.mutasi.page
+        const role = localStorage.getItem('role')
 
         const contentHeader =  (
             <div className={style.navbar}>
@@ -811,7 +814,7 @@ class TerimaMutasi extends Component {
                             <Button color='success' onClick={this.openProsesModalDoc}>Upload dokumen</Button>
                         </div>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="danger" disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({status}) => status === 1) === undefined ? true : false} onClick={() => this.openReject()}>
+                            <Button className="mr-2" color="danger" disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({status}) => status === 1) === undefined ? true : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? true : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 1 ? true : false} onClick={() => this.openReject()}>
                                 Reject
                             </Button>
                             <Button color="success" disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({status}) => status === 1) === undefined ? true : false} onClick={() => this.openApprove()}>

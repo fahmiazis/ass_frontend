@@ -323,6 +323,7 @@ class Mutasi extends Component {
             listMut: listMut
         }
         await this.props.rejectMut(token, detailMut[0].no_mutasi, data)
+        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi)
         this.getDataMutasi()
     }
 
@@ -849,10 +850,10 @@ class Mutasi extends Component {
                     {/* onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})} */}
                         <Button color="primary" onClick={this.getDataApprove}>Preview</Button>
                         <div className="btnFoot">
-                            <Button className="mr-2" disabled={detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 1 ? true : false} color="danger" onClick={() => this.openReject()}>
+                            <Button className="mr-2" disabled={detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? true : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 1 ? true : false} color="danger" onClick={() => this.openReject()}>
                                 Reject
                             </Button>
-                            <Button color="success" onClick={() => this.openApprove()}>
+                            <Button color="success" disabled={detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? true : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 0 ? true : false} onClick={() => this.openApprove()}>
                                 Approve
                             </Button>
                         </div>
