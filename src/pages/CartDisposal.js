@@ -218,11 +218,11 @@ class CartDisposal extends Component {
 
     submitDis = async () => {
         const token = localStorage.getItem('token')
-        const { dataDis } = this.props.disposal
+        const { dataCart } = this.props.disposal
         const cek = []
-        for (let i = 0; i < dataDis.length; i++) {
-            if (dataDis[i].keterangan === null || dataDis[i].nilai_jual === null ) {
-                cek.push(dataDis[i].keterangan)              
+        for (let i = 0; i < dataCart.length; i++) {
+            if (dataCart[i].keterangan === null || dataCart[i].nilai_jual === null ) {
+                cek.push(dataCart[i].keterangan)              
             }
         }
         if (cek.length > 0) {
@@ -250,7 +250,7 @@ class CartDisposal extends Component {
 
     getDataDisposal = async () => {
         const token = localStorage.getItem('token')
-        await this.props.getDisposal(token)
+        await this.props.getCartDisposal(token)
         // await this.props.getKeterangan(token)
     }
 
@@ -272,7 +272,7 @@ class CartDisposal extends Component {
 
     render() {
         const {alert, dataRinci} = this.state
-        const {dataDis, alertM, alertMsg, alertUpload, dataDoc, dataKet} = this.props.disposal
+        const {dataCart, alertM, alertMsg, alertUpload, dataDoc, dataKet} = this.props.disposal
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
 
@@ -333,13 +333,13 @@ class CartDisposal extends Component {
                                     <div>Lengkapi rincian data asset yang ingin diajukan</div>
                                 </Alert>
                                 <Row className="cartDisposal">
-                                    {dataDis.length === 0 ? (
+                                    {dataCart.length === 0 ? (
                                         <Col md={8} xl={8} sm={12}>
                                             <div className="txtDisposEmpty">Disposal Data is empty</div>
                                         </Col>
                                     ) : (
                                         <Col md={8} xl={8} sm={12} className="mb-5 mt-5">
-                                        {dataDis.length !== 0 && dataDis.map(item => {
+                                        {dataCart.length !== 0 && dataCart.map(item => {
                                             return (
                                                 <div className="cart">
                                                     <div className="navCart">
@@ -366,9 +366,9 @@ class CartDisposal extends Component {
                                             <div className="titSum">Disposal summary</div>
                                             <div className="txtSum">
                                                 <div className="totalSum">Total Item</div>
-                                                <div className="angkaSum">{dataDis.length}</div>
+                                                <div className="angkaSum">{dataCart.length}</div>
                                             </div>
-                                            <button className="btnSum" disabled={dataDis.length === 0 ? true : false } onClick={() => this.submitDis()}>Submit</button>
+                                            <button className="btnSum" disabled={dataCart.length === 0 ? true : false } onClick={() => this.submitDis()}>Submit</button>
                                         </div>
                                     </Col>
                                 </Row>
@@ -600,7 +600,7 @@ class CartDisposal extends Component {
                     <div className="modalDis">
                         <text className="titleModDis">Form Pengajuan Disposal Asset</text>
                     </div>
-                    <div className="mb-2"><text className="txtTrans">{dataDis[0] !== undefined && dataDis[0].area}</text>, {moment(dataDis[0] !== undefined && dataDis[0].createdAt).locale('idn').format('DD MMMM YYYY ')}</div>
+                    <div className="mb-2"><text className="txtTrans">{dataCart[0] !== undefined && dataCart[0].area}</text>, {moment(dataCart[0] !== undefined && dataCart[0].createdAt).locale('idn').format('DD MMMM YYYY ')}</div>
                     <Row>
                         <Col md={2}>
                         Hal
@@ -611,11 +611,11 @@ class CartDisposal extends Component {
                     </Row>
                     <Row className="mb-2">
                         <Col md={2}>
-                        {dataDis[0] === undefined ? "" :
-                        dataDis[0].status_depo === "Cabang Scylla" || dataDis[0].status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
+                        {dataCart[0] === undefined ? "" :
+                        dataCart[0].status_depo === "Cabang Scylla" || dataCart[0].status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
                         </Col>
                         <Col md={10} className="txtTrans">
-                        : {dataDis[0] !== undefined && dataDis[0].area}
+                        : {dataCart[0] !== undefined && dataCart[0].area}
                         </Col>
                     </Row>
                     <div>Kepada Yth.</div>
@@ -639,10 +639,10 @@ class CartDisposal extends Component {
                             </tr>
                         </thead>
                         <tbody>
-                            {dataDis.length !== 0 && dataDis.map(item => {
+                            {dataCart.length !== 0 && dataCart.map(item => {
                                 return (
                                     <tr>
-                                        <th scope="row">{dataDis.indexOf(item) + 1}</th>
+                                        <th scope="row">{dataCart.indexOf(item) + 1}</th>
                                         <td>{item.no_asset}</td>
                                         <td>{item.nama_asset}</td>
                                         <td>{item.merk}</td>
@@ -683,7 +683,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = {
     logout: auth.logout,
-    getDisposal: disposal.getDisposal,
+    getCartDisposal: disposal.getCartDisposal,
     submitDisposal: disposal.submitDisposal,
     resetError: disposal.reset,
     deleteDisposal: disposal.deleteDisposal,

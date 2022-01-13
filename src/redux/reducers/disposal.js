@@ -31,7 +31,9 @@ const disposalState = {
     rejApprove: false,
     isExport: false,
     link: '',
-    detailDis: []
+    detailDis: [],
+    dataCart: [],
+    isGetCart: false
 };
 
 export default (state=disposalState, action) => {
@@ -56,6 +58,31 @@ export default (state=disposalState, action) => {
                 };
             }
             case 'GET_DISPOSAL_REJECTED': {
+                return {
+                    ...state,
+                    isError: true,
+                    isLoading: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'GET_CART_PENDING': {
+                return {
+                    ...state,
+                    isGetCart: false,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'GET_CART_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isGetCart: true,
+                    dataCart: action.payload.data.result.rows,
+                    alertMsg: 'get disposal Succesfully',
+                };
+            }
+            case 'GET_CART_REJECTED': {
                 return {
                     ...state,
                     isError: true,
