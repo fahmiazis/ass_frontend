@@ -39,6 +39,10 @@ const sapSchema = Yup.object().shape({
     doc_sap: Yup.string().required()
 })
 
+const budSchema = Yup.object().shape({
+    cost_centerawal: Yup.string().required()
+})
+
 class BudgetMutasi extends Component {
 
     constructor(props) {
@@ -179,7 +183,7 @@ class BudgetMutasi extends Component {
         const { dataMut } = this.props.mutasi
         const level = localStorage.getItem('level')
         const token = localStorage.getItem('token')
-        await this.props.getDetailMutasi(token, value, level === '2' ? '' : 'budget') 
+        await this.props.getDetailMutasi(token, value, level === '2' ? null : 'budget') 
         const detail = []
         for (let i = 0; i < dataMut.length; i++) {
             if (dataMut[i].no_mutasi === value) {
@@ -229,7 +233,7 @@ class BudgetMutasi extends Component {
              }, 1000)
              setTimeout(() => {
                 this.props.getDocumentMut(token, detailMut[0].no_asset, detailMut[0].no_mutasi)
-                this.props.getDetailMutasi(token, detailMut[0].no_mutasi, level === '2' ? '' : 'budget') 
+                this.props.getDetailMutasi(token, detailMut[0].no_mutasi, level === '2' ? null : 'budget') 
                 this.getDataMutasi()
              }, 1100)
         }
@@ -282,7 +286,7 @@ class BudgetMutasi extends Component {
         const { dataRinci, detailMut } = this.state
         const level = localStorage.getItem('level')
         await this.props.updateStatus(token, dataRinci.id, val)
-        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi, level === '2' ? '' : 'budget')
+        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi, level === '2' ? null : 'budget')
     }
 
     rejectMutasi = async (val) => {
@@ -305,7 +309,7 @@ class BudgetMutasi extends Component {
         const { detailMut } = this.state
         const level = localStorage.getItem('level')
         await this.props.updateBudget(token, val.no, val.stat)
-        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi, level === '2' ? '' : 'budget') 
+        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi, level === '2' ? null : 'budget') 
     }
 
     render() {
@@ -487,9 +491,10 @@ class BudgetMutasi extends Component {
                             </div>
                             <Formik
                             initialValues={{
-                            doc_sap: dataRinci.doc_sap
+                            doc_sap: dataRinci.doc_sap,
+                            cost_centerawal: dataRinci.cost_centerawal
                             }}
-                            validationSchema={sapSchema}
+                            validationSchema={level === '2' ? sapSchema : budSchema}
                             onSubmit={(values) => {this.updateEksekusi(values)}}
                             >
                             {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
@@ -544,17 +549,20 @@ class BudgetMutasi extends Component {
                                             </Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Cost Center Awal</Col>
+                                            <Col md={3}>Cost Center IO</Col>
                                             <Col md={9} className="colRinci">:  <Input 
                                                 className="inputRinci"
-                                                value={dataRinci.cost_centerawal} 
-                                                onBlur={handleBlur("no_io")}
-                                                onChange={handleChange("no_io")}
-                                                disabled
+                                                value={values.cost_centerawal} 
+                                                onBlur={handleBlur("cost_centerawal")}
+                                                onChange={handleChange("cost_centerawal")}
+                                                disabled={level === '2' ? true : false}
                                                 // disabled={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? true : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'ya' ? false : true} 
                                                 />
                                             </Col>
                                         </Row>
+                                        {errors.cost_centerawal && level !== '2' ? (
+                                            <text className={style.txtError}>Must be filled</text>
+                                        ) : null}
                                         {level === '2' && (
                                             <Row className="mb-2 rowRinci">
                                                 <Col md={3}>Nomor Doc SAP</Col>
@@ -581,8 +589,11 @@ class BudgetMutasi extends Component {
                     </ModalBody>
                 </Modal>
                 <Modal isOpen={this.state.formMut} toggle={this.openModalMut} size="xl">
-                <Alert color="danger" className={style.alertWrong} isOpen={level === '2' && (detailMut.find(({doc_sap}) => doc_sap === null) !== undefined || detailMut.find(({doc_sap}) => doc_sap === '') !== undefined) ? true : false}>
+                    <Alert color="danger" className={style.alertWrong} isOpen={level === '2' && (detailMut.find(({doc_sap}) => doc_sap === null) !== undefined || detailMut.find(({doc_sap}) => doc_sap === '') !== undefined) ? true : false}>
                         <div>Mohon untuk isi no doc sap sebelum submit</div>
+                    </Alert>
+                    <Alert color="danger" className={style.alertWrong} isOpen={level !== '2' && (detailMut.find(({cost_centerawal}) => cost_centerawal === null) !== undefined || detailMut.find(({cost_centerawal}) => cost_centerawal === '') !== undefined) ? true : false}>
+                        <div>Mohon untuk isi cost center io sebelum submit</div>
                     </Alert>
                     <ModalBody>
                         {/* <div className="mb-2"><text className="txtTrans">{detailDis[0] !== undefined && detailDis[0].area}</text>, {moment(detailDis[0] !== undefined && detailDis[0].createdAt).locale('idn').format('DD MMMM YYYY ')}</div> */}
