@@ -13,13 +13,18 @@ const assetState = {
     isError: false,
     alertMsg: '',
     dataAsset: [],
+    assetAll: [],
     dataStock: [],
     detailStock: [],
     alertM: '',
     alertUpload: [],
     page: {},
     isExport: false,
-    link: ''
+    link: '',
+    isGetAll: false,
+    detailAsset: {},
+    getDetail: false,
+    isUpdateNew: false
 };
 
 export default (state=assetState, action) => {
@@ -48,6 +53,57 @@ export default (state=assetState, action) => {
                     ...state,
                     isLoading: false,
                     isGet: false,
+                    isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'GET_ASSETALL_PENDING': {
+                return {
+                    ...state,
+                    isGet: false,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'GET_ASSETALL_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isGetAll: true,
+                    assetAll: action.payload.data.result.rows,
+                    alertMsg: 'get asset Succesfully',
+                    page: action.payload.data.pageInfo
+                };
+            }
+            case 'GET_ASSETALL_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'GET_DETAIL_PENDING': {
+                return {
+                    ...state,
+                    stockDetail: false,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'GET_DETAIL_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    getDetail: true,
+                    detailAsset: action.payload.data.result,
+                    alertMsg: 'get stock Succesfully',
+                };
+            }
+            case 'GET_DETAIL_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
                     isError: true,
                     alertMsg: "Unable connect to server"
                 };
@@ -132,6 +188,29 @@ export default (state=assetState, action) => {
                     alertMsg: "Unable connect to server"
                 };
             }
+            case 'UPDATE_ASSETNEW_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'UPDATE_ASSETNEW_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: false,
+                    isUpdateNew: true,
+                };
+            }
+            case 'UPDATE_ASSETNEW_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
             case 'SUBMIT_STOCK_PENDING': {
                 return {
                     ...state,
@@ -171,7 +250,9 @@ export default (state=assetState, action) => {
                     isLoading: false,
                     isError: false,
                     isGet: true,
+                    isGetAll: true,
                     dataAsset: action.payload.data.result.rows,
+                    assetAll: action.payload.data.result.rows,
                     alertMsg: 'add depo Succesfully',
                     page: action.payload.data.pageInfo
                 };
@@ -191,7 +272,9 @@ export default (state=assetState, action) => {
                     isError: false,
                     isUpload: false,
                     isGet: false,
-                    isExport: false
+                    isExport: false,
+                    isUpdate: false,
+                    isUpdateNew: false
                 }
             }
             default: {

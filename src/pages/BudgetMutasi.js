@@ -179,7 +179,7 @@ class BudgetMutasi extends Component {
         const { dataMut } = this.props.mutasi
         const level = localStorage.getItem('level')
         const token = localStorage.getItem('token')
-        await this.props.getDetailMutasi(token, value, level === '2' ? 'eks' : 'budget') 
+        await this.props.getDetailMutasi(token, value, level === '2' ? '' : 'budget') 
         const detail = []
         for (let i = 0; i < dataMut.length; i++) {
             if (dataMut[i].no_mutasi === value) {
@@ -229,7 +229,7 @@ class BudgetMutasi extends Component {
              }, 1000)
              setTimeout(() => {
                 this.props.getDocumentMut(token, detailMut[0].no_asset, detailMut[0].no_mutasi)
-                this.props.getDetailMutasi(token, detailMut[0].no_mutasi, level === '2' ? 'eks' : 'budget') 
+                this.props.getDetailMutasi(token, detailMut[0].no_mutasi, level === '2' ? '' : 'budget') 
                 this.getDataMutasi()
              }, 1100)
         }
@@ -282,7 +282,7 @@ class BudgetMutasi extends Component {
         const { dataRinci, detailMut } = this.state
         const level = localStorage.getItem('level')
         await this.props.updateStatus(token, dataRinci.id, val)
-        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi, level === '2' ? 'eks' : 'budget')
+        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi, level === '2' ? '' : 'budget')
     }
 
     rejectMutasi = async (val) => {
@@ -305,7 +305,7 @@ class BudgetMutasi extends Component {
         const { detailMut } = this.state
         const level = localStorage.getItem('level')
         await this.props.updateBudget(token, val.no, val.stat)
-        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi, level === '2' ? 'eks' : 'budget') 
+        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi, level === '2' ? '' : 'budget') 
     }
 
     render() {

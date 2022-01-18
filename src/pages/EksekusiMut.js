@@ -74,7 +74,8 @@ class EksekusiMut extends Component {
             openRejectDis: false,
             approve: false,
             reject: false,
-            preview: false
+            preview: false,
+            confirm: ''
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -189,7 +190,7 @@ class EksekusiMut extends Component {
     openDetailMut = async (value) => {
         const { dataMut } = this.props.mutasi
         const token = localStorage.getItem('token')
-        await this.props.getDetailMutasi(token, value) 
+        await this.props.getDetailMutasi(token, value, 'eks') 
         const detail = []
         for (let i = 0; i < dataMut.length; i++) {
             if (dataMut[i].no_mutasi === value) {
@@ -550,7 +551,8 @@ class EksekusiMut extends Component {
                                                 <div className="ml-2">
                                                     <Input
                                                     addon
-                                                    disabled={listMut.find(element => element === dataRinci.no_asset) === undefined ? false : true}
+                                                    disabled
+                                                    // disabled={listMut.find(element => element === dataRinci.no_asset) === undefined ? false : true}
                                                     type="checkbox"
                                                     checked={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? false : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'ya' ? true : false}
                                                     onClick={() => this.updateStatus({id: dataRinci.id, stat: 'ya'})}
@@ -559,7 +561,8 @@ class EksekusiMut extends Component {
                                                 <div className="ml-3">
                                                     <Input
                                                     addon
-                                                    disabled={listMut.find(element => element === dataRinci.no_asset) === undefined ? false : true}
+                                                    disabled
+                                                    // disabled={listMut.find(element => element === dataRinci.no_asset) === undefined ? false : true}
                                                     type="checkbox"
                                                     checked={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? false : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'tidak' ? true : false}
                                                     onClick={() => this.updateStatus({id: dataRinci.id, stat: 'tidak'})}
@@ -811,8 +814,8 @@ class EksekusiMut extends Component {
                     <Alert color="danger" className={style.alertWrong} isOpen={detailMut[0] === undefined || detailMut[0].docAsset.find(({divisi}) => divisi === '3') === undefined ? true : false}>
                         <div>Mohon approve dokumen terlebih dahulu sebelum approve pengajuan mutasi</div>
                     </Alert>
-                    <Alert color="danger" className={style.alertWrong} isOpen={detailMut.find(({isbudget}) => isbudget === null) !== undefined ? true : false}>
-                        <div>Mohon untuk ceklis konfirmasi budget terlebih dahulu</div>
+                    <Alert color="danger" className={style.alertWrong} isOpen={detailMut.find(({isbudget}) => isbudget === 'ya') === undefined && (detailMut.find(({doc_sap}) => doc_sap === null) !== undefined || detailMut.find(({doc_sap}) => doc_sap === '') !== undefined) ? true : false}>
+                        <div>Mohon isi nomor doc sap terlebih dahulu</div>
                     </Alert>
                     <ModalBody>
                         {/* <div className="mb-2"><text className="txtTrans">{detailDis[0] !== undefined && detailDis[0].area}</text>, {moment(detailDis[0] !== undefined && detailDis[0].createdAt).locale('idn').format('DD MMMM YYYY ')}</div> */}
@@ -901,7 +904,7 @@ class EksekusiMut extends Component {
                                 Reject
                             </Button>
                             {/* disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({divisi}) => divisi === '3') === undefined ? true :  detailMut.find(({isbudget}) => isbudget === null) !== undefined ? true : listMut.length === 0 ? false : true} */}
-                            <Button color="success" disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({divisi}) => divisi === '3') === undefined ? true : listMut.length === 0 ? false : true} onClick={() => this.openApprove()}>
+                            <Button color="success" disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({divisi}) => divisi === '3') === undefined ? true : (detailMut.find(({isbudget}) => isbudget === 'ya') === undefined && (detailMut.find(({doc_sap}) => doc_sap === null) !== undefined || detailMut.find(({doc_sap}) => doc_sap === '') !== undefined)) ? true : listMut.length === 0 ? false : true} onClick={() => this.openApprove()}>
                                 Submit
                             </Button>
                         </div>
