@@ -713,6 +713,16 @@ class TaxFinDisposal extends Component {
                         </div>
                         </ModalBody>
                 </Modal>
+                <Modal isOpen={this.props.disposal.isLoading ? true: false} size="sm">
+                        <ModalBody>
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <Spinner />
+                                <div sucUpdate>Waiting....</div>
+                            </div>
+                        </div>
+                        </ModalBody>
+                </Modal>
                 <Modal size="xl" isOpen={this.state.openModalDoc} toggle={this.closeProsesModalDoc}>
                 <ModalHeader>
                 Kelengkapan Dokumen
