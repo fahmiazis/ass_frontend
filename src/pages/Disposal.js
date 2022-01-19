@@ -1455,11 +1455,8 @@ class Disposal extends Component {
                             </div>
                         {level === '12' || level === '2' ? (
                              <div>
-                                 {dataRinci.appForm === undefined || dataRinci.appForm.length === 0 ? (
-                                     <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
-                                 ) : (
-                                    level === '12' ? (
-                                        (app.length === 0 && fileName.status !== 0 && fileName.status !== 3) || (app[find] !== undefined && app[find - 1].status === null && fileName.status !== 0 && fileName.status !== 3) ? (
+                                 {level === '12' ? (
+                                        (fileName.status !== 0 && fileName.status !== 3) || (app[find] !== undefined && app[find - 1].status === null && fileName.status !== 0 && fileName.status !== 3) ? (
                                             <>
                                                 <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
                                                 <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
@@ -1476,8 +1473,7 @@ class Disposal extends Component {
                                         ) : (
                                             <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
                                         )
-                                    )
-                                 )}
+                                    )}
                             </div>
                             ) : (
                                 <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
