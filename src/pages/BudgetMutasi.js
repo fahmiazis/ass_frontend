@@ -668,9 +668,15 @@ class BudgetMutasi extends Component {
                         <div className="btnFoot">
                         </div>
                         <div className="btnFoot">
-                            <Button color="success" disabled={level === '2' && (detailMut.find(({doc_sap}) => doc_sap === null) !== undefined || detailMut.find(({doc_sap}) => doc_sap === '') !== undefined) ? true : false} onClick={() => this.openApprove()}>
-                                Submit
-                            </Button>
+                            {level === '2' ? (
+                                <Button color="success" disabled={level === '2' && (detailMut.find(({doc_sap}) => doc_sap === null) !== undefined || detailMut.find(({doc_sap}) => doc_sap === '') !== undefined) ? true : false} onClick={() => this.openApprove()}>
+                                    Submit
+                                </Button>
+                            ) : (
+                                <Button color="success" disabled={detailMut.find(({cost_centerawal}) => cost_centerawal === null) !== undefined || detailMut.find(({cost_centerawal}) => cost_centerawal === '') !== undefined ? true : false} onClick={() => this.openApprove()}>
+                                    Submit
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </Modal>

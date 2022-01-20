@@ -159,10 +159,12 @@ class Mutasi extends Component {
             this.openConfirm(this.setState({confirm: 'reject'}))
             this.openModalMut()
             this.props.resetAppRej()
+            this.getDataMutasi()
         } else if (isApprove) {
             this.openConfirm(this.setState({confirm: 'approve'}))
             this.openApprove()
             this.props.resetAppRej()
+            this.getDataMutasi()
         } else if (rejReject) {
             this.openReject()
             this.openConfirm(this.setState({confirm: 'rejReject'}))
@@ -312,7 +314,6 @@ class Mutasi extends Component {
         const token = localStorage.getItem("token")
         await this.props.approveMut(token, detailMut[0].no_mutasi)
         await this.props.getDetailMutasi(token, detailMut[0].no_mutasi)
-        this.getDataMutasi()
     }
 
     rejectMutasi = async (val) => {
@@ -324,7 +325,6 @@ class Mutasi extends Component {
         }
         await this.props.rejectMut(token, detailMut[0].no_mutasi, data)
         await this.props.getDetailMutasi(token, detailMut[0].no_mutasi)
-        this.getDataMutasi()
     }
 
     prepareSelect = async () => {
@@ -849,14 +849,25 @@ class Mutasi extends Component {
                     <div className="modalFoot ml-3">
                     {/* onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})} */}
                         <Button color="primary" onClick={this.getDataApprove}>Preview</Button>
-                        <div className="btnFoot">
-                            <Button className="mr-2" disabled={detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? true : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 1 ? true : false} color="danger" onClick={() => this.openReject()}>
-                                Reject
-                            </Button>
-                            <Button color="success" disabled={detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? true : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 0 ? true : false} onClick={() => this.openApprove()}>
-                                Approve
-                            </Button>
-                        </div>
+                        {level === '12' ? (
+                            <div className="btnFoot">
+                                <Button className="mr-2" disabled={detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 1 ? true : false} color="danger" onClick={() => this.openReject()}>
+                                    Reject
+                                </Button>
+                                <Button color="success" disabled={detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 0 ? true : false} onClick={() => this.openApprove()}>
+                                    Approve
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className="btnFoot">
+                                <Button className="mr-2" disabled={detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? true : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 1 ? true : false} color="danger" onClick={() => this.openReject()}>
+                                    Reject
+                                </Button>
+                                <Button color="success" disabled={detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? true : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 0 ? true : false} onClick={() => this.openApprove()}>
+                                    Approve
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </Modal>
                 <Modal isOpen={this.state.preview} toggle={this.openModalPre} size="xl">

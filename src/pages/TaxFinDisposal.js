@@ -886,6 +886,10 @@ class TaxFinDisposal extends Component {
                                         <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null || dataRinci.nilai_buku === undefined ? 0 : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
                                     </Row>
                                     <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Nilai Buku Eksekusi</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku_eks === null || dataRinci.nilai_buku_eks === undefined ? 0 : dataRinci.nilai_buku_eks.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
+                                        </Row>
+                                    <Row className="mb-2 rowRinci">
                                         <Col md={3}>Nilai Jual</Col>
                                         <Col md={9} className="colRinci">:  <Input 
                                             className="inputRinci" 
