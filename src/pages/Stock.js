@@ -8,6 +8,7 @@ import { Container, Collapse, Nav, Navbar,
     DropdownItem, Table, ButtonDropdown, Input, Button, Col,
     Alert, Spinner, Row, Modal, ModalBody, ModalHeader, ModalFooter} from 'reactstrap'
 import approve from '../redux/actions/approve'
+import {BsCircle} from 'react-icons/bs'
 import {FaSearch, FaUserCircle, FaBars, FaCartPlus, FaTh, FaList} from 'react-icons/fa'
 import Sidebar from "../components/Header";
 import { AiOutlineCheck, AiOutlineClose, AiFillCheckCircle} from 'react-icons/ai'
@@ -73,7 +74,8 @@ class Stock extends Component {
             openStatus: false,
             stat: '',
             modalConfirm: false,
-            confirm: ''
+            confirm: '',
+            modalDoc: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -83,6 +85,24 @@ class Stock extends Component {
         const token = localStorage.getItem('token')
         await this.props.submitStock(token)
         this.getDataAsset()
+    }
+
+    onChangeUpload = e => {
+        const {size, type} = e.target.files[0]
+        this.setState({fileUpload: e.target.files[0]})
+        if (size >= 20000000) {
+            this.setState({errMsg: "Maximum upload size 20 MB"})
+            this.uploadAlert()
+        } else if (type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && type !== 'application/vnd.ms-excel' && type !== 'application/pdf' && type !== 'application/x-7z-compressed' && type !== 'application/vnd.rar' && type !== 'application/zip' && type !== 'application/x-zip-compressed' && type !== 'application/octet-stream' && type !== 'multipart/x-zip' && type !== 'application/x-rar-compressed') {
+            this.setState({errMsg: 'Invalid file type. Only excel, pdf, zip, and rar files are allowed.'})
+            this.uploadAlert()
+        } else {
+            const {detail} = this.state
+            const token = localStorage.getItem('token')
+            const data = new FormData()
+            data.append('document', e.target.files[0])
+            this.props.uploadDocumentDis(token, detail.id, data)
+        }
     }
 
     uploadPicture = e => {
@@ -202,9 +222,10 @@ class Stock extends Component {
     }
 
     componentDidUpdate() {
-        const {isUpload, isError} = this.props.stock
+        const {isUpload, isError, isApprove, isReject, rejReject, rejApprove} = this.props.stock
         const {dataRinci} = this.state
         const { isUpdateNew } = this.props.asset
+        const errUpload = this.props.disposal.isUpload
         const token = localStorage.getItem('token')
         if (isUpload) {
             this.props.resetStock()
@@ -212,6 +233,13 @@ class Stock extends Component {
                 this.props.getDetailAsset(token, dataRinci.no_asset)
                 this.getDataAsset()
              }, 100)
+        } else if (errUpload) {
+            setTimeout(() => {
+                this.props.resetDis()
+             }, 1000)
+             setTimeout(() => {
+                 this.cekStatus('DIPINJAM SEMENTARA')
+             }, 1100)
         } else if (isUpdateNew) {
             setTimeout(() => {
                 this.openConfirm(this.setState({confirm: 'approve'}))
@@ -219,6 +247,23 @@ class Stock extends Component {
             this.props.resetError()
             this.props.getDetailAsset(token, dataRinci.no_asset)
             this.getDataAsset()
+        } else if (isReject) {
+            this.setState({listMut: []})
+            this.openModalReject()
+            this.openConfirm(this.setState({confirm: 'reject'}))
+            this.props.resetStock()
+        } else if (isApprove) {
+            this.openConfirm(this.setState({confirm: 'isApprove'}))
+            this.openModalApprove()
+            this.props.resetStock()
+        } else if (rejReject) {
+            this.openModalReject()
+            this.openConfirm(this.setState({confirm: 'rejReject'}))
+            this.props.resetStock()
+        } else if (rejApprove) {
+            this.openConfirm(this.setState({confirm: 'rejApprove'}))
+            this.openModalApprove()
+            this.props.resetStock()
         } else if (isError) {
             this.props.resetStock()
             this.showAlert()
@@ -354,6 +399,25 @@ class Stock extends Component {
         }
     }
 
+    openProsesModalDoc = async () => {
+        const token = localStorage.getItem("token")
+        const { detailAsset } = this.props.asset
+        await this.props.getDocument(token, detailAsset.no_asset)
+        this.openModalDoc()
+    }
+
+    cekStatus = async (val) => {
+        const token = localStorage.getItem("token")
+        const { detailAsset } = this.props.asset
+        if (val === 'DIPINJAM SEMENTARA') {
+            await this.props.cekDokumen(token, detailAsset.no_asset)
+        }
+    }
+
+    openModalDoc = () => {
+        this.setState({modalDoc: !this.state.modalDoc})
+    }
+
     getRincian = async (val) => {
         const token = localStorage.getItem("token")
         this.setState({dataRinci: val})
@@ -372,7 +436,7 @@ class Stock extends Component {
         const { detailDepo, dataDepo } = this.props.depo
         const { alertUpload, page, detailAsset} = this.props.asset
         const dataAsset = this.props.asset.assetAll
-        const { dataStock, detailStock, stockApp, dataStatus, alertM, alertMsg } = this.props.stock
+        const { dataStock, detailStock, stockApp, dataStatus, alertM, alertMsg, dataDoc } = this.props.stock
         const pages = this.props.depo.page
 
         const contentHeader =  (
@@ -427,7 +491,7 @@ class Stock extends Component {
                                         <div className={style.headEmail}>
                                             <Button onClick={this.prosesSubmitPre} color="info" size="lg" className="btnGoCart">Submit</Button>
                                         </div>
-                                    ) : (
+                                    ) : level === '2' && (
                                         <div className={style.headEmail}>
                                             {this.state.view === 'list' ? (
                                                 <Button color="primary" className="transBtn ml-2" onClick={() => this.changeView('card')}><FaTh size={35} className="mr-2"/> Gallery View</Button>
@@ -586,7 +650,7 @@ class Stock extends Component {
                                                             type="select"
                                                             className="inputRinci"
                                                             name="status_fisik"
-                                                            value={item.status_fisik} 
+                                                            defaultValue={item.status_fisik} 
                                                             // onChange={e => {this.updateNewAsset({item: item, target: e.target}); this.selectStatus(e.target.value, this.state.kondisi)} }
                                                             onChange={e => {this.updateNewAsset({item: item, target: e.target})} }
                                                             >
@@ -601,7 +665,7 @@ class Stock extends Component {
                                                             type="select"
                                                             name="kondisi"
                                                             className="inputRinci"
-                                                            value={item.kondisi} 
+                                                            defaultValue={item.kondisi} 
                                                             // onChange={e => {this.updateNewAsset({item: item, target: e.target}); this.selectStatus(this.state.fisik, e.target.value)} }
                                                             onChange={e => {this.updateNewAsset({item: item, target: e.target})} }
                                                             >
@@ -958,9 +1022,6 @@ class Stock extends Component {
                     </ModalBody>
                 </Modal>
                 <Modal isOpen={this.state.modalRinci} toggle={this.openModalRinci} size="xl">
-                    <ModalHeader>
-                        Rincian
-                    </ModalHeader>
                     <ModalBody>
                         <div>
                             <div className="stockTitle">kertas kerja opname aset kantor</div>
@@ -1403,6 +1464,9 @@ class Stock extends Component {
                     </div>
                 </Modal>
                 <Modal isOpen={this.state.openStatus} toggle={this.modalStatus}>
+                    <Alert color="danger" className={style.alertWrong} isOpen={this.state.stat === 'DIPINJAM SEMENTARA' && (dataDoc.length === 0 || dataDoc.find(({status}) => status === 1) === undefined) ? true : false}>
+                        <div>Mohon upload dokumen terlebih dahulu</div>
+                    </Alert>
                     <ModalBody>
                         <div className='mb-2 titStatus'>Pilih Status Aset</div>
                         {dataStatus.length > 0 ? dataStatus.map(item => {
@@ -1413,16 +1477,33 @@ class Stock extends Component {
                                     // disabled={listMut.find(element => element === dataRinci.no_asset) === undefined ? false : true}
                                     type="checkbox"
                                     checked= {this.state.stat === item.status ? true : false}
-                                    onClick={() => this.setState({stat: item.status})}
+                                    onClick={() => {this.setState({stat: item.status}); this.cekStatus(item.status)}}
                                     value={item.status} />  {item.status}
                                 </div>
                             )
                         }) : (
                             <div>Tidak ada opsi status asset mohon pilih ulang kondisi asset atau status fisik asset</div>
                         )}
-                        <div className="footRinci4 mt-4">
+                        {/* <div className="footRinci4 mt-4">
                             <Button color="primary" disabled={this.state.stat === '' || this.state.stat === null ? true : false} onClick={this.updateStatus}>Save</Button>
                             <Button className="ml-3" color="secondary" onClick={() => this.modalStatus()}>Close</Button>
+                        </div> */}
+                        <div className="modalFoot mt-3">
+                            <div className="btnFoot">
+                            {this.state.stat === 'DIPINJAM SEMENTARA' ? (
+                                <Button color='success' onClick={this.openProsesModalDoc}>Upload dokumen</Button>
+                            ) : (
+                                <div></div>
+                            )}
+                            </div>
+                            <div className="btnFoot">
+                                {this.state.stat === 'DIPINJAM SEMENTARA' && (dataDoc.length === 0 || dataDoc.find(({status}) => status === 1) === undefined) ? (
+                                    <Button color="primary" disabled>Save</Button>
+                                ) : (
+                                    <Button color="primary" disabled={this.state.stat === '' || this.state.stat === null ? true : false} onClick={this.updateStatus}>Save</Button>
+                                )}
+                                <Button className="ml-3" color="secondary" onClick={() => this.modalStatus()}>Close</Button>
+                            </div>
                         </div>
                     </ModalBody>
                 </Modal>
@@ -1431,45 +1512,99 @@ class Stock extends Component {
                     {this.state.confirm === 'approve' ? (
                         <div>
                             <div className={style.cekUpdate}>
-                            <AiFillCheckCircle size={80} className={style.green} />
-                            <div className={[style.sucUpdate, style.green]}>Berhasil Update</div>
-                        </div>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Update</div>
+                            </div>
                         </div>
                     ) : this.state.confirm === 'reject' ?(
                         <div>
                             <div className={style.cekUpdate}>
                                 <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={[style.sucUpdate, style.green]}>Berhasil Reject Form Mutasi</div>
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Reject</div>
                             </div>
                         </div>
                     ) : this.state.confirm === 'rejApprove' ?(
                         <div>
                             <div className={style.cekUpdate}>
                             <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Gagal Approve Form Mutasi</div>
-                            <div className="errApprove mt-2">{this.props.disposal.alertM === undefined ? '' : this.props.disposal.alertM}</div>
+                            <div className={[style.sucUpdate, style.green]}>Gagal Approve</div>
                         </div>
                         </div>
                     ) : this.state.confirm === 'rejReject' ?(
                         <div>
                             <div className={style.cekUpdate}>
                             <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Gagal Reject Form Mutasi</div>
-                            <div className="errApprove mt-2">{this.props.disposal.alertM === undefined ? '' : this.props.disposal.alertM}</div>
+                            <div className={[style.sucUpdate, style.green]}>Gagal Reject</div>
                         </div>
                         </div>
-                    ) : this.state.confirm === 'addmutasi' ?(
+                    ) : this.state.confirm === 'isApprove' ? (
                         <div>
                             <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Gagal Menambahkan Item Mutasi</div>
-                            <div className="errApprove mt-2">{this.props.mutasi.alertM === undefined ? '' : this.props.mutasi.alertM}</div>
-                        </div>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Approve</div>
+                            </div>
                         </div>
                     ) : (
                         <div></div>
                     )}
                 </ModalBody>
+            </Modal>
+            <Modal size="xl" isOpen={this.state.modalDoc} toggle={this.openModalDoc}>
+                <ModalHeader>
+                   Kelengkapan Dokumen
+                </ModalHeader>
+                <ModalBody>
+                    <Container>
+                        {dataDoc !== undefined && dataDoc.map(x => {
+                            return (
+                                <Row className="mt-3 mb-4">
+                                    <Col md={6} lg={6} >
+                                        <text>{x.nama_dokumen}</text>
+                                    </Col>
+                                    {x.path !== null ? (
+                                        <Col md={6} lg={6} >
+                                            {x.status === 0 ? (
+                                                <AiOutlineClose size={20} />
+                                            ) : x.status === 3 ? (
+                                                <AiOutlineCheck size={20} />
+                                            ) : (
+                                                <BsCircle size={20} />
+                                            )}
+                                            <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
+                                            <div className="colDoc">
+                                                <input
+                                                className="ml-4"
+                                                type="file"
+                                                onClick={() => this.setState({detail: x})}
+                                                onChange={this.onChangeUpload}
+                                                />
+                                                <text className="txtError ml-4">Maximum file upload is 20 Mb</text>
+                                            </div>
+                                        </Col>
+                                    ) : (
+                                        <Col md={6} lg={6} className="colDoc">
+                                            <input
+                                            className="ml-4"
+                                            type="file"
+                                            onClick={() => this.setState({detail: x})}
+                                            onChange={this.onChangeUpload}
+                                            />
+                                            <text className="txtError ml-4">Maximum file upload is 20 Mb</text>
+                                        </Col>
+                                    )}
+                                </Row>
+                            )
+                        })}
+                    </Container>
+                </ModalBody>
+                <ModalFooter>
+                    <Button className="mr-2" color="secondary" onClick={this.openModalDoc}>
+                            Close
+                        </Button>
+                        <Button color="primary" onClick={this.openModalDoc}>
+                            Save 
+                    </Button>
+                </ModalFooter>
             </Modal>
             </>
         )
@@ -1495,6 +1630,7 @@ const mapDispatchToProps = {
     resetError: asset.resetError,
     nextPage: asset.nextPage,
     getDisposal: disposal.getDisposal,
+    uploadDocumentDis: disposal.uploadDocumentDis,
     getNameApprove: approve.getNameApprove,
     getDetailDepo: depo.getDetailDepo,
     getDepo: depo.getDepo,
@@ -1509,7 +1645,10 @@ const mapDispatchToProps = {
     getStatus: stock.getStatus,
     getStatusAll: stock.getStatusAll,
     resetStock: stock.resetStock,
-    getDetailAsset: asset.getDetailAsset
+    getDetailAsset: asset.getDetailAsset,
+    getDocument: stock.getDocumentStock,
+    cekDokumen: stock.cekDocumentStock,
+    resetDis: disposal.reset
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Stock)

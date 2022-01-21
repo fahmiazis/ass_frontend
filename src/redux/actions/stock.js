@@ -19,6 +19,14 @@ export default {
         type: 'DETAIL_STOCK',
         payload: http(token).get(`/stock/detail/${id}`)
     }),
+    getDocumentStock: (token, no) => ({
+        type: 'DOK_STOCK',
+        payload: http(token).get(`/stock/doc/${no}`)
+    }),
+    cekDocumentStock: (token, no) => ({
+        type: 'CEK_DOC',
+        payload: http(token).get(`/stock/cekdoc/${no}`)
+    }),
     getApproveStock: (token, no, nama) => ({
         type: 'GET_APPSTOCK',
         payload: http(token).get(`/stock/approve/${no}/${nama}`)

@@ -844,7 +844,7 @@ class TerimaMutasi extends Component {
                                 </Row>
                                 <Row>
                                     <Col md={6}>Tanggal Mutasi Fisik</Col>
-                                    <Col md={6}>:</Col>
+                                    <Col md={6}>: {detailMut.length !== 0 ? moment(detailMut[0].tgl_mutasifisik).format('DD MMMM YYYY') : ''}</Col>
                                 </Row>
                                 <Row>
                                     <Col md={6}>Depo</Col>

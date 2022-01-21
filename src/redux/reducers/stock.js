@@ -31,7 +31,11 @@ const stockState = {
     dataStatus: [],
     dataRep: [],
     pageRep: {},
-    dataAll: []
+    isDokumen: false,
+    dataAll: [],
+    dataDoc: [],
+    rejReject: false,
+    rejApprove: false
 };
 
 export default (state=stockState, action) => {
@@ -60,6 +64,56 @@ export default (state=stockState, action) => {
                 ...state,
                 isLoading: false,
                 getStock: false,
+                isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'DOK_STOCK_PENDING': {
+            return {
+                ...state,
+                isDokumen: false,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'DOK_STOCK_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isDokumen: true,
+                dataDoc: action.payload.data.result,
+                alertMsg: 'get document disposal Succesfully'
+            };
+        }
+        case 'DOK_STOCK_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'CEK_DOC_PENDING': {
+            return {
+                ...state,
+                isDokumen: false,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'CEK_DOC_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isDokumen: true,
+                dataDoc: action.payload.data.result,
+                alertMsg: 'get document disposal Succesfully'
+            };
+        }
+        case 'CEK_DOC_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
                 isError: true,
                 alertMsg: "Unable connect to server"
             };
@@ -167,6 +221,7 @@ export default (state=stockState, action) => {
                 ...state,
                 isLoading: false,
                 isApprove: false,
+                rejApprove: true,
                 isError: true,
                 alertMsg: "Unable connect to server"
             };
@@ -191,6 +246,7 @@ export default (state=stockState, action) => {
             return {
                 ...state,
                 isLoading: false,
+                rejReject: true,
                 isReject: false,
                 isError: true,
                 alertMsg: "Unable connect to server"
@@ -327,7 +383,11 @@ export default (state=stockState, action) => {
                 isDelete: false,
                 isUpload: false,
                 isGet: false,
-                isExport: false
+                isExport: false,
+                isApprove: false,
+                isReject: false,
+                rejReject: false,
+                rejApprove: false
             }
         }
         default: {
