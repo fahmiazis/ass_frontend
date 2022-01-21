@@ -431,7 +431,7 @@ class TaxFinDisposal extends Component {
                                     <div>{alertM}</div>
                                 </Alert>
                                 <div className={style.headMaster}>
-                                    <div className={style.titleDashboard1}>Tax Disposal</div>
+                                    <div className={style.titleDashboard1}>Edit Tax Disposal</div>
                                 </div>
                                 <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit}>
                                     <div>Revisi dokumen terlebih dahulu</div>
@@ -481,7 +481,7 @@ class TaxFinDisposal extends Component {
                                     <div>{alertM}</div>
                                 </Alert>
                                 <div className={style.headMaster}>
-                                    <div className={style.titleDashboard1}>Finance Disposal</div>
+                                    <div className={style.titleDashboard1}>Edit Finance Disposal</div>
                                 </div>
                                 <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit}>
                                     <div>Revisi dokumen terlebih dahulu</div>
