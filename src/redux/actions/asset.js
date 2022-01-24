@@ -29,5 +29,8 @@ export default {
     updateAssetNew: (token, id, data) => ({
         type: 'UPDATE_ASSETNEW',
         payload: http(token).patch(`/asset/update/${id}`, qs.stringify(data))
+    }),
+    resetData: () => ({
+        type: 'RESET_DATA'
     })
 }

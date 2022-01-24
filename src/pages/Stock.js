@@ -176,12 +176,14 @@ class Stock extends Component {
     next = async () => {
         const { page } = this.props.asset
         const token = localStorage.getItem('token')
+        await this.props.resetData()
         await this.props.nextPage(token, page.nextLink)
     }
 
     prev = async () => {
         const { page } = this.props.asset
         const token = localStorage.getItem('token')
+        await this.props.resetData()
         await this.props.nextPage(token, page.prevLink)
     }
 
@@ -241,9 +243,7 @@ class Stock extends Component {
                  this.cekStatus('DIPINJAM SEMENTARA')
              }, 1100)
         } else if (isUpdateNew) {
-            setTimeout(() => {
-                this.openConfirm(this.setState({confirm: 'approve'}))
-            }, 200)
+            this.openConfirm(this.setState({confirm: 'approve'}))
             this.props.resetError()
             this.props.getDetailAsset(token, dataRinci.no_asset)
             this.getDataAsset()
@@ -359,6 +359,7 @@ class Stock extends Component {
             }
         } else {
             await this.props.updateAsset(token, value.item.id, data)
+            this.getDataAsset()
         }
     }
 
@@ -650,11 +651,12 @@ class Stock extends Component {
                                                             type="select"
                                                             className="inputRinci"
                                                             name="status_fisik"
-                                                            defaultValue={item.status_fisik} 
+                                                            value={item.status_fisik}
+                                                            defaultValue={item.status_fisik === null ? '' : item.status_fisik}
                                                             // onChange={e => {this.updateNewAsset({item: item, target: e.target}); this.selectStatus(e.target.value, this.state.kondisi)} }
                                                             onChange={e => {this.updateNewAsset({item: item, target: e.target})} }
                                                             >
-                                                                <option>-Pilih Status Fisik-</option>
+                                                                <option value={null}>-Pilih Status Fisik-</option>
                                                                 <option value="ada">Ada</option>
                                                                 <option value="tidak ada">Tidak Ada</option>
                                                             </Input>
@@ -665,7 +667,8 @@ class Stock extends Component {
                                                             type="select"
                                                             name="kondisi"
                                                             className="inputRinci"
-                                                            defaultValue={item.kondisi} 
+                                                            value={item.kondisi}
+                                                            defaultValue={item.kondisi === null ? 'null' : item.kondisi} 
                                                             // onChange={e => {this.updateNewAsset({item: item, target: e.target}); this.selectStatus(this.state.fisik, e.target.value)} }
                                                             onChange={e => {this.updateNewAsset({item: item, target: e.target})} }
                                                             >
@@ -703,7 +706,7 @@ class Stock extends Component {
                                                             type= "text"
                                                             name="keterangan"
                                                             className="inputRinci"
-                                                            defaultValue={item.keterangan}
+                                                            defaultValue={item.keterangan === 'proses mutasi' ? '' : item.keterangan}
                                                             onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                             onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                             />
@@ -1338,7 +1341,7 @@ class Stock extends Component {
                         </Formik>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.props.stock.isLoading || this.props.depo.isLoading ? true: false} size="sm">
+                <Modal isOpen={this.props.stock.isLoading || this.props.depo.isLoading || this.props.asset.isLoading ? true: false} size="sm">
                         <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>
@@ -1648,7 +1651,8 @@ const mapDispatchToProps = {
     getDetailAsset: asset.getDetailAsset,
     getDocument: stock.getDocumentStock,
     cekDokumen: stock.cekDocumentStock,
-    resetDis: disposal.reset
+    resetDis: disposal.reset,
+    resetData: asset.resetData
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Stock)

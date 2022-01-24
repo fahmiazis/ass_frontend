@@ -60,7 +60,6 @@ export default (state=assetState, action) => {
             case 'GET_ASSETALL_PENDING': {
                 return {
                     ...state,
-                    isGet: false,
                     isLoading: true,
                     alertMsg: 'Waiting ...'
                 };
@@ -79,6 +78,7 @@ export default (state=assetState, action) => {
                 return {
                     ...state,
                     isLoading: false,
+                    isGetAll: false,
                     isError: true,
                     alertMsg: "Unable connect to server"
                 };
@@ -275,6 +275,12 @@ export default (state=assetState, action) => {
                     isExport: false,
                     isUpdate: false,
                     isUpdateNew: false
+                }
+            }
+            case 'RESET_DATA': {
+                return {
+                    ...state,
+                    dataAsset: []
                 }
             }
             default: {
