@@ -253,8 +253,9 @@ class Stock extends Component {
     }
 
     componentDidUpdate() {
-        const {isUpload, isError, isApprove, isReject, rejReject, rejApprove, isUpdateNew} = this.props.stock
+        const {isUpload, isError, isApprove, isReject, rejReject, rejApprove} = this.props.stock
         const {dataRinci} = this.state
+        const { isUpdateNew } = this.props.asset
         const errUpload = this.props.disposal.isUpload
         const token = localStorage.getItem('token')
         if (isUpload) {
@@ -362,7 +363,7 @@ class Stock extends Component {
             status_fisik: value.fisik,
             kondisi: value.kondisi
         }
-        await this.props.updateStockNew(token, dataRinci.id, data)
+        await this.props.updateAssetNew(token, dataRinci.id, data)
     }
 
     changeView = (val) => {
@@ -398,7 +399,7 @@ class Stock extends Component {
         const data = {
             grouping: stat
         }
-        await this.props.updateStockNew(token, detailAsset.id, data)
+        await this.props.updateAssetNew(token, detailAsset.id, data)
         this.getDataAsset()
     } 
 
