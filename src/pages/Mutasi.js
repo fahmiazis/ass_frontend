@@ -148,6 +148,17 @@ class Mutasi extends Component {
         }
     }
 
+    showDokumen = async (value) => {
+        const token = localStorage.getItem('token')
+        await this.props.showDokumen(token, value.id)
+        this.setState({date: value.updatedAt, idDoc: value.id, fileName: value})
+        console.log(value)
+        const {isShow} = this.props.pengadaan
+        if (isShow) {
+            this.openModalPdf()
+        }
+    }
+
     componentDidUpdate() {
         const { errorAdd, rejReject, rejApprove, isReject, isApprove } = this.props.mutasi
         if (errorAdd) {

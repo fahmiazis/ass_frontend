@@ -43,6 +43,7 @@ import EksekusiMut from './pages/EksekusiMut'
 import BudgetMutasi from './pages/BudgetMutasi'
 import ReportMut from './pages/ReportMut'
 import EditMutasi from './pages/EditMutasi'
+import EditStock from './pages/EditStock'
 
 class App extends Component {
 
@@ -161,6 +162,9 @@ class App extends Component {
                 </PrivateRoute>
                 <PrivateRoute path='/editmut'>
                     <EditMutasi />
+                </PrivateRoute>
+                <PrivateRoute path='/editstock'>
+                    <EditStock />
                 </PrivateRoute>
             </Switch>
         </BrowserRouter>

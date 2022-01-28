@@ -39,11 +39,24 @@ export default class NavStock extends Component {
                                     Pengajuan stock opname
                                 </div>
                             </button>
-                            <button className="cardNav1" onClick={() => this.goRoute('repstock')}>
-                                <div className="titCard">
-                                    Report stock opname
-                                </div>
-                            </button>
+                            {level === '5' ? (
+                                <button className="cardNav1" onClick={() => this.goRoute('editstock')}>
+                                    <div className="titCard">
+                                        Revisi stock opname
+                                    </div>
+                                </button>
+                            ) : (
+                                <div></div>
+                            )}
+                            {level === '2' ? (
+                                <button className="cardNav1" onClick={() => this.goRoute('repstock')}>
+                                    <div className="titCard">
+                                        Report stock opname
+                                    </div>
+                                </button>
+                            ) : (
+                                <div></div>
+                            )}
                         </div>
                     </div>
                 </div>

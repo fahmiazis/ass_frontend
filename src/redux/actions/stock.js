@@ -7,6 +7,10 @@ export default {
         type: 'SUBMIT_STOCK',
         payload: http(token).get('/stock/submit')
     }),
+    getStockArea: (token, search, limit, page, status) => ({
+        type: 'STOCK_AREA',
+        payload: http(token).get(`/stock/area?limit=${limit === undefined ? 10 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&status=${status === undefined ? '' : status}`)
+    }),
     getStockAll: (token, search, limit, page, group) => ({
         type: 'GET_STOCK',
         payload: http(token).get(`/stock/get?limit=${limit === undefined ? 10 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&group=${group === undefined ? '' : group}`)
@@ -18,6 +22,10 @@ export default {
     getDetailStock: (token, id) => ({
         type: 'DETAIL_STOCK',
         payload: http(token).get(`/stock/detail/${id}`)
+    }),
+    getDetailItem: (token, id) => ({
+        type: 'DETAIL_ITEM',
+        payload: http(token).get(`/stock/item/${id}`)
     }),
     getDocumentStock: (token, no) => ({
         type: 'DOK_STOCK',
@@ -54,6 +62,18 @@ export default {
     getStatusAll: (token) => ({
         type: 'STATUS_ALL',
         payload: http(token).get(`/stock/status/all`)
+    }),
+    updateStock: (token, id, data) => ({
+        type: 'UPDATE_STOCK',
+        payload: http(token).patch(`/stock/update/${id}`, qs.stringify(data))
+    }),
+    updateStockNew: (token, id, data) => ({
+        type: 'UPDATE_STOCKNEW',
+        payload: http(token).patch(`/stock/update/${id}`, qs.stringify(data))
+    }),
+    submitRevisi: (token, id) => ({
+        type: 'SUBMIT_REVISI',
+        payload: http(token).patch(`/stock/subrev/${id}`)
     }),
     resetStock: () => ({
         type: 'RESET_STOCK'

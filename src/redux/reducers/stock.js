@@ -3,6 +3,7 @@ const stockState = {
     isAdd: false,
     isUpload: false,
     isUpdate: false,
+    isUpdateNew: false,
     isSubmit: false,
     isGet: false,
     getReport: false,
@@ -35,7 +36,12 @@ const stockState = {
     dataAll: [],
     dataDoc: [],
     rejReject: false,
-    rejApprove: false
+    rejApprove: false,
+    isStockArea: false,
+    stockArea: [],
+    detailAsset: {},
+    getDetail: false,
+    isSubrev: false
 };
 
 export default (state=stockState, action) => {
@@ -64,6 +70,78 @@ export default (state=stockState, action) => {
                 ...state,
                 isLoading: false,
                 getStock: false,
+                isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'STOCK_AREA_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'STOCK_AREA_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isStockArea: true,
+                stockArea: action.payload.data.result.rows,
+                alertMsg: 'get stock Succesfully',
+                page: action.payload.data.pageInfo
+            };
+        }
+        case 'STOCK_AREA_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'UPDATE_STOCK_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'UPDATE_STOCK_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: false,
+                isUpdate: true,
+            };
+        }
+        case 'UPDATE_STOCK_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isUpdate: false,
+                isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'UPDATE_STOCKNEW_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'UPDATE_STOCKNEW_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: false,
+                isUpdateNew: true,
+            };
+        }
+        case 'UPDATE_STOCKNEW_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
                 isError: true,
                 alertMsg: "Unable connect to server"
             };
@@ -198,6 +276,29 @@ export default (state=stockState, action) => {
                 isError: true,
                 alertMsg: "Unable connect to server",
                 alertM: action.payload.response.data.message
+            };
+        }
+        case 'SUBMIT_REVISI_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'SUBMIT_REVISI_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: false,
+                isSubrev: true,
+            };
+        }
+        case 'SUBMIT_REVISI_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: true,
+                alertMsg: "Unable connect to server",
             };
         }
         case 'APPROVE_STOCK_PENDING': {
@@ -376,6 +477,31 @@ export default (state=stockState, action) => {
                 alertMsg: "Unable connect to server"
             };
         }
+        case 'DETAIL_ITEM_PENDING': {
+            return {
+                ...state,
+                stockDetail: false,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'DETAIL_ITEM_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                getDetail: true,
+                detailAsset: action.payload.data.result,
+                alertMsg: 'get stock Succesfully',
+            };
+        }
+        case 'DETAIL_ITEM_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
         case 'RESET_STOCK': {
             return {
                 ...state,
@@ -387,7 +513,10 @@ export default (state=stockState, action) => {
                 isApprove: false,
                 isReject: false,
                 rejReject: false,
-                rejApprove: false
+                rejApprove: false,
+                isUpdateNew: false,
+                isUpdate: false,
+                isSubrev: false
             }
         }
         default: {
