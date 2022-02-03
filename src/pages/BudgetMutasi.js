@@ -555,7 +555,7 @@ class BudgetMutasi extends Component {
                                                 value={values.cost_centerawal} 
                                                 onBlur={handleBlur("cost_centerawal")}
                                                 onChange={handleChange("cost_centerawal")}
-                                                disabled={level === '2' ? true : false}
+                                                disabled={level === '2' || dataRinci.cost_centerawal !== null ? true : false}
                                                 // disabled={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? true : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'ya' ? false : true} 
                                                 />
                                             </Col>

@@ -574,17 +574,27 @@ class EksekusiMut extends Component {
                                             <Col md={3}>Nomor IO</Col>
                                             <Col md={9} className="colRinci">:  <Input 
                                                 className="inputRinci"
-                                                value={values.no_io} 
-                                                onBlur={handleBlur("no_io")}
-                                                onChange={handleChange("no_io")}
+                                                value={dataRinci.no_io} 
+                                                // onBlur={handleBlur("no_io")}
+                                                // onChange={handleChange("no_io")}
                                                 disabled
                                                 // disabled={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? true : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'ya' ? false : true} 
                                                 />
                                             </Col>
                                         </Row>
-                                        {errors.no_io ? (
+                                        {/* {errors.no_io ? (
                                             <text className={style.txtError}>Must be filled</text>
-                                        ) : null}
+                                        ) : null} */}
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Cost Center IO</Col>
+                                            <Col md={9} className="colRinci">:  <Input 
+                                                className="inputRinci"
+                                                value={dataRinci.cost_centerawal} 
+                                                disabled
+                                                // disabled={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? true : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'ya' ? false : true} 
+                                                />
+                                            </Col>
+                                        </Row>
                                         {detailMut[0] === undefined ? (
                                             <div></div>
                                         ) : detailMut.find(({isbudget}) => isbudget === 'ya') === undefined && (
