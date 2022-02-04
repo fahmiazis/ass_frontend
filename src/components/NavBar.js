@@ -40,6 +40,12 @@ class NavBar extends Component {
         this.props.logout()
     }
 
+    goRoute = (route) => {
+        localStorage.setItem('route', route)
+        this.props.goRoute()
+    }
+
+
      editUser = async (val) => {
         const token = localStorage.getItem("token")
         const data = {
@@ -112,7 +118,9 @@ class NavBar extends Component {
                             {dataNotif.length > 0 ? (
                                 dataNotif.map(item => {
                                     return (
-                                        <DropdownItem>
+                                        <DropdownItem 
+                                            onClick={() => this.goRoute(item.keterangan === 'tax' || item.keterangan === 'finance' ? 'taxfin' : item.keterangan === 'eksekusi' && item.jenis === 'disposal' ? 'eksdis' : item.jenis === 'disposal' ? 'navdis' : item.jenis === 'mutasi' && 'navmut')}
+                                        >
                                             <div className={style.notif}>
                                                 <FaFileSignature size={90} className="mr-4"/>
                                                 <div>
@@ -268,7 +276,8 @@ const mapDispatchToProps = {
     reset: user.resetError,
     logout: auth.logout,
     getNotif: notif.getNotif,
-    changePassword: user.changePassword
+    changePassword: user.changePassword,
+    goRoute: auth.goRoute
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(NavBar)

@@ -44,6 +44,7 @@ import BudgetMutasi from './pages/BudgetMutasi'
 import ReportMut from './pages/ReportMut'
 import EditMutasi from './pages/EditMutasi'
 import EditStock from './pages/EditStock'
+import NavBar from './components/NavBar'
 
 class App extends Component {
 
@@ -165,6 +166,9 @@ class App extends Component {
                 </PrivateRoute>
                 <PrivateRoute path='/editstock'>
                     <EditStock />
+                </PrivateRoute>
+                <PrivateRoute path='/navbar'>
+                    <NavBar />
                 </PrivateRoute>
             </Switch>
         </BrowserRouter>

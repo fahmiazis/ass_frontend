@@ -361,12 +361,17 @@ class Disposal extends Component {
 
     componentDidUpdate() {
         const {isError, isUpload, isExport} = this.props.asset
+        const {isRoute} = this.props.auth
         const {isAdd, isAppDoc, isRejDoc, approve, reject, rejReject, rejApprove} = this.props.disposal
         const token = localStorage.getItem('token')
         const { dataRinci } = this.state
         if (isError) {
             this.props.resetError()
             this.showAlert()
+        } else if (isRoute) {
+            const route = localStorage.getItem('route')
+            this.props.resetAuth()
+            this.props.history.push(`/${route}`)
         } else if (isUpload) {
             setTimeout(() => {
                 this.props.resetError()
@@ -1662,7 +1667,8 @@ const mapStateToProps = state => ({
     approve: state.approve,
     pengadaan: state.pengadaan,
     setuju: state.setuju,
-    notif: state.notif
+    notif: state.notif,
+    auth: state.auth
 })
 
 const mapDispatchToProps = {
@@ -1687,7 +1693,8 @@ const mapDispatchToProps = {
     addSell: disposal.addSell,
     resAppRej: disposal.resAppRej,
     getSubmitDisposal: disposal.getSubmitDisposal,
-    getNotif: notif.getNotif
+    getNotif: notif.getNotif,
+    resetAuth: auth.resetError
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Disposal)

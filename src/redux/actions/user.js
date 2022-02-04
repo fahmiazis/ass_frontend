@@ -43,6 +43,10 @@ export default {
         type: 'CHANGE_PW',
         payload: http(token).patch('/user/password', qs.stringify(data))
     }),
+    resetPassword: (token, id, data) => ({
+        type: 'RESET_PW',
+        payload: http(token).patch(`/user/reset/${id}`, qs.stringify(data))
+    }),
     resetError: () => ({
         type: 'RESET'
     })

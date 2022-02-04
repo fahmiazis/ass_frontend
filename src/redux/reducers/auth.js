@@ -6,7 +6,8 @@ const authState = {
     isLoading: false,
     isError: false,
     alertMsg: '',
-    level: 0
+    level: 0,
+    isRoute: false
 };
 
 export default (state=authState, action) => {
@@ -61,7 +62,14 @@ export default (state=authState, action) => {
             case 'RESET': {
                 return {
                     ...state,
-                    isLogin: false
+                    isLogin: false,
+                    isRoute: false
+                }
+            }
+            case 'ROUTE' : {
+                return {
+                    ...state,
+                    isRoute: true
                 }
             }
             default: {

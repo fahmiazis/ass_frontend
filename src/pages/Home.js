@@ -172,7 +172,7 @@ class Home extends Component {
                                     {dataNotif.length > 0 ? (
                                         dataNotif.map(item => {
                                             return (
-                                                <DropdownItem>
+                                                <DropdownItem onClick={() => this.goRoute(item.keterangan === 'tax' || item.keterangan === 'finance' ? 'taxfin' : item.keterangan === 'eksekusi' && item.jenis === 'disposal' ? 'eksdis' : item.jenis === 'disposal' ? 'navdis' : item.jenis === 'mutasi' && 'navmut')}>
                                                     <div className={style.notif}>
                                                         <FaFileSignature size={90} className="mr-4"/>
                                                         <div>

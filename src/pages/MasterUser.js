@@ -35,6 +35,11 @@ const userEditSchema = Yup.object().shape({
     status: Yup.string().required()
 });
 
+const changeSchema = Yup.object().shape({
+    confirm_password: Yup.string().required('must be filled'),
+    new_password: Yup.string().required('must be filled')
+});
+
 class MasterUser extends Component {
     constructor(props) {
         super(props);
@@ -66,7 +71,8 @@ class MasterUser extends Component {
             errMsg: '',
             fileUpload: '',
             limit: 10,
-            search: ''
+            search: '',
+            modalReset: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -90,6 +96,15 @@ class MasterUser extends Component {
             })
          }, 10000)
     }
+
+    resetPass = async (val) => {
+        const token = localStorage.getItem("token")
+        const {detail} = this.state
+        const data = {
+            new: val.new_password
+        }
+        await this.props.resetPassword(token, detail.id, data)
+     }
 
     DownloadMaster = () => {
         const {link} = this.props.user
@@ -241,10 +256,15 @@ class MasterUser extends Component {
     }
 
     componentDidUpdate() {
-        const {isError, isUpload, isExport} = this.props.user
+        const {isError, isUpload, isExport, isReset} = this.props.user
         if (isError) {
             this.props.resetError()
             this.showAlert()
+        } else if (isReset) {
+            this.setState({confirm: 'reset'})
+            this.props.resetError()
+            this.openModalReset()
+            this.openConfirm()
         } else if (isUpload) {
             setTimeout(() => {
                 this.props.resetError()
@@ -278,6 +298,8 @@ class MasterUser extends Component {
     getDataDepo = async () => {
         const token = localStorage.getItem("token")
         await this.props.getDepo(token, 1000, '')
+        const { dataDepo } = this.props.depo
+        console.log(dataDepo)
     }
 
     menuButtonClick(ev) {
@@ -287,6 +309,10 @@ class MasterUser extends Component {
 
     onSetOpen(open) {
         this.setState({ open });
+    }
+
+    openModalReset = () => {
+        this.setState({modalReset: !this.state.modalReset})
     }
 
     render() {
@@ -557,7 +583,7 @@ class MasterUser extends Component {
                                     <option>-Pilih Depo-</option>
                                     {dataDepo.length !== 0 && dataDepo.map(item => {
                                         return (
-                                            <option value={item.kode_plant + '-' + item.nama_depo}>{item.kode_plant + '-' + item.nama_depo}</option>
+                                            <option value={item.kode_plant + '-' + item.nama_area}>{item.kode_plant + '-' + item.nama_area}</option>
                                         )
                                     })}
                                 </Input>
@@ -665,7 +691,7 @@ class MasterUser extends Component {
                                         <option>-Pilih Depo-</option>
                                         {dataDepo.length !== 0 && dataDepo.map(item => {
                                             return (
-                                                <option value={item.kode_plant + '-' + item.nama_depo}>{item.kode_plant + '-' + item.nama_depo}</option>
+                                                <option value={item.kode_plant + '-' + item.nama_area}>{item.kode_plant + '-' + item.nama_area}</option>
                                             )
                                         })}
                                         {/* <option value="50-MEDAN TIMUR">50-MEDAN TIMUR</option>
@@ -743,7 +769,9 @@ class MasterUser extends Component {
                         </div> */}
                         <hr/>
                         <div className={style.foot}>
-                            <div></div>
+                            <div>
+                                <Button onClick={this.openModalReset} color='warning'>Reset Password</Button>
+                            </div>
                             <div>
                                 <Button className="mr-2" onClick={handleSubmit} color="primary">Save</Button>
                                 <Button className="mr-3" onClick={this.openModalEdit}>Cancel</Button>
@@ -796,6 +824,13 @@ class MasterUser extends Component {
                                 <div className={style.sucUpdate}>Berhasil Mengupload Master User</div>
                             </div>
                             </div>
+                        ) : this.state.confirm === 'reset' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={style.sucUpdate}>Berhasil Mereset Password</div>
+                            </div>
+                            </div>
                         ) : (
                             <div></div>
                         )}
@@ -821,6 +856,68 @@ class MasterUser extends Component {
                         </div>
                         </ModalBody>
                 </Modal>
+                <Modal isOpen={this.state.modalReset} toggle={this.openModalReset}>
+                    <ModalHeader>Reset Password</ModalHeader>
+                    <Formik
+                    initialValues={{
+                    confirm_password: '',
+                    new_password: ''
+                    }}
+                    validationSchema={changeSchema}
+                    onSubmit={(values) => {this.resetPass(values)}}
+                    >
+                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                    <ModalBody>
+                        {/* <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
+                            <div>{alertMsg}</div>
+                            <div>{alertM}</div>
+                        </Alert> */}
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-4">
+                                New password
+                            </text>
+                            <div className="col-md-8">
+                                <Input 
+                                type='password' 
+                                name="new_password"
+                                value={values.new_password}
+                                onBlur={handleBlur("new_password")}
+                                onChange={handleChange("new_password")}
+                                />
+                                {errors.new_password ? (
+                                    <text className={style.txtError}>Must be filled</text>
+                                ) : null}
+                            </div>
+                        </div>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-4">
+                                Confirm password
+                            </text>
+                            <div className="col-md-8">
+                                <Input 
+                                type='password' 
+                                name="confirm_password"
+                                value={values.confirm_password}
+                                onBlur={handleBlur("confirm_password")}
+                                onChange={handleChange("confirm_password")}
+                                />
+                                {values.confirm_password !== values.new_password ? (
+                                    <text className={style.txtError}>Password do not match</text>
+                                ) : null}
+                            </div>
+                        </div>
+                        <hr/>
+                        <div className={style.foot}>
+                            <div></div>
+                            <div>
+                                <Button className="mr-2" onClick={handleSubmit} color="primary">Save</Button>
+                                <Button className="mr-3" onClick={this.openModalReset} color="danger">Close</Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                    )}
+                </Formik>
+            </Modal>
             </>
         )
     }
@@ -841,7 +938,8 @@ const mapDispatchToProps = {
     uploadMaster: user.uploadMaster,
     nextPage: user.nextPage,
     exportMaster: user.exportMaster,
-    getRole: user.getRole
+    getRole: user.getRole,
+    resetPassword: user.resetPassword
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(MasterUser)

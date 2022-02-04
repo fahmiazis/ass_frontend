@@ -19,7 +19,8 @@ const userState = {
     page: {},
     isExport: false,
     link: '',
-    isChange: false
+    isChange: false,
+    isReset: false
 };
 
 export default (state=userState, action) => {
@@ -249,7 +250,6 @@ export default (state=userState, action) => {
                     ...state,
                     isLoading: false,
                     isChange: true,
-                    isError: false,
                     alertMsg: 'change pw succesfully'
                 };
             }
@@ -257,7 +257,29 @@ export default (state=userState, action) => {
                 return {
                     ...state,
                     isLoading: false,
-                    isChange: false,
+                    isError: true,
+                    alertMsg: 'unable connect to server',
+                };
+            }
+            case 'RESET_PW_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'RESET_PW_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isReset: true,
+                    alertMsg: 'reset pw succesfully'
+                };
+            }
+            case 'RESET_PW_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
                     isError: true,
                     alertMsg: 'unable connect to server',
                 };
@@ -270,6 +292,7 @@ export default (state=userState, action) => {
                     isExport: false,
                     isUpdate: false,
                     isChange: false,
+                    isReset: false
                 }
             }
             default: {

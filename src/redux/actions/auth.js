@@ -16,5 +16,8 @@ export default {
     }),
     resetError: () => ({
         type: 'RESET'
+    }),
+    goRoute: () => ({
+        type: 'ROUTE'
     })
 }

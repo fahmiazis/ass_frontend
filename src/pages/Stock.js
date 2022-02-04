@@ -81,7 +81,8 @@ class Stock extends Component {
             modalDoc: false,
             listMut: [],
             modalStock: false,
-            openPdf: false
+            openPdf: false,
+            modalAdd: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -460,6 +461,10 @@ class Stock extends Component {
 
     openModalDoc = () => {
         this.setState({modalDoc: !this.state.modalDoc})
+    }
+
+    openModalAdd = () => {
+        this.setState({modalAdd: !this.state.modalAdd})
     }
 
     getRincian = async (val) => {
@@ -908,6 +913,203 @@ class Stock extends Component {
                     </div>
                     </MaterialTitlePanel>
                 </Sidebar>
+                <Modal isOpen={this.state.modalAdd} toggle={this.openModalAdd} size="lg">
+                    <ModalHeader>
+                        Tambah Asset
+                    </ModalHeader>
+                    <ModalBody>
+                        <div className="mainRinci2">
+                            <div className="leftRinci2 mb-5">
+                                <div className="titRinci">{dataRinci.nama_asset}</div>
+                                <img src={detailAsset.pict === undefined || detailAsset.pict.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detailAsset.pict[detailAsset.pict.length - 1].path}`} className="imgRinci" />
+                                <Input type="file" className='mt-2' onChange={this.uploadPicture}>Upload Picture</Input>
+                                {/* <div className="secImgSmall">
+                                    <button className="btnSmallImg">
+                                        <img src={placeholder} className="imgSmallRinci" />
+                                    </button>
+                                </div> */}
+                            </div>
+                            <Formik
+                            initialValues = {{
+                                merk: '',
+                                satuan: '',
+                                unit: 1,
+                                lokasi: '',
+                                grouping: '',
+                                keterangan: '',
+                                status_fisik: '',
+                                kondisi: ''
+                            }}
+                            validationSchema = {stockSchema}
+                            onSubmit={(values) => {this.addStock(values)}}
+                            >
+                            {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                                <div className="rightRinci2">
+                                    <div>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>No Asset</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Deskripsi</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={level === '5' ? dataRinci.nama_asset : dataRinci.deskripsi} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Merk</Col>
+                                            <Col md={9} className="colRinci">:  <Input
+                                                type= "text" 
+                                                className="inputRinci"
+                                                value={values.merk}
+                                                onBlur={handleBlur("merk")}
+                                                onChange={handleChange("merk")}
+                                                />
+                                            </Col>
+                                        </Row>
+                                        {errors.merk ? (
+                                            <text className={style.txtError}>{errors.merk}</text>
+                                        ) : null}
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Satuan</Col>
+                                            <Col md={9} className="colRinci">:  <Input
+                                                disabled={level === '5' ? false : true}
+                                                type= "select" 
+                                                className="inputRinci"
+                                                value={values.satuan}
+                                                onBlur={handleBlur("satuan")}
+                                                onChange={handleChange("satuan")}
+                                                >
+                                                    <option>{values.satuan}</option>
+                                                    <option>-Pilih Satuan-</option>
+                                                    <option value="UNIT">UNIT</option>
+                                                    <option value="PAKET">PAKET</option>
+                                                </Input>
+                                            </Col>
+                                        </Row>
+                                        {errors.satuan ? (
+                                            <text className={style.txtError}>{errors.satuan}</text>
+                                        ) : null}
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Unit</Col>
+                                            <Col md={9} className="colRinci">:  <Input
+                                                disabled={level === '5' ? false : true}
+                                                type= "text" 
+                                                className="inputRinci"
+                                                value={values.unit}
+                                                onBlur={handleBlur("unit")}
+                                                onChange={handleChange("unit")}
+                                                />
+                                            </Col>
+                                        </Row>
+                                        {errors.unit ? (
+                                            <text className={style.txtError}>{errors.unit}</text>
+                                        ) : null}
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Lokasi</Col>
+                                            <Col md={9} className="colRinci">:
+                                            <Input
+                                                disabled={level === '5' ? false : true}
+                                                type= "text" 
+                                                className="inputRinci"
+                                                value={values.lokasi}
+                                                onBlur={handleBlur("lokasi")}
+                                                onChange={handleChange("lokasi")}
+                                                />
+                                            </Col>
+                                        </Row>
+                                        {errors.lokasi ? (
+                                            <text className={style.txtError}>{errors.lokasi}</text>
+                                        ) : null}
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Status Fisik</Col>
+                                            <Col md={9} className="colRinci">:  <Input 
+                                                disabled={level === '5' ? false : true}
+                                                type="select"
+                                                className="inputRinci" 
+                                                value={detailAsset.fisik} 
+                                                onBlur={handleBlur("status_fisik")}
+                                                onChange={e => { handleChange("status_fisik"); this.selectStatus(e.target.value, this.state.kondisi)} }
+                                                >
+                                                    <option>{values.status_fisik}</option>
+                                                    <option>-Pilih Status Fisik-</option>
+                                                    <option value="ada">Ada</option>
+                                                    <option value="tidak ada">Tidak Ada</option>
+                                                </Input>
+                                            </Col>
+                                        </Row>
+                                        {errors.status_fisik ? (
+                                            <text className={style.txtError}>{errors.status_fisik}</text>
+                                        ) : null}
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Kondisi</Col>
+                                            <Col md={9} className="colRinci">:  <Input 
+                                                disabled={level === '5' ? false : true}
+                                                type="select"
+                                                className="inputRinci" 
+                                                value={values.kondisi} 
+                                                onBlur={handleBlur("kondisi")}
+                                                onChange={e => { handleChange("kondisi"); this.selectStatus(this.state.fisik, e.target.value)} }
+                                                >
+                                                    <option>{values.kondisi}</option>
+                                                    <option>-Pilih Kondisi-</option>
+                                                    <option value="baik">Baik</option>
+                                                    <option value="rusak">Rusak</option>
+                                                    <option value="">-</option>
+                                                </Input>
+                                            </Col>
+                                        </Row>
+                                        {errors.kondisi ? (
+                                            <text className={style.txtError}>{errors.kondisi}</text>
+                                        ) : null}
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Status Aset</Col>
+                                            <Col md={9} className="colRinci">:  <Input
+                                                disabled={level === '5' ? false : true}
+                                                type= "select" 
+                                                className="inputRinci"
+                                                value={values.grouping}
+                                                // onBlur={handleBlur("grouping")}
+                                                // onChange={handleChange("grouping")}
+                                                onClick={() => this.listStatus(detailAsset.no_asset)}
+                                                >
+                                                    <option>{values.grouping}</option>
+                                                    {/* <option>-Pilih Status Aset-</option> */}
+                                                    {/* {dataStatus.length > 0 && dataStatus.map(item => {
+                                                        return (
+                                                            <option value={item.status}>{item.status}</option>
+                                                        )
+                                                    })} */}
+                                                </Input>
+                                            </Col>
+                                        </Row>
+                                        {errors.grouping ? (
+                                            <text className={style.txtError}>{errors.grouping}</text>
+                                        ) : null}
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Keterangan</Col>
+                                            <Col md={9} className="colRinci">:  <Input
+                                                disabled={level === '5' ? false : true}
+                                                type= "text" 
+                                                className="inputRinci"
+                                                value={values.keterangan}
+                                                onBlur={handleBlur("keterangan")}
+                                                onChange={handleChange("keterangan")}
+                                                />
+                                            </Col>
+                                        </Row>
+                                        {errors.keterangan ? (
+                                            <text className={style.txtError}>{errors.keterangan}</text>
+                                        ) : null}
+                                    </div>
+                                    <ModalFooter>
+                                        <Button className="btnFootRinci1 mr-3" size="md" disabled={level === '5' ? false : true} color="primary" onClick={handleSubmit}>Save</Button>
+                                        <Button className="btnFootRinci1" size="md" color="secondary" onClick={() => this.openModalEdit()}>Close</Button>
+                                    </ModalFooter>
+                                </div>
+                            )}
+                            </Formik>
+                        </div>
+                    </ModalBody>
+                </Modal>
                 <Modal isOpen={this.state.modalEdit} toggle={this.openModalEdit} size="lg">
                     <ModalHeader>
                         Rincian
@@ -966,7 +1168,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Satuan</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === 5 ? false : true}
+                                                disabled={level === '5' ? false : true}
                                                 type= "select" 
                                                 className="inputRinci"
                                                 value={values.satuan}
@@ -986,7 +1188,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Unit</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === 5 ? false : true}
+                                                disabled={level === '5' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.unit}
@@ -1002,7 +1204,7 @@ class Stock extends Component {
                                             <Col md={3}>Lokasi</Col>
                                             <Col md={9} className="colRinci">:
                                             <Input
-                                                disabled={level === 5 ? false : true}
+                                                disabled={level === '5' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.lokasi}
@@ -1017,7 +1219,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Status Fisik</Col>
                                             <Col md={9} className="colRinci">:  <Input 
-                                                disabled={level === 5 ? false : true}
+                                                disabled={level === '5' ? false : true}
                                                 type="select"
                                                 className="inputRinci" 
                                                 value={detailAsset.fisik} 
@@ -1037,7 +1239,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Kondisi</Col>
                                             <Col md={9} className="colRinci">:  <Input 
-                                                disabled={level === 5 ? false : true}
+                                                disabled={level === '5' ? false : true}
                                                 type="select"
                                                 className="inputRinci" 
                                                 value={values.kondisi} 
@@ -1058,7 +1260,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Status Aset</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === 5 ? false : true}
+                                                disabled={level === '5' ? false : true}
                                                 type= "select" 
                                                 className="inputRinci"
                                                 value={values.grouping}
@@ -1082,7 +1284,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Keterangan</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === 5 ? false : true}
+                                                disabled={level === '5' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.keterangan}
@@ -1096,7 +1298,7 @@ class Stock extends Component {
                                         ) : null}
                                     </div>
                                     <ModalFooter>
-                                        <Button className="btnFootRinci1 mr-3" size="md" disabled={level === 5 ? false : true} color="primary" onClick={handleSubmit}>Save</Button>
+                                        <Button className="btnFootRinci1 mr-3" size="md" disabled={level === '5' ? false : true} color="primary" onClick={handleSubmit}>Save</Button>
                                         <Button className="btnFootRinci1" size="md" color="secondary" onClick={() => this.openModalEdit()}>Close</Button>
                                     </ModalFooter>
                                 </div>
@@ -1149,7 +1351,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Merk</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === 5 ? false : true}
+                                                disabled={level === '5' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.merk}
@@ -1164,7 +1366,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Satuan</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === 5 ? false : true}
+                                                disabled={level === '5' ? false : true}
                                                 type= "select" 
                                                 className="inputRinci"
                                                 value={values.satuan}
@@ -1184,7 +1386,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Unit</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === 5 ? false : true}
+                                                disabled={level === '5' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.unit}
@@ -1200,7 +1402,7 @@ class Stock extends Component {
                                             <Col md={3}>Lokasi</Col>
                                             <Col md={9} className="colRinci">:
                                             <Input
-                                                disabled={level === 5 ? false : true}
+                                                disabled={level === '5' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.lokasi}
@@ -1215,7 +1417,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Status Fisik</Col>
                                             <Col md={9} className="colRinci">:  <Input 
-                                                disabled={level === 5 ? false : true}
+                                                disabled={level === '5' ? false : true}
                                                 type="select"
                                                 className="inputRinci" 
                                                 value={detRinci.fisik} 
@@ -1235,7 +1437,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Kondisi</Col>
                                             <Col md={9} className="colRinci">:  <Input 
-                                                disabled={level === 5 ? false : true}
+                                                disabled={level === '5' ? false : true}
                                                 type="select"
                                                 className="inputRinci" 
                                                 value={values.kondisi} 
@@ -1256,7 +1458,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Status Aset</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === 5 ? false : true}
+                                                disabled={level === '5' ? false : true}
                                                 type= "select" 
                                                 className="inputRinci"
                                                 value={values.grouping}
@@ -1280,7 +1482,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Keterangan</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === 5 ? false : true}
+                                                disabled={level === '5' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.keterangan}
@@ -1299,7 +1501,7 @@ class Stock extends Component {
                                         ) : (
                                             <div></div>
                                         )}
-                                        <Button className="btnFootRinci1 mr-3" size="md" disabled={level === 5 ? false : true} color="primary" onClick={handleSubmit}>Save</Button>
+                                        <Button className="btnFootRinci1 mr-3" size="md" disabled={level === '5' ? false : true} color="primary" onClick={handleSubmit}>Save</Button>
                                         <Button className="btnFootRinci1" size="md" color="secondary" onClick={() => this.openModalStock()}>Close</Button>
                                     </ModalFooter>
                                 </div>

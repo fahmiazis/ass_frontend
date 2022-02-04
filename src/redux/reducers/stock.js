@@ -502,6 +502,29 @@ export default (state=stockState, action) => {
                 alertMsg: "Unable connect to server"
             };
         }
+        case 'ADD_STOCK_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'ADD_STOCK_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isAdd: true,
+            };
+        }
+        case 'ADD_STOCK_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: true,
+                alertMsg: "Unable connect to server",
+                alertM: action.payload.response.data.message
+            };
+        }
         case 'RESET_STOCK': {
             return {
                 ...state,
@@ -516,7 +539,8 @@ export default (state=stockState, action) => {
                 rejApprove: false,
                 isUpdateNew: false,
                 isUpdate: false,
-                isSubrev: false
+                isSubrev: false,
+                isAdd: false
             }
         }
         default: {
