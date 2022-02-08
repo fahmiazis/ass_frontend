@@ -55,9 +55,13 @@ export default {
         type: 'UPLOAD_PICTURE',
         payload: http(token).post(`/stock/img/${id}`, data)
     }),
-    getStatus: (token, fisik, kondisi) => ({
+    uploadImage: (token, id, data) => ({
+        type: 'UPLOAD_IMAGE',
+        payload: http(token).post(`/stock/pict/${id}`, data)
+    }),
+    getStatus: (token, fisik, kondisi, sap) => ({
         type: 'GET_STATUS',
-        payload: http(token).get(`/stock/status/get?fisik=${fisik === undefined ? '' : fisik}&kondisi=${kondisi === undefined ? '' : kondisi}`)
+        payload: http(token).get(`/stock/status/get?fisik=${fisik === undefined ? '' : fisik}&kondisi=${kondisi === undefined ? '' : kondisi}&sap=${sap}`)
     }),
     getStatusAll: (token) => ({
         type: 'STATUS_ALL',

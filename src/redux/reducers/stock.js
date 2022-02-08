@@ -41,7 +41,9 @@ const stockState = {
     stockArea: [],
     detailAsset: {},
     getDetail: false,
-    isSubrev: false
+    isSubrev: false,
+    dataAdd: {},
+    isImage: false
 };
 
 export default (state=stockState, action) => {
@@ -88,7 +90,6 @@ export default (state=stockState, action) => {
                 isStockArea: true,
                 stockArea: action.payload.data.result.rows,
                 alertMsg: 'get stock Succesfully',
-                page: action.payload.data.pageInfo
             };
         }
         case 'STOCK_AREA_REJECTED': {
@@ -255,7 +256,6 @@ export default (state=stockState, action) => {
         case 'SUBMIT_STOCK_PENDING': {
             return {
                 ...state,
-                isSubmit: false,
                 isLoading: true,
                 alertMsg: 'Waiting ...'
             };
@@ -272,7 +272,6 @@ export default (state=stockState, action) => {
             return {
                 ...state,
                 isLoading: false,
-                isSubmit: false,
                 isError: true,
                 alertMsg: "Unable connect to server",
                 alertM: action.payload.response.data.message
@@ -429,6 +428,29 @@ export default (state=stockState, action) => {
                 alertMsg: "Unable connect to server"
             };
         }
+        case 'UPLOAD_IMAGE_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'UPLOAD_IMAGE_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isImage: true,
+                alertMsg: 'upload image stock Succesfully',
+            };
+        }
+        case 'UPLOAD_IMAGE_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
         case 'GET_STATUS_PENDING': {
             return {
                 ...state,
@@ -514,6 +536,7 @@ export default (state=stockState, action) => {
                 ...state,
                 isLoading: false,
                 isAdd: true,
+                dataAdd: action.payload.data.result
             };
         }
         case 'ADD_STOCK_REJECTED': {
@@ -540,7 +563,9 @@ export default (state=stockState, action) => {
                 isUpdateNew: false,
                 isUpdate: false,
                 isSubrev: false,
-                isAdd: false
+                isAdd: false,
+                isImage: false,
+                isSubmit: false,
             }
         }
         default: {

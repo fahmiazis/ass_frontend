@@ -41,6 +41,16 @@ const stockSchema = Yup.object().shape({
     keterangan: Yup.string().validateSync("")
 })
 
+const addStockSchema = Yup.object().shape({
+    deskripsi: Yup.string().required("must be filled"),
+    merk: Yup.string().required("must be filled"),
+    satuan: Yup.string().required("must be filled"),
+    unit: Yup.number().required("must be filled"),
+    lokasi: Yup.string().required("must be filled"),
+    grouping: Yup.string().required("must be filled"),
+    keterangan: Yup.string().validateSync("")
+})
+
 const alasanSchema = Yup.object().shape({
     alasan: Yup.string().required()
 });
@@ -82,7 +92,12 @@ class Stock extends Component {
             listMut: [],
             modalStock: false,
             openPdf: false,
-            modalAdd: false
+            modalAdd: false,
+            openConfirm: false,
+            modalSum: false,
+            grouping: '',
+            modalUpload: false,
+            dataId: null
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -130,6 +145,24 @@ class Stock extends Component {
         }
     }
 
+    uploadGambar = e => {
+        const {size, type} = e.target.files[0]
+        this.setState({fileUpload: e.target.files[0]})
+        if (size >= 20000000) {
+            this.setState({errMsg: "Maximum upload size 20 MB"})
+            this.uploadAlert()
+        } else if (type !== 'image/jpeg' && type !== 'image/png') {
+            this.setState({errMsg: 'Invalid file type. Only image files are allowed.'})
+            this.uploadAlert()
+        } else {
+            const { dataId } = this.state
+            const token = localStorage.getItem('token')
+            const data = new FormData()
+            data.append('document', e.target.files[0])
+            this.props.uploadImage(token, dataId, data)
+        }
+    }
+
     getApproveStock = async (value) => { 
         const token = localStorage.getItem('token')
         await this.props.getApproveStock(token, value.no, value.nama)
@@ -156,6 +189,10 @@ class Stock extends Component {
 
     dropApp = () => {
         this.setState({dropApp: !this.state.dropApp})
+    }
+
+    openModalConfirm = () => {
+        this.setState({openConfirm: !this.state.openConfirm})
     }
 
     openModalPreview = () => {
@@ -254,8 +291,8 @@ class Stock extends Component {
     }
 
     componentDidUpdate() {
-        const {isUpload, isError, isApprove, isReject, rejReject, rejApprove} = this.props.stock
-        const {dataRinci} = this.state
+        const {isUpload, isError, isApprove, isReject, rejReject, rejApprove, isImage, isSubmit} = this.props.stock
+        const {dataRinci, dataId} = this.state
         const { isUpdateNew } = this.props.asset
         const errUpload = this.props.disposal.isUpload
         const token = localStorage.getItem('token')
@@ -281,6 +318,13 @@ class Stock extends Component {
             this.setState({listMut: []})
             this.openModalReject()
             this.openConfirm(this.setState({confirm: 'reject'}))
+            this.props.resetStock()
+        } else if (isSubmit) {
+            this.openConfirm(this.setState({confirm: 'submit'}))
+            this.openModalApprove()
+            this.props.resetStock()
+        } else if (isImage) {
+            this.props.getDetailItem(token, dataId)
             this.props.resetStock()
         } else if (isApprove) {
             this.openConfirm(this.setState({confirm: 'isApprove'}))
@@ -331,6 +375,45 @@ class Stock extends Component {
         const token = localStorage.getItem("token")
         await this.props.getDepo(token, 400, '', 1)
         await this.props.getStockAll(token)
+    }
+
+    openModalUpload = () => {
+        this.setState({modalUpload: !this.state.modalUpload})
+    }
+
+    addStock = async (val) => {
+        const token = localStorage.getItem("token")
+        const dataAsset = this.props.asset.assetAll
+        const { kondisi, fisik } = this.state
+        const data = {
+            area: dataAsset[0].area,
+            kode_plant: dataAsset[0].kode_plant,
+            deskripsi: val.deskripsi,
+            merk: val.merk,
+            satuan: val.satuan,
+            unit: val.unit,
+            lokasi: val.lokasi,
+            grouping: val.grouping,
+            keterangan: val.keterangan,
+            kondisi: kondisi,
+            status_fisik: fisik
+        }
+        await this.props.addOpname(token, data)
+        await this.props.getStockArea(token, '', 1000, 1, 'null')
+        const { dataAdd } = this.props.stock
+        this.setState({kondisi: '', fisik: '', dataId: dataAdd.id})
+        this.openModalAdd()
+        this.openModalUpload()
+    }
+
+    openModalSum = async () => {
+        const token = localStorage.getItem('token')
+        await this.props.getStockArea(token, '', 1000, 1, 'null')
+        this.openSum()
+    }
+
+    openSum = () => {
+        this.setState({modalSum: !this.state.modalSum})
     }
 
     modalSubmitPre = () => {
@@ -410,7 +493,7 @@ class Stock extends Component {
         if (fisik === '' && kondisi === '') {
             console.log(fisik, kondisi)
         } else {
-            await this.props.getStatus(token, fisik, kondisi)
+            await this.props.getStatus(token, fisik, kondisi, 'false')
         }
     }
 
@@ -421,10 +504,10 @@ class Stock extends Component {
         if (detailAsset !== undefined) {
             this.setState({stat: detailAsset.grouping})
             if (detailAsset.kondisi === null && detailAsset.status_fisik === null) {
-                await this.props.getStatus(token, '', '')
+                await this.props.getStatus(token, '', '', 'true')
                 this.modalStatus()
             } else {
-                await this.props.getStatus(token, detailAsset.status_fisik === null ? '' : detailAsset.status_fisik, detailAsset.kondisi === null ? '' : detailAsset.kondisi)
+                await this.props.getStatus(token, detailAsset.status_fisik === null ? '' : detailAsset.status_fisik, detailAsset.kondisi === null ? '' : detailAsset.kondisi, 'true')
                 this.modalStatus()
             }
         }
@@ -499,7 +582,7 @@ class Stock extends Component {
 
     getRinciStock = async (val) => {
         const token = localStorage.getItem("token")
-        this.setState({dataRinci: val})
+        this.setState({dataRinci: val, dataId: val.id})
         await this.props.getDetailItem(token, val.id)
         this.openModalStock()
     }
@@ -516,7 +599,7 @@ class Stock extends Component {
         const { alertUpload, page, detailAsset} = this.props.asset
         const dataAsset = this.props.asset.assetAll
         const detRinci = this.props.stock.detailAsset
-        const { dataStock, detailStock, stockApp, dataStatus, alertM, alertMsg, dataDoc } = this.props.stock
+        const { dataStock, detailStock, stockApp, dataStatus, alertM, alertMsg, dataDoc, stockArea } = this.props.stock
         const pages = this.props.depo.page
 
         const contentHeader =  (
@@ -610,6 +693,7 @@ class Stock extends Component {
                                 </div>
                                 {level === '5' ? (
                                     <div>
+                                        <Button onClick={this.openModalSum} color="warning" size="lg" className="btnGoCart mt-3">Tambah Asset</Button>
                                         <div className="stockTitle">kertas kerja opname aset kantor</div>
                                         <div className="ptStock">pt. pinus merah abadi</div>
                                         <Row className="ptStock inputStock">
@@ -622,7 +706,7 @@ class Stock extends Component {
                                         </Row>
                                         <Row className="ptStock inputStock">
                                             <Col md={3} xl={3} sm={3}>opname per tanggal</Col>
-                                            <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={moment().format('LL')} className="ml-3"  /></Col>
+                                            <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={moment().format('DD MMMM YYYY')} className="ml-3"  /></Col>
                                         </Row>
                                     </div>
                                 ) : (
@@ -915,45 +999,48 @@ class Stock extends Component {
                 </Sidebar>
                 <Modal isOpen={this.state.modalAdd} toggle={this.openModalAdd} size="lg">
                     <ModalHeader>
-                        Tambah Asset
+                        Tambah Data Asset
                     </ModalHeader>
+                    <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
+                        <div>{alertM}</div>
+                    </Alert>
                     <ModalBody>
                         <div className="mainRinci2">
-                            <div className="leftRinci2 mb-5">
+                            {/* <div className="leftRinci2 mb-5">
                                 <div className="titRinci">{dataRinci.nama_asset}</div>
                                 <img src={detailAsset.pict === undefined || detailAsset.pict.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detailAsset.pict[detailAsset.pict.length - 1].path}`} className="imgRinci" />
                                 <Input type="file" className='mt-2' onChange={this.uploadPicture}>Upload Picture</Input>
-                                {/* <div className="secImgSmall">
-                                    <button className="btnSmallImg">
-                                        <img src={placeholder} className="imgSmallRinci" />
-                                    </button>
-                                </div> */}
-                            </div>
+                            </div> */}
                             <Formik
                             initialValues = {{
+                                deskripsi: '',
                                 merk: '',
                                 satuan: '',
                                 unit: 1,
                                 lokasi: '',
                                 grouping: '',
                                 keterangan: '',
-                                status_fisik: '',
-                                kondisi: ''
                             }}
-                            validationSchema = {stockSchema}
+                            validationSchema = {addStockSchema}
                             onSubmit={(values) => {this.addStock(values)}}
                             >
                             {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
                                 <div className="rightRinci2">
                                     <div>
                                         <Row className="mb-2 rowRinci">
-                                            <Col md={3}>No Asset</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
-                                        </Row>
-                                        <Row className="mb-2 rowRinci">
                                             <Col md={3}>Deskripsi</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={level === '5' ? dataRinci.nama_asset : dataRinci.deskripsi} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input 
+                                                type='text'
+                                                className="inputRinci" 
+                                                value={values.deskripsi}
+                                                onBlur={handleBlur("deskripsi")}
+                                                onChange={handleChange("deskripsi")}
+                                                />
+                                            </Col>
                                         </Row>
+                                        {errors.deskripsi ? (
+                                            <text className={style.txtError}>must be filled</text>
+                                        ) : null}
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Merk</Col>
                                             <Col md={9} className="colRinci">:  <Input
@@ -966,7 +1053,7 @@ class Stock extends Component {
                                             </Col>
                                         </Row>
                                         {errors.merk ? (
-                                            <text className={style.txtError}>{errors.merk}</text>
+                                            <text className={style.txtError}>must be filled</text>
                                         ) : null}
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Satuan</Col>
@@ -1025,19 +1112,19 @@ class Stock extends Component {
                                                 disabled={level === '5' ? false : true}
                                                 type="select"
                                                 className="inputRinci" 
-                                                value={detailAsset.fisik} 
+                                                value={this.state.fisik} 
                                                 onBlur={handleBlur("status_fisik")}
                                                 onChange={e => { handleChange("status_fisik"); this.selectStatus(e.target.value, this.state.kondisi)} }
                                                 >
-                                                    <option>{values.status_fisik}</option>
+                                                    {/* <option>{values.status_fisik}</option> */}
                                                     <option>-Pilih Status Fisik-</option>
                                                     <option value="ada">Ada</option>
-                                                    <option value="tidak ada">Tidak Ada</option>
+                                                    {/* <option value="tidak ada">Tidak Ada</option> */}
                                                 </Input>
                                             </Col>
                                         </Row>
-                                        {errors.status_fisik ? (
-                                            <text className={style.txtError}>{errors.status_fisik}</text>
+                                        {this.state.fisik === '' ? (
+                                            <text className={style.txtError}>Must be filled</text>
                                         ) : null}
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Kondisi</Col>
@@ -1045,20 +1132,20 @@ class Stock extends Component {
                                                 disabled={level === '5' ? false : true}
                                                 type="select"
                                                 className="inputRinci" 
-                                                value={values.kondisi} 
+                                                value={this.state.kondisi} 
                                                 onBlur={handleBlur("kondisi")}
                                                 onChange={e => { handleChange("kondisi"); this.selectStatus(this.state.fisik, e.target.value)} }
                                                 >
-                                                    <option>{values.kondisi}</option>
+                                                    {/* <option>{values.kondisi}</option> */}
                                                     <option>-Pilih Kondisi-</option>
                                                     <option value="baik">Baik</option>
-                                                    <option value="rusak">Rusak</option>
-                                                    <option value="">-</option>
+                                                    {/* <option value="rusak">Rusak</option>
+                                                    <option value="">-</option> */}
                                                 </Input>
                                             </Col>
                                         </Row>
-                                        {errors.kondisi ? (
-                                            <text className={style.txtError}>{errors.kondisi}</text>
+                                        {this.state.kondisi === '' ? (
+                                            <text className={style.txtError}>Must be filled</text>
                                         ) : null}
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Status Aset</Col>
@@ -1067,22 +1154,22 @@ class Stock extends Component {
                                                 type= "select" 
                                                 className="inputRinci"
                                                 value={values.grouping}
-                                                // onBlur={handleBlur("grouping")}
-                                                // onChange={handleChange("grouping")}
-                                                onClick={() => this.listStatus(detailAsset.no_asset)}
+                                                onBlur={handleBlur("grouping")}
+                                                onChange={handleChange("grouping")}
+                                                // onClick={() => this.listStatus(detailAsset.no_asset)}
                                                 >
                                                     <option>{values.grouping}</option>
                                                     {/* <option>-Pilih Status Aset-</option> */}
-                                                    {/* {dataStatus.length > 0 && dataStatus.map(item => {
+                                                    {dataStatus.length > 0 && dataStatus.map(item => {
                                                         return (
                                                             <option value={item.status}>{item.status}</option>
                                                         )
-                                                    })} */}
+                                                    })}
                                                 </Input>
                                             </Col>
                                         </Row>
                                         {errors.grouping ? (
-                                            <text className={style.txtError}>{errors.grouping}</text>
+                                            <text className={style.txtError}>Must be filled</text>
                                         ) : null}
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Keterangan</Col>
@@ -1102,11 +1189,25 @@ class Stock extends Component {
                                     </div>
                                     <ModalFooter>
                                         <Button className="btnFootRinci1 mr-3" size="md" disabled={level === '5' ? false : true} color="primary" onClick={handleSubmit}>Save</Button>
-                                        <Button className="btnFootRinci1" size="md" color="secondary" onClick={() => this.openModalEdit()}>Close</Button>
+                                        <Button className="btnFootRinci1" size="md" color="secondary" onClick={() => this.openModalAdd()}>Close</Button>
                                     </ModalFooter>
                                 </div>
                             )}
                             </Formik>
+                        </div>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.modalUpload} toggle={this.openModalUpload} size="lg">
+                    <ModalHeader>
+                        Upload gambar asset
+                    </ModalHeader>
+                    <ModalBody>
+                        <div className="mainRinci2">
+                            <div className="leftRinci2 mb-5">
+                                <div className="titRinci">{dataRinci.nama_asset}</div>
+                                <img src={detRinci.img === undefined || detRinci.img.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detRinci.img[detRinci.img.length - 1].path}`} className="imgRinci" />
+                                <Input type="file" className='mt-2' onChange={this.uploadGambar}>Upload Picture</Input>
+                            </div>
                         </div>
                     </ModalBody>
                 </Modal>
@@ -1224,7 +1325,7 @@ class Stock extends Component {
                                                 className="inputRinci" 
                                                 value={detailAsset.fisik} 
                                                 onBlur={handleBlur("status_fisik")}
-                                                onChange={e => { handleChange("status_fisik"); this.selectStatus(e.target.value, this.state.kondisi)} }
+                                                // onChange={e => { handleChange("status_fisik"); this.selectStatus(e.target.value, this.state.kondisi)} }
                                                 >
                                                     <option>{values.status_fisik}</option>
                                                     <option>-Pilih Status Fisik-</option>
@@ -1244,7 +1345,7 @@ class Stock extends Component {
                                                 className="inputRinci" 
                                                 value={values.kondisi} 
                                                 onBlur={handleBlur("kondisi")}
-                                                onChange={e => { handleChange("kondisi"); this.selectStatus(this.state.fisik, e.target.value)} }
+                                                // onChange={e => { handleChange("kondisi"); this.selectStatus(this.state.fisik, e.target.value)} }
                                                 >
                                                     <option>{values.kondisi}</option>
                                                     <option>-Pilih Kondisi-</option>
@@ -1315,8 +1416,14 @@ class Stock extends Component {
                         <div className="mainRinci2">
                             <div className="leftRinci2 mb-5">
                                 <div className="titRinci">{dataRinci.nama_asset}</div>
-                                <img src={detRinci.pict === undefined || detRinci.pict.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detRinci.pict[detRinci.pict.length - 1].path}`} className="imgRinci" />
-                                {/* <Input type="file" className='mt-2' onChange={this.uploadPicture}>Upload Picture</Input> */}
+                                {detRinci.pict === undefined || detRinci.pict.length === 0 ? (
+                                    <img src={detRinci.img === undefined || detRinci.img.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detRinci.img[detRinci.img.length - 1].path}`} className="imgRinci" />
+                                ) : (
+                                    <img src={detRinci.pict === undefined || detRinci.pict.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detRinci.pict[detRinci.pict.length - 1].path}`} className="imgRinci" />
+                                )}
+                                {level === '5' && (
+                                    <Input type="file" className='mt-2' onChange={this.uploadGambar}>Upload Picture</Input>
+                                )}
                                 {/* <div className="secImgSmall">
                                     <button className="btnSmallImg">
                                         <img src={placeholder} className="imgSmallRinci" />
@@ -1346,7 +1453,7 @@ class Stock extends Component {
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Deskripsi</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={level === '5' ? dataRinci.nama_asset : dataRinci.deskripsi} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.deskripsi} disabled /></Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Merk</Col>
@@ -1422,7 +1529,7 @@ class Stock extends Component {
                                                 className="inputRinci" 
                                                 value={detRinci.fisik} 
                                                 onBlur={handleBlur("status_fisik")}
-                                                onChange={e => { handleChange("status_fisik"); this.selectStatus(e.target.value, this.state.kondisi)} }
+                                                // onChange={e => { handleChange("status_fisik"); this.selectStatus(e.target.value, this.state.kondisi)} }
                                                 >
                                                     <option>{values.status_fisik}</option>
                                                     <option>-Pilih Status Fisik-</option>
@@ -1442,7 +1549,7 @@ class Stock extends Component {
                                                 className="inputRinci" 
                                                 value={values.kondisi} 
                                                 onBlur={handleBlur("kondisi")}
-                                                onChange={e => { handleChange("kondisi"); this.selectStatus(this.state.fisik, e.target.value)} }
+                                                // onChange={e => { handleChange("kondisi"); this.selectStatus(this.state.fisik, e.target.value)} }
                                                 >
                                                     <option>{values.kondisi}</option>
                                                     <option>-Pilih Kondisi-</option>
@@ -1575,35 +1682,93 @@ class Stock extends Component {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {detailStock.length !== 0 && detailStock.map(item => {
+                                    {detailStock.length !== 0 && detailStock.map((item, index) => {
                                         return (
-                                        <tr>
-                                            <th onClick={() => this.getRinciStock(item)} scope="row">{(detailStock.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</th>
-                                            <td onClick={() => this.getRinciStock(item)} >{item.no_asset}</td>
-                                            <td onClick={() => this.getRinciStock(item)} >{item.deskripsi}</td>
-                                            <td onClick={() => this.getRinciStock(item)} >{item.merk}</td>
-                                            <td onClick={() => this.getRinciStock(item)} >{item.satuan}</td>
-                                            <td onClick={() => this.getRinciStock(item)} >{item.unit}</td>
-                                            <td onClick={() => this.getRinciStock(item)} >{item.status_fisik}</td>
-                                            <td onClick={() => this.getRinciStock(item)} >{item.kondisi}</td>
-                                            <td onClick={() => this.getRinciStock(item)} >{item.lokasi}</td>
-                                            <td onClick={() => this.getRinciStock(item)} >{item.grouping}</td>
-                                            <td onClick={() => this.getRinciStock(item)} >{item.keterangan}</td>
-                                            <td> 
-                                                <Input
-                                                addon
-                                                disabled={item.status_app === 0 ? true : false}
-                                                checked={item.status_app === 0 ? true : listMut.find(element => element === item.no_asset) !== undefined ? true : false}
-                                                type="checkbox"
-                                                onClick={listMut.find(element => element === item.no_asset) === undefined ? () => this.chekRej(item.no_asset) : () => this.chekApp(item.no_asset)}
-                                                value={item.no_asset} />
-                                            </td>
-                                            <td>{item.status_app === 0 ? 'reject' : item.status_app === 1 ? 'revisi' : '-'}</td>
-                                        </tr>
+                                        item.status_doc === 1 ? (
+                                            null
+                                        ) : (
+                                            <tr>
+                                                <th onClick={() => this.getRinciStock(item)} scope="row">{index + 1}</th>
+                                                <td onClick={() => this.getRinciStock(item)} >{item.no_asset}</td>
+                                                <td onClick={() => this.getRinciStock(item)} >{item.deskripsi}</td>
+                                                <td onClick={() => this.getRinciStock(item)} >{item.merk}</td>
+                                                <td onClick={() => this.getRinciStock(item)} >{item.satuan}</td>
+                                                <td onClick={() => this.getRinciStock(item)} >{item.unit}</td>
+                                                <td onClick={() => this.getRinciStock(item)} >{item.status_fisik}</td>
+                                                <td onClick={() => this.getRinciStock(item)} >{item.kondisi}</td>
+                                                <td onClick={() => this.getRinciStock(item)} >{item.lokasi}</td>
+                                                <td onClick={() => this.getRinciStock(item)} >{item.grouping}</td>
+                                                <td onClick={() => this.getRinciStock(item)} >{item.keterangan}</td>
+                                                <td> 
+                                                    <Input
+                                                    addon
+                                                    disabled={item.status_app === 0 ? true : false}
+                                                    checked={item.status_app === 0 ? true : listMut.find(element => element === item.no_asset) !== undefined ? true : false}
+                                                    type="checkbox"
+                                                    onClick={listMut.find(element => element === item.no_asset) === undefined ? () => this.chekRej(item.no_asset) : () => this.chekApp(item.no_asset)}
+                                                    value={item.no_asset} />
+                                                </td>
+                                                <td>{item.status_app === 0 ? 'reject' : item.status_app === 1 ? 'revisi' : '-'}</td>
+                                            </tr>
+                                        )
                                         )})}
                                 </tbody>
                             </Table>
                         </div>
+                        )}
+                        {detailStock.length !== 0 && detailStock.find(({status_doc}) => status_doc === 1) !== undefined && (
+                            <>
+                                <h3>Asset tambahan</h3>
+                                <div className={style.tableDashboard}>
+                                    <Table bordered responsive hover className={style.tab}>
+                                        <thead>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>DESKRIPSI</th>
+                                                <th>MERK</th>
+                                                <th>SATUAN</th>
+                                                <th>UNIT</th>
+                                                <th>STATUS FISIK</th>
+                                                <th>KONDISI</th>
+                                                <th>LOKASI</th>
+                                                <th>GROUPING</th>
+                                                <th>KETERANGAN</th>
+                                                <th>Select item to reject</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {detailStock.length !== 0 && detailStock.map((item, index) => {
+                                                return (
+                                                item.status_doc === 1 && (
+                                                    <tr>
+                                                        <th onClick={() => this.getRinciStock(item)} scope="row">*</th>
+                                                        <td onClick={() => this.getRinciStock(item)} >{item.deskripsi}</td>
+                                                        <td onClick={() => this.getRinciStock(item)} >{item.merk}</td>
+                                                        <td onClick={() => this.getRinciStock(item)} >{item.satuan}</td>
+                                                        <td onClick={() => this.getRinciStock(item)} >{item.unit}</td>
+                                                        <td onClick={() => this.getRinciStock(item)} >{item.status_fisik}</td>
+                                                        <td onClick={() => this.getRinciStock(item)} >{item.kondisi}</td>
+                                                        <td onClick={() => this.getRinciStock(item)} >{item.lokasi}</td>
+                                                        <td onClick={() => this.getRinciStock(item)} >{item.grouping}</td>
+                                                        <td onClick={() => this.getRinciStock(item)} >{item.keterangan}</td>
+                                                        <td> 
+                                                            <Input
+                                                            addon
+                                                            disabled={item.status_app === 0 ? true : false}
+                                                            checked={item.status_app === 0 ? true : listMut.find(element => element === item.no_asset) !== undefined ? true : false}
+                                                            type="checkbox"
+                                                            onClick={listMut.find(element => element === item.no_asset) === undefined ? () => this.chekRej(item.no_asset) : () => this.chekApp(item.no_asset)}
+                                                            value={item.no_asset} />
+                                                        </td>
+                                                        <td>{item.status_app === 0 ? 'reject' : item.status_app === 1 ? 'revisi' : '-'}</td>
+                                                    </tr>
+                                                )
+                                                )})}
+                                        </tbody>
+                                    </Table>
+                                </div>
+                            </>
                         )}
                     </ModalBody>
                     <div className="modalFoot ml-3">
@@ -1851,7 +2016,7 @@ class Stock extends Component {
                         </div>
                         </ModalBody>
                 </Modal>
-                <Modal isOpen={this.state.openApprove} toggle={this.openModalApprove} centered={true}>
+                <Modal isOpen={this.state.openApprove && level !== '5'} toggle={this.openModalApprove} centered={true}>
                     <ModalBody>
                         <div className={style.modalApprove}>
                             <div>
@@ -1865,6 +2030,39 @@ class Stock extends Component {
                             <div className={style.btnApprove}>
                                 <Button color="primary" onClick={() => this.approveStock()}>Ya</Button>
                                 <Button color="secondary" onClick={this.openModalApprove}>Tidak</Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.openApprove && level === '5'} toggle={this.openModalApprove} centered={true}>
+                    <ModalBody>
+                        <div className={style.modalApprove}>
+                            <div>
+                                <text>
+                                    Anda yakin untuk mengajukan  
+                                    <text className={style.verif}> stock opname </text>
+                                    pada tanggal
+                                    <text className={style.verif}> {moment().format('DD MMMM YYYY')}</text> ?
+                                </text>
+                            </div>
+                            <div className={style.btnApprove}>
+                                <Button color="primary" onClick={() => this.submitStock()}>Ya</Button>
+                                <Button color="secondary" onClick={this.openModalApprove}>Tidak</Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.openConfirm} toggle={this.openModalConfirm} centered={true}>
+                    <ModalBody>
+                        <div className={style.modalApprove}>
+                            <div>
+                                <text>
+                                    Apakah anda ingin menambahkan data asset yang lain ?
+                                </text>
+                            </div>
+                            <div className={style.btnApprove}>
+                                <Button color="primary" onClick={() => this.openModalSum()}>Ya</Button>
+                                <Button color="secondary" onClick={() => {this.openModalConfirm(); this.openModalApprove()}}>Tidak</Button>
                             </div>
                         </div>
                     </ModalBody>
@@ -1939,7 +2137,7 @@ class Stock extends Component {
                                         <tr onClick={() => this.getRincian(item)}>
                                             <th scope="row">{(dataAsset.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</th>
                                             <td>{item.no_asset}</td>
-                                            <td>{item.deskripsi}</td>
+                                            <td>{level === '5' ? item.nama_asset : item.deskripsi}</td>
                                             <td>{item.merk}</td>
                                             <td>{item.satuan}</td>
                                             <td>{item.unit}</td>
@@ -1960,7 +2158,89 @@ class Stock extends Component {
                     <div className="modalFoot ml-3">
                         <div></div>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="success" onClick={this.submitStock}>
+                            <Button className="mr-2" color="success" onClick={this.openModalConfirm}>
+                                Submit
+                            </Button>
+                        </div>
+                    </div>
+                </Modal>
+                <Modal isOpen={this.state.modalSum} toggle={this.openSum} size="xl">
+                    <ModalHeader>
+                        <div className="stockTitle">asset tambahan</div>
+                    </ModalHeader>
+                    <ModalBody>
+                        <div className={style.headEmail}>
+                            <Button onClick={this.openModalAdd} color="primary" size="lg">Add</Button>
+                        </div>
+                        {stockArea.length === 0 ? (
+                            <div className={style.tableDashboard}>
+                                <Table bordered responsive hover className={style.tab}>
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>DESKRIPSI</th>
+                                            <th>MERK</th>
+                                            <th>SATUAN</th>
+                                            <th>UNIT</th>
+                                            <th>STATUS FISIK</th>
+                                            <th>KONDISI</th>
+                                            <th>LOKASI</th>
+                                            <th>GROUPING</th>
+                                            <th>KETERANGAN</th>
+                                        </tr>
+                                    </thead>
+                                </Table>
+                                <div className={style.spin}>
+                                    <h3>Tidak ada data asset tambahan</h3>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className={style.tableDashboard}>
+                            <Table bordered responsive hover className={style.tab}>
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>DESKRIPSI</th>
+                                        <th>MERK</th>
+                                        <th>SATUAN</th>
+                                        <th>UNIT</th>
+                                        <th>STATUS FISIK</th>
+                                        <th>KONDISI</th>
+                                        <th>LOKASI</th>
+                                        <th>GROUPING</th>
+                                        <th>KETERANGAN</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {stockArea.length !== 0 && stockArea.map(item => {
+                                        return (
+                                            item.status_doc === 1 && (
+                                                <tr onClick={() => this.getRinciStock(item)}>
+                                                    <th scope="row">{stockArea.indexOf(item) + 1}</th>
+                                                    <td>{item.deskripsi}</td>
+                                                    <td>{item.merk}</td>
+                                                    <td>{item.satuan}</td>
+                                                    <td>{item.unit}</td>
+                                                    <td>{item.status_fisik}</td>
+                                                    <td>{item.kondisi}</td>
+                                                    <td>{item.lokasi}</td>
+                                                    <td>{item.grouping}</td>
+                                                    <td>{item.keterangan}</td>
+                                                </tr>
+                                            )
+                                        )})}
+                                </tbody>
+                            </Table>
+                        </div>
+                        )}
+                    </ModalBody>
+                    <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
+                        <div>{alertM}</div>
+                    </Alert>
+                    <div className="modalFoot ml-3">
+                        <div></div>
+                        <div className="btnFoot">
+                            <Button className="mr-2" color="success" onClick={this.openModalApprove}>
                                 Submit
                             </Button>
                         </div>
@@ -2045,6 +2325,13 @@ class Stock extends Component {
                             <div className={style.cekUpdate}>
                                 <AiFillCheckCircle size={80} className={style.green} />
                                 <div className={[style.sucUpdate, style.green]}>Berhasil Approve</div>
+                            </div>
+                        </div>
+                    ) : this.state.confirm === 'submit' ? (
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Submit</div>
                             </div>
                         </div>
                     ) : (
@@ -2172,6 +2459,9 @@ const mapDispatchToProps = {
     updateStockNew: stock.updateStockNew,
     getDetailItem: stock.getDetailItem,
     showDokumen: pengadaan.showDokumen,
+    getStockArea: stock.getStockArea,
+    addOpname: stock.addStock,
+    uploadImage: stock.uploadImage
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Stock)
