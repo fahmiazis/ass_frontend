@@ -467,9 +467,10 @@ class Stock extends Component {
         if (value.target.name === 'lokasi' || value.target.name === 'keterangan' || value.target.name === 'merk') {
             if (value.key === 'Enter') {
                 await this.props.updateAsset(token, value.item.id, data)
-            } else {
-                await this.props.updateAsset(token, value.item.id, data)
-            }
+            } 
+            // else {
+            //     await this.props.updateAsset(token, value.item.id, data)
+            // }
         } else {
             await this.props.updateAsset(token, value.item.id, data)
             this.getDataAsset()
@@ -529,7 +530,7 @@ class Stock extends Component {
 
     openProsesModalDoc = async () => {
         const token = localStorage.getItem("token")
-        const { detailAsset } = this.props.stock
+        const { detailAsset } = this.props.asset
         await this.props.getDocument(token, detailAsset.no_asset)
         this.openModalDoc()
     }
