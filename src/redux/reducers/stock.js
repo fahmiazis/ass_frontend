@@ -43,7 +43,8 @@ const stockState = {
     getDetail: false,
     isSubrev: false,
     dataAdd: {},
-    isImage: false
+    isImage: false,
+    isSubaset: false
 };
 
 export default (state=stockState, action) => {
@@ -293,6 +294,29 @@ export default (state=stockState, action) => {
             };
         }
         case 'SUBMIT_REVISI_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: true,
+                alertMsg: "Unable connect to server",
+            };
+        }
+        case 'SUBMIT_ASET_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'SUBMIT_ASET_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: false,
+                isSubaset: true,
+            };
+        }
+        case 'SUBMIT_ASET_REJECTED': {
             return {
                 ...state,
                 isLoading: false,
@@ -566,6 +590,7 @@ export default (state=stockState, action) => {
                 isAdd: false,
                 isImage: false,
                 isSubmit: false,
+                isSubaset: false
             }
         }
         default: {

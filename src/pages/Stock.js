@@ -263,6 +263,12 @@ class Stock extends Component {
          }, 10000)
     }
 
+    submitAset = async () => {
+        const token = localStorage.getItem('token')
+        const { detailStock } = this.props.stock
+        await this.props.submitAsset(token, detailStock[0].no_stock)
+    }
+
     componentDidMount() {
         const level = localStorage.getItem('level')
         if (level === "5" ) {
@@ -291,7 +297,7 @@ class Stock extends Component {
     }
 
     componentDidUpdate() {
-        const {isUpload, isError, isApprove, isReject, rejReject, rejApprove, isImage, isSubmit} = this.props.stock
+        const {isUpload, isError, isApprove, isReject, rejReject, rejApprove, isImage, isSubmit, isSubaset} = this.props.stock
         const {dataRinci, dataId} = this.state
         const { isUpdateNew } = this.props.asset
         const errUpload = this.props.disposal.isUpload
@@ -319,6 +325,12 @@ class Stock extends Component {
             this.openModalReject()
             this.openConfirm(this.setState({confirm: 'reject'}))
             this.props.resetStock()
+        } else if (isSubaset) {
+            this.openConfirm(this.setState({confirm: 'submit'}))
+            this.props.resetStock()
+            this.openModalSub()
+            this.getDataStock()
+            this.openModalRinci()
         } else if (isSubmit) {
             this.openConfirm(this.setState({confirm: 'submit'}))
             this.openModalApprove()
@@ -330,6 +342,8 @@ class Stock extends Component {
             this.openConfirm(this.setState({confirm: 'isApprove'}))
             this.openModalApprove()
             this.props.resetStock()
+            this.getDataStock()
+            this.openModalRinci()
         } else if (rejReject) {
             this.openModalReject()
             this.openConfirm(this.setState({confirm: 'rejReject'}))
@@ -396,7 +410,8 @@ class Stock extends Component {
             grouping: val.grouping,
             keterangan: val.keterangan,
             kondisi: kondisi,
-            status_fisik: fisik
+            status_fisik: fisik,
+            modalSubmit: false
         }
         await this.props.addOpname(token, data)
         await this.props.getStockArea(token, '', 1000, 1, 'null')
@@ -410,6 +425,10 @@ class Stock extends Component {
         const token = localStorage.getItem('token')
         await this.props.getStockArea(token, '', 1000, 1, 'null')
         this.openSum()
+    }
+
+    openModalSub = () => {
+        this.setState({modalSubmit: !this.state.modalSubmit})
     }
 
     openSum = () => {
@@ -1778,9 +1797,15 @@ class Stock extends Component {
                             <Button className="mr-2" disabled={listMut.length === 0 ? true : false} color="danger" onClick={this.openModalReject}>
                                 Reject
                             </Button>
-                            <Button color="success" disabled={detailStock.find(({status_app}) => status_app === 0) !== undefined ? true : listMut.length === 0 ? false : true} onClick={this.openModalApprove}>
-                                Approve
-                            </Button>
+                            {level === '2' ? (
+                                <Button color="success" disabled={detailStock.find(({status_app}) => status_app === 0) !== undefined ? true : listMut.length === 0 ? false : true} onClick={this.openModalSub}>
+                                    Submit
+                                </Button>
+                            ) : (
+                                <Button color="success" disabled={detailStock.find(({status_app}) => status_app === 0) !== undefined ? true : listMut.length === 0 ? false : true} onClick={this.openModalApprove}>
+                                    Approve
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </Modal>
@@ -2031,6 +2056,24 @@ class Stock extends Component {
                             <div className={style.btnApprove}>
                                 <Button color="primary" onClick={() => this.approveStock()}>Ya</Button>
                                 <Button color="secondary" onClick={this.openModalApprove}>Tidak</Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.modalSubmit} toggle={this.openModalSub} centered={true}>
+                    <ModalBody>
+                        <div className={style.modalApprove}>
+                            <div>
+                                <text>
+                                    Anda yakin untuk submit     
+                                    <text className={style.verif}> </text>
+                                    pada tanggal
+                                    <text className={style.verif}> {moment().format('LL')}</text> ?
+                                </text>
+                            </div>
+                            <div className={style.btnApprove}>
+                                <Button color="primary" onClick={() => this.submitAset()}>Ya</Button>
+                                <Button color="secondary" onClick={this.openModalSub}>Tidak</Button>
                             </div>
                         </div>
                     </ModalBody>
@@ -2462,7 +2505,8 @@ const mapDispatchToProps = {
     showDokumen: pengadaan.showDokumen,
     getStockArea: stock.getStockArea,
     addOpname: stock.addStock,
-    uploadImage: stock.uploadImage
+    uploadImage: stock.uploadImage,
+    submitAsset: stock.submitAsset
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Stock)

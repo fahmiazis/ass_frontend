@@ -79,6 +79,10 @@ export default {
         type: 'SUBMIT_REVISI',
         payload: http(token).patch(`/stock/subrev/${id}`)
     }),
+    submitAsset: (token, no) => ({
+        type: 'SUBMIT_ASET',
+        payload: http(token).patch(`/stock/subaset/${no}`)
+    }),
     addStock: (token, data) => ({
         type: 'ADD_STOCK',
         payload: http(token).post(`/stock/add`, qs.stringify(data))
