@@ -10,8 +10,8 @@ import { AiOutlineCopyrightCircle } from "react-icons/ai"
 
 const loginSchema = Yup.object().shape({
     username: Yup.string().required('must be filled'),
-    password: Yup.string().required('must be filled'),
-  });
+    password: Yup.string().required('must be filled')
+});
 
 class Login extends Component {
 
@@ -21,6 +21,10 @@ class Login extends Component {
         if (isLogin) {
             this.props.history.push('/')
         }
+    }
+
+    state = {
+        cost_center: ''
     }
 
     componentDidUpdate() {
@@ -43,7 +47,7 @@ class Login extends Component {
         return (
             <>
             <Formik
-                initialValues={{ username: '', password: ''}}
+                initialValues={{ username: '', password: '', cost_center: ''}}
                 validationSchema={loginSchema}
                 onSubmit={(values, { resetForm }) => {this.login(values); resetForm({ values: '' })}}>
                 {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
@@ -61,32 +65,49 @@ class Login extends Component {
                         <div className={style.form}>
                             <div className={style.textLogin}>Please login with your account</div>
                             <div>
-                            <input 
-                            className={style.input1}
-                            placeholder='User Name'
-                            type='name' 
-                            onChange= {handleChange('username')}
-                            onBlur= {handleBlur('username')}
-                            value={values.username}
-                            />
+                                <input 
+                                className={style.input1}
+                                placeholder='Username'
+                                type='name' 
+                                onChange= {handleChange('username')}
+                                onBlur= {handleBlur('username')}
+                                value={values.username}
+                                />
                             </div>
                             {errors.username ? (
                                 <text className={style.txtError}>{errors.username}</text>
                             ) : null}
+                            {(values.username === 'P000' || values.username === 'p000') && (
+                                <>
+                                    <div>
+                                        <input 
+                                        className={style.input2}
+                                        placeholder='Cost Center'
+                                        type='text' 
+                                        onChange= {handleChange('cost_center')}
+                                        onBlur= {handleBlur('cost_center')}
+                                        value={values.cost_center}
+                                        />
+                                    </div>
+                                    {values.cost_center === '' ? (
+                                        <text className={style.txtError}>must be filled</text>
+                                    ) : null}
+                                </>
+                            )}
                             <div>
-                            <input
-                            className={style.input2}
-                            placeholder='Password'
-                            type='password'
-                            onChange= {handleChange('password')}
-                            onBlur= {handleBlur('password')}
-                            value={values.password}
-                            />
+                                <input
+                                className={style.input2}
+                                placeholder='Password'
+                                type='password'
+                                onChange= {handleChange('password')}
+                                onBlur= {handleBlur('password')}
+                                value={values.password}
+                                />
                             </div>
                             {errors.password ? (
                                 <text className={style.txtError}>{errors.password}</text>
                             ) : null}
-                            <button onClick={handleSubmit} className={style.button}>LOGIN</button>
+                            <button disabled={(values.username === 'p000' || values.username === 'P000') && values.cost_center === '' ? true : false} onClick={handleSubmit} className={style.button}>LOGIN</button>
                         </div>
                         {/* <div className='icon mt-4'><AiOutlineCopyrightCircle size={18} className="mr-3" />IT-PMA 2019</div> */}
                 </Form>

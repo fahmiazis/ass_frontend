@@ -70,7 +70,8 @@ class MasterUser extends Component {
             errMsg: '',
             fileUpload: '',
             limit: 10,
-            search: ''
+            search: '',
+            tipe: 'transaksi'
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -324,7 +325,7 @@ class MasterUser extends Component {
                                             id="test-table-xls-button"
                                             className="btn btn-success"
                                             table="table-to-xls"
-                                            filename="Report Disposal"
+                                            filename={this.state.tipe === 'transaksi' ? "Report Disposal" : "Report History Disposal"}
                                             sheet="Report"
                                             buttonText="Download Report"
                                         />
@@ -337,35 +338,58 @@ class MasterUser extends Component {
                                     <div className={style.tableDashboard}>
                                     <Table bordered responsive hover className={style.tab}>
                                         <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>No Pengajuan Disposal</th>
-                                                <th>No Persetujuan Disposal</th>
-                                                <th>Nomor Asset</th>
-                                                <th>Nama Barang</th>
-                                                <th>Kategori</th>
-                                                <th>Cost Center</th>
-                                                <th>Cost Center Name</th>
-                                                <th>Tgl Perolehan</th>
-                                                <th>Nilai Akuisisi</th>
-                                                <th>Nilai Buku saat pengajuan Disposal aset</th>
-                                                <th>Nilai jual</th>
-                                                <th>Keterangan pengajuan disposal aset</th>
-                                                <th>Nilai Buku saat persetujuan Disposal</th>
-                                                <th>Keteranagan persetujuan disposal aset</th>
-                                                <th>Grouping eksekusi</th>
-                                                <th>Akumulasi Aset</th>
-                                                <th>Nilai Buku Saat eksekusi</th>
-                                                <th>DPP</th>
-                                                <th>PPN</th>
-                                                <th>Profit/LOSS</th>
-                                                <th>Tanggal Eksekusi disposal di SAP</th>
-                                                <th>No Doc Jurnal Uang Masuk</th>
-                                                <th>Nomor Faktur Pajak</th>
-                                                <th>No Doc Disposal</th>
-                                                <th>No Doc Clearing</th>
-                                                <th>PIC ASET</th>
-                                            </tr>
+                                            {this.state.tipe === 'transaksi' ? (
+                                                <tr>
+                                                    <th>No</th>
+                                                    <th>No Pengajuan Disposal</th>
+                                                    <th>No Persetujuan Disposal</th>
+                                                    <th>Nomor Asset</th>
+                                                    <th>Nama Barang</th>
+                                                    <th>Kategori</th>
+                                                    <th>Cost Center</th>
+                                                    <th>Cost Center Name</th>
+                                                    <th>Tgl Perolehan</th>
+                                                    <th>Nilai Akuisisi</th>
+                                                    <th>Nilai Buku saat pengajuan Disposal aset</th>
+                                                    <th>Nilai jual</th>
+                                                    <th>Keterangan pengajuan disposal aset</th>
+                                                    <th>Nilai Buku saat persetujuan Disposal</th>
+                                                    <th>Keteranagan persetujuan disposal aset</th>
+                                                    <th>Grouping eksekusi</th>
+                                                    <th>Akumulasi Aset</th>
+                                                    <th>Nilai Buku Saat eksekusi</th>
+                                                    <th>DPP</th>
+                                                    <th>PPN</th>
+                                                    <th>Profit/LOSS</th>
+                                                    <th>Tanggal Eksekusi disposal di SAP</th>
+                                                    <th>No Doc Jurnal Uang Masuk</th>
+                                                    <th>Nomor Faktur Pajak</th>
+                                                    <th>No Doc Disposal</th>
+                                                    <th>No Doc Clearing</th>
+                                                    <th>PIC ASET</th>
+                                                </tr>
+                                            ) : (
+                                                <tr>
+                                                    <th>No</th>
+                                                    <th>No Pengajuan Disposal</th>
+                                                    <th>Tgl dibuat Form  Disposal aset</th>
+                                                    <th>Tgl App BM</th>
+                                                    <th>Tgl app ISM</th>
+                                                    <th>Tgl App IRM</th>
+                                                    <th>Tgl App AM</th>
+                                                    <th>Tgl App NFAM</th>
+                                                    <th>Tgl App Head Of Ops</th>
+                                                    <th>Tgl App Head Of HC</th>
+                                                    <th>Tgl App CM</th>
+                                                    <th>Tgl dibuat form Persetujuan</th>
+                                                    <th>Tgl kirim Persetujuan disposal</th>
+                                                    <th>Selesai App Form Persetujuan</th>
+                                                    <th>Tgl area kirim kelengkapan eksekusi disposal</th>
+                                                    <th>Tgl Jurnal uang masuk</th>
+                                                    <th>Tgl Pembuatan Faktur Pajak</th>
+                                                    <th>Tgl Aset Info eksekusi disposal aset</th>
+                                                </tr>
+                                            )}
                                         </thead>
                                     </Table>
                                         <div className={style.spin}>
@@ -380,68 +404,112 @@ class MasterUser extends Component {
                                     <div className={style.tableDashboard}>
                                     <Table bordered responsive hover id="table-to-xls" className={style.tab}>
                                         <thead>
-                                            <tr>
-                                                <th style={{backgroundColor: '#76923B'}}>No</th>
-                                                <th style={{backgroundColor: '#76923B'}}>No Pengajuan Disposal</th>
-                                                <th style={{backgroundColor: '#76923B'}}>No Persetujuan Disposal</th>
-                                                <th style={{backgroundColor: '#76923B'}}>Nomor Asset</th>
-                                                <th style={{backgroundColor: '#76923B'}}>Nama Barang</th>
-                                                <th style={{backgroundColor: '#76923B'}}>Kategori</th>
-                                                <th style={{backgroundColor: '#76923B'}}>Cost Center</th>
-                                                <th style={{backgroundColor: '#76923B'}}>Cost Center Name</th>
-                                                <th style={{backgroundColor: '#76923B'}}>Tgl Perolehan</th>
-                                                <th style={{backgroundColor: '#76923B'}}>Nilai Akuisisi</th>
-                                                <th style={{backgroundColor: '#76923B'}}>Nilai Buku saat pengajuan Disposal aset</th>
-                                                <th style={{backgroundColor: '#76923B'}}>Nilai jual</th>
-                                                <th style={{backgroundColor: '#76923B'}}>Keterangan pengajuan disposal aset</th>
-                                                <th style={{backgroundColor: '#76923B'}}>Nilai Buku saat persetujuan Disposal</th>
-                                                <th style={{backgroundColor: '#76923B'}}>Keterangan persetujuan disposal aset</th>
-                                                <th style={{backgroundColor: '#76923B'}}>Grouping eksekusi</th>
-                                                <th style={{backgroundColor: '#76923B'}}>Akumulasi Aset</th>
-                                                <th style={{backgroundColor: '#76923B'}}>Nilai Buku Saat eksekusi</th>
-                                                <th style={{backgroundColor: '#76923B'}}>DPP</th>
-                                                <th style={{backgroundColor: '#76923B'}}>PPN</th>
-                                                <th style={{backgroundColor: '#76923B'}}>Profit/LOSS</th>
-                                                <th style={{backgroundColor: '#76923B'}}>Tanggal Eksekusi disposal di SAP</th>
-                                                <th style={{backgroundColor: '#76923B'}}>No Doc Jurnal Uang Masuk</th>
-                                                <th style={{backgroundColor: '#76923B'}}>Nomor Faktur Pajak</th>
-                                                <th style={{backgroundColor: '#76923B'}}>No Doc Disposal</th>
-                                                <th style={{backgroundColor: '#76923B'}}>No Doc Clearing</th>
-                                                <th style={{backgroundColor: '#76923B'}}>PIC ASET</th>
-                                            </tr>
+                                            {this.state.tipe === 'transaksi' ? (
+                                                <tr>
+                                                    <th style={{backgroundColor: '#76923B'}}>No</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>No Pengajuan Disposal</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>No Persetujuan Disposal</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>Nomor Asset</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>Nama Barang</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>Kategori</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>Cost Center</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>Cost Center Name</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>Tgl Perolehan</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>Nilai Akuisisi</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>Nilai Buku saat pengajuan Disposal aset</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>Nilai jual</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>Keterangan pengajuan disposal aset</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>Nilai Buku saat persetujuan Disposal</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>Keterangan persetujuan disposal aset</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>Grouping eksekusi</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>Akumulasi Aset</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>Nilai Buku Saat eksekusi</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>DPP</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>PPN</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>Profit/LOSS</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>Tanggal Eksekusi disposal di SAP</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>No Doc Jurnal Uang Masuk</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>Nomor Faktur Pajak</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>No Doc Disposal</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>No Doc Clearing</th>
+                                                    <th style={{backgroundColor: '#76923B'}}>PIC ASET</th>
+                                                </tr>
+                                            ) : (
+                                                    <tr>
+                                                        <th>No</th>
+                                                        <th>No Pengajuan Disposal</th>
+                                                        <th>Tgl dibuat Form  Disposal aset</th>
+                                                        <th>Tgl App BM</th>
+                                                        <th>Tgl app ISM</th>
+                                                        <th>Tgl App IRM</th>
+                                                        <th>Tgl App AM</th>
+                                                        <th>Tgl App NFAM</th>
+                                                        <th>Tgl App Head Of Ops</th>
+                                                        <th>Tgl App Head Of HC</th>
+                                                        <th>Tgl App CM</th>
+                                                        <th>Tgl dibuat form Persetujuan</th>
+                                                        <th>Tgl kirim Persetujuan disposal</th>
+                                                        <th>Selesai App Form Persetujuan</th>
+                                                        <th>Tgl area kirim kelengkapan eksekusi disposal</th>
+                                                        <th>Tgl Jurnal uang masuk</th>
+                                                        <th>Tgl Pembuatan Faktur Pajak</th>
+                                                        <th>Tgl Aset Info eksekusi disposal aset</th>
+                                                    </tr>
+                                            )}
                                         </thead>
                                         <tbody>
                                         {dataRep.length !== 0 && dataRep.map(item => {
                                                 return (
-                                                <tr>
-                                                    <th scope="row">{dataRep.indexOf(item) + 1}</th>
-                                                    <td>{item.no_disposal === null ? '-' : `D${item.no_disposal}`}</td>
-                                                    <td>{item.status_app}</td>
-                                                    <td>{item.no_asset}</td>
-                                                    <td>{item.nama_asset}</td>
-                                                    <td>{item.dataAsset === null ? '-' : item.dataAsset.kategori}</td>
-                                                    <td>{item.cost_center}</td>
-                                                    <td>{item.area}</td>
-                                                    <td>{item.dataAsset === null ? '-' : moment(item.dataAsset.tanggal).format('DD/MM/YYYY')}</td>
-                                                    <td>{item.dataAsset === null ? '-' : item.dataAsset.nilai_acquis === null ? '-' : item.dataAsset.nilai_acquis.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                    <td>{item.nilai_buku === null ? '-' : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                    <td>{item.nilai_jual === null ? '-' : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                    <td>{item.keterangan}</td>
-                                                    <td>{item.nilai_buku === null ? '-' : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                    <td>{item.keterangan}</td>
-                                                    <td>{item.nilai_jual === '0' ? 'Dispose' : 'Sell'}</td>
-                                                    <td>{item.dataAsset === null ? '-' : item.dataAsset.accum_dep === null ? '-' : item.dataAsset.accum_dep.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                    <td>{item.nilai_buku_eks === null ? '-' : item.nilai_buku_eks.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                    <td>{item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) / (11/10)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                    <td>{item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) - Math.round(parseInt(item.nilai_jual) / (11/10))).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                    <td>{item.nilai_jual === '0' ? '-' : Math.round(Math.round(parseInt(item.nilai_jual) / (11/10))-parseInt(item.dataAsset === null ? 0 : item.dataAsset.nilai_buku)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                    <td>{}</td>
-                                                    <td>{item.no_sap}</td>
-                                                    <td>{item.no_fp}</td>
-                                                    <td>{item.doc_sap}</td>
-                                                    <td>{item.doc_clearing}</td>
-                                                    <td>{item.depo.nama_pic_1}</td>
-                                                </tr>
+                                                this.state.tipe === 'transaksi' ? (
+                                                    <tr>
+                                                        <th scope="row">{dataRep.indexOf(item) + 1}</th>
+                                                        <td>{item.no_disposal === null ? '-' : `D${item.no_disposal}`}</td>
+                                                        <td>{item.status_app}</td>
+                                                        <td>{item.no_asset}</td>
+                                                        <td>{item.nama_asset}</td>
+                                                        <td>{item.dataAsset === null ? '-' : item.dataAsset.kategori}</td>
+                                                        <td>{item.cost_center}</td>
+                                                        <td>{item.area}</td>
+                                                        <td>{item.dataAsset === null ? '-' : moment(item.dataAsset.tanggal).format('DD/MM/YYYY')}</td>
+                                                        <td>{item.dataAsset === null ? '-' : item.dataAsset.nilai_acquis === null ? '-' : item.dataAsset.nilai_acquis.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                        <td>{item.nilai_buku === null ? '-' : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                        <td>{item.nilai_jual === null ? '-' : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                        <td>{item.keterangan}</td>
+                                                        <td>{item.nilai_buku === null ? '-' : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                        <td>{item.keterangan}</td>
+                                                        <td>{item.nilai_jual === '0' ? 'Dispose' : 'Sell'}</td>
+                                                        <td>{item.dataAsset === null ? '-' : item.dataAsset.accum_dep === null ? '-' : item.dataAsset.accum_dep.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                        <td>{item.nilai_buku_eks === null ? '-' : item.nilai_buku_eks.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                        <td>{item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) / (11/10)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                        <td>{item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) - Math.round(parseInt(item.nilai_jual) / (11/10))).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                        <td>{item.nilai_jual === '0' ? '-' : Math.round(Math.round(parseInt(item.nilai_jual) / (11/10))-parseInt(item.dataAsset === null ? 0 : item.dataAsset.nilai_buku)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                        <td>{item.tgl_eksekusi === null ? '-' : moment(item.tgl_eksekusi).format('DD/MM/YYYY')}</td>
+                                                        <td>{item.no_sap}</td>
+                                                        <td>{item.no_fp}</td>
+                                                        <td>{item.doc_sap}</td>
+                                                        <td>{item.doc_clearing}</td>
+                                                        <td>{item.depo.nama_pic_1}</td>
+                                                    </tr>
+                                                ) : (
+                                                    <tr>
+                                                        <th scope="row">{dataRep.indexOf(item) + 1}</th>
+                                                        <td>{item.no_disposal === null ? '-' : `D${item.no_disposal}`}</td>
+                                                        <td>{item.status_app}</td>
+                                                        <td>{item.no_asset}</td>
+                                                        <td>{item.nama_asset}</td>
+                                                        <td>{item.dataAsset === null ? '-' : item.dataAsset.kategori}</td>
+                                                        <td>{item.cost_center}</td>
+                                                        <td>{item.area}</td>
+                                                        <td>{item.dataAsset === null ? '-' : moment(item.dataAsset.tanggal).format('DD/MM/YYYY')}</td>
+                                                        <td>{item.dataAsset === null ? '-' : item.dataAsset.nilai_acquis === null ? '-' : item.dataAsset.nilai_acquis.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                        <td>{item.nilai_buku === null ? '-' : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                        <td>{item.nilai_jual === null ? '-' : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                        <td>{item.keterangan}</td>
+                                                        <td>{item.nilai_buku === null ? '-' : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                        <td>{item.keterangan}</td>
+                                                        <td>{item.nilai_jual === '0' ? 'Dispose' : 'Sell'}</td>
+                                                    </tr>
+                                                )
                                                 )})}
                                         </tbody>
                                     </Table>

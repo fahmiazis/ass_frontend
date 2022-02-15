@@ -97,7 +97,8 @@ class Stock extends Component {
             modalSum: false,
             grouping: '',
             modalUpload: false,
-            dataId: null
+            dataId: null,
+            idTab: null
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -410,8 +411,7 @@ class Stock extends Component {
             grouping: val.grouping,
             keterangan: val.keterangan,
             kondisi: kondisi,
-            status_fisik: fisik,
-            modalSubmit: false
+            status_fisik: fisik
         }
         await this.props.addOpname(token, data)
         await this.props.getStockArea(token, '', 1000, 1, 'null')
@@ -486,10 +486,9 @@ class Stock extends Component {
         if (value.target.name === 'lokasi' || value.target.name === 'keterangan' || value.target.name === 'merk') {
             if (value.key === 'Enter') {
                 await this.props.updateAsset(token, value.item.id, data)
-            } 
-            // else {
-            //     await this.props.updateAsset(token, value.item.id, data)
-            // }
+            } else {
+                this.setState({idTab: value.item.id})
+            }
         } else {
             await this.props.updateAsset(token, value.item.id, data)
             this.getDataAsset()
@@ -889,7 +888,8 @@ class Stock extends Component {
                                                             type= "text"
                                                             name="keterangan"
                                                             className="inputRinci"
-                                                            defaultValue={item.keterangan === 'proses mutasi' ? '' : item.keterangan}
+                                                            value={this.state.idTab == item.id ? null : item.keterangan === 'proses mutasi' ? '' : item.keterangan === null ? '.' : item.keterangan}
+                                                            defaultValue={item.keterangan === 'proses mutasi' ? '' : item.keterangan === null ? '.' : item.keterangan}
                                                             onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                             onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                             />

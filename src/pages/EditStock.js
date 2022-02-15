@@ -388,8 +388,6 @@ class EditStock extends Component {
         if (value.target.name === 'lokasi' || value.target.name === 'keterangan' || value.target.name === 'merk') {
             if (value.key === 'Enter') {
                 await this.props.updateStock(token, value.item.id, data)
-            } else {
-                await this.props.updateStock(token, value.item.id, data)
             }
         } else {
             await this.props.updateStock(token, value.item.id, data)
@@ -414,7 +412,7 @@ class EditStock extends Component {
         if (fisik === '' && kondisi === '') {
             console.log(fisik, kondisi)
         } else {
-            await this.props.getStatus(token, fisik, kondisi)
+            await this.props.getStatus(token, fisik, kondisi, 'false')
         }
     }
 
@@ -750,7 +748,8 @@ class EditStock extends Component {
                                                             type= "text"
                                                             name="keterangan"
                                                             className="inputRinci"
-                                                            defaultValue={item.keterangan === 'proses mutasi' ? '' : item.keterangan}
+                                                            value={item.keterangan}
+                                                            defaultValue={item.keterangan}
                                                             onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                             onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                             />

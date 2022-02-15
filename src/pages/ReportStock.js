@@ -111,22 +111,24 @@ class ReportStock extends Component {
                                     <div className={style.titleDashboard}>Report Stock Opname</div>
                                 </div>
                                 <div className={style.secEmail}>
-                                    <div className={style.secHeadDashboard}>
-                                        <div>
-                                        <text>Status Aset: </text>
-                                        <ButtonDropdown className={style.drop} isOpen={this.state.dropOpen} toggle={this.dropDown}>
-                                        <DropdownToggle caret color="light">
-                                            Pilih status aset
-                                        </DropdownToggle>
-                                        <DropdownMenu>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: ''})}>All</DropdownItem>
-                                            {dataAll.length !== 0 && dataAll.map(item => {
-                                                return (
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: item.status})}>{item.status}</DropdownItem>
-                                                )
-                                            })}
-                                        </DropdownMenu>
-                                        </ButtonDropdown>
+                                    <div>
+                                        <div className={style.secHeadDashboard}>
+                                            <div>
+                                            <text>Status Aset: </text>
+                                            <ButtonDropdown className={style.drop} isOpen={this.state.dropOpen} toggle={this.dropDown}>
+                                            <DropdownToggle caret color="light">
+                                                Pilih status aset
+                                            </DropdownToggle>
+                                            <DropdownMenu>
+                                                <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: ''})}>All</DropdownItem>
+                                                {dataAll.length !== 0 && dataAll.map(item => {
+                                                    return (
+                                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: item.status})}>{item.status}</DropdownItem>
+                                                    )
+                                                })}
+                                            </DropdownMenu>
+                                            </ButtonDropdown>
+                                            </div>
                                         </div>
                                     </div>
                                     <div className={style.searchEmail}>
