@@ -78,10 +78,12 @@ const SidebarContent = props => {
           <FaHome size={20} className="mr-2"/>
           <text className={stile.txtSide}>Home</text>
       </button>
-      <button className={stile.btnSide} onClick={() => goHome('asset')}>
-          <RiMoneyDollarCircleFill size={20} className="mr-2" />
-          <text className={stile.txtSide}>My Asset</text>
-      </button>
+      {(level === '1' || level === '2' || level === '5') && (
+        <button className={stile.btnSide} onClick={() => goHome('asset')}>
+            <RiMoneyDollarCircleFill size={20} className="mr-2" />
+            <text className={stile.txtSide}>My Asset</text>
+        </button>
+      )}
       <button className={stile.btnSide} onClick={() => goHome('pengadaan')}>
         <FaCartPlus size={20} className="mr-2" />
         <text className={stile.txtSide}>Pengadaan Asset</text>

@@ -879,7 +879,7 @@ class EksekusiDisposal extends Component {
                                                 <tr>
                                                 {appPeng.pembuat !== undefined && appPeng.pembuat.map(item => {
                                                     return (
-                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                        <td className="footPre">{item.jabatan === null ? "-" : 'SPV'}</td>
                                                     )
                                                 })}
                                                 </tr>
@@ -1049,7 +1049,7 @@ class EksekusiDisposal extends Component {
                                                     <tr>
                                                         {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
                                                             return (
-                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                                <td className="footPre">{item.jabatan === null ? "-" : 'SPV'}</td>
                                                             )
                                                         })}
                                                     </tr>

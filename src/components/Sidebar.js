@@ -63,10 +63,12 @@ function Sidebar(props) {
                     <AiFillHome size={20} className="iconSide" />
                     <text className="txtMenu">Home</text>
                 </button>
-                <button className="menuSides" onClick={goAsset}>
-                    <RiMoneyDollarCircleFill size={20} className="iconSide" />
-                    <text className="txtMenu">My Asset</text>
-                </button>
+                {(level === '1' || level === '2' || level === '5') && (
+                    <button className="menuSides" onClick={goAsset}>
+                        <RiMoneyDollarCircleFill size={20} className="iconSide" />
+                        <text className="txtMenu">My Asset</text>
+                    </button>
+                )}
                 <button className="menuSides" onClick={goPengadaan}>
                     <FaCartPlus size={20} className="iconSide" />
                     <text className="txtMenu">Pengadaan Asset</text>

@@ -18,6 +18,7 @@ import {connect} from 'react-redux'
 import placeholder from  "../assets/img/placeholder.png"
 import Select from 'react-select'
 import {Formik} from 'formik'
+import TableMut from '../components/TableMut'
 import * as Yup from 'yup'
 import logo from '../assets/img/logo.png'
 import moment from 'moment'
@@ -205,13 +206,13 @@ class Mutasi extends Component {
     getDataApprove = async (val) => {
         const {detailMut} = this.state
         const token = localStorage.getItem('token')
-        await this.props.getApproveMut(token, detailMut[0].no_mutasi, 'Mutasi')
+        await this.props.getApproveMut(token, detailMut[0].no_mutasi, val.kode_plant.split().length === 4 ? 'Mutasi' : 'Mutasi HO')
         this.openModalPre()
     }
 
     getDataApproveMut = async (val) => {
         const token = localStorage.getItem('token')
-        await this.props.getApproveMut(token, val, 'Mutasi')
+        await this.props.getApproveMut(token, val.no_mutasi, val.kode_plant.split().length === 4 ? 'Mutasi' : 'Mutasi HO')
     }
 
     openModalPre = () => {
@@ -549,7 +550,7 @@ class Mutasi extends Component {
                                                     </div>
                                                     <Row className="footCard mb-3 mt-3">
                                                         <Col md={12} xl={12}>
-                                                            <Button className="btnSell" color="primary" onClick={() => {this.openDetailMut(item.no_mutasi); this.getDataApproveMut(item.no_mutasi)}}>Proses</Button>
+                                                            <Button className="btnSell" color="primary" onClick={() => {this.openDetailMut(item.no_mutasi); this.getDataApproveMut(item)}}>Proses</Button>
                                                         </Col>
                                                     </Row>
                                                 </div>
@@ -859,7 +860,7 @@ class Mutasi extends Component {
                     <hr />
                     <div className="modalFoot ml-3">
                     {/* onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})} */}
-                        <Button color="primary" onClick={this.getDataApprove}>Preview</Button>
+                        <Button color="primary" onClick={() => this.getDataApprove(detailMut[0])}>Preview</Button>
                         {level === '12' ? (
                             <div className="btnFoot">
                                 <Button className="mr-2" disabled={detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 1 ? true : false} color="danger" onClick={() => this.openReject()}>
@@ -977,7 +978,7 @@ class Mutasi extends Component {
                                                 <tr>
                                                 {mutApp.pembuat !== undefined && mutApp.pembuat.map(item => {
                                                     return (
-                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                        <td className="footPre">{item.jabatan === null ? "-" : 'SPV'}</td>
                                                     )
                                                 })}
                                                 </tr>
@@ -1002,7 +1003,7 @@ class Mutasi extends Component {
                                                 <tr>
                                                 {mutApp.penerima !== undefined && mutApp.penerima.map(item => {
                                                     return (
-                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                        <td className="footPre">{item.jabatan === null ? "-" : 'SPV'}</td>
                                                     )
                                                 })}
                                                 </tr>
@@ -1067,11 +1068,13 @@ class Mutasi extends Component {
                     <div className="modalFoot ml-3">
                     {/* onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})} */}
                         {/* <Button color="primary">Preview</Button> */}
-                        <div></div>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="secondary" onClick={() => this.openModalPre()}>
-                                Close
+                            <Button className="mr-2" color="success">
+                                <TableMut />
                             </Button>
+                            <Button color="primary" onClick={this.openModalPre}>Close</Button>
+                        </div>
+                        <div className="btnFoot">
                         </div>
                     </div>
                 </Modal>

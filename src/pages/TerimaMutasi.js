@@ -16,6 +16,7 @@ import mutasi from '../redux/actions/mutasi'
 import asset from '../redux/actions/asset'
 import {connect} from 'react-redux'
 import placeholder from  "../assets/img/placeholder.png"
+import TableMut from '../components/TableMut'
 import Select from 'react-select'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
@@ -1010,7 +1011,12 @@ class TerimaMutasi extends Component {
                     <hr />
                     <div className="modalFoot ml-3">
                     {/* onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})} */}
-                        <Button color="primary" onClick={this.openModalPre}>Close</Button>
+                        <div className="btnFoot">
+                            <Button className="mr-2" color="success">
+                                <TableMut />
+                            </Button>
+                            <Button color="primary" onClick={this.openModalPre}>Close</Button>
+                        </div>
                         <div className="btnFoot">
                         </div>
                     </div>

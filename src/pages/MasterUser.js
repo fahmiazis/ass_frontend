@@ -29,7 +29,6 @@ const userSchema = Yup.object().shape({
 const userEditSchema = Yup.object().shape({
     username: Yup.string().required(),
     fullname: Yup.string().required(),
-    password: Yup.string(),
     depo: Yup.string(),
     user_level: Yup.string().required(),
     status: Yup.string().required()
@@ -629,12 +628,12 @@ class MasterUser extends Component {
                     <ModalHeader toggle={this.openModalEdit}>Edit Master User</ModalHeader>
                     <Formik
                     initialValues={{
-                    username: detail.username,
-                    depo: detail.kode_plant + "-" + detail.nama_depo,
-                    user_level: detail.user_level, 
-                    status: detail.status,
-                    email: detail.email,
-                    fullname: detail.fullname
+                    username: detail.username === null ? '' : detail.username,
+                    depo: level === '5' ? detail.kode_plant + "-" + detail.nama_depo : '',
+                    user_level: detail.user_level === null ? '' : detail.user_level, 
+                    status: 'active',
+                    email: detail.email === null ? '' : detail.email,
+                    fullname: detail.fullname === null ? '' : detail.fullname
                     }}
                     validationSchema={userEditSchema}
                     onSubmit={(values) => {this.editUser(values, detail.id)}}

@@ -24,7 +24,7 @@ import MaterialTitlePanel from "../components/material_title_panel"
 import SidebarContent from "../components/sidebar_content"
 import placeholder from  "../assets/img/placeholder.png"
 import disposal from '../redux/actions/disposal'
-import TablePeng from '../components/TablePeng'
+import TableMut from '../components/TableMut'
 import notif from '../redux/actions/notif'
 import mutasi from '../redux/actions/mutasi'
 import NavBar from '../components/NavBar'
@@ -815,7 +815,12 @@ class EksekusiMut extends Component {
                     <hr />
                     <div className="modalFoot ml-3">
                     {/* onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})} */}
-                        <Button color="primary" onClick={this.openModalPre}>Close</Button>
+                        <div className="btnFoot">
+                            <Button className="mr-2" color="success">
+                                <TableMut />
+                            </Button>
+                            <Button color="primary" onClick={this.openModalPre}>Close</Button>
+                        </div>
                         <div className="btnFoot">
                         </div>
                     </div>

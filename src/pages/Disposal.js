@@ -397,9 +397,11 @@ class Disposal extends Component {
         } else if (reject) {
             this.openConfirm(this.setState({confirm: 'reject'}))
             this.props.resAppRej()
+            this.openModalDis()
         } else if (approve) {
             this.openConfirm(this.setState({confirm: 'approve'}))
             this.props.resAppRej()
+            this.openModalDis()
         } else if (rejReject) {
             this.openConfirm(this.setState({confirm: 'rejReject'}))
             this.openModalReject()
@@ -435,7 +437,7 @@ class Disposal extends Component {
     componentDidMount() {
         const level = localStorage.getItem('level')
         this.getNotif()
-        if (level === "5" ) {
+        if (level === "5" || level === '9') {
             this.getDataAsset()
         } else {
             this.getDataDisposal()
@@ -638,7 +640,7 @@ class Disposal extends Component {
                                     <div className={style.titleDashboard}>Disposal Asset</div>
                                 </div>
                                 <div className={level === '2' ? style.secEmail1 : style.secEmail}>
-                                    {level === '5' ? (
+                                    {level === '5' || level === '9' ? (
                                         <div className={style.headEmail}>
                                             <button onClick={this.goCartDispos} className="btnGoCart"><FaCartPlus size={60} className="green ml-2" /></button>
                                         </div>
@@ -671,7 +673,7 @@ class Disposal extends Component {
                                         </Input>
                                     </div>
                                 </div>
-                                {level === '5' ? (
+                                {level === '5' || level === '9' ? (
                                     this.props.asset.isGet === false ? (
                                         <div></div>
                                     ) : (
@@ -812,7 +814,7 @@ class Disposal extends Component {
                                                     </div>
                                                     <Row className="footCard mb-3 mt-3">
                                                         <Col md={12} xl={12}>
-                                                            <Button className="btnSell" color="primary" onClick={() => {this.getDetailDisposal(item.no_disposal); this.getApproveDis({nama: 'disposal pengajuan', no: item.no_disposal})}}>Proses</Button>
+                                                            <Button className="btnSell" color="primary" onClick={() => {this.getDetailDisposal(item.no_disposal); this.getApproveDis({nama: item.kode_plant.split('').length === 4 ? 'disposal pengajuan' :  'disposal pengajuan HO', no: item.no_disposal})}}>Proses</Button>
                                                         </Col>
                                                     </Row>
                                                 </div>
@@ -824,18 +826,18 @@ class Disposal extends Component {
                                 )}
                                 <div>
                                     <div className={style.infoPageEmail}>
-                                        {level === '5' ? (
+                                        {level === '5' || level === '9' ? (
                                             <text>Showing {page === undefined ? 1 : page.currentPage} of {page.pages === undefined ? 1 : page.pages} pages</text>
                                         ) : (
                                             <text>Showing 1 of 1 pages</text>
                                         )}
                                         <div className={style.pageButton}>
-                                            {level === '5' ? (
+                                            {level === '5' || level === '9' ? (
                                                 <button className={style.btnPrev} color="info" disabled={page.prevLink === undefined || page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
                                             ) : (
                                                 <button className={style.btnPrev} color="info" disabled>Prev</button>
                                             )}
-                                            {level === '5' ? (
+                                            {level === '5' || level === '9' ? (
                                                 <button className={style.btnPrev} color="info" disabled={page.nextLink === undefined || page.nextLink === null ? true : false} onClick={this.next}>Next</button>
                                             ) : (
                                                 <button className={style.btnPrev} color="info" disabled>Next</button>
@@ -847,7 +849,7 @@ class Disposal extends Component {
                         </div>
                     </MaterialTitlePanel>
                 </Sidebar>
-                <Modal isOpen={this.props.asset.isLoading && level === '5' ? true: false} size="sm">
+                <Modal isOpen={this.props.asset.isLoading && (level === '5' || level === '9') ? true: false} size="sm">
                         <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>
@@ -945,7 +947,7 @@ class Disposal extends Component {
                     </ModalBody>
                     <hr />
                     <div className="modalFoot ml-3">
-                        <Button color="primary" onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})}>Preview</Button>
+                        <Button color="primary" onClick={() => this.openModPreview({nama: detailDis[0] !== undefined && detailDis[0].kode_plant.split('').length === 4 ? 'disposal pengajuan' : 'disposal pengajuan HO', no: detailDis[0] !== undefined && detailDis[0].no_disposal})}>Preview</Button>
                         <div className="btnFoot">
                             <Button className="mr-2" color="danger" disabled={detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true} onClick={this.openModalReject}>
                                 Reject
@@ -1047,7 +1049,7 @@ class Disposal extends Component {
                                                 <tr>
                                                 {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
                                                     return (
-                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                        <td className="footPre">{item.jabatan === null ? "-" : 'SPV'}</td>
                                                     )
                                                 })}
                                                 </tr>

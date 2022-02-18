@@ -27,13 +27,20 @@ const userEditSchema = Yup.object().shape({
     email: Yup.string().email().required('must be filled')
 });
 
+const changeSchema = Yup.object().shape({
+    current_password: Yup.string().required('must be filled'),
+    confirm_password: Yup.string().required('must be filled'),
+    new_password: Yup.string().required('must be filled')
+});
+
 class Home extends Component {
 
     state = {
         modalEdit: false,
         relog: false,
         alert: false,
-        setting: false
+        setting: false,
+        modalChange: false
     }
 
     openModalEdit = () => {
@@ -77,6 +84,15 @@ class Home extends Component {
         }
         await this.props.updateUser(token, id, data)
     }
+    
+    editPass = async (val) => {
+        const token = localStorage.getItem("token")
+        const data = {
+            new: val.new_password,
+            current: val.current_password
+        }
+        await this.props.changePassword(token, data)
+     }
 
     getNotif = async () => {
         const token = localStorage.getItem("token")
@@ -84,13 +100,17 @@ class Home extends Component {
     }
 
     componentDidUpdate() {
-        const {isUpdate, isError} = this.props.user
+        const {isUpdate, isError, isChange} = this.props.user
         if (isUpdate) {
             this.openModalEdit()
             this.setState({relog: true})
             this.props.reset()
         } else if (isError) {
             this.showAlert()
+            this.props.reset()
+        } else if (isChange) {
+            this.openModalChange()
+            this.setState({relog: true})
             this.props.reset()
         }
     }
@@ -112,6 +132,10 @@ class Home extends Component {
         } else if (id === null) {
             this.relogin()
         }
+    }
+
+    openModalChange = () => {
+        this.setState({modalChange: !this.state.modalChange})
     }
 
     logout = () => {
@@ -201,7 +225,7 @@ class Home extends Component {
                                     <text className="black">{level === '1' ? 'Super Admin' : names}</text>
                                 </DropdownToggle>
                                 <DropdownMenu right>
-                                    <DropdownItem>
+                                    <DropdownItem onClick={this.openModalChange}>
                                         Change Password
                                     </DropdownItem>
                                     <DropdownItem onClick={() => this.logout()}>
@@ -306,6 +330,86 @@ class Home extends Component {
                     )}
                 </Formik>
             </Modal>
+            <Modal isOpen={this.state.modalChange} toggle={this.openModalChange}>
+                <ModalHeader>Change Password</ModalHeader>
+                <Formik
+                initialValues={{
+                current_password: '',
+                confirm_password: '',
+                new_password: ''
+                }}
+                validationSchema={changeSchema}
+                onSubmit={(values) => {this.editPass(values)}}
+                >
+                    {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                <ModalBody>
+                    {/* <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
+                        <div>{alertMsg}</div>
+                        <div>{alertM}</div>
+                    </Alert> */}
+                    <div className={style.addModalDepo}>
+                        <text className="col-md-4">
+                            Current password
+                        </text>
+                        <div className="col-md-8">
+                            <Input 
+                            type='password' 
+                            name="current_password"
+                            value={values.current_password}
+                            onBlur={handleBlur("current_password")}
+                            onChange={handleChange("current_password")}
+                            />
+                            {errors.current_password ? (
+                                <text className={style.txtError}>{errors.current_password}</text>
+                            ) : null}
+                        </div>
+                    </div>
+                    <div className={style.addModalDepo}>
+                        <text className="col-md-4">
+                            New password
+                        </text>
+                        <div className="col-md-8">
+                            <Input 
+                            type='password' 
+                            name="new_password"
+                            value={values.new_password}
+                            onBlur={handleBlur("new_password")}
+                            onChange={handleChange("new_password")}
+                            />
+                            {errors.new_password ? (
+                                <text className={style.txtError}>{errors.new_password}</text>
+                            ) : null}
+                        </div>
+                    </div>
+                    <div className={style.addModalDepo}>
+                        <text className="col-md-4">
+                            Confirm password
+                        </text>
+                        <div className="col-md-8">
+                            <Input 
+                            type='password' 
+                            name="confirm_password"
+                            value={values.confirm_password}
+                            onBlur={handleBlur("confirm_password")}
+                            onChange={handleChange("confirm_password")}
+                            />
+                            {values.confirm_password !== values.new_password ? (
+                                <text className={style.txtError}>Password do not match</text>
+                            ) : null}
+                        </div>
+                    </div>
+                    <hr/>
+                    <div className={style.foot}>
+                        <div></div>
+                        <div>
+                            <Button className="mr-2" onClick={handleSubmit} color="primary">Save</Button>
+                            <Button className="mr-3" onClick={this.openModalChange} color="danger">Close</Button>
+                        </div>
+                    </div>
+                </ModalBody>
+                    )}
+                </Formik>
+            </Modal>
             <Modal>
                 <ModalBody>
                     
@@ -338,6 +442,7 @@ const mapDispatchToProps = {
     updateUser: user.updateUser,
     reset: user.resetError,
     logout: auth.logout,
+    changePassword: user.changePassword,
     getNotif: notif.getNotif
 }
 

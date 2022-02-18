@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Page } from "react-pdf";
-import { Document } from 'react-pdf/dist/esm/entry.webpack'
+import { Document, Page, pdfjs } from "react-pdf";
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
 export default function AllPages(props) {
   const [numPages, setNumPages] = useState(null);

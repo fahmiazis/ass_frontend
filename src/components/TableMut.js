@@ -1,85 +1,130 @@
 import React, { Component } from 'react'
 import { Table, TableBody, TableCell, TableHeader, DataTableCell } from '@david.kucsai/react-pdf-table'
-import { PDFDownloadLink, Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
+import { PDFDownloadLink, Page, Text, View, Document, StyleSheet, Image } from '@react-pdf/renderer';
 import setuju from '../redux/actions/setuju'
+import mutasi from '../redux/actions/mutasi'
 import {connect} from 'react-redux'
 import moment from 'moment'
+import logo from '../assets/img/logo.png'
 
 class TablePdf extends Component {
 
     render() {
-        const {disApp} = this.props.setuju
-        const dataDis = this.props.dataDis
+        const {mutApp, detailMut} = this.props.mutasi
         return (
             <PDFDownloadLink className="btnDownloadForm" document={
                 <Document>
                     <Page size="A4" style={styles.page} orientation="landscape">
-                        <Text style={styles.font}>PT. Pinus Merah Abadi</Text>
-                        <View style={styles.modalDis}>
-                            <Text style={[styles.titleModDis, styles.fontTit]}>Persetujuan Disposal Asset</Text>
+                        <View style={styles.secNav}>
+                            <Image src={logo} style={styles.img} />
+                            <View style={styles.modalDis}>
+                                <Text style={[styles.titleModDis, styles.fontTit]}>FORM MUTASI ASSET / INVENTARIS</Text>
+                            </View>
+                            <View>
+                                <Text style={[styles.font]}>
+                                No                                : {detailMut.length !== 0 ? detailMut[0].no_mutasi : ''}
+                                </Text>
+                                <Text style={[styles.font]}>
+                                Tanggal Form               : {detailMut.length !== 0 ? moment(detailMut[0].createdAt).format('DD MMMM YYYY') : ''}
+                                </Text>
+                                <Text style={[styles.font]}>
+                                Tanggal Mutasi Fisik    : {detailMut.length !== 0 ? moment(detailMut[0].tgl_mutasifisik).format('DD MMMM YYYY') : ''}
+                                </Text>
+                                <Text style={[styles.font]}>
+                                Depo                            : {detailMut.length !== 0 ? detailMut[0].area : ''}
+                                </Text>
+                            </View>
                         </View>
-                        <View style={styles.marbot}><Text style={styles.font}>Bandung, {moment().format('DD MMMM YYYY ')}</Text></View>
-                        <View style={styles.marbotT}>
-                            <Text style={[styles.font]}>
-                            Hal : Persetujuan Disposal Asset
-                            </Text>
-                        </View>
-                        <Text style={styles.font}>Kepada Yth.</Text>
-                        <Text style={[styles.marbotT, styles.font]}>Bpk. Erwin Lesmana</Text>
-                        <Text style={[styles.marbotT, styles.font]}>Dengan Hormat,</Text>
-                        <Text style={styles.font}>Sehubungan dengan surat permohonan disposal aset area PMA terlampir</Text>
-                        <Text style={[styles.marbotT, styles.font]}>Dengan ini kami mohon persetujuan untuk melakukan disposal aset dengan perincian sbb :</Text>
                         <Table
-                            data={dataDis} style={styles.marbot}
+                            data={detailMut} style={styles.marbot}
                         >
                             <TableHeader style={styles.header}>
                                 <TableCell style={[styles.font, styles.headerText, styles.number]}  weighting={0.1}>No</TableCell>
                                 <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>Nomor Aset</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.4} >{"Area" + "\n" + "(Cabang/Depo/CP)"}</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={1} >Nama Barang</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>Nilai Buku</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>Nilai Jual</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>{"Tanggal" + "\n" + "Perolehan"}</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={1} >Keterangan</TableCell>
+                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.4} >Nama Asset</TableCell>
+                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.4} >Merk/Type</TableCell>
+                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.1}>Kategori</TableCell>
+                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>Cabang/Depo</TableCell>
+                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>Cost Center</TableCell>
+                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>{"Cabang/Depo" + "\n" + "Penerima"}</TableCell>
+                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>{"Cost Center" + "\n" + "Penerima"}</TableCell>
                             </TableHeader>
                             <TableBody>
-                                <DataTableCell style={[styles.font, styles.number]} weighting={0.1} getContent={(r) => dataDis.indexOf(r) + 1}/>
+                                <DataTableCell style={[styles.font, styles.number]} weighting={0.1} getContent={(r) => detailMut.indexOf(r) + 1}/>
                                 <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.no_asset}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.4} getContent={(r) => r.area}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={1} getContent={(r) => r.nama_asset}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.nilai_buku === undefined || r.nilai_buku === null ? r.nilai_buku : r.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.nilai_jual === undefined || r.nilai_jual === null ? r.nilai_jual : r.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => moment(r.dataAsset.tanggal).format('DD/MM/YYYY')}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={1} getContent={(r) => r.keterangan}/>
+                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.4} getContent={(r) => r.nama_asset}/>
+                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.4} getContent={(r) => r.merk}/>
+                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.1} getContent={(r) => r.kategori}/>
+                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.area}/>
+                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.cost_center}/>
+                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.area_rec}/>
+                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.cost_center_rec}/>
                             </TableBody>
                         </Table>
-                        <Text break={dataDis.length <= 18 ? false : dataDis.length > 18 && dataDis.length <= 26 ? true : (dataDis.length - 26) % 36 >= 1 && (dataDis.length - 26) % 36 <= 27 ? false : true} style={[styles.marbotT, styles.font, styles.martop]}>Demikian hal yang dapat kami sampaikan perihal persetujuan disposal aset, atas perhatiannya kami mengucapkan terima kasih.</Text>
+                        <Text break={detailMut.length <= 18 ? false : detailMut.length > 18 && detailMut.length <= 26 ? true : (detailMut.length - 26) % 36 >= 1 && (detailMut.length - 26) % 36 <= 27 ? false : true} style={[styles.marbotT, styles.font, styles.martop]}>.</Text>
+                        <View style={styles.alMut}>
+                            <View style={styles.alasanMut}>
+                                <Text style={styles.titAlasan}>Alasan Mutasi :</Text>
+                                <Text style={styles.fontAl}>{detailMut.length !== 0 ? detailMut[0].alasan : ''}</Text>
+                            </View>
+                        </View>
                         <Table data={[{id: 1}]}>
+                            {detailMut.find(({kategori}) => kategori === 'IT') ? (
+                                <TableHeader>
+                                    <TableCell style={styles.fontTtdHead}  weighting={0.19}>Dibuat Oleh,</TableCell>
+                                    <TableCell style={styles.fontTtdHead}  weighting={0.19}>Diterima Oleh,</TableCell>
+                                    <TableCell style={styles.fontTtdHead} weighting={0.61}>Diperiksa Oleh,</TableCell>
+                                    <TableCell style={styles.fontTtdHead} weighting={0.4}>Disetujui Oleh,</TableCell>
+                                </TableHeader>
+                            ) : (
                             <TableHeader>
-                                <TableCell style={styles.fontTtdHead}  weighting={0.237}>Diajukan Oleh,</TableCell>
-                                <TableCell style={styles.fontTtdHead} >Disetujui Oleh,</TableCell>
+                                <TableCell style={styles.fontTtdHead}  weighting={0.24}>Dibuat Oleh,</TableCell>
+                                <TableCell style={styles.fontTtdHead}  weighting={0.24}>Diterima Oleh,</TableCell>
+                                <TableCell style={styles.fontTtdHead} weighting={0.5}>Diperiksa Oleh,</TableCell>
+                                <TableCell style={styles.fontTtdHead} weighting={0.5}>Disetujui Oleh,</TableCell>
                             </TableHeader>
+                            )}
                         </Table>
                         <Table data={[{id: 1}]}>
                             <TableHeader style={styles.header}>
-                                {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
+                                {mutApp.pembuat !== undefined && mutApp.pembuat.map(item => {
                                     return (
                                         <TableCell style={styles.fontTtd}>{item.nama === null ? "-" : item.status === 0 ? 'Reject' + '\n\n' + item.nama : moment(item.updatedAt).format('LL') + '\n\n' + item.nama}</TableCell>
                                     )
                                 })}
-                                {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
+                                {mutApp.penerima !== undefined && mutApp.penerima.map(item => {
+                                    return (
+                                        <TableCell style={styles.fontTtd}>{item.nama === null ? "-" : item.status === 0 ? 'Reject' + '\n\n' + item.nama : moment(item.updatedAt).format('LL') + '\n\n' + item.nama}</TableCell>
+                                    )
+                                })}
+                                {mutApp.pemeriksa !== undefined && mutApp.pemeriksa.map(item => {
+                                    return (
+                                        <TableCell style={styles.fontTtd}>{item.nama === null ? "-" : item.status === 0 ? 'Reject' + '\n\n' + item.nama : moment(item.updatedAt).format('LL') + '\n\n' + item.nama}</TableCell>
+                                    )
+                                })}
+                                {mutApp.penyetuju !== undefined && mutApp.penyetuju.map(item => {
                                     return (
                                         <TableCell style={styles.fontTtd}>{item.nama === null ? "-" : item.status === 0 ? 'Reject' + '\n\n' + item.nama : moment(item.updatedAt).format('LL') + '\n\n' + item.nama}</TableCell>
                                     )
                                 })}
                             </TableHeader>
                             <TableBody>
-                                {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
+                                {mutApp.pembuat !== undefined && mutApp.pembuat.map(item => {
                                     return (
                                         <DataTableCell style={styles.fontTtd} getContent={(r) => item.jabatan === null ? "-" : item.jabatan}/>
                                     )
                                 })}
-                                {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
+                                {mutApp.penerima !== undefined && mutApp.penerima.map(item => {
+                                    return (
+                                        <DataTableCell style={styles.fontTtd} getContent={(r) => item.jabatan === null ? "-" : item.jabatan}/>
+                                    )
+                                })}
+                                {mutApp.pemeriksa !== undefined && mutApp.pemeriksa.map(item => {
+                                    return (
+                                        <DataTableCell style={styles.fontTtd} getContent={(r) => item.jabatan === null ? "-" : item.jabatan}/>
+                                    )
+                                })}
+                                {mutApp.penyetuju !== undefined && mutApp.penyetuju.map(item => {
                                     return (
                                         <DataTableCell style={styles.fontTtd} getContent={(r) => item.jabatan === null ? "-" : item.jabatan}/>
                                     )
@@ -92,7 +137,7 @@ class TablePdf extends Component {
                     </Page>
                 </Document>
                 } 
-                fileName={`Form Persetujuan Disposal ${dataDis[0] !== undefined ? 'D' + dataDis[0].status_app : ''}.pdf`}>
+                fileName={`Form Persetujuan Mutasi ${detailMut[0] !== undefined ? detailMut[0].no_mutasi : ''}.pdf`}>
                 {({ blob, url, loading, error }) => (loading ? 'Loading document...' : 'Download Form')}
             </PDFDownloadLink>
         )
@@ -100,7 +145,8 @@ class TablePdf extends Component {
 }
 
 const mapStateToProps = state => ({
-    setuju: state.setuju
+    setuju: state.setuju,
+    mutasi: state.mutasi
 })
 
 const mapDispatchToProps = {
@@ -120,6 +166,35 @@ const styles = StyleSheet.create({
       paddingRight: '10px',
       paddingBottom: '30px'
     },
+    alMut: {
+        display: 'flex',
+        flexDirection: 'row',
+        borderRadius: '10px',
+        marginBottom: '20px'
+    },
+    alasanMut: {
+        borderWidth: '1px',
+        borderStyle: 'solid',
+        borderColor: '#9b9b9b',
+        width: '25%',
+        padding: '2%',
+        display: 'flex',
+        flexDirection: 'column',
+        borderRadius: '10px'
+    },
+    titAlasan: {
+        fontWeight: 'bold',
+        textDecoration: 'underline',
+        fontSize: '12px',
+        marginBottom: '10px'
+    },
+    fontAl: {
+        fontSize: '11px'
+    },
+    img: {
+        width: 'auto',
+        height: '50px'
+    },
     section: {
       margin: 10,
       padding: 10,
@@ -127,6 +202,12 @@ const styles = StyleSheet.create({
     },
     padingTbl: {
         padding: 2,
+    },
+    secNav: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginBottom: '20px'
     },
     modalDis: {
         display: 'flex',
