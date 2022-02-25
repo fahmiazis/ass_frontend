@@ -206,13 +206,13 @@ class Mutasi extends Component {
     getDataApprove = async (val) => {
         const {detailMut} = this.state
         const token = localStorage.getItem('token')
-        await this.props.getApproveMut(token, detailMut[0].no_mutasi, val.kode_plant.split().length === 4 ? 'Mutasi' : 'Mutasi HO')
+        await this.props.getApproveMut(token, detailMut[0].no_mutasi, val.kode_plant.split('').length === 4 ? 'Mutasi' : 'Mutasi HO')
         this.openModalPre()
     }
 
     getDataApproveMut = async (val) => {
         const token = localStorage.getItem('token')
-        await this.props.getApproveMut(token, val.no_mutasi, val.kode_plant.split().length === 4 ? 'Mutasi' : 'Mutasi HO')
+        await this.props.getApproveMut(token, val.no_mutasi, val.kode_plant.split('').length === 4 ? 'Mutasi' : 'Mutasi HO')
     }
 
     openModalPre = () => {

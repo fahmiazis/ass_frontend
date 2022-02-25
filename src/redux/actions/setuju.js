@@ -47,6 +47,10 @@ export default {
         type: 'REJECT_TAXFIN',
         payload: http(token).patch(`/disposal/taxfin/rej/${no}?tipe=${tipe}`)
     }),
+    getDataPurch: (token) => ({
+        type: 'GET_PURCH',
+        payload: http(token).get('/disposal/purch/get')
+    }),
     resetSetuju: () => ({
         type: 'RESET_SETUJU'
     }),

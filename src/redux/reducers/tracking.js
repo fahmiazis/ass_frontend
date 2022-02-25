@@ -7,7 +7,9 @@ const trackingState = {
     dataDis: [],
     noDis: [],
     dataMut: [],
-    noMut: []
+    noMut: [],
+    isGetStock: false,
+    dataStock: []
 }
 
 export default (state=trackingState, action) => {
@@ -56,6 +58,30 @@ export default (state=trackingState, action) => {
             };
         }
         case 'TRACK_MUT_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'TRACK_STOCK_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'TRACK_STOCK_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isGetStock: true,
+                dataStock: action.payload.data.result.rows,
+                alertMsg: 'get data tracking Succesfully'
+            };
+        }
+        case 'TRACK_STOCK_REJECTED': {
             return {
                 ...state,
                 isLoading: false,

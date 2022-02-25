@@ -20,7 +20,7 @@ import stile from '../assets/css/input.module.css'
 const styles = {
   sidebar: {
     width: 350,
-    height: "100%"
+    height: "100%",
   },
   sidebarLink: {
     display: "block",

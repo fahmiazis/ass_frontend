@@ -42,7 +42,7 @@ const disposalSchema = Yup.object().shape({
     nilai_jual: Yup.string().required()
 })
 
-class TrackingMutasi extends Component {
+class TrackingStock extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -82,7 +82,7 @@ class TrackingMutasi extends Component {
             newMut: [],
             detailMut: [],
             formDis: false,
-            collap: false,
+            collap: true,
             tipeCol: ''
         }
         this.onSetOpen = this.onSetOpen.bind(this);
@@ -221,7 +221,7 @@ class TrackingMutasi extends Component {
 
     getDataTrack = async () => {
         const token = localStorage.getItem('token')
-        await this.props.trackMutasi(token)
+        await this.props.trackStock(token)
         this.filterData()
     }
     
@@ -229,7 +229,7 @@ class TrackingMutasi extends Component {
         const { noMut, dataMut } = this.props.tracking
         const newMut = []
         for (let i = 0; i < noMut.length; i++) {
-            const index = dataMut.indexOf(dataMut.find(({no_mutasi}) => no_mutasi === noMut[i]))
+            const index = dataMut.indexOf(dataMut.find(({no_stock}) => no_stock === noMut[i]))
             if (dataMut[index] !== undefined) {
                 newMut.push(dataMut[index])
             }
@@ -257,11 +257,11 @@ class TrackingMutasi extends Component {
         const { dataMut } = this.props.tracking
         const detail = []
         for (let i = 0; i < dataMut.length; i++) {
-            if (dataMut[i].no_mutasi === value) {
+            if (dataMut[i].no_stock === value) {
                 detail.push(dataMut[i])
             }
         }
-        console.log(detail[0].no_mutasi)
+        console.log(detail[0].no_stock)
         this.setState({detailMut: detail})
         this.openModalDis()
     }
@@ -274,6 +274,7 @@ class TrackingMutasi extends Component {
     render() {
         const {isOpen, dropOpen, dropOpenNum, detail, alert, newMut, detailMut} = this.state
         const {dataDis, isGet, alertM, alertMsg, alertUpload, page, dataDoc} = this.props.disposal
+        const { dataStock } = this.props.tracking
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
 
@@ -328,96 +329,142 @@ class TrackingMutasi extends Component {
                                     })}
                                 </Alert>
                                 <div className={style.headMaster}>
-                                    <div className={style.titleDashboard1}>Tracking Mutasi</div>
+                                    <div className={style.titleDashboard2}>Tracking Stock Opname</div>
                                 </div>
-                                {newMut === undefined ? (
-                                        <div></div>
-                                    ) : (
-                                        <Row className="bodyDispos">
-                                        {newMut.length !== 0 && newMut.map(item => {
-                                            return (
-                                                newMut.length === 0 ? (
+                                <div>
+                                    <Row className='ml-4 trackSub'>
+                                        <Col md={2}>
+                                            Area
+                                        </Col>
+                                        <Col md={10}>
+                                        : {dataStock[0] === undefined ? '' : dataStock[0].area}
+                                        </Col>
+                                    </Row>
+                                    <Row className='ml-4 trackSub'>
+                                        <Col md={2}>
+                                        No Stock Opname
+                                        </Col>
+                                        <Col md={10}>
+                                        : {dataStock[0] === undefined ? '' : dataStock[0].no_stock}
+                                        </Col>
+                                    </Row>
+                                    <Row className='ml-4 trackSub1'>
+                                        <Col md={2}>
+                                        Tanggal Pengajuan Stock Opname
+                                        </Col>
+                                        <Col md={10}>
+                                        : {dataStock[0] === undefined ? '' : moment(dataStock[0].tanggalStock === null ? dataStock[0].createdAt : dataStock[0].tanggalStock).locale('idn').format('DD MMMM YYYY ')}
+                                        </Col>
+                                    </Row>
+                                    <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
+                                        <div class="step completed">
+                                            <div class="step-icon-wrap">
+                                            <button class="step-icon" onClick={() => this.showCollap('Submit')} ><FiSend size={40} className="center1" /></button>
+                                            </div>
+                                            <h4 class="step-title">Submit Stock Opname</h4>
+                                        </div>
+                                        <div class={dataStock[0] === undefined ? 'step' : dataStock[0].status_form > 2 ? "step completed" : 'step'} >
+                                            <div class="step-icon-wrap">
+                                                <button class="step-icon" onClick={() => this.showCollap('Pengajuan')}><MdAssignment size={40} className="center" /></button>
+                                            </div>
+                                            <h4 class="step-title">Pengajuan Stock Opname</h4>
+                                        </div> 
+                                        <div class={dataStock[0] === undefined ? 'step' : dataStock[0].status_form !== 9 && dataStock[0].status_form >= 8 ? "step completed" : 'step'}>
+                                            <div class="step-icon-wrap">
+                                                <button class="step-icon" onClick={() => this.showCollap('Eksekusi')}><FiTruck size={40} className="center" /></button>
+                                            </div>
+                                            <h4 class="step-title">Terima Stock Opname</h4>
+                                        </div>
+                                        <div class={dataStock[0] === undefined ? 'step' : dataStock[0].status_form === 8 ? "step completed" : 'step'}>
+                                            <div class="step-icon-wrap">
+                                                <button class="step-icon"><AiOutlineCheck size={40} className="center" /></button>
+                                            </div>
+                                            <h4 class="step-title">Selesai</h4>
+                                        </div>
+                                    </div>
+                                    <Collapse isOpen={this.state.collap} className="collapBody">
+                                        <Card className="cardCollap">
+                                            <CardBody>
+                                                <div className='textCard1'>{this.state.tipeCol} Stock Opname</div>
+                                                {this.state.tipeCol === 'submit' ? (
+                                                    <div>Tanggal submit : {dataStock[0] === undefined ? '' : moment(dataStock[0].tanggalStock === null ? dataStock[0].createdAt : dataStock[0].tanggalStock).locale('idn').format('DD MMMM YYYY ')}</div>
+                                                ) : (
+                                                    <div></div>
+                                                )}
+                                                <div>Rincian Asset:</div>
+                                                <Table striped bordered responsive hover className="tableDis mb-3">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>No</th>
+                                                            <th>Nomor Asset</th>
+                                                            <th>Nama Barang</th>
+                                                            <th>Merk/Type</th>
+                                                            <th>Kategori</th>
+                                                            <th>Status Fisik</th>
+                                                            <th>Kondisi</th>
+                                                            <th>Status Aset</th>
+                                                            <th>Keterangan</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {dataStock.length !== 0 && dataStock.map(item => {
+                                                            return (
+                                                                <tr>
+                                                                    <th scope="row">{dataStock.indexOf(item) + 1}</th>
+                                                                    <td>{item.no_asset}</td>
+                                                                    <td>{item.nama_asset}</td>
+                                                                    <td>{item.merk}</td>
+                                                                    <td>{item.kategori}</td>
+                                                                    <td>{item.status_fisik}</td>
+                                                                    <td>{item.kondisi}</td>
+                                                                    <td>{item.grouping}</td>
+                                                                    <td>{item.keterangan}</td>
+                                                                </tr>
+                                                            )
+                                                        })}
+                                                    </tbody>
+                                                </Table>
+                                                {dataStock[0] === undefined || this.state.tipeCol === 'Submit' ? (
                                                     <div></div>
                                                 ) : (
-                                                    <div className="bodyCard">
-                                                    <img src={placeholder} className="imgCard1" />
-                                                    
-                                                    {item.nilai_jual === '0' ? 
-                                                        (
-                                                        <Button size="sm" color="success" className="labelBut">Pemusnahan</Button>
-                                                        ) : (
-                                                            <div></div>
+                                                    <div>
+                                                        <div className="mb-4 mt-2">Tracking {this.state.tipeCol} :</div>
+                                                        {this.state.tipeCol === 'Pengajuan' ? (
+                                                            <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
+                                                                {dataStock[0] !== undefined && dataStock[0].appForm.length && dataStock[0].appForm.slice(0).reverse().map(item => {
+                                                                    return (
+                                                                        <div class={item.status === 1 ? 'step completed' : item.status === 0 ? 'step reject' : 'step'}>
+                                                                            <div class="step-icon-wrap">
+                                                                            <button class="step-icon"><FaFileSignature size={30} className="center2" /></button>
+                                                                            </div>
+                                                                            <h5 class="step-title">{moment(item.updatedAt).format('DD-MM-YYYY')} </h5>
+                                                                            <h4 class="step-title">{item.jabatan}</h4>
+                                                                        </div>
+                                                                    )
+                                                                })}
+                                                            </div>
+                                                        ) :  this.state.tipeCol === 'Eksekusi' && (
+                                                            <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
+                                                                <div class={dataStock[0] === undefined ? 'step' : dataStock[0].status_form !== 9 && dataStock[0].status_form > 2 ? "step completed" : 'step'}>
+                                                                    <div class="step-icon-wrap">
+                                                                    <button class="step-icon" ><FaFileSignature size={30} className="center2" /></button>
+                                                                    </div>
+                                                                    <h4 class="step-title">Check Data Stock Opname</h4>
+                                                                </div>
+                                                                <div class={dataStock[0] === undefined ? 'step' : dataStock[0].status_form !== 9 && dataStock[0].status_form >= 8 ? "step completed" : 'step'}>
+                                                                    <div class="step-icon-wrap">
+                                                                    <button class="step-icon" ><AiOutlineCheck size={30} className="center2" /></button>
+                                                                    </div>
+                                                                    <h4 class="step-title">Selesai</h4>
+                                                                </div>
+                                                            </div>
                                                         )}
-                                                        {item.nilai_jual !== '0' ?
-                                                        (
-                                                        <Button size="sm" color="warning" className="labelBut">Penjualan</Button>
-                                                        ) : (
-                                                            <div></div>
-                                                        )}
-                                                    <div className="ml-2">
-                                                        <div className="txtDoc mb-2">
-                                                            Pengajuan Mutasi Asset
-                                                        </div>
-                                                        <Row className="mb-2">
-                                                            <Col md={6} className="txtDoc">
-                                                            Area Asal
-                                                            </Col>
-                                                            <Col md={6} className="txtDoc">
-                                                            : {item.area}
-                                                            </Col>
-                                                        </Row>
-                                                        <Row className="mb-2">
-                                                            <Col md={6} className="txtDoc">
-                                                            Area Tujuan
-                                                            </Col>
-                                                            <Col md={6} className="txtDoc">
-                                                            : {item.area_rec}
-                                                            </Col>
-                                                        </Row>
-                                                        <Row className="mb-2">
-                                                            <Col md={6} className="txtDoc">
-                                                            No Mutasi
-                                                            </Col>
-                                                            <Col md={6} className="txtDoc">
-                                                            : {item.no_mutasi}
-                                                            </Col>
-                                                        </Row>
-                                                        <Row className="mb-2">
-                                                            <Col md={6} className="txtDoc">
-                                                            Status Approval
-                                                            </Col>
-                                                            {item.status_form > 2 ? (
-                                                                <Col md={6} className="txtDoc">
-                                                                : Full Approve
-                                                                </Col>
-                                                            ) : ( 
-                                                                item.appForm.find(({status}) => status === 0) !== undefined ? (
-                                                                    <Col md={6} className="txtDoc">
-                                                                    : Reject {item.appForm.find(({status}) => status === 0).jabatan}
-                                                                    </Col>
-                                                                ) : item.appForm.find(({status}) => status === 1) !== undefined ? (
-                                                                    <Col md={6} className="txtDoc">
-                                                                    : Approve {item.appForm.find(({status}) => status === 1).jabatan}
-                                                                    </Col>
-                                                                ) : (
-                                                                    <Col md={6} className="txtDoc">
-                                                                    : -
-                                                                    </Col>
-                                                                )
-                                                            )}
-                                                        </Row>
                                                     </div>
-                                                    <Row className="footCard mb-3 mt-3">
-                                                        <Col md={12} xl={12}>
-                                                            <Button className="btnSell" color="primary" onClick={() => {this.getDetailDisposal(item.no_mutasi)}}>Lacak</Button>
-                                                        </Col>
-                                                    </Row>
-                                                </div>
-                                                )
-                                            )
-                                        })}
-                                        </Row>
-                                    )}
+                                                )}
+                                            </CardBody>
+                                        </Card>
+                                    </Collapse>
+                                </div>
                             </div>
                         </div>
                     </MaterialTitlePanel>
@@ -439,7 +486,7 @@ class TrackingMutasi extends Component {
                     <ModalBody>
                         <Row className='trackTitle ml-4'>
                             <Col>
-                                Tracking Mutasi
+                                Tracking Stock Opname
                             </Col>
                         </Row>
                         <Row className='ml-4 trackSub'>
@@ -460,18 +507,18 @@ class TrackingMutasi extends Component {
                         </Row>
                         <Row className='ml-4 trackSub'>
                             <Col md={3}>
-                            No Mutasi
+                            No Stock Opname
                             </Col>
                             <Col md={9}>
-                            : {detailMut[0] === undefined ? '' : detailMut[0].no_mutasi}
+                            : {detailMut[0] === undefined ? '' : detailMut[0].no_stock}
                             </Col>
                         </Row>
                         <Row className='ml-4 trackSub1'>
                             <Col md={3}>
-                            Tanggal Pengajuan Mutasi
+                            Tanggal Pengajuan Stock Opname
                             </Col>
                             <Col md={9}>
-                            : {detailMut[0] === undefined ? '' : moment(detailMut[0].tanggalMut === null ? detailMut[0].createdAt : detailMut[0].tanggalMut).locale('idn').format('DD MMMM YYYY ')}
+                            : {detailMut[0] === undefined ? '' : moment(detailMut[0].tanggalStock === null ? detailMut[0].createdAt : detailMut[0].tanggalStock).locale('idn').format('DD MMMM YYYY ')}
                             </Col>
                         </Row>
                         <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
@@ -479,19 +526,19 @@ class TrackingMutasi extends Component {
                                 <div class="step-icon-wrap">
                                 <button class="step-icon" onClick={() => this.showCollap('Submit')} ><FiSend size={40} className="center1" /></button>
                                 </div>
-                                <h4 class="step-title">Submit Mutasi</h4>
+                                <h4 class="step-title">Submit Stock Opname</h4>
                             </div>
                             <div class={detailMut[0] === undefined ? 'step' : detailMut[0].status_form > 2 ? "step completed" : 'step'} >
                                 <div class="step-icon-wrap">
                                     <button class="step-icon" onClick={() => this.showCollap('Pengajuan')}><MdAssignment size={40} className="center" /></button>
                                 </div>
-                                <h4 class="step-title">Pengajuan Mutasi</h4>
+                                <h4 class="step-title">Pengajuan Stock Opname</h4>
                             </div> 
                             <div class={detailMut[0] === undefined ? 'step' : detailMut[0].status_form !== 9 && detailMut[0].status_form >= 3 ? "step completed" : 'step'}>
                                 <div class="step-icon-wrap">
                                     <button class="step-icon" onClick={() => this.showCollap('Eksekusi')}><FiTruck size={40} className="center" /></button>
                                 </div>
-                                <h4 class="step-title">Eksekusi Mutasi</h4>
+                                <h4 class="step-title">Eksekusi Stock Opname</h4>
                             </div>
                             {detailMut[0] === undefined ? (
                                 <div></div>
@@ -513,9 +560,9 @@ class TrackingMutasi extends Component {
                         <Collapse isOpen={this.state.collap} className="collapBody">
                             <Card className="cardCollap">
                                 <CardBody>
-                                    <div className='textCard1'>{this.state.tipeCol} Mutasi</div>
+                                    <div className='textCard1'>{this.state.tipeCol} Stock Opname</div>
                                     {this.state.tipeCol === 'submit' ? (
-                                        <div>Tanggal submit : {detailMut[0] === undefined ? '' : moment(detailMut[0].tanggalMut === null ? detailMut[0].createdAt : detailMut[0].tanggalMut).locale('idn').format('DD MMMM YYYY ')}</div>
+                                        <div>Tanggal submit : {detailMut[0] === undefined ? '' : moment(detailMut[0].tanggalStock === null ? detailMut[0].createdAt : detailMut[0].tanggalStock).locale('idn').format('DD MMMM YYYY ')}</div>
                                     ) : (
                                         <div></div>
                                     )}
@@ -575,7 +622,7 @@ class TrackingMutasi extends Component {
                                                         <div class="step-icon-wrap">
                                                         <button class="step-icon" ><FaFileSignature size={30} className="center2" /></button>
                                                         </div>
-                                                        <h4 class="step-title">Check Dokumen Terima Mutasi</h4>
+                                                        <h4 class="step-title">Check Dokumen Terima Stock Opname</h4>
                                                     </div>
                                                     <div class={detailMut[0] === undefined ? 'step' : detailMut[0].status_form !== 9 && detailMut[0].status_form > 2 ? "step completed" : 'step'}>
                                                         <div class="step-icon-wrap">
@@ -614,7 +661,7 @@ class TrackingMutasi extends Component {
                     </ModalBody>
                     <hr />
                     <div className="modalFoot ml-3">
-                        {/* <Button color="primary" onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailMut[0] !== undefined && detailMut[0].no_mutasi})}>Preview</Button> */}
+                        {/* <Button color="primary" onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailMut[0] !== undefined && detailMut[0].no_stock})}>Preview</Button> */}
                         <div></div>
                         <div className="btnFoot">
                             <Button color="primary" onClick={() => {this.openModalDis(); this.showCollap('close')}}>
@@ -625,7 +672,7 @@ class TrackingMutasi extends Component {
                 </Modal>
                 <Modal size="xl" isOpen={this.state.openModalDoc} toggle={this.closeProsesModalDoc}>
                 <ModalHeader>
-                   Kelengkapan Dokumen Eksekusi Mutasi
+                   Kelengkapan Dokumen Eksekusi Stock Opname
                 </ModalHeader>
                 <ModalBody>
                     <Container>
@@ -727,7 +774,8 @@ const mapDispatchToProps = {
     submitEksDisposal: setuju.submitEksDisposal,
     showDokumen: pengadaan.showDokumen,
     getTrack: tracking.getTrack,
-    trackMutasi: tracking.trackMutasi
+    trackMutasi: tracking.trackMutasi,
+    trackStock: tracking.trackStock
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(TrackingMutasi)
+export default connect(mapStateToProps, mapDispatchToProps)(TrackingStock)

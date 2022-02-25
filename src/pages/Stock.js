@@ -920,54 +920,58 @@ class Stock extends Component {
                                             <Row className="bodyDispos">
                                                 {dataStock.length !== 0 && dataStock.map(item => {
                                                     return (
-                                                        <div className="bodyCard">
-                                                            <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="imgCard1" />
-                                                            <Button size="sm" color="success" className="labelBut">Stock Opname</Button>
-                                                            {/* <button className="btnDispos" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}></button> */}
-                                                            <div className="btnDispos ml-2">
-                                                                <div className="txtDoc mb-2">
-                                                                    Pengajuan Stock Opname
+                                                        item.status_form === 8 ? (
+                                                            null
+                                                        ) : (
+                                                            <div className="bodyCard">
+                                                                <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="imgCard1" />
+                                                                <Button size="sm" color="success" className="labelBut">Stock Opname</Button>
+                                                                {/* <button className="btnDispos" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}></button> */}
+                                                                <div className="btnDispos ml-2">
+                                                                    <div className="txtDoc mb-2">
+                                                                        Pengajuan Stock Opname
+                                                                    </div>
+                                                                    <Row className="mb-2">
+                                                                        <Col md={5} className="txtDoc">
+                                                                        Kode Plant
+                                                                        </Col>
+                                                                        <Col md={7} className="txtDoc">
+                                                                        : {item.kode_plant}
+                                                                        </Col>
+                                                                    </Row>
+                                                                    <Row className="mb-2">
+                                                                        <Col md={5} className="txtDoc">
+                                                                        Area
+                                                                        </Col>
+                                                                        <Col md={7} className="txtDoc">
+                                                                        : {item.area}
+                                                                        </Col>
+                                                                    </Row>
+                                                                    <Row className="mb-2">
+                                                                        <Col md={5} className="txtDoc">
+                                                                        Tanggal Stock
+                                                                        </Col>
+                                                                        <Col md={7} className="txtDoc">
+                                                                        : {moment(item.tanggalStock).format('LL')}
+                                                                        </Col>
+                                                                    </Row>
+                                                                    <Row className="mb-2">
+                                                                        <Col md={5} className="txtDoc">
+                                                                        No Opname
+                                                                        </Col>
+                                                                        <Col md={7} className="txtDoc">
+                                                                        : {item.no_stock}
+                                                                        </Col>
+                                                                    </Row>
                                                                 </div>
-                                                                <Row className="mb-2">
-                                                                    <Col md={5} className="txtDoc">
-                                                                    Kode Plant
-                                                                    </Col>
-                                                                    <Col md={7} className="txtDoc">
-                                                                    : {item.kode_plant}
-                                                                    </Col>
-                                                                </Row>
-                                                                <Row className="mb-2">
-                                                                    <Col md={5} className="txtDoc">
-                                                                    Area
-                                                                    </Col>
-                                                                    <Col md={7} className="txtDoc">
-                                                                    : {item.area}
-                                                                    </Col>
-                                                                </Row>
-                                                                <Row className="mb-2">
-                                                                    <Col md={5} className="txtDoc">
-                                                                    Tanggal Stock
-                                                                    </Col>
-                                                                    <Col md={7} className="txtDoc">
-                                                                    : {moment(item.tanggalStock).format('LL')}
-                                                                    </Col>
-                                                                </Row>
-                                                                <Row className="mb-2">
-                                                                    <Col md={5} className="txtDoc">
-                                                                    No Opname
-                                                                    </Col>
-                                                                    <Col md={7} className="txtDoc">
-                                                                    : {item.no_stock}
+                                                                <Row className="footCard mb-3 mt-3">
+                                                                    <Col md={12} xl={12} className="colFoot">
+                                                                        <Button className="btnSell" color="primary" onClick={() => {this.getDetailStock(item); this.getApproveStock({nama: 'stock opname', no: item.no_stock})}}>Proses</Button>
+                                                                        {/* <Button className="btnSell ml-2" color="danger" onClick={() => this.deleteStock(item)}>Delete</Button> */}
                                                                     </Col>
                                                                 </Row>
                                                             </div>
-                                                            <Row className="footCard mb-3 mt-3">
-                                                                <Col md={12} xl={12} className="colFoot">
-                                                                    <Button className="btnSell" color="primary" onClick={() => {this.getDetailStock(item); this.getApproveStock({nama: 'stock opname', no: item.no_stock})}}>Proses</Button>
-                                                                    {/* <Button className="btnSell ml-2" color="danger" onClick={() => this.deleteStock(item)}>Delete</Button> */}
-                                                                </Col>
-                                                            </Row>
-                                                        </div>
+                                                        )
                                                     )
                                                 })}
                                             </Row>

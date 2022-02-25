@@ -9,6 +9,10 @@ export default {
     trackMutasi: (token) => ({
         type: 'TRACK_MUT',
         payload: http(token).get(`/track/mutasi`)
+    }),
+    trackStock: (token) => ({
+        type: 'TRACK_STOCK',
+        payload: http(token).get(`/track/stock`)
     })
 }
 

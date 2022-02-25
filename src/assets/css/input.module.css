@@ -177,6 +177,13 @@ html,body{
   width: 100%;
   margin-left: 3%;
 }
+.titleDashboard2 {
+  font-size: 40px;
+  margin-top: 8%;
+  width: 100%;
+  margin-left: 2%;
+  margin-bottom: 2%;
+}
 .headDashboard {
   display: flex;
   flex-direction: row;

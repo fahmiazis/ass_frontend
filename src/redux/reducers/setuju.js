@@ -21,7 +21,9 @@ const setujuState = {
     dataDis: [],
     noDis: [],
     page: {},
-    disApp: {}
+    disApp: {},
+    dataPurch: [],
+    getPurch: false
 };
 
 export default (state=setujuState, action) => {
@@ -206,6 +208,31 @@ export default (state=setujuState, action) => {
                 return {
                     ...state,
                     isError: true,
+                    isLoading: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'GET_PURCH_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'GET_PURCH_FULFILLED': {
+                return {
+                    ...state,
+                    getPurch: true,
+                    isLoading: false,
+                    dataPurch: action.payload.data.result.rows,
+                    alertMsg: 'get data purchasing Succesfully',
+                };
+            }
+            case 'GET_PURCH_REJECTED': {
+                return {
+                    ...state,
+                    isError: true,
+                    isLoading: false,
                     alertMsg: "Unable connect to server"
                 };
             }

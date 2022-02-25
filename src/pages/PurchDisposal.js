@@ -416,7 +416,7 @@ class PurchDisposal extends Component {
                         </div>
                     </MaterialTitlePanel>
                 </Sidebar>
-                <Modal isOpen={this.props.disposal.isLoading ? true: false} size="sm">
+                <Modal isOpen={this.props.disposal.isLoading || this.props.setuju.isLoading ? true: false} size="sm">
                         <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>
