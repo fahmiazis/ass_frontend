@@ -718,10 +718,10 @@ class Disposal extends Component {
                                                     ) : (
                                                         <Row className="footCard">
                                                             <Col md={6} xl={6}>
-                                                                <Button className="btnSell" color="warning" onClick={() => this.addSell(item.no_asset)}>Sell</Button>
+                                                                <Button className="btnSell" color="warning" onClick={() => this.addSell(item.no_asset)}>Penjualan</Button>
                                                             </Col>
                                                             <Col md={6} xl={6}>
-                                                                <Button className="btnSell" color="info" onClick={() => this.addDisposal(item.no_asset)}>Dispose</Button>
+                                                                <Button className="btnSell" color="info" onClick={() => this.addDisposal(item.no_asset)}>Pemusnahan</Button>
                                                             </Col>
                                                         </Row>
                                                     )}
@@ -1187,8 +1187,8 @@ class Disposal extends Component {
                                     </div>
                                 </div>
                                 <div className="footRinci">
-                                    <Button className="btnFootRinci" size="lg" color="warning">Sell</Button>
-                                    <Button className="btnFootRinci" size="lg" color="info" onClick={() => this.addDisposal(dataRinci.no_asset)}>Dispose</Button>
+                                    <Button className="btnFootRinci" size="lg" color="warning" onClick={() => this.addSell(dataRinci.no_asset)}>Penjualan</Button>
+                                    <Button className="btnFootRinci" size="lg" color="info" onClick={() => this.addDisposal(dataRinci.no_asset)}>Pemusnahan</Button>
                                 </div>
                             </div>
                         </div>

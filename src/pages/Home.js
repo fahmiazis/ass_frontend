@@ -158,10 +158,6 @@ class Home extends Component {
                     <Sidebar />
                 </div>
                 <div className="rightHome">
-                    {/* 
-                    
-                    <img src={repPicture} />
-                    <img src={stockPicture} /> */}
                     <div className="bodyAkun">
                         <div></div>
                         <div className="akun">

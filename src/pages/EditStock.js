@@ -426,7 +426,7 @@ class EditStock extends Component {
                 await this.props.getStatus(token, '', '')
                 this.modalStatus()
             } else {
-                await this.props.getStatus(token, detailAsset.status_fisik === null ? '' : detailAsset.status_fisik, detailAsset.kondisi === null ? '' : detailAsset.kondisi)
+                await this.props.getStatus(token, detailAsset.status_fisik === null ? '' : detailAsset.status_fisik, detailAsset.kondisi === null ? '' : detailAsset.kondisi, 'true')
                 this.modalStatus()
             }
         }

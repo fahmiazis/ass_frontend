@@ -31,7 +31,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin-top: 5%;
+    /* margin-top: 5%; */
 }
 .titleLogin {
     font-size: 250%;
@@ -161,10 +161,10 @@
 .rightHome {
     background-color: #F2F5F8;
     width: 85%;
-    height: 100%;
+    /* height: 100%; */
 }
 .bodyAkun {
-    margin-top: 2%;
+    /* margin-top: 2%; */
     padding-right: 2%;
     width: 100%;
     display: flex;
@@ -704,18 +704,15 @@
 }
 .btnFootRinci {
     width: 48%;
-    border-radius: 50px;
 }
 .btnFootRinci1 {
     width: 30%;
-    border-radius: 50px;
 }
 .btnFootRinci2 {
     width: 30%;
 }
 .btnFootRinci3 {
     width: 30%;
-    border-radius: 50px;
     height: 60%;
     margin-bottom: 2%;
 }
@@ -953,7 +950,7 @@
     color: white;
 }
 @import url("https://cdn.jsdelivr.net/npm/pixeden-stroke-7-icon@1.2.3/pe-icon-7-stroke/dist/pe-icon-7-stroke.min.css");
-body{margin-top:20px;}
+/* body{margin-top:20px;} */
 .steps .step {
     display: block;
     width: 100%;
@@ -1100,4 +1097,8 @@ body{margin-top:20px;}
     text-align: center;
     margin-top: 10%;
     margin-bottom: 10%;
+}
+.sumNilai {
+    text-align: center;
+    font-size: large;
 }

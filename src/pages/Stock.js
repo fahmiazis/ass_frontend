@@ -399,9 +399,10 @@ class Stock extends Component {
     addStock = async (val) => {
         const token = localStorage.getItem("token")
         const dataAsset = this.props.asset.assetAll
+        const { detailDepo } = this.props.depo
         const { kondisi, fisik } = this.state
         const data = {
-            area: dataAsset[0].area,
+            area: detailDepo.nama_area,
             kode_plant: dataAsset[0].kode_plant,
             deskripsi: val.deskripsi,
             merk: val.merk,
@@ -671,7 +672,7 @@ class Stock extends Component {
                             <div className={style.secEmail}>
                                     {level === '5' ? (
                                         <div className={style.headEmail}>
-                                            <Button onClick={this.prosesSubmitPre} color="info" size="lg" className="btnGoCart">Submit</Button>
+                                            <Button onClick={this.prosesSubmitPre} color="info" size="lg">Submit</Button>
                                         </div>
                                     ) : level === '2' && (
                                         <div className={style.headEmail}>
@@ -712,16 +713,16 @@ class Stock extends Component {
                                 </div>
                                 {level === '5' ? (
                                     <div>
-                                        <Button onClick={this.openModalSum} color="warning" size="lg" className="btnGoCart mt-3">Tambah Asset</Button>
+                                        <Button onClick={this.openModalSum} color="warning" size="lg" className="mt-3">Tambah Asset</Button>
                                         <div className="stockTitle">kertas kerja opname aset kantor</div>
                                         <div className="ptStock">pt. pinus merah abadi</div>
                                         <Row className="ptStock inputStock">
                                             <Col md={3} xl={3} sm={3}>kantor pusat/cabang</Col>
-                                            <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={dataAsset.length > 0 ? dataAsset[0].area : ''} className="ml-3"  /></Col>
+                                            <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={detailDepo.nama_area} className="ml-3"  /></Col>
                                         </Row>
                                         <Row className="ptStock inputStock">
                                             <Col md={3} xl={3} sm={3}>depo/cp</Col>
-                                            <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={dataAsset.length > 0 ? dataAsset[0].area : ''} className="ml-3" /></Col>
+                                            <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={detailDepo.nama_area} className="ml-3" /></Col>
                                         </Row>
                                         <Row className="ptStock inputStock">
                                             <Col md={3} xl={3} sm={3}>opname per tanggal</Col>
@@ -987,6 +988,8 @@ class Stock extends Component {
                                                             <th>No Stock Opname</th>
                                                             <th>Status Approve</th>
                                                             <th>Dokumentasi Aset</th>
+                                                            <th>Nama OM</th>
+                                                            <th>Nama BM</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -1000,6 +1003,8 @@ class Stock extends Component {
                                                                 <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).no_stock}</td>
                                                                 <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : <AiOutlineCheck color="primary" size={20} />}</td>
                                                                 <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : <AiOutlineCheck color="primary" size={20} />}</td>
+                                                                <td>{item.nama_om}</td>
+                                                                <td>{item.nama_bm}</td>
                                                             </tr>
                                                             )})}
                                                     </tbody>
@@ -2125,11 +2130,11 @@ class Stock extends Component {
                             <div className="ptStock">pt. pinus merah abadi</div>
                             <Row className="ptStock inputStock">
                                 <Col md={3} xl={3} sm={3}>kantor pusat/cabang</Col>
-                                <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={dataAsset.length > 0 ? dataAsset[0].area : ''} className="ml-3"  /></Col>
+                                <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={detailDepo.nama_area} className="ml-3"  /></Col>
                             </Row>
                             <Row className="ptStock inputStock">
                                 <Col md={3} xl={3} sm={3}>depo/cp</Col>
-                                <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={dataAsset.length > 0 ? dataAsset[0].area : ''} className="ml-3" /></Col>
+                                <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={detailDepo.nama_area} className="ml-3" /></Col>
                             </Row>
                             <Row className="ptStock inputStock">
                                 <Col md={3} xl={3} sm={3}>opname per tanggal</Col>

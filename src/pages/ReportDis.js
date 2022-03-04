@@ -165,6 +165,10 @@ class MasterUser extends Component {
         await this.props.nextPage(token, page.prevLink)
     }
 
+    changeTipe = (val) => {
+        this.setState({tipe: val})
+    }
+
     onSearch = (e) => {
         this.setState({search: e.target.value})
         if(e.key === 'Enter'){
@@ -332,6 +336,16 @@ class MasterUser extends Component {
                                         {/* <Button onClick={this.ExportMaster} disabled color="success" size="lg">Download</Button> */}
                                     </div>
                                     <div>
+                                        <text>Tipe Report: </text>
+                                        <ButtonDropdown className={style.drop} isOpen={dropOpenNum} toggle={this.dropOpen}>
+                                        <DropdownToggle caret color="light">
+                                            Report {this.state.tipe}
+                                        </DropdownToggle>
+                                        <DropdownMenu>
+                                            <DropdownItem className={style.item} onClick={() => this.changeTipe("transaksi")}>Report transaksi</DropdownItem>
+                                            <DropdownItem className={style.item} onClick={() => this.changeTipe("history")}>Report history</DropdownItem>
+                                        </DropdownMenu>
+                                        </ButtonDropdown>
                                     </div>
                                 </div>
                                 {dataRep.length === 0 ? (
@@ -372,6 +386,7 @@ class MasterUser extends Component {
                                                 <tr>
                                                     <th>No</th>
                                                     <th>No Pengajuan Disposal</th>
+                                                    <th>Nomor Asset</th>
                                                     <th>Tgl dibuat Form  Disposal aset</th>
                                                     <th>Tgl App BM</th>
                                                     <th>Tgl app ISM</th>
@@ -438,6 +453,7 @@ class MasterUser extends Component {
                                                     <tr>
                                                         <th>No</th>
                                                         <th>No Pengajuan Disposal</th>
+                                                        <th>Nomor Asset</th>
                                                         <th>Tgl dibuat Form  Disposal aset</th>
                                                         <th>Tgl App BM</th>
                                                         <th>Tgl app ISM</th>
@@ -494,20 +510,23 @@ class MasterUser extends Component {
                                                     <tr>
                                                         <th scope="row">{dataRep.indexOf(item) + 1}</th>
                                                         <td>{item.no_disposal === null ? '-' : `D${item.no_disposal}`}</td>
+                                                        <td>{item.no_asset}</td>
                                                         <td>{item.tanggalDis === null ? '-' : moment(item.tanggalDis).format('DD/MM/YYYY')}</td>
-                                                        <td>{item}</td>
-                                                        <td>{}</td>
-                                                        <td>{item.dataAsset === null ? '-' : item.dataAsset.kategori}</td>
-                                                        <td>{item.cost_center}</td>
-                                                        <td>{item.area}</td>
-                                                        <td>{item.dataAsset === null ? '-' : moment(item.dataAsset.tanggal).format('DD/MM/YYYY')}</td>
-                                                        <td>{item.dataAsset === null ? '-' : item.dataAsset.nilai_acquis === null ? '-' : item.dataAsset.nilai_acquis.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                        <td>{}</td>
-                                                        <td>{}</td>
-                                                        <td>{}</td>
-                                                        <td>{}</td>
-                                                        <td>{}</td>
-                                                        <td>{}</td>
+                                                        <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'BM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'BM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'BM').updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                                        <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'IT OSM') !== undefined &&item.appForm.find(({jabatan}) => jabatan === 'IT OSM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'IT OSM').updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                                        <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'IRM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'IRM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'IRM').updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                                        <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'AM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'AM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'AM').updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                                        <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'NFAM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'NFAM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'NFAM').updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                                        <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'HEAD OF OPS') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'HEAD OF OPS').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'HEAD OF OPS').updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                                        <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'HEAD OF HC') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'HEAD OF HC').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'HEAD OF HC').updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                                        <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'CM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'CM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'CM').updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                                        <td>{item.ttdSet.length > 0 && item.ttdSet.find(({jabatan}) => jabatan === 'NFAM') !== undefined && item.ttdSet.find(({jabatan}) => jabatan === 'NFAM').status === 1 ? moment(item.ttdSet.find(({jabatan}) => jabatan === 'NFAM').createdAt).format('DD/MM/YYYY') : '-'}</td>
+                                                        <td>{item.ttdSet.length > 0 && item.ttdSet.find(({jabatan}) => jabatan === 'NFAM') !== undefined && item.ttdSet.find(({jabatan}) => jabatan === 'NFAM').status === 1 ? moment(item.ttdSet.find(({jabatan}) => jabatan === 'NFAM').createdAt).format('DD/MM/YYYY') : '-'}</td>
+                                                        <td>{item.ttdSet.length > 0 && item.ttdSet.find(({jabatan}) => jabatan === 'CEO') !== undefined && item.ttdSet.find(({jabatan}) => jabatan === 'CEO').status === 1 ? moment(item.ttdSet.find(({jabatan}) => jabatan === 'CEO').updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                                        <td>{item.docAsset.length > 0 && item.docAsset.find(({tipe}) => tipe === 'dispose') !== undefined ? moment(item.docAsset.find(({tipe}) => tipe === 'dispose').createdAt).format('DD/MM/YYYY') : item.docAsset.find(({tipe}) => tipe === 'sell') !== undefined ? moment(item.docAsset.find(({tipe}) => tipe === 'sell').createdAt).format('DD/MM/YYYY') : '-'}</td>
+                                                        <td>{item.docAsset.length > 0 && item.docAsset.find(({tipe}) => tipe === 'finance') !== undefined ? moment(item.docAsset.find(({tipe}) => tipe === 'finance').createdAt).format('DD/MM/YYYY') : '-'}</td>
+                                                        <td>{item.docAsset.length > 0 && item.docAsset.find(({tipe}) => tipe === 'tax') !== undefined ? moment(item.docAsset.find(({tipe}) => tipe === 'tax').createdAt).format('DD/MM/YYYY') : '-'}</td>
+                                                        <td>{item.status_form === 8 ? moment(item.updatedAt).format('DD/MM/YYYY') : '-'}</td>
                                                     </tr>
                                                 )
                                                 )})}
