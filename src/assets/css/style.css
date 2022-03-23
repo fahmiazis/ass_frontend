@@ -15,6 +15,9 @@
 .secLogo {
     background-color: #F6F2F0;
 }
+.marDown {
+    margin-top: 50px;
+}
 .logoHome {
     width: 50%;
     height: auto;
@@ -402,7 +405,7 @@
     background-color: transparent;
     border: 0px;
     color: blue;
-    margin-bottom: 3%;
+    /* margin-bottom: 3%; */
     text-align: start;
 }
 .imgCard {
@@ -1101,4 +1104,9 @@
 .sumNilai {
     text-align: center;
     font-size: large;
+}
+.sec2Head {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 }

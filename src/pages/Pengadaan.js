@@ -29,12 +29,7 @@ class Pengadaan extends Component {
         value: "",
         profit: "",
         io: "",
-        data: [
-            [{
-                a: 'bcd'
-            }
-            ]
-        ],
+        data: [],
         index: 0,
         detail: {},
         errMsg: '',
@@ -153,7 +148,7 @@ class Pengadaan extends Component {
         this.setState({data: dataPeng[x]})
         const data = dataPeng[x]
         const token = localStorage.getItem('token')
-        await this.props.getApproveIo(token, data[0].no_pengadaan)
+        await this.props.getApproveIo(token, data.no_pengadaan)
         this.prosesModalIo()
     }
 
@@ -235,12 +230,12 @@ class Pengadaan extends Component {
                                 <tbody>
                                     <tr onClick={() => this.prepareFormIo(dataPeng.indexOf(x))}>
                                         <td>{dataPeng.indexOf(x) + 1}</td>
-                                        <td>{x[0].nama}</td>
-                                        <td>{x[0].price}</td>
-                                        <td>{x[0].qty}</td>
-                                        <td>Rp {x[0].price}</td>
-                                        <td>{x[0].kode_plant}</td>
-                                        <td>Belum Lengkap</td>
+                                        <td>{x.nama}</td>
+                                        <td>{x.price}</td>
+                                        <td>{x.qty}</td>
+                                        <td>Rp {x.price}</td>
+                                        <td>{x.kode_plant}</td>
+                                        <td>-</td>
                                         <td>0/8</td>
                                     </tr>
                                 </tbody>
@@ -308,10 +303,10 @@ class Pengadaan extends Component {
                                             <td>Rp 2.200.000</td>
                                         </tr> */}
                                             <tr>
-                                                <td>{this.state.data[0].qty}</td>
-                                                <td>{this.state.data[0].nama}</td>
-                                                <td>{this.state.data[0].price}</td>
-                                                <td>Rp {this.state.data[0].price}</td>
+                                                <td>{this.state.data.qty}</td>
+                                                <td>{this.state.data.nama}</td>
+                                                <td>{this.state.data.price}</td>
+                                                <td>Rp {parseInt(this.state.data.price) * parseInt(this.state.data.qty)}</td>
                                             </tr>
                                     </tbody>
                                 </Table>

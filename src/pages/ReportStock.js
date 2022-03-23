@@ -9,7 +9,9 @@ import Sidebar from "../components/Header";
 import SidebarContent from "../components/sidebar_content"
 import stock from '../redux/actions/stock'
 import auth from '../redux/actions/auth'
+import depo from '../redux/actions/depo'
 import {connect} from 'react-redux'
+import ReactHtmlToExcel from "react-html-table-to-excel"
 
 class ReportStock extends Component {
     constructor(props) {
@@ -35,7 +37,9 @@ class ReportStock extends Component {
             nilai_acquis: 0,
             drop: false,
             dropBtn: false,
-            dropCond: false
+            dropCond: false,
+            plant: '',
+            areaDrop: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -51,7 +55,9 @@ class ReportStock extends Component {
     }
 
     componentDidMount () {
-        this.getDataStock({limit: 10, search: '', group: '', sap: 'ada', fisik: 'ada', kondisi: 'baik'})
+        const token = localStorage.getItem("token")
+        this.props.getDepo(token, 400, '', 1)
+        this.getDataStock({limit: 10, search: '', group: 'all', sap: 'all', fisik: 'all', kondisi: 'all', plant: 'all'})
     }
 
     dropBut = () => {
@@ -70,16 +76,20 @@ class ReportStock extends Component {
         this.setState({dropOpen: !this.state.dropOpen})
     }
 
+    dropArea = () => {
+        this.setState({areaDrop: !this.state.areaDrop})
+    }
+
     getDataStock = async (value) => {
         const token = localStorage.getItem("token")
         const { pageRep } = this.props.stock
         const search = value === undefined ? '' : value.search
         const limit = value === undefined ? this.state.limit : value.limit
         const group = value === undefined ? this.state.group : value.group
-        await this.props.getReportAll(token, search, limit, pageRep === undefined ? 1 : pageRep.currentPage, group, value.fisik, value.sap, value.kondisi)
+        await this.props.getReportAll(token, search, limit, pageRep === undefined ? 1 : pageRep.currentPage, group, value.fisik, value.sap, value.kondisi, value.plant)
         await this.props.getStatusAll(token)
         const {dataRep} = this.props.stock
-        this.setState({group: value.group, sap: value.sap, fisik: value.fisik, kondisi: value.kondisi})
+        this.setState({group: value.group, sap: value.sap, fisik: value.fisik, kondisi: value.kondisi, plant: value.plant})
         let buku = 0
         let acquis = 0
         let accum = 0
@@ -94,6 +104,7 @@ class ReportStock extends Component {
     }
 
     render() {
+        const { dataDepo } = this.props.depo
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
         const { dataRep, pageRep, dataAll } = this.props.stock
@@ -145,7 +156,7 @@ class ReportStock extends Component {
                                 </div>
                                 <div className={style.secEmail}>
                                     <div className='mt-4'>
-                                        <div className={style.secHeadDashboard}>
+                                        <div className={style.secHeadDashboard2}>
                                             <div>
                                                 <text>Status Fisik: </text>
                                                 <ButtonDropdown className={style.drop} isOpen={this.state.drop} toggle={this.dropOpen}>
@@ -154,8 +165,9 @@ class ReportStock extends Component {
                                                 </DropdownToggle>
                                                 <DropdownMenu>
                                                     {/* <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: ''})}>All</DropdownItem> */}
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: 'ada', kondisi: this.state.kondisi})}>Ada</DropdownItem>
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: 'tidak ada', kondisi: this.state.kondisi})}>Tidak Ada</DropdownItem>
+                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: 'all', kondisi: this.state.kondisi, plant: this.state.plant})}>All</DropdownItem>
+                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: 'ada', kondisi: this.state.kondisi, plant: this.state.plant})}>Ada</DropdownItem>
+                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: 'tidak ada', kondisi: this.state.kondisi, plant: this.state.plant})}>Tidak Ada</DropdownItem>
                                                 </DropdownMenu>
                                                 </ButtonDropdown>
                                             </div>
@@ -166,39 +178,10 @@ class ReportStock extends Component {
                                                     {this.state.kondisi === '' ? 'Pilih status fisik' : this.state.kondisi}
                                                 </DropdownToggle>
                                                 <DropdownMenu>
-                                                    {/* <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: ''})}>All</DropdownItem> */}
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: ''})}>-</DropdownItem>
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: 'baik'})}>Baik</DropdownItem>
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: 'rusak'})}>Rusak</DropdownItem>
-                                                </DropdownMenu>
-                                                </ButtonDropdown>
-                                            </div>
-                                            <div className='ml-3' >
-                                                <text>Status SAP: </text>
-                                                <ButtonDropdown className={style.drop} isOpen={this.state.dropBtn} toggle={this.dropBut}>
-                                                <DropdownToggle caret color="light">
-                                                    {this.state.sap === '' ? 'Pilih status sap' : this.state.sap === 'null' ? 'Tidak ada' : this.state.sap}
-                                                </DropdownToggle>
-                                                <DropdownMenu>
-                                                    {/* <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: 'null'})}>All</DropdownItem> */}
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: 'ada', fisik: this.state.fisik, kondisi: this.state.kondisi})}>Ada</DropdownItem>
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: 'null', fisik: this.state.fisik, kondisi: this.state.kondisi})}>Tidak Ada</DropdownItem>
-                                                </DropdownMenu>
-                                                </ButtonDropdown>
-                                            </div>
-                                            <div className='ml-3'>
-                                                <text>Status Aset: </text>
-                                                <ButtonDropdown className={style.drop} isOpen={this.state.dropOpen} toggle={this.dropDown}>
-                                                <DropdownToggle caret color="light">
-                                                    {this.state.group === '' ? 'Pilih status aset' :  this.state.group}
-                                                </DropdownToggle>
-                                                <DropdownMenu>
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: '', sap: this.state.sap, fisik: this.state.fisik, kondisi: this.state.kondisi})}>All</DropdownItem>
-                                                    {dataAll.length !== 0 && dataAll.map(item => {
-                                                        return (
-                                                            <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: item.status, sap: this.state.sap, fisik: this.state.fisik, kondisi: this.state.kondisi})}>{item.status}</DropdownItem>
-                                                        )
-                                                    })}
+                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: 'all', plant: this.state.plant})}>All</DropdownItem>
+                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: '', plant: this.state.plant})}>-</DropdownItem>
+                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: 'baik', plant: this.state.plant})}>Baik</DropdownItem>
+                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: 'rusak', plant: this.state.plant})}>Rusak</DropdownItem>
                                                 </DropdownMenu>
                                                 </ButtonDropdown>
                                             </div>
@@ -216,9 +199,58 @@ class ReportStock extends Component {
                                         </Input>
                                     </div> */}
                                 </div>
+                                <div className='sec2Head'>
+                                    <div className={style.secHeadDashboard2}>
+                                        <div className='' >
+                                            <text>Status SAP: </text>
+                                            <ButtonDropdown className={style.drop} isOpen={this.state.dropBtn} toggle={this.dropBut}>
+                                            <DropdownToggle caret color="light">
+                                                {this.state.sap === '' ? 'Pilih status sap' : this.state.sap === 'null' ? 'Tidak ada' : this.state.sap}
+                                            </DropdownToggle>
+                                            <DropdownMenu>
+                                                <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: 'all', fisik: this.state.fisik, kondisi: this.state.kondisi, plant: this.state.plant})}>All</DropdownItem>
+                                                <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: 'ada', fisik: this.state.fisik, kondisi: this.state.kondisi, plant: this.state.plant})}>Ada</DropdownItem>
+                                                <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: 'null', fisik: this.state.fisik, kondisi: this.state.kondisi, plant: this.state.plant})}>Tidak Ada</DropdownItem>
+                                            </DropdownMenu>
+                                            </ButtonDropdown>
+                                        </div>
+                                        <div className='ml-3'>
+                                            <text>Status Aset: </text>
+                                            <ButtonDropdown className={style.drop} isOpen={this.state.dropOpen} toggle={this.dropDown}>
+                                            <DropdownToggle caret color="light">
+                                                {this.state.group === '' ? 'Pilih status aset' :  this.state.group}
+                                            </DropdownToggle>
+                                            <DropdownMenu>
+                                                <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: 'all', sap: this.state.sap, fisik: this.state.fisik, kondisi: this.state.kondisi, plant: this.state.plant})}>All</DropdownItem>
+                                                {dataAll.length !== 0 && dataAll.map(item => {
+                                                    return (
+                                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: item.status, sap: this.state.sap, fisik: this.state.fisik, kondisi: this.state.kondisi, plant: this.state.plant})}>{item.status}</DropdownItem>
+                                                    )
+                                                })}
+                                            </DropdownMenu>
+                                            </ButtonDropdown>
+                                        </div>
+                                    </div>
+                                    <div className='ml-3'>
+                                        <text>Area: </text>
+                                        <ButtonDropdown className={style.drop} isOpen={this.state.areaDrop} toggle={this.dropArea}>
+                                        <DropdownToggle caret color="light">
+                                            {this.state.plant === '' ? 'Pilih Area' :  this.state.plant}
+                                        </DropdownToggle>
+                                        <DropdownMenu>
+                                            <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: this.state.kondisi, plant: 'all'})}>All</DropdownItem>
+                                            {dataDepo.length !== 0 && dataDepo.map(item => {
+                                                return (
+                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: this.state.kondisi, plant: item.kode_plant})}>{item.nama_area}</DropdownItem>
+                                                )
+                                            })}
+                                        </DropdownMenu>
+                                        </ButtonDropdown>
+                                    </div>
+                                </div>
                                 <div className={style.tableDashboard}>
                                     {this.state.tipe === 'report' ? (
-                                        <Table bordered responsive hover className={style.tab}>
+                                        <Table bordered responsive hover className={style.tab} id="table-to-xls">
                                             <thead>
                                                 <tr>
                                                     <th>No</th>
@@ -262,7 +294,7 @@ class ReportStock extends Component {
                                                     </tr>
                                                     )})}
                                                     <tr>
-                                                        <td colSpan={12} className="sumNilai">Jumlah</td>
+                                                        <td colSpan={12} style={{textAlign: "center", fontSize: 'medium'}}>Jumlah</td>
                                                         <td>{this.state.nilai_acquis}</td>
                                                         <td>{this.state.accum_dep}</td>
                                                         <td>{this.state.nilai_buku}</td>
@@ -298,7 +330,14 @@ class ReportStock extends Component {
                             </div>
                             <div className="mb-3">
                                 <div className={style.infoPageEmail}>
-                                    <Button color="success">Download</Button>
+                                    <ReactHtmlToExcel
+                                        id="test-table-xls-button"
+                                        className="btn btn-success"
+                                        table="table-to-xls"
+                                        filename="Report Stock Opname"
+                                        sheet="Dokumentasi"
+                                        buttonText="Download"
+                                    />
                                     <div className={style.pageButton}>
                                     </div>
                                 </div>
@@ -312,13 +351,15 @@ class ReportStock extends Component {
 }
 
 const mapStateToProps = state => ({
-    stock: state.stock
+    stock: state.stock,
+    depo: state.depo
 })
 
 const mapDispatchToProps = {
     logout: auth.logout,
     getReportAll: stock.getReportAll,
-    getStatusAll: stock.getStatusAll
+    getStatusAll: stock.getStatusAll,
+    getDepo: depo.getDepo,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(ReportStock)

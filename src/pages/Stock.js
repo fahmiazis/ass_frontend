@@ -17,6 +17,7 @@ import SidebarContent from "../components/sidebar_content"
 import style from '../assets/css/input.module.css'
 import placeholder from  "../assets/img/placeholder.png"
 import asset from '../redux/actions/asset'
+import report from '../redux/actions/report'
 import b from "../assets/img/b.jpg"
 import pengadaan from '../redux/actions/pengadaan'
 import e from "../assets/img/e.jpg"
@@ -30,6 +31,8 @@ import Pdf from "../components/Pdf"
 import depo from '../redux/actions/depo'
 import stock from '../redux/actions/stock'
 import {default as axios} from 'axios'
+import TableStock from '../components/TableStock'
+import ReactHtmlToExcel from "react-html-table-to-excel"
 const {REACT_APP_BACKEND_URL} = process.env
 
 const stockSchema = Yup.object().shape({
@@ -98,7 +101,13 @@ class Stock extends Component {
             grouping: '',
             modalUpload: false,
             dataId: null,
-            idTab: null
+            idTab: null,
+            drop: false,
+            bulan: moment().format('MMMM'),
+            opendok: false,
+            month: moment().format('M'),
+            dropOp: false,
+            noAsset: null
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -363,6 +372,29 @@ class Stock extends Component {
         this.setState({modalConfirm: !this.state.modalConfirm})
     }
 
+    dropOpen = async (val) => {
+        if (this.state.dropOp === false) {
+            const token = localStorage.getItem("token")
+            await this.props.getDetailAsset(token, val.no_asset)
+            const { detailAsset } = this.props.asset
+            if (detailAsset !== undefined) {
+                this.setState({stat: detailAsset.grouping})
+                if (detailAsset.kondisi === null && detailAsset.status_fisik === null) {
+                    await this.props.getStatus(token, '', '', 'true')
+                    this.modalStatus()
+                } else {
+                    await this.props.getStatus(token, detailAsset.status_fisik === null ? '' : detailAsset.status_fisik, detailAsset.kondisi === null ? '' : detailAsset.kondisi, 'true')
+                    this.setState({noAsset: val.no_asset, dropOp: !this.state.dropOp})
+                }
+            } else {
+                await this.props.getStatus(token, '', '', 'true')
+                this.modalStatus()
+            }
+        } else {
+            this.setState({dropOp: !this.state.dropOp})   
+        }
+    }
+
     openModalEdit = () => {
         this.setState({modalEdit: !this.state.modalEdit})
     }
@@ -394,6 +426,16 @@ class Stock extends Component {
 
     openModalUpload = () => {
         this.setState({modalUpload: !this.state.modalUpload})
+    }
+
+    openModalDok = () => {
+        this.setState({opendok: !this.state.opendok})
+    }
+
+    getDokumentasi = async (val) => {
+        const token = localStorage.getItem("token")
+        await this.props.exportStock(token, val.no, this.state.month)
+        this.openModalDok()
     }
 
     addStock = async (val) => {
@@ -468,6 +510,21 @@ class Stock extends Component {
             kondisi: value.kondisi
         }
         await this.props.updateAssetNew(token, dataRinci.id, data)
+    }
+
+    updateGrouping = async (val) => {
+        const token = localStorage.getItem("token")
+        const data = {
+            grouping: val.target
+        }
+        if (val.target === 'DIPINJAM SEMENTARA') {
+            this.setState({stat: val.target, })
+            await this.props.getDetailAsset(token, val.item.no_asset)
+            this.openProsesModalDoc()
+        } else {
+            await this.props.updateAsset(token, val.item.id, data)
+            this.getDataAsset()
+        }
     }
 
     changeView = (val) => {
@@ -611,16 +668,21 @@ class Stock extends Component {
         this.setState({modalStock: !this.state.modalStock})
     }
 
+    dropDown = () => {
+        this.setState({drop: !this.state.drop})
+    }
+
     render() {
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
-        const {dataRinci, dropApp, dataItem, listMut} = this.state
+        const {dataRinci, dropApp, dataItem, listMut, drop} = this.state
         const { detailDepo, dataDepo } = this.props.depo
         const { alertUpload, page, detailAsset} = this.props.asset
         const dataAsset = this.props.asset.assetAll
         const detRinci = this.props.stock.detailAsset
         const { dataStock, detailStock, stockApp, dataStatus, alertM, alertMsg, dataDoc, stockArea } = this.props.stock
         const pages = this.props.depo.page
+        const {dataExp} = this.props.report
 
         const contentHeader =  (
             <div className={style.navbar}>
@@ -670,48 +732,60 @@ class Stock extends Component {
                                 <div className={style.titleDashboard}>Stock Opname Asset</div>
                             </div>
                             <div className={style.secEmail}>
-                                    {level === '5' ? (
-                                        <div className={style.headEmail}>
-                                            <Button onClick={this.prosesSubmitPre} color="info" size="lg">Submit</Button>
-                                        </div>
-                                    ) : level === '2' && (
-                                        <div className={style.headEmail}>
-                                            {this.state.view === 'list' ? (
-                                                <Button color="primary" className="transBtn ml-2" onClick={() => this.changeView('card')}><FaTh size={35} className="mr-2"/> Gallery View</Button>
-                                            ) : (
-                                                <Button color="primary" className="transBtn ml-3" onClick={() => this.changeView('list')}><FaList size={30} className="mr-2"/> List View</Button>
-                                            )}
-                                        </div>
-                                        // <div className={style.secHeadDashboard}>
-                                        //     <div>
-                                        //         <text>Show: </text>
-                                        //         <ButtonDropdown className={style.drop} isOpen={dropOpen} toggle={this.dropDown}>
-                                        //         <DropdownToggle caret color="light">
-                                        //             {this.state.limit}
-                                        //         </DropdownToggle>
-                                        //         <DropdownMenu>
-                                        //         <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 10, search: ''})}>10</DropdownItem>
-                                        //             <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 20, search: ''})}>20</DropdownItem>
-                                        //             <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 50, search: ''})}>50</DropdownItem>
-                                        //         </DropdownMenu>
-                                        //         </ButtonDropdown>
-                                        //         <text className={style.textEntries}>entries</text>
-                                        //     </div>
-                                        // </div>
-                                    )}
-                                    <div className={style.searchEmail}>
-                                        <text>Search: </text>
-                                        <Input 
-                                        className={style.search}
-                                        onChange={this.onSearch}
-                                        value={this.state.search}
-                                        onKeyPress={this.onSearch}
-                                        >
-                                            <FaSearch size={20} />
-                                        </Input>
+                                {level === '5' || level === '9' ? (
+                                    <div className={style.headEmail}>
+                                        <Button onClick={this.prosesSubmitPre} color="info" size="lg">Submit</Button>
                                     </div>
+                                ) : (level === '2' || level === '12' || level === '7') && (
+                                    <div className={style.headEmail}>
+                                        {this.state.view === 'list' ? (
+                                            <>
+                                            <Button color="primary" className="transBtn ml-2" onClick={() => this.changeView('card')}><FaTh size={35} className="mr-2"/> Gallery View</Button>
+                                            </>
+                                        ) : (
+                                            <Button color="primary" className="transBtn ml-3" onClick={() => this.changeView('list')}><FaList size={30} className="mr-2"/> List View</Button>
+                                        )}
+                                    </div>
+                                )}
+                                {this.state.view === 'list' ? (
+                                    <Button className='marDown' color='success' onClick={() => this.getDokumentasi({no: 'all'})} >Download All</Button>
+                                ) : (
+                                    <div></div>
+                                )}
+                            </div>
+                            <div className={style.secEmail}>
+                                {level !== '5' ? (
+                                    <div className='mt-4 ml-3'>
+                                        <text>Periode: </text>
+                                        <ButtonDropdown className={style.drop} isOpen={drop} toggle={this.dropDown}>
+                                        <DropdownToggle caret color="light">
+                                            {this.state.bulan}
+                                        </DropdownToggle>
+                                        <DropdownMenu>
+                                            {moment.months().map(item => {
+                                                return (
+                                                    <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 10, search: ''})}>{item}</DropdownItem>
+                                                )
+                                            })}
+                                        </DropdownMenu>
+                                        </ButtonDropdown>
+                                    </div>
+                                ) : (
+                                    <div></div>
+                                )}
+                                <div className={style.searchEmail2}>
+                                    <text>Search: </text>
+                                    <Input 
+                                    className={style.search}
+                                    onChange={this.onSearch}
+                                    value={this.state.search}
+                                    onKeyPress={this.onSearch}
+                                    >
+                                        <FaSearch size={20} />
+                                    </Input>
                                 </div>
-                                {level === '5' ? (
+                            </div>
+                                {level === '5' || level === '9' ? (
                                     <div>
                                         <Button onClick={this.openModalSum} color="warning" size="lg" className="mt-3">Tambah Asset</Button>
                                         <div className="stockTitle">kertas kerja opname aset kantor</div>
@@ -732,7 +806,7 @@ class Stock extends Component {
                                 ) : (
                                     <div></div>
                                 )}
-                                {level === '5' ? (
+                                {level === '5' || level === '9' ? (
                                     this.props.asset.isGetAll === false ? (
                                         <div className={style.tableDashboard}>
                                             <Table bordered responsive hover className={style.tab}>
@@ -863,16 +937,28 @@ class Stock extends Component {
                                                         </td>
                                                         {/* <td>{item.grouping}</td> */}
                                                         <td>
-                                                            <Input 
+                                                            <ButtonDropdown className={style.drop2} isOpen={this.state.dropOp && item.no_asset === this.state.noAsset} toggle={() => this.dropOpen(item)}>
+                                                                <DropdownToggle caret color="light">
+                                                                    {item.grouping === null || item.grouping === '' || item.grouping === undefined ? '-Pilih Status Aset-' : item.grouping }
+                                                                </DropdownToggle>
+                                                                <DropdownMenu>
+                                                                    {dataStatus.length > 0 && dataStatus.map(x => {
+                                                                        return (
+                                                                            <DropdownItem onClick={() => this.updateGrouping({item: item, target: x.status})} className={style.item}>{x.status}</DropdownItem>
+                                                                        )
+                                                                    })}
+                                                                </DropdownMenu>
+                                                            </ButtonDropdown>
+                                                            {/* <Input 
                                                             type="select"
                                                             className="inputRinci"
                                                             name="grouping"
                                                             defaultValue={item.grouping}
                                                             onClick={() => this.listStatus(item.no_asset)}
-                                                            // onChange={e => this.updateNewAsset({item: item, target: e.target})}
+                                                            onChange={e => this.updateNewAsset({item: item, target: e.target})}
                                                             >
                                                                 <option>{item.grouping === null || '' ? "-Pilih Status Aset-" : item.grouping}</option>
-                                                                {/* {dataStatus.length > 0 && dataStatus.map(x => {
+                                                                {dataStatus.length > 0 && dataStatus.map(x => {
                                                                     return (
                                                                         x.status === item.grouping ? (
                                                                             <div></div>
@@ -880,8 +966,8 @@ class Stock extends Component {
                                                                             <option value={x.status}>{x.status}</option>
                                                                         )
                                                                     )
-                                                                })} */}
-                                                            </Input>
+                                                                })}
+                                                            </Input> */}
                                                         </td>
                                                         {/* <td>{item.keterangan}</td> */}
                                                         <td>
@@ -922,6 +1008,8 @@ class Stock extends Component {
                                                 {dataStock.length !== 0 && dataStock.map(item => {
                                                     return (
                                                         item.status_form === 8 ? (
+                                                            null
+                                                        ) : level !== '2' && item.status_form === 9 ? (
                                                             null
                                                         ) : (
                                                             <div className="bodyCard">
@@ -986,10 +1074,17 @@ class Stock extends Component {
                                                             <th>Kode Plant</th>
                                                             <th>Tanggal Stock Opname</th>
                                                             <th>No Stock Opname</th>
-                                                            <th>Status Approve</th>
-                                                            <th>Dokumentasi Aset</th>
+                                                            {level === '2' ? (
+                                                                <>
+                                                                    <th>Status Approve</th>
+                                                                    <th>Dokumentasi Aset</th>
+                                                                </>
+                                                            ) : (
+                                                                <th>Status Approve</th>
+                                                            )}
                                                             <th>Nama OM</th>
                                                             <th>Nama BM</th>
+                                                            <th>Action</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -1001,10 +1096,20 @@ class Stock extends Component {
                                                                 <td>{item.kode_plant}</td>
                                                                 <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : moment(dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).tanggalStock).format('DD MMMM YYYY')}</td>
                                                                 <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).no_stock}</td>
-                                                                <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : <AiOutlineCheck color="primary" size={20} />}</td>
-                                                                <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : <AiOutlineCheck color="primary" size={20} />}</td>
+                                                                {level === '2' ? (
+                                                                    <>
+                                                                        <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : <AiOutlineCheck color="primary" size={20} />}</td>
+                                                                        <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : <AiOutlineCheck color="primary" size={20} />}</td>
+                                                                    </>
+                                                                ) : (
+                                                                    <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).appForm.find(({status}) => status === 0) !== undefined ? 'Reject ' + dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).appForm.find(({status}) => status === 0).jabatan : dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).appForm.find(({status}) => status === 1) !== undefined ? 'Approve ' + dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).appForm.find(({status}) => status === 1).jabatan : '-'}</td>
+                                                                )}
                                                                 <td>{item.nama_om}</td>
                                                                 <td>{item.nama_bm}</td>
+                                                                <td>
+                                                                    <Button size='small' color="primary" disabled={dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? true : false} onClick={() => {this.getDetailStock(dataStock.find(({kode_plant}) => kode_plant === item.kode_plant)); this.getApproveStock({nama: 'stock opname', no: dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).no_stock})}}>Preview</Button>
+                                                                    <Button className='ml-2' size='small' color="success" onClick={() => this.getDokumentasi({no: dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? '' : dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).no_stock})} disabled={dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? true : false}>Download</Button>
+                                                                </td>
                                                             </tr>
                                                             )})}
                                                     </tbody>
@@ -1087,7 +1192,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Satuan</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "select" 
                                                 className="inputRinci"
                                                 value={values.satuan}
@@ -1107,7 +1212,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Unit</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.unit}
@@ -1123,7 +1228,7 @@ class Stock extends Component {
                                             <Col md={3}>Lokasi</Col>
                                             <Col md={9} className="colRinci">:
                                             <Input
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.lokasi}
@@ -1138,7 +1243,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Status Fisik</Col>
                                             <Col md={9} className="colRinci">:  <Input 
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type="select"
                                                 className="inputRinci" 
                                                 value={this.state.fisik} 
@@ -1158,7 +1263,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Kondisi</Col>
                                             <Col md={9} className="colRinci">:  <Input 
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type="select"
                                                 className="inputRinci" 
                                                 value={this.state.kondisi} 
@@ -1179,7 +1284,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Status Aset</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "select" 
                                                 className="inputRinci"
                                                 value={values.grouping}
@@ -1203,7 +1308,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Keterangan</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.keterangan}
@@ -1217,7 +1322,7 @@ class Stock extends Component {
                                         ) : null}
                                     </div>
                                     <ModalFooter>
-                                        <Button className="btnFootRinci1 mr-3" size="md" disabled={level === '5' ? false : true} color="primary" onClick={handleSubmit}>Save</Button>
+                                        <Button className="btnFootRinci1 mr-3" size="md" disabled={level === '5' || level === '9' ? false : true} color="primary" onClick={handleSubmit}>Save</Button>
                                         <Button className="btnFootRinci1" size="md" color="secondary" onClick={() => this.openModalAdd()}>Close</Button>
                                     </ModalFooter>
                                 </div>
@@ -1279,7 +1384,7 @@ class Stock extends Component {
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Deskripsi</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={level === '5' ? dataRinci.nama_asset : dataRinci.deskripsi} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={level === '5' || level === '9' ? dataRinci.nama_asset : dataRinci.deskripsi} disabled /></Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Merk</Col>
@@ -1298,7 +1403,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Satuan</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "select" 
                                                 className="inputRinci"
                                                 value={values.satuan}
@@ -1318,7 +1423,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Unit</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.unit}
@@ -1334,7 +1439,7 @@ class Stock extends Component {
                                             <Col md={3}>Lokasi</Col>
                                             <Col md={9} className="colRinci">:
                                             <Input
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.lokasi}
@@ -1349,7 +1454,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Status Fisik</Col>
                                             <Col md={9} className="colRinci">:  <Input 
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type="select"
                                                 className="inputRinci" 
                                                 value={detailAsset.fisik} 
@@ -1369,7 +1474,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Kondisi</Col>
                                             <Col md={9} className="colRinci">:  <Input 
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type="select"
                                                 className="inputRinci" 
                                                 value={values.kondisi} 
@@ -1390,7 +1495,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Status Aset</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "select" 
                                                 className="inputRinci"
                                                 value={values.grouping}
@@ -1414,7 +1519,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Keterangan</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.keterangan}
@@ -1428,7 +1533,7 @@ class Stock extends Component {
                                         ) : null}
                                     </div>
                                     <ModalFooter>
-                                        <Button className="btnFootRinci1 mr-3" size="md" disabled={level === '5' ? false : true} color="primary" onClick={handleSubmit}>Save</Button>
+                                        <Button className="btnFootRinci1 mr-3" size="md" disabled={level === '5' || level === '9' ? false : true} color="primary" onClick={handleSubmit}>Save</Button>
                                         <Button className="btnFootRinci1" size="md" color="secondary" onClick={() => this.openModalEdit()}>Close</Button>
                                     </ModalFooter>
                                 </div>
@@ -1450,7 +1555,7 @@ class Stock extends Component {
                                 ) : (
                                     <img src={detRinci.pict === undefined || detRinci.pict.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detRinci.pict[detRinci.pict.length - 1].path}`} className="imgRinci" />
                                 )}
-                                {level === '5' && (
+                                {level === '5' || level === '9' && (
                                     <Input type="file" className='mt-2' onChange={this.uploadGambar}>Upload Picture</Input>
                                 )}
                                 {/* <div className="secImgSmall">
@@ -1487,7 +1592,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Merk</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.merk}
@@ -1502,7 +1607,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Satuan</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "select" 
                                                 className="inputRinci"
                                                 value={values.satuan}
@@ -1522,7 +1627,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Unit</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.unit}
@@ -1538,7 +1643,7 @@ class Stock extends Component {
                                             <Col md={3}>Lokasi</Col>
                                             <Col md={9} className="colRinci">:
                                             <Input
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.lokasi}
@@ -1553,7 +1658,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Status Fisik</Col>
                                             <Col md={9} className="colRinci">:  <Input 
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type="select"
                                                 className="inputRinci" 
                                                 value={detRinci.fisik} 
@@ -1573,7 +1678,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Kondisi</Col>
                                             <Col md={9} className="colRinci">:  <Input 
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type="select"
                                                 className="inputRinci" 
                                                 value={values.kondisi} 
@@ -1594,7 +1699,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Status Aset</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "select" 
                                                 className="inputRinci"
                                                 value={values.grouping}
@@ -1618,7 +1723,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Keterangan</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' ? false : true}
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.keterangan}
@@ -1637,7 +1742,7 @@ class Stock extends Component {
                                         ) : (
                                             <div></div>
                                         )}
-                                        <Button className="btnFootRinci1 mr-3" size="md" disabled={level === '5' ? false : true} color="primary" onClick={handleSubmit}>Save</Button>
+                                        <Button className="btnFootRinci1 mr-3" size="md" disabled={level === '5' || level === '9' ? false : true} color="primary" onClick={handleSubmit}>Save</Button>
                                         <Button className="btnFootRinci1" size="md" color="secondary" onClick={() => this.openModalStock()}>Close</Button>
                                     </ModalFooter>
                                 </div>
@@ -1706,6 +1811,7 @@ class Stock extends Component {
                                         <th>LOKASI</th>
                                         <th>GROUPING</th>
                                         <th>KETERANGAN</th>
+                                        <th>Picture</th>
                                         <th>Select item to reject</th>
                                         <th>Status</th>
                                     </tr>
@@ -1728,6 +1834,19 @@ class Stock extends Component {
                                                 <td onClick={() => this.getRinciStock(item)} >{item.lokasi}</td>
                                                 <td onClick={() => this.getRinciStock(item)} >{item.grouping}</td>
                                                 <td onClick={() => this.getRinciStock(item)} >{item.keterangan}</td>
+                                                <td onClick={() => this.getRinciStock(item)} >
+                                                    {item.pict !== undefined && item.pict.length !== 0 
+                                                        ? <div className="">
+                                                            <img src={`${REACT_APP_BACKEND_URL}/${item.pict[item.pict.length - 1].path}`} className="imgTable" />
+                                                            <text className='textPict'>{moment(item.pict[item.pict.length - 1].createdAt).format('DD MMMM YYYY')}</text>
+                                                        </div> 
+                                                        : item.img !== undefined && item.img.length !== 0 
+                                                        ? <div className="">
+                                                            <img src={`${REACT_APP_BACKEND_URL}/${item.img[item.img.length - 1].path}`} className="imgTable" />
+                                                            <text className='textPict'>{moment(item.img[item.img.length - 1].createdAt).format('DD MMMM YYYY')}</text>
+                                                        </div> : null
+                                                    }
+                                                </td>
                                                 <td> 
                                                     <Input
                                                     addon
@@ -1995,8 +2114,8 @@ class Stock extends Component {
                     <div className="modalFoot ml-3">
                         <div></div>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="warning" onClick={this.openModalPreview}>
-                                Print
+                            <Button className="mr-2" color="warning">
+                                <TableStock />
                             </Button>
                             <Button color="success" onClick={this.openModalPreview}>
                                 Close
@@ -2087,7 +2206,7 @@ class Stock extends Component {
                         </div>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.state.openApprove && level === '5'} toggle={this.openModalApprove} centered={true}>
+                <Modal isOpen={this.state.openApprove && level === '5' || level === '9'} toggle={this.openModalApprove} centered={true}>
                     <ModalBody>
                         <div className={style.modalApprove}>
                             <div>
@@ -2121,9 +2240,6 @@ class Stock extends Component {
                     </ModalBody>
                 </Modal>
                 <Modal isOpen={this.state.submitPre} toggle={this.modalSubmitPre} size="xl">
-                    <ModalHeader>
-                        Rincian
-                    </ModalHeader>
                     <ModalBody>
                         <div>
                             <div className="stockTitle">kertas kerja opname aset kantor</div>
@@ -2190,7 +2306,7 @@ class Stock extends Component {
                                         <tr onClick={() => this.getRincian(item)}>
                                             <th scope="row">{(dataAsset.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</th>
                                             <td>{item.no_asset}</td>
-                                            <td>{level === '5' ? item.nama_asset : item.deskripsi}</td>
+                                            <td>{level === '5' || level === '9' ? item.nama_asset : item.deskripsi}</td>
                                             <td>{item.merk}</td>
                                             <td>{item.satuan}</td>
                                             <td>{item.unit}</td>
@@ -2216,6 +2332,85 @@ class Stock extends Component {
                             </Button>
                         </div>
                     </div>
+                </Modal>
+                <Modal size='xl' isOpen={this.state.opendok} toggle={this.openModalDok}>
+                    <ModalHeader>
+                        <ReactHtmlToExcel
+                            id="test-table-xls-button"
+                            className="btn btn-success"
+                            table="table-to-xls"
+                            filename="Dokumentasi Stock Opname"
+                            sheet="Dokumentasi"
+                            buttonText="Download"
+                        />
+                    </ModalHeader>
+                    <ModalBody>
+                        {dataExp.length === 0 ? (
+                            <div className={style.tableDashboard}>
+                                <Table bordered responsive hover className={style.tab}>
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>NO. ASET</th>
+                                            <th>DESKRIPSI</th>
+                                            <th>SATUAN</th>
+                                            <th>KONDISI</th>
+                                            <th>GROUPING</th>
+                                            <th>PICTURE</th>
+                                        </tr>
+                                    </thead>
+                                </Table>
+                                <div className={style.spin}>
+                                        <Spinner type="grow" color="primary"/>
+                                        <Spinner type="grow" className="mr-3 ml-3" color="success"/>
+                                        <Spinner type="grow" color="warning"/>
+                                        <Spinner type="grow" className="mr-3 ml-3" color="danger"/>
+                                        <Spinner type="grow" color="info"/>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className={style.tableDashboard}>
+                            <Table bordered responsive hover className={style.tab} id="table-to-xls">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>NO. ASET</th>
+                                        <th>DESKRIPSI</th>
+                                        <th>PLANT</th>
+                                        <th>AREA</th>
+                                        <th>SATUAN</th>
+                                        <th>KONDISI</th>
+                                        <th>GROUPING</th>
+                                        <th style={{width: 350}}>PICTURE</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {dataExp.length !== 0 && dataExp.map(item => {
+                                        return (
+                                        <tr onClick={() => this.getRincian(item)}>
+                                            <th scope="row">{(dataExp.indexOf(item) + 1)}</th>
+                                            <td>{item.no_asset}</td>
+                                            <td>{level === '5' || level === '9' ? item.nama_asset : item.deskripsi}</td>
+                                            <td>{item.kode_plant}</td>
+                                            <td>{item.area}</td>
+                                            <td>{item.satuan}</td>
+                                            <td>{item.kondisi}</td>
+                                            <td>{item.grouping}</td>
+                                            <td style={{height: 300}}>
+                                                {item.pict !== undefined && item.pict.length !== 0 
+                                                    ? <img src={`${REACT_APP_BACKEND_URL}/${item.pict[item.pict.length - 1].path}`} style={{objectFit: 'cover'}} height={300} width={350} />
+                                                    : item.img !== undefined && item.img.length !== 0 
+                                                    ? <img src={`${REACT_APP_BACKEND_URL}/${item.img[item.img.length - 1].path}`} style={{objectFit: 'cover'}} height={300} width={350} />
+                                                    : null
+                                                }
+                                            </td>
+                                        </tr>
+                                        )})}
+                                </tbody>
+                            </Table>
+                        </div>
+                        )}
+                    </ModalBody>
                 </Modal>
                 <Modal isOpen={this.state.modalSum} toggle={this.openSum} size="xl">
                     <ModalHeader>
@@ -2318,7 +2513,7 @@ class Stock extends Component {
                                 </div>
                             )
                         }) : (
-                            <div>Tidak ada opsi status asset mohon pilih ulang kondisi asset atau status fisik asset</div>
+                            <div>Tidak ada opsi mohon pilih ulang kondisi atau status fisik</div>
                         )}
                         {/* <div className="footRinci4 mt-4">
                             <Button color="primary" disabled={this.state.stat === '' || this.state.stat === null ? true : false} onClick={this.updateStatus}>Save</Button>
@@ -2442,11 +2637,22 @@ class Stock extends Component {
                 </ModalBody>
                 <ModalFooter>
                     <Button className="mr-2" color="secondary" onClick={this.openModalDoc}>
-                            Close
+                        Close
+                    </Button>
+                    {this.state.stat === 'DIPINJAM SEMENTARA' && (dataDoc.length === 0 || dataDoc.find(({status}) => status === 1) === undefined) ? (
+                        <Button color="primary" disabled onClick={this.updateStatus}>
+                            Save 
                         </Button>
+                    ) : this.state.stat === 'DIPINJAM SEMENTARA' && (
+                        <Button color="primary" onClick={this.updateStatus}>
+                            Save 
+                        </Button>
+                    )}
+                    {this.state.stat !== 'DIPINJAM SEMENTARA' && (
                         <Button color="primary" onClick={this.openModalDoc}>
                             Save 
-                    </Button>
+                        </Button>
+                    )}
                 </ModalFooter>
             </Modal>
             <Modal isOpen={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
@@ -2476,7 +2682,8 @@ const mapStateToProps = state => ({
     pengadaan: state.pengadaan,
     setuju: state.setuju,
     depo: state.depo,
-    stock: state.stock
+    stock: state.stock,
+    report: state.report
 })
 
 const mapDispatchToProps = {
@@ -2515,7 +2722,8 @@ const mapDispatchToProps = {
     getStockArea: stock.getStockArea,
     addOpname: stock.addStock,
     uploadImage: stock.uploadImage,
-    submitAsset: stock.submitAsset
+    submitAsset: stock.submitAsset,
+    exportStock: report.getExportStock
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Stock)

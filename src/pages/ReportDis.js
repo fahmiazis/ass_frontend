@@ -301,7 +301,8 @@ class MasterUser extends Component {
                             <Alert color="danger" className={style.alertWrong} isOpen={upload}>
                                 <div>{errMsg}</div>
                             </Alert>
-                            <div className={style.bodyDashboard}>
+                            {levels === '2' || levels === 2 ? (
+                                <div className={style.bodyDashboard}>
                                 <div className={style.headMaster}>
                                     <div className={style.titleDashboard}>Report Disposal</div>
                                 </div>
@@ -544,6 +545,11 @@ class MasterUser extends Component {
                                     </div> */}
                                 </div>
                             </div>
+                            ) : (
+                                <div className={style.headMaster}>
+                                    <div className={style.titleDashboard1}>Anda tidak memiliki akses dihalaman ini</div>
+                                </div>
+                            )}
                         </div>
                     </MaterialTitlePanel>
                 </Sidebar>

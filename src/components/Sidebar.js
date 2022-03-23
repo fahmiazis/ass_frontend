@@ -3,7 +3,7 @@ import logo from '../assets/img/logo.png'
 import { Collapse } from 'reactstrap';
 import {AiFillHome} from 'react-icons/ai'
 import { FaDatabase, FaHome, FaFileArchive, FaCartPlus, FaRecycle, FaTasks, } from 'react-icons/fa'
-import { RiDashboardFill, RiFileUnknowLine, RiFileSettingsLine, RiMoneyDollarCircleFill } from 'react-icons/ri'
+import { RiArrowLeftRightFill, RiMoneyDollarCircleFill } from 'react-icons/ri'
 import { HiDocumentReport } from 'react-icons/hi'
 import {FiLogOut, FiUser, FiUsers, FiMail} from 'react-icons/fi'
 import { BsClipboardData, BsHouseDoor, BsFileCheck } from 'react-icons/bs'
@@ -39,8 +39,8 @@ function Sidebar(props) {
         history.push('/navstock')
     }
 
-    function goReport() {
-        history.push('/report')
+    function goMutasi() {
+        history.push('/navmut')
     }
 
     function goPengadaan() {
@@ -76,6 +76,10 @@ function Sidebar(props) {
                 <button className="menuSides" onClick={goDisposal}>
                     <FaRecycle size={20} className="iconSide" />
                     <text className="txtMenu">Disposal Asset</text>
+                </button>
+                <button className="menuSides" onClick={goMutasi}>
+                    <RiArrowLeftRightFill size={20} className="iconSide" />
+                    <text className="txtMenu">Mutasi Asset</text>
                 </button>
                 <button className="menuSides" onClick={goStock}>
                     <FaTasks size={20} className="iconSide" />
@@ -125,10 +129,10 @@ function Sidebar(props) {
                     Masterdata PIC
                 </button> */}
                 </Collapse>
-                <button className="menuSides" onClick={goReport}>
+                {/* <button className="menuSides" onClick={goReport}>
                     <FaFileArchive size={20} className="iconSide" />
                     <text className="txtMenu">Report</text>
-                </button>
+                </button> */}
             </div>
             <div>
                 <button onClick={() => logout()} className="menuSides foot">

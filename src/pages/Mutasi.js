@@ -142,7 +142,7 @@ class Mutasi extends Component {
 
     componentDidMount() {
         const level = localStorage.getItem('level')
-        if (level === "5" ) {
+        if (level === "5" || level === "9" ) {
             this.getDataAsset()
         } else {
             this.getDataMutasi()
@@ -417,7 +417,7 @@ class Mutasi extends Component {
                                         <div className={style.titleDashboard}>Mutasi Asset</div>
                                     </div>
                                     <div className={style.secEmail}>
-                                    {level === '5' ? (
+                                    {level === '5' || level === '9' ? (
                                         <div className={style.headEmail}>
                                             <button onClick={this.goCartMut} className="btnGoCart"><FaCartPlus size={60} className="green ml-2" /></button>
                                         </div>
@@ -441,7 +441,7 @@ class Mutasi extends Component {
                                         </Input>
                                     </div>
                                 </div>
-                                {level === '5' ? (
+                                {level === '5' || level === '9' ? (
                                     this.props.asset.isGet === false ? (
                                         <div></div>
                                     ) : (

@@ -11,4 +11,8 @@ export default {
         type: 'GET_REPORTMUT',
         payload: http(token).get(`/report/mutasi?limit=${limit === undefined ? 10 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&status=${status === undefined ? 1 : status}&tipe=${tipe === undefined ? 'disposal' : tipe}`)
     }),
+    getExportStock: (token, no, date) => ({
+        type: 'EXPORT_STOCK',
+        payload: http(token).get(`/stock/export/${no}?date=${date}`)
+    })
 }

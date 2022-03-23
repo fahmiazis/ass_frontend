@@ -4,9 +4,11 @@ const reportState = {
     isGet: false,
     isLoading: false,
     isError: false,
+    isExp: false,
     alertMsg: '',
     dataRep: [],
     dataMut: [],
+    dataExp: []
 };
 
 export default (state=reportState, action) => {
@@ -54,6 +56,30 @@ export default (state=reportState, action) => {
             };
         }
         case 'GET_REPORTMUT_REJECTED': {
+            return {
+                ...state,
+                isError: true,
+                isLoading: false,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'EXPORT_STOCK_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'EXPORT_STOCK_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isExp: true,
+                dataExp: action.payload.data.result,
+                alertMsg: 'get export Succesfully',
+            };
+        }
+        case 'EXPORT_STOCK_REJECTED': {
             return {
                 ...state,
                 isError: true,

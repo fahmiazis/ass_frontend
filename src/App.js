@@ -8,6 +8,7 @@ import PrivateRoute from './components/PrivateRoute'
 import Login from './pages/Login'
 import Home from './pages/Home'
 import Pengadaan from './pages/Pengadaan'
+import Tespeng from './pages/Pengadaan2'
 import Asset from './pages/Asset'
 import Approve from './pages/Approve'
 import Disposal from './pages/Disposal'
@@ -68,7 +69,7 @@ class App extends Component {
                     <Home />
                 </PrivateRoute>
                 <PrivateRoute path='/pengadaan'>
-                    <Pengadaan />
+                    <Tespeng />
                 </PrivateRoute>
                 <PrivateRoute path='/depo'>
                     <MasterDepo />
@@ -177,6 +178,9 @@ class App extends Component {
                 </PrivateRoute>
                 <PrivateRoute path='/trackstock'>
                     <TrackingStock />
+                </PrivateRoute>
+                <PrivateRoute path='/tespeng'>
+                    <Tespeng />
                 </PrivateRoute>
             </Switch>
         </BrowserRouter>

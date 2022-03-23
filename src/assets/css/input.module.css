@@ -204,11 +204,24 @@ html,body{
   background-color: white;
   border-radius: 4px;
 }
+.drop2 {
+  color: white;
+  border: 1px solid #9b9b9b;
+  background-color: white;
+  border-radius: 4px;
+  width: 100%;
+}
 .secHeadDashboard {
   margin-top: 30px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  align-items: center;
+}
+.secHeadDashboard2 {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: row;
   align-items: center;
 }
 /* .bodyDashboard {
@@ -220,7 +233,7 @@ html,body{
 }
 .search {
   border: 1px solid #9b9b9b;
-  width: 40%;
+  width: 100%;
   margin-left: 10px;
 }
 .secSearch {
@@ -396,6 +409,11 @@ html,body{
   flex-direction: row;
   align-items: center;
   margin-top: 50px;
+}
+.searchEmail2 {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 .searchEmail1 {
   display: flex;
@@ -593,6 +611,18 @@ html,body{
   margin-bottom: 10%;
   font-size: 15px;
 }
+.btnSide3 {
+  width: 100%;
+  background-color: transparent;
+  border: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  color: white;
+  margin-bottom: 50%;
+  font-size: 15px;
+}
 .btnSide2 {
   width: 90%;
   background-color: transparent;
@@ -618,7 +648,6 @@ html,body{
   flex-direction: row;
   align-items: center;
   color: white;
-  margin-bottom: 10%;
   font-size: 15px;
   margin-bottom: 50%;
 }
