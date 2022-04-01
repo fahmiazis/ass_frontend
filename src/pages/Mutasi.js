@@ -282,6 +282,7 @@ class Mutasi extends Component {
     changeView = async (val) => {
         const { dataMut, noMut } = this.props.mutasi
         const role = localStorage.getItem('role')
+        const level = localStorage.getItem('level')
         if (val === 'available') {
             const newMut = []
             for (let i = 0; i < noMut.length; i++) {
@@ -289,7 +290,7 @@ class Mutasi extends Component {
                 if (dataMut[index] !== undefined) {
                     const app = dataMut[index].appForm
                     const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
-                    if (role === 'BM') {
+                    if (level === '12' || level === 12) {
                         if ((app.length === 0 || app[app.length - 1].status === null) || (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (app[find].status === null || app[find].status === 0))) {
                             newMut.push(dataMut[index])
                         }

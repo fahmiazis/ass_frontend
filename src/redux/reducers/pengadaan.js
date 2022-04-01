@@ -10,7 +10,9 @@ const pengState = {
     dataApp: [],
     dataDoc: [],
     dataShow: '',
-    isShow: false
+    isShow: false,
+    detailIo: [],
+    isDetail: false
 }
 
 export default (state=pengState, action) => {
@@ -38,6 +40,30 @@ export default (state=pengState, action) => {
                 ...state,
                 isLoading: false,
                 isGet: false,
+                isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'DETAIL_IO_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'DETAIL_IO_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isDetail: true,
+                detailIo: action.payload.data.result,
+                alertMsg: 'get pengadaan Succesfully',
+            };
+        }
+        case 'DETAIL_IO_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
                 isError: true,
                 alertMsg: "Unable connect to server"
             };

@@ -1038,8 +1038,8 @@ class EksekusiDisposal extends Component {
                                                         {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
                                                             return (
                                                                 <th className="headPre">
-                                                                    <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
-                                                                    <div>{item.nama === null ? "-" : item.nama}</div>
+                                                                    <div className="mb-2">{item.nama === null ? "" : moment(item.updatedAt).format('LL')}</div>
+                                                                    <div>{item.nama === null ? "" : item.nama}</div>
                                                                 </th>
                                                             )
                                                         })}
@@ -1049,7 +1049,7 @@ class EksekusiDisposal extends Component {
                                                     <tr>
                                                         {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
                                                             return (
-                                                                <td className="footPre">{item.jabatan === null ? "-" : 'SPV'}</td>
+                                                                <td className="footPre">{item.jabatan === null ? "" : item.jabatan === 'NFAM' ? 'Head of Finance Accounting PMA' : item.jabatan}</td>
                                                             )
                                                         })}
                                                     </tr>

@@ -31,6 +31,10 @@ export default {
         type: 'SHOW',
         payload: http(token).get(`/show/doc/${id}`)
     }),
+    getDetail: (token, no) => ({
+        type: 'DETAIL_IO',
+        payload: http(token).get(`/ticket/detail/${no}`)
+    }),
     resetError: () => ({
         type: 'RESET'
     })

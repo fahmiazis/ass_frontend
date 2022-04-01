@@ -79,7 +79,10 @@ class EditStock extends Component {
             modalConfirm: false,
             confirm: '',
             modalDoc: false,
-            openPdf: false
+            openPdf: false,
+            dropOp: false,
+            noAsset: null,
+            idTab: null,
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -262,6 +265,7 @@ class EditStock extends Component {
         } else if (isSubrev) {
             this.getDataAsset()
             this.props.resetStock()
+            this.openConfirm(this.setState({confirm: 'isApprove'}))
         } else if (isUpdateNew) {
             this.openConfirm(this.setState({confirm: 'approve'}))
             this.props.resetStock()
@@ -380,14 +384,31 @@ class EditStock extends Component {
         }
     }
 
+    updateGrouping = async (val) => {
+        const token = localStorage.getItem("token")
+        const data = {
+            grouping: val.target
+        }
+        if (val.target === 'DIPINJAM SEMENTARA') {
+            this.setState({stat: val.target, })
+            await this.props.getDetailItem(token, val.item.id)
+            this.openProsesModalDoc()
+        } else {
+            await this.props.updateStock(token, val.item.id, data)
+            this.getDataAsset()
+        }
+    }
+
     updateNewAsset = async (value) => {
         const token = localStorage.getItem("token")
         const data = {
             [value.target.name]: value.target.value
         }
         if (value.target.name === 'lokasi' || value.target.name === 'keterangan' || value.target.name === 'merk') {
+            this.setState({idTab: value.item.id})
             if (value.key === 'Enter') {
                 await this.props.updateStock(token, value.item.id, data)
+                this.getDataAsset()
             }
         } else {
             await this.props.updateStock(token, value.item.id, data)
@@ -413,6 +434,29 @@ class EditStock extends Component {
             console.log(fisik, kondisi)
         } else {
             await this.props.getStatus(token, fisik, kondisi, 'false')
+        }
+    }
+
+    dropOpen = async (val) => {
+        if (this.state.dropOp === false) {
+            const token = localStorage.getItem("token")
+            await this.props.getDetailItem(token, val.id)
+            const { detailAsset } = this.props.stock
+            if (detailAsset !== undefined) {
+                this.setState({stat: detailAsset.grouping})
+                if (detailAsset.kondisi === null && detailAsset.status_fisik === null) {
+                    await this.props.getStatus(token, '', '', 'true')
+                    this.modalStatus()
+                } else {
+                    await this.props.getStatus(token, detailAsset.status_fisik === null ? '' : detailAsset.status_fisik, detailAsset.kondisi === null ? '' : detailAsset.kondisi, 'true')
+                    this.setState({noAsset: val.no_asset, dropOp: !this.state.dropOp})
+                }
+            } else {
+                await this.props.getStatus(token, '', '', 'true')
+                this.modalStatus()
+            }
+        } else {
+            this.setState({dropOp: !this.state.dropOp})   
         }
     }
 
@@ -644,7 +688,7 @@ class EditStock extends Component {
                                                     return (
                                                     // <tr onClick={() => this.openModalEdit(this.setState({dataRinci: item}))}>
                                                     <tr>
-                                                        <th scope="row">{(stockArea.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</th>
+                                                        <th scope="row">{stockArea.indexOf(item) + 1}</th>
                                                         <td>{item.no_asset}</td>
                                                         <td>{item.nama_asset}</td>
                                                         {/* <td>{item.merk}</td> */}
@@ -722,25 +766,27 @@ class EditStock extends Component {
                                                         </td>
                                                         {/* <td>{item.grouping}</td> */}
                                                         <td>
-                                                            <Input 
+                                                            <ButtonDropdown className={style.drop2} isOpen={this.state.dropOp && item.no_asset === this.state.noAsset} toggle={() => this.dropOpen(item)}>
+                                                                <DropdownToggle caret color="light">
+                                                                    {item.grouping === null || item.grouping === '' || item.grouping === undefined ? '-Pilih Status Aset-' : item.grouping }
+                                                                </DropdownToggle>
+                                                                <DropdownMenu>
+                                                                    {dataStatus.length > 0 && dataStatus.map(x => {
+                                                                        return (
+                                                                            <DropdownItem onClick={() => this.updateGrouping({item: item, target: x.status})} className={style.item}>{x.status}</DropdownItem>
+                                                                        )
+                                                                    })}
+                                                                </DropdownMenu>
+                                                            </ButtonDropdown>
+                                                            {/* <Input 
                                                             type="select"
                                                             className="inputRinci"
                                                             name="grouping"
                                                             defaultValue={item.grouping}
                                                             onClick={() => this.listStatus(item.id)}
-                                                            // onChange={e => this.updateNewAsset({item: item, target: e.target})}
                                                             >
                                                                 <option>{item.grouping === null || '' ? "-Pilih Status Aset-" : item.grouping}</option>
-                                                                {/* {dataStatus.length > 0 && dataStatus.map(x => {
-                                                                    return (
-                                                                        x.status === item.grouping ? (
-                                                                            <div></div>
-                                                                        ) : (
-                                                                            <option value={x.status}>{x.status}</option>
-                                                                        )
-                                                                    )
-                                                                })} */}
-                                                            </Input>
+                                                            </Input> */}
                                                         </td>
                                                         {/* <td>{item.keterangan}</td> */}
                                                         <td>
@@ -748,8 +794,8 @@ class EditStock extends Component {
                                                             type= "text"
                                                             name="keterangan"
                                                             className="inputRinci"
-                                                            value={item.keterangan}
-                                                            defaultValue={item.keterangan}
+                                                            value={this.state.idTab == item.id ? null : item.keterangan !== null ? item.keterangan : ''}
+                                                            defaultValue={item.keterangan === null ? '' : item.keterangan}
                                                             onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                             onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                             />
@@ -1595,7 +1641,7 @@ class EditStock extends Component {
                         <div>
                             <div className={style.cekUpdate}>
                                 <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={[style.sucUpdate, style.green]}>Berhasil Approve</div>
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Submit Revisi</div>
                             </div>
                         </div>
                     ) : (

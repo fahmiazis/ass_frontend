@@ -107,7 +107,9 @@ class Stock extends Component {
             opendok: false,
             month: moment().format('M'),
             dropOp: false,
-            noAsset: null
+            noAsset: null,
+            filter: 'available',
+            newStock: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -416,6 +418,7 @@ class Stock extends Component {
         // const limit = value === undefined ? this.state.limit : value.limit
         await this.props.getStockAll(token)
         this.setState({limit: value === undefined ? 10 : value.limit})
+        this.changeFilter('available')
     }
 
     getDataList = async () => {
@@ -482,6 +485,35 @@ class Stock extends Component {
         this.setState({submitPre: !this.state.submitPre})
     }
 
+    changeFilter = (val) => {
+        const {dataStock} = this.props.stock
+        const role = localStorage.getItem('role')
+        const level = localStorage.getItem('level')
+        if (val === 'available') {
+            const newStock = []
+            for (let i = 0; i < dataStock.length; i++) {
+                const app = dataStock[i].appForm
+                const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
+                if (level === '7' || level === 7) {
+                    if ((app.length === 0 || app[app.length - 1].status === null) || (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (app[find].status === null || app[find].status === 0))) {
+                        newStock.push(dataStock[i])
+                    }
+                } else if (find === 0 || find === '0') {
+                    if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
+                        newStock.push(dataStock[i])
+                    }
+                } else {
+                    if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
+                        newStock.push(dataStock[i])
+                    }
+                }
+            }
+            this.setState({filter: val, newStock: newStock})
+        } else {
+            this.setState({filter: val, newStock: dataStock})
+        }
+    }
+
     prosesSubmitPre = async () => {
         const token = localStorage.getItem("token")
         await this.props.getAssetAll(token, 1000, '', 1, 'asset')
@@ -544,6 +576,7 @@ class Stock extends Component {
         if (value.target.name === 'lokasi' || value.target.name === 'keterangan' || value.target.name === 'merk') {
             if (value.key === 'Enter') {
                 await this.props.updateAsset(token, value.item.id, data)
+                this.getDataAsset()
             } else {
                 this.setState({idTab: value.item.id})
             }
@@ -675,7 +708,7 @@ class Stock extends Component {
     render() {
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
-        const {dataRinci, dropApp, dataItem, listMut, drop} = this.state
+        const {dataRinci, dropApp, dataItem, listMut, drop, newStock} = this.state
         const { detailDepo, dataDepo } = this.props.depo
         const { alertUpload, page, detailAsset} = this.props.asset
         const dataAsset = this.props.asset.assetAll
@@ -749,12 +782,17 @@ class Stock extends Component {
                                 )}
                                 {this.state.view === 'list' ? (
                                     <Button className='marDown' color='success' onClick={() => this.getDokumentasi({no: 'all'})} >Download All</Button>
-                                ) : (
-                                    <div></div>
+                                ) : level !== '5' && level !== '9' && (
+                                    <div className='mt-4'>
+                                        <Input type="select" value={this.state.filter} onChange={e => this.changeFilter(e.target.value)}>
+                                            <option value="available">Available To Approve</option>
+                                            <option value="not available">All</option>
+                                        </Input>
+                                    </div>
                                 )}
                             </div>
                             <div className={style.secEmail}>
-                                {level !== '5' ? (
+                                {level !== '5' && level !== '9' ? (
                                     <div className='mt-4 ml-3'>
                                         <text>Periode: </text>
                                         <ButtonDropdown className={style.drop} isOpen={drop} toggle={this.dropDown}>
@@ -773,17 +811,31 @@ class Stock extends Component {
                                 ) : (
                                     <div></div>
                                 )}
-                                <div className={style.searchEmail2}>
-                                    <text>Search: </text>
-                                    <Input 
-                                    className={style.search}
-                                    onChange={this.onSearch}
-                                    value={this.state.search}
-                                    onKeyPress={this.onSearch}
-                                    >
-                                        <FaSearch size={20} />
-                                    </Input>
-                                </div>
+                                {this.state.view === 'list' ? (
+                                    <div className={style.searchEmail2}>
+                                        <text>Search: </text>
+                                        <Input 
+                                        className={style.search}
+                                        onChange={this.onSearch}
+                                        value={this.state.search}
+                                        onKeyPress={this.onSearch}
+                                        >
+                                            <FaSearch size={20} />
+                                        </Input>
+                                    </div>
+                                ) : (
+                                    <div className={style.searchEmail2}>
+                                        <text>Search: </text>
+                                        <Input 
+                                        className={style.search}
+                                        onChange={this.onSearch}
+                                        value={this.state.search}
+                                        onKeyPress={this.onSearch}
+                                        >
+                                            <FaSearch size={20} />
+                                        </Input>
+                                    </div>
+                                )}
                             </div>
                                 {level === '5' || level === '9' ? (
                                     <div>
@@ -975,8 +1027,9 @@ class Stock extends Component {
                                                             type= "text"
                                                             name="keterangan"
                                                             className="inputRinci"
-                                                            value={this.state.idTab == item.id ? null : item.keterangan === 'proses mutasi' ? '' : item.keterangan === null ? '.' : item.keterangan}
-                                                            defaultValue={item.keterangan === 'proses mutasi' ? '' : item.keterangan === null ? '.' : item.keterangan}
+                                                            // value={item.keterangan === 'proses mutasi' ? '' : item.keterangan === null ? '.' : item.keterangan}
+                                                            value={this.state.idTab == item.id ? null : item.keterangan !== null ? item.keterangan : ''}
+                                                            defaultValue={item.keterangan === null ? '' : item.keterangan}
                                                             onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                             onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                             />
@@ -1000,12 +1053,12 @@ class Stock extends Component {
                                     </div>
                                     )
                                 ) : (
-                                    dataStock.length === 0 && dataDepo.length === 0 ? (
+                                    newStock.length === 0 && dataDepo.length === 0 ? (
                                         <div></div>
                                     ) : (
                                         this.state.view === 'card' ? (
                                             <Row className="bodyDispos">
-                                                {dataStock.length !== 0 && dataStock.map(item => {
+                                                {newStock.length !== 0 && newStock.map(item => {
                                                     return (
                                                         item.status_form === 8 ? (
                                                             null

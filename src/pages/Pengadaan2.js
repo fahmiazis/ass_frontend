@@ -106,7 +106,7 @@ class Pengadaan extends Component {
             io: "",
             data: [],
             index: 0,
-            rinciPeng: {}
+            rinciIo: {}
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -167,9 +167,9 @@ class Pengadaan extends Component {
     }
 
     prosesModalDoc = async () => {
-        const {rinciPeng} = this.state
+        const {rinciIo} = this.state
         const token = localStorage.getItem('token')
-        await this.props.getDocumentIo(token, rinciPeng.no_pengadaan)
+        await this.props.getDocumentIo(token, rinciIo.no_pengadaan)
         this.closeProsesModalDoc()
     }
 
@@ -206,10 +206,19 @@ class Pengadaan extends Component {
 
     prepareFormIo = async (x) => {
         const {dataPeng} = this.props.pengadaan
-        this.setState({rinciPeng: dataPeng[x]})
+        this.setState({rinciIo: dataPeng[x]})
         const data = dataPeng[x]
         const token = localStorage.getItem('token')
         await this.props.getApproveIo(token, data.no_pengadaan)
+        this.prosesModalIo()
+    }
+
+    openForm = async (val) => {
+        const token = localStorage.getItem('token')
+        console.log(val)
+        await this.props.getDetail(token, val.no_pengadaan)
+        await this.props.getApproveIo(token, val.no_pengadaan)
+        console.log(this.props.pengadaan.detailIo)
         this.prosesModalIo()
     }
 
@@ -389,7 +398,7 @@ class Pengadaan extends Component {
 
     componentDidUpdate() {
         const {isError, isUpload, isUpdate} = this.props.pengadaan
-        const {rinciPeng} = this.state
+        const {rinciIo} = this.state
         const token = localStorage.getItem('token')
         if (isError) {
             this.props.resetError()
@@ -399,14 +408,14 @@ class Pengadaan extends Component {
                 this.props.resetError()
              }, 2000)
              setTimeout(() => {
-                this.props.getDocumentIo(token, rinciPeng.no_pengadaan)
+                this.props.getDocumentIo(token, rinciIo.no_pengadaan)
              }, 2100)
         } else if (isUpdate) {
             setTimeout(() => {
                 this.props.resetError()
              }, 2000)
              setTimeout(() => {
-                this.props.getDocumentIo(token, rinciPeng.no_pengadaan)
+                this.props.getDocumentIo(token, rinciIo.no_pengadaan)
              }, 2100)
         }
     }
@@ -480,12 +489,10 @@ class Pengadaan extends Component {
     }
 
     render() {
-        const {alert, upload, errMsg, rinciPeng} = this.state
+        const {alert, upload, errMsg, rinciIo} = this.state
         const {dataAsset, alertM, alertMsg, alertUpload, page} = this.props.asset
         const pages = this.props.disposal.page 
-        const { dataDis, noDis, disApp, dataSubmit } = this.props.disposal
-        const {dataRinci, newDis} = this.state
-        const {dataPeng, isLoading, isError, dataApp, dataDoc} = this.props.pengadaan
+        const {dataPeng, isLoading, isError, dataApp, dataDoc, detailIo} = this.props.pengadaan
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
         const dataNotif = this.props.notif.data
@@ -635,7 +642,7 @@ class Pengadaan extends Component {
                                                     </div>
                                                     <Row className="footCard mb-3 mt-3">
                                                         <Col md={12} xl={12}>
-                                                            <Button className="btnSell" color="primary" onClick={() => this.prepareFormIo(dataPeng.indexOf(item))}>Proses</Button>
+                                                            <Button className="btnSell" color="primary" onClick={() => this.openForm(item)}>Proses</Button>
                                                         </Col>
                                                     </Row>
                                                 </div>
@@ -706,7 +713,7 @@ class Pengadaan extends Component {
                                                     </div>
                                                     <Row className="footCard mb-3 mt-3">
                                                         <Col md={12} xl={12}>
-                                                        <Button className="btnSell" color="primary" onClick={() => this.prepareFormIo(dataPeng.indexOf(item))}>Proses</Button>
+                                                        <Button className="btnSell" color="primary" onClick={() => this.openForm(item)}>Proses</Button>
                                                         </Col>
                                                     </Row>
                                                 </div>
@@ -771,19 +778,16 @@ class Pengadaan extends Component {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {/* <tr>
-                                            <td>4300002670</td>
-                                            <td>1</td>
-                                            <td>Printer Epson L3110 PMA Banyuwangi</td>
-                                            <td>2.200.000</td>
-                                            <td>Rp 2.200.000</td>
-                                        </tr> */}
-                                            <tr>
-                                                <td>{rinciPeng.qty}</td>
-                                                <td>{rinciPeng.nama}</td>
-                                                <td>{rinciPeng.price}</td>
-                                                <td>Rp {parseInt(rinciPeng.price) * parseInt(rinciPeng.qty)}</td>
-                                            </tr>
+                                        {detailIo !== undefined && detailIo.length > 0 && detailIo.map(item => {
+                                            return (
+                                                <tr onClick={() => this.openModalRinci()}>
+                                                    <td>{item.qty}</td>
+                                                    <td>{item.nama}</td>
+                                                    <td>{item.price}</td>
+                                                    <td>Rp {parseInt(item.price) * parseInt(item.qty)}</td>
+                                                </tr>
+                                            )
+                                        })}
                                     </tbody>
                                 </Table>
                             </Col>
@@ -795,7 +799,7 @@ class Pengadaan extends Component {
                             <Col md={10} lg={10} className="colModal">
                             <text className="mr-3">:</text>
                             <OtpInput
-                                value={rinciPeng.depo === undefined ? '' : rinciPeng.depo === null ? '' : rinciPeng.depo.cost_center}
+                                value={rinciIo.depo === undefined ? '' : rinciIo.depo === null ? '' : rinciIo.depo.cost_center}
                                 isDisabled
                                 numInputs={10}
                                 inputStyle={style.otp}
@@ -810,7 +814,7 @@ class Pengadaan extends Component {
                             <Col md={10} lg={10} className="colModal">
                             <text className="mr-3">:</text>
                             <OtpInput
-                                value={rinciPeng.depo === undefined ? '' : rinciPeng.depo === null ? '' : rinciPeng.depo.profit_center}
+                                value={rinciIo.depo === undefined ? '' : rinciIo.depo === null ? '' : rinciIo.depo.profit_center}
                                 isDisabled
                                 numInputs={10}
                                 inputStyle={style.otp}
@@ -850,7 +854,7 @@ class Pengadaan extends Component {
                             </Col>
                             <Col md={10} lg={10} className="colModal">
                             <text className="mr-3">:</text>
-                            <text>Rp 2.200.000</text>
+                            <text>Rp {parseInt(detailIo === undefined ? 0 : detailIo[0] === undefined ? 0 : detailIo[0].price) * parseInt(detailIo === undefined ? 0 : detailIo[0] === undefined ? 0 : detailIo[0].qty)}</text>
                             </Col>
                         </Row>
                         <Row className="rowModal mt-4">
@@ -859,7 +863,7 @@ class Pengadaan extends Component {
                             </Col>
                             <Col md={10} lg={10} className="colModal">
                             <text className="mr-3">:</text>
-                            <text>Pengganti printer yang rusak</text>
+                            <text>-</text>
                             </Col>
                         </Row>
                     </Container>
@@ -1101,6 +1105,7 @@ const mapDispatchToProps = {
     rejectDocument: pengadaan.rejectDocument,
     resetError: pengadaan.resetError,
     showDokumen: pengadaan.showDokumen,
+    getDetail: pengadaan.getDetail
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Pengadaan)

@@ -1323,7 +1323,7 @@ class TaxFinDisposal extends Component {
                                                 <tr>
                                                     {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
                                                         return (
-                                                            <td className="footPre">{item.jabatan === null ? "-" : 'SPV'}</td>
+                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'NFAM' ? 'Head of Finance Accounting PMA' : item.jabatan}</td>
                                                         )
                                                     })}
                                                 </tr>
@@ -1336,6 +1336,7 @@ class TaxFinDisposal extends Component {
                                                 <tr>
                                                     {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
                                                         return (
+                                                            item.jabatan === 'HOC Funding And Tax' ? null :
                                                             <th className="headPre">
                                                                 <div className="mb-2">{item.nama === null ? "-" : moment(item.updatedAt).format('LL')}</div>
                                                                 <div>{item.nama === null ? "-" : item.nama}</div>
@@ -1348,6 +1349,7 @@ class TaxFinDisposal extends Component {
                                                 <tr>
                                                     {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
                                                         return (
+                                                            item.jabatan === 'HOC Funding And Tax' ? null :
                                                             <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
                                                         )
                                                     })}

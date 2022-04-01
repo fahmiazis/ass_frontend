@@ -519,8 +519,12 @@ class Disposal extends Component {
                         if ((app.length === 0 || app[app.length - 1].status === null) || (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (app[find].status === null))) {
                             newDis.push(dataDis[index])
                         }
+                    } else if (find === 0 || find === '0') {
+                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status === null) {
+                            newDis.push(dataDis[index])
+                        }
                     } else {
-                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (app[find].status === null)) {
+                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status === null) {
                             newDis.push(dataDis[index])
                         }
                     }
@@ -646,7 +650,7 @@ class Disposal extends Component {
                                         </div>
                                     ) : level === '2' || level === '12' ? (
                                         <div className="mt-5">
-                                            <Button onClick={this.getSubmitDisposal} color="info" size="lg" className="btnGoCart mb-4">Submit</Button>
+                                            <Button onClick={this.getSubmitDisposal} color="info" size="lg" className="mb-4">Submit</Button>
                                             <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
                                                 <option value="not available">All</option>
                                                 <option value="available">Available To Approve</option>

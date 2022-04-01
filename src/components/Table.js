@@ -56,7 +56,7 @@ class TablePdf extends Component {
                         <Text break={dataDis.length <= 18 ? false : dataDis.length > 18 && dataDis.length <= 26 ? true : (dataDis.length - 26) % 36 >= 1 && (dataDis.length - 26) % 36 <= 27 ? false : true} style={[styles.marbotT, styles.font, styles.martop]}>Demikian hal yang dapat kami sampaikan perihal persetujuan disposal aset, atas perhatiannya kami mengucapkan terima kasih.</Text>
                         <Table data={[{id: 1}]}>
                             <TableHeader>
-                                <TableCell style={styles.fontTtdHead}  weighting={0.237}>Diajukan Oleh,</TableCell>
+                                <TableCell style={styles.fontTtdHead}  weighting={0.321}>Diajukan Oleh,</TableCell>
                                 <TableCell style={styles.fontTtdHead} >Disetujui Oleh,</TableCell>
                             </TableHeader>
                         </Table>
@@ -64,24 +64,26 @@ class TablePdf extends Component {
                             <TableHeader style={styles.header}>
                                 {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
                                     return (
-                                        <TableCell style={styles.fontTtd}>{item.nama === null ? "-" : item.status === 0 ? 'Reject' + '\n\n' + item.nama : moment(item.updatedAt).format('LL') + '\n\n' + item.nama}</TableCell>
+                                        <TableCell style={styles.fontTtd}>{item.nama === null ? "" : item.status === 0 ? 'Reject' + '\n\n' + item.nama : moment(item.updatedAt).format('LL') + '\n\n' + item.nama}</TableCell>
                                     )
                                 })}
                                 {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
                                     return (
-                                        <TableCell style={styles.fontTtd}>{item.nama === null ? "-" : item.status === 0 ? 'Reject' + '\n\n' + item.nama : moment(item.updatedAt).format('LL') + '\n\n' + item.nama}</TableCell>
+                                        item.jabatan === 'HOC Funding And Tax' ? null :
+                                        <TableCell style={styles.fontTtd}>{item.nama === null ? "" : item.status === 0 ? 'Reject' + '\n\n' + item.nama : moment(item.updatedAt).format('LL') + '\n\n' + item.nama}</TableCell>
                                     )
                                 })}
                             </TableHeader>
                             <TableBody>
                                 {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
                                     return (
-                                        <DataTableCell style={styles.fontTtd} getContent={(r) => item.jabatan === null ? "-" : item.jabatan}/>
+                                        <DataTableCell style={styles.fontTtd} getContent={(r) => item.jabatan === null ? "" : item.jabatan === 'NFAM' ? 'Head of Finance Accounting PMA' : item.jabatan}/>
                                     )
                                 })}
                                 {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
                                     return (
-                                        <DataTableCell style={styles.fontTtd} getContent={(r) => item.jabatan === null ? "-" : item.jabatan}/>
+                                        item.jabatan === 'HOC Funding And Tax' ? null :
+                                        <DataTableCell style={styles.fontTtd} getContent={(r) => item.jabatan === null ? "" : item.jabatan}/>
                                     )
                                 })}
                             </TableBody>
@@ -98,7 +100,7 @@ class TablePdf extends Component {
                                                 {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
                                                     return (
                                                         <Text style={[styles.cellTtdHead]}>
-                                                            {item.nama === null ? "-" : item.nama}
+                                                            {item.nama === null ? "" : item.nama}
                                                         </Text>
                                                     )
                                                 })}
@@ -106,7 +108,7 @@ class TablePdf extends Component {
                                             <View style={[styles.row]}>
                                                 {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
                                                     return (
-                                                        <Text style={[styles.cellTtdBody]}>{item.jabatan === null ? "-" : item.jabatan}</Text>
+                                                        <Text style={[styles.cellTtdBody]}>{item.jabatan === null ? "" : item.jabatan}</Text>
                                                     )
                                                 })}
                                             </View>
@@ -125,7 +127,7 @@ class TablePdf extends Component {
                                             {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
                                                 return (
                                                     <Text style={[styles.cellTtdHead]}>
-                                                            {item.nama === null ? "-" : item.nama}
+                                                            {item.nama === null ? "" : item.nama}
                                                     </Text>     
                                                 )
                                             })}
@@ -133,7 +135,7 @@ class TablePdf extends Component {
                                             <View style={[styles.row]}>
                                                 {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
                                                     return (
-                                                        <Text style={[styles.cellTtdBody]}>{item.jabatan === null ? "-" : item.jabatan}</Text>
+                                                        <Text style={[styles.cellTtdBody]}>{item.jabatan === null ? "" : item.jabatan}</Text>
                                                     )
                                                 })}
                                             </View>

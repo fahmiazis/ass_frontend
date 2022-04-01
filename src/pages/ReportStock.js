@@ -262,9 +262,11 @@ class ReportStock extends Component {
                                                     <th>AREA</th>
                                                     <th>SATUAN</th>
                                                     <th>UNIT</th>
-                                                    <th>KONDISI</th>
                                                     <th>LOKASI</th>
-                                                    <th>STATUS ASET</th>
+                                                    <th>STATUS SAP</th>
+                                                    <th>STATUS FISIK</th>
+                                                    <th>KONDISI</th>
+                                                    <th>GROUPING</th>
                                                     <th>ACQUIS VAL</th>
                                                     <th>ACCUM DEP</th>
                                                     <th>BOOK VAL</th>
@@ -284,8 +286,10 @@ class ReportStock extends Component {
                                                         <td>{item.depo.nama_area}</td>
                                                         <td>{item.satuan}</td>
                                                         <td>{item.unit}</td>
-                                                        <td>{item.kondisi}</td>
                                                         <td>{item.lokasi}</td>
+                                                        <td>{item.no_asset === null ? 'TIDAK ADA' : 'ADA'}</td>
+                                                        <td style={{textTransform: 'uppercase'}}>{item.status_fisik}</td>
+                                                        <td style={{textTransform: 'uppercase'}}>{item.kondisi}</td>
                                                         <td>{item.grouping}</td>
                                                         <td>{item.dataAsset === null ? '-' : item.dataAsset.nilai_acquis}</td>
                                                         <td>{item.dataAsset === null ? '-' : item.dataAsset.accum_dep}</td>
@@ -298,6 +302,8 @@ class ReportStock extends Component {
                                                         <td>{this.state.nilai_acquis}</td>
                                                         <td>{this.state.accum_dep}</td>
                                                         <td>{this.state.nilai_buku}</td>
+                                                        <td></td>
+                                                        <td></td>
                                                         <td></td>
                                                     </tr>
                                             </tbody>
@@ -335,7 +341,7 @@ class ReportStock extends Component {
                                         className="btn btn-success"
                                         table="table-to-xls"
                                         filename="Report Stock Opname"
-                                        sheet="Dokumentasi"
+                                        sheet="Report"
                                         buttonText="Download"
                                     />
                                     <div className={style.pageButton}>
