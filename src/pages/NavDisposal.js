@@ -47,7 +47,7 @@ export default class NavDisposal extends Component {
                                         </div>
                                     </button>
                                 </Row>
-                        ) : level === '5'  ? (
+                        ) : level === '5' || level === '9'  ? (
                             <Row className="mainBody">
                                 <button className="cardNav1" onClick={() => this.goRoute('disposal')}>
                                     <div className="titCard">

@@ -44,7 +44,7 @@ function Sidebar(props) {
     }
 
     function goPengadaan() {
-        history.push('/pengadaan')
+        history.push('/navtick')
     }
 
     function logout() {

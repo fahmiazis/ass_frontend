@@ -20,6 +20,7 @@ import asset from '../redux/actions/asset'
 import report from '../redux/actions/report'
 import b from "../assets/img/b.jpg"
 import pengadaan from '../redux/actions/pengadaan'
+import user from '../redux/actions/user'
 import e from "../assets/img/e.jpg"
 import {connect} from 'react-redux'
 import moment from 'moment'
@@ -184,7 +185,7 @@ class Stock extends Component {
         const {dataItem} = this.state
         const token = localStorage.getItem('token')
         await this.props.approveStock(token, dataItem.no_stock)
-        await this.props.getApproveStock(token, dataItem.no_stock, 'stock opname')
+        await this.props.getApproveStock(token, dataItem.no_stock, dataItem.kode_plant.split('').length === 4 ? 'stock opname' : 'stock opname HO')
     }
 
     rejectStock = async (value) => {
@@ -196,7 +197,7 @@ class Stock extends Component {
         }
         await this.props.rejectStock(token, dataItem.no_stock, data)
         await this.props.getDetailStock(token, dataItem.id)
-        await this.props.getApproveStock(token, dataItem.no_stock, 'stock opname')
+        await this.props.getApproveStock(token, dataItem.no_stock, dataItem.kode_plant.split('').length === 4 ? 'stock opname' : 'stock opname HO')
     }
 
     dropApp = () => {
@@ -219,9 +220,9 @@ class Stock extends Component {
         this.setState({openApprove: !this.state.openApprove})
     }
 
-    openPreview = async (no) => {
+    openPreview = async (val) => {
         const token = localStorage.getItem('token')
-        await this.props.getApproveStock(token, no, 'stock opname')
+        await this.props.getApproveStock(token, val.no_stock, val.kode_plant.split('').length === 4 ? 'stock opname' : 'stock opname HO')
         this.openModalPreview()
     }
 
@@ -283,7 +284,7 @@ class Stock extends Component {
 
     componentDidMount() {
         const level = localStorage.getItem('level')
-        if (level === "5" ) {
+        if (level === "5" || level === "9") {
             this.getDataAsset()
         } else {
             this.getDataStock()
@@ -417,6 +418,7 @@ class Stock extends Component {
         // const search = value === undefined ? '' : this.state.search
         // const limit = value === undefined ? this.state.limit : value.limit
         await this.props.getStockAll(token)
+        await this.props.getRole(token)
         this.setState({limit: value === undefined ? 10 : value.limit})
         this.changeFilter('available')
     }
@@ -487,30 +489,35 @@ class Stock extends Component {
 
     changeFilter = (val) => {
         const {dataStock} = this.props.stock
-        const role = localStorage.getItem('role')
+        const {dataRole} = this.props.user
         const level = localStorage.getItem('level')
-        if (val === 'available') {
-            const newStock = []
-            for (let i = 0; i < dataStock.length; i++) {
-                const app = dataStock[i].appForm
-                const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
-                if (level === '7' || level === 7) {
-                    if ((app.length === 0 || app[app.length - 1].status === null) || (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (app[find].status === null || app[find].status === 0))) {
-                        newStock.push(dataStock[i])
-                    }
-                } else if (find === 0 || find === '0') {
-                    if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
-                        newStock.push(dataStock[i])
-                    }
-                } else {
-                    if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
-                        newStock.push(dataStock[i])
+        const role = level === '16' || level === '13' ? dataRole.find(({nomor}) => nomor === '27').name : localStorage.getItem('role')
+        if (level === '2') {
+            this.setState({filter: val, newStock: dataStock})
+        } else {
+            if (val === 'available') {
+                const newStock = []
+                for (let i = 0; i < dataStock.length; i++) {
+                    const app = dataStock[i].appForm
+                    const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
+                    if (level === '7' || level === 7) {
+                        if ((app.length === 0 || app[app.length - 1].status === null) || (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (app[find].status === null || app[find].status === 0))) {
+                            newStock.push(dataStock[i])
+                        }
+                    } else if (find === 0 || find === '0') {
+                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
+                            newStock.push(dataStock[i])
+                        }
+                    } else {
+                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
+                            newStock.push(dataStock[i])
+                        }
                     }
                 }
+                this.setState({filter: val, newStock: newStock})
+            } else {
+                this.setState({filter: val, newStock: dataStock})
             }
-            this.setState({filter: val, newStock: newStock})
-        } else {
-            this.setState({filter: val, newStock: dataStock})
         }
     }
 
@@ -782,7 +789,7 @@ class Stock extends Component {
                                 )}
                                 {this.state.view === 'list' ? (
                                     <Button className='marDown' color='success' onClick={() => this.getDokumentasi({no: 'all'})} >Download All</Button>
-                                ) : level !== '5' && level !== '9' && (
+                                ) : level !== '5' && level !== '9' && level !== '2' && (
                                     <div className='mt-4'>
                                         <Input type="select" value={this.state.filter} onChange={e => this.changeFilter(e.target.value)}>
                                             <option value="available">Available To Approve</option>
@@ -839,7 +846,7 @@ class Stock extends Component {
                             </div>
                                 {level === '5' || level === '9' ? (
                                     <div>
-                                        <Button onClick={this.openModalSum} color="warning" size="lg" className="mt-3">Tambah Asset</Button>
+                                        {/* <Button onClick={this.openModalSum} color="warning" size="lg" className="mt-3">Tambah Asset</Button> */}
                                         <div className="stockTitle">kertas kerja opname aset kantor</div>
                                         <div className="ptStock">pt. pinus merah abadi</div>
                                         <Row className="ptStock inputStock">
@@ -1075,7 +1082,7 @@ class Stock extends Component {
                                                                     </div>
                                                                     <Row className="mb-2">
                                                                         <Col md={5} className="txtDoc">
-                                                                        Kode Plant
+                                                                        Kode Area
                                                                         </Col>
                                                                         <Col md={7} className="txtDoc">
                                                                         : {item.kode_plant}
@@ -1108,7 +1115,7 @@ class Stock extends Component {
                                                                 </div>
                                                                 <Row className="footCard mb-3 mt-3">
                                                                     <Col md={12} xl={12} className="colFoot">
-                                                                        <Button className="btnSell" color="primary" onClick={() => {this.getDetailStock(item); this.getApproveStock({nama: 'stock opname', no: item.no_stock})}}>Proses</Button>
+                                                                        <Button className="btnSell" color="primary" onClick={() => {this.getDetailStock(item); this.getApproveStock({nama: item.kode_plant.split('').length === 4 ? 'stock opname' : 'stock opname HO', no: item.no_stock})}}>Proses</Button>
                                                                         {/* <Button className="btnSell ml-2" color="danger" onClick={() => this.deleteStock(item)}>Delete</Button> */}
                                                                     </Col>
                                                                 </Row>
@@ -1124,7 +1131,7 @@ class Stock extends Component {
                                                         <tr>
                                                             <th>No</th>
                                                             <th>Area</th>
-                                                            <th>Kode Plant</th>
+                                                            <th>Kode Area</th>
                                                             <th>Tanggal Stock Opname</th>
                                                             <th>No Stock Opname</th>
                                                             {level === '2' ? (
@@ -1160,8 +1167,8 @@ class Stock extends Component {
                                                                 <td>{item.nama_om}</td>
                                                                 <td>{item.nama_bm}</td>
                                                                 <td>
-                                                                    <Button size='small' color="primary" disabled={dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? true : false} onClick={() => {this.getDetailStock(dataStock.find(({kode_plant}) => kode_plant === item.kode_plant)); this.getApproveStock({nama: 'stock opname', no: dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).no_stock})}}>Preview</Button>
-                                                                    <Button className='ml-2' size='small' color="success" onClick={() => this.getDokumentasi({no: dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? '' : dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).no_stock})} disabled={dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? true : false}>Download</Button>
+                                                                    <Button size='small' color="primary" disabled={dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? true : false} onClick={() => {this.getDetailStock(dataStock.find(({kode_plant}) => kode_plant === item.kode_plant)); this.getApproveStock({nama: item.kode_plant.split('').length === 4 ? 'stock opname' : 'stock opname HO', no: dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).no_stock})}}>Preview</Button>
+                                                                    <Button className='' size='small' color="success" onClick={() => this.getDokumentasi({no: dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? '' : dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).no_stock})} disabled={dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? true : false}>Download</Button>
                                                                 </td>
                                                             </tr>
                                                             )})}
@@ -1608,7 +1615,7 @@ class Stock extends Component {
                                 ) : (
                                     <img src={detRinci.pict === undefined || detRinci.pict.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detRinci.pict[detRinci.pict.length - 1].path}`} className="imgRinci" />
                                 )}
-                                {level === '5' || level === '9' && (
+                                {(level === '5' || level === '9') && (
                                     <Input type="file" className='mt-2' onChange={this.uploadGambar}>Upload Picture</Input>
                                 )}
                                 {/* <div className="secImgSmall">
@@ -1973,7 +1980,7 @@ class Stock extends Component {
                         )}
                     </ModalBody>
                     <div className="modalFoot ml-3">
-                        <Button color="primary"  onClick={() => this.openPreview(dataItem.no_stock)}>Preview</Button>
+                        <Button color="primary"  onClick={() => this.openPreview(dataItem)}>Preview</Button>
                         <div className="btnFoot">
                             <Button className="mr-2" disabled={listMut.length === 0 ? true : false} color="danger" onClick={this.openModalReject}>
                                 Reject
@@ -2113,7 +2120,12 @@ class Stock extends Component {
                                        <Table bordered responsive className="divPre">
                                             <thead>
                                                 <tr>
-                                                    {stockApp.pemeriksa !== undefined && stockApp.pemeriksa.map(item => {
+                                                    {stockApp.pemeriksa !== undefined && stockApp.pemeriksa.length === 0 ? (
+                                                        <th className="headPre">
+                                                            <div className="mb-2">-</div>
+                                                            <div>-</div>
+                                                        </th>
+                                                    ) : stockApp.pemeriksa !== undefined && stockApp.pemeriksa.map(item => {
                                                         return (
                                                             <th className="headPre">
                                                                 <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
@@ -2125,7 +2137,9 @@ class Stock extends Component {
                                             </thead>
                                             <tbody>
                                                 <tr>
-                                                    {stockApp.pemeriksa !== undefined && stockApp.pemeriksa.map(item => {
+                                                    {stockApp.pemeriksa !== undefined && stockApp.pemeriksa.length === 0 ? (
+                                                        <td className="footPre">-</td>
+                                                    ) : stockApp.pemeriksa !== undefined && stockApp.pemeriksa.map(item => {
                                                         return (
                                                             <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
                                                         )
@@ -2259,7 +2273,7 @@ class Stock extends Component {
                         </div>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.state.openApprove && level === '5' || level === '9'} toggle={this.openModalApprove} centered={true}>
+                <Modal isOpen={this.state.openApprove && (level === '5' || level === '9')} toggle={this.openModalApprove} centered={true}>
                     <ModalBody>
                         <div className={style.modalApprove}>
                             <div>
@@ -2347,9 +2361,10 @@ class Stock extends Component {
                                         <th>MERK</th>
                                         <th>SATUAN</th>
                                         <th>UNIT</th>
-                                        <th>KONDISI</th>
                                         <th>LOKASI</th>
-                                        <th>GROUPING</th>
+                                        <th>STATUS FISIK</th>
+                                        <th>KONDISI</th>
+                                        <th>STATUS ASET</th>
                                         <th>KETERANGAN</th>
                                     </tr>
                                 </thead>
@@ -2363,8 +2378,9 @@ class Stock extends Component {
                                             <td>{item.merk}</td>
                                             <td>{item.satuan}</td>
                                             <td>{item.unit}</td>
-                                            <td>{item.kondisi}</td>
                                             <td>{item.lokasi}</td>
+                                            <td>{item.status_fisik}</td>
+                                            <td>{item.kondisi}</td>
                                             <td>{item.grouping}</td>
                                             <td>{item.keterangan}</td>
                                         </tr>
@@ -2736,7 +2752,8 @@ const mapStateToProps = state => ({
     setuju: state.setuju,
     depo: state.depo,
     stock: state.stock,
-    report: state.report
+    report: state.report,
+    user: state.user
 })
 
 const mapDispatchToProps = {
@@ -2776,7 +2793,8 @@ const mapDispatchToProps = {
     addOpname: stock.addStock,
     uploadImage: stock.uploadImage,
     submitAsset: stock.submitAsset,
-    exportStock: report.getExportStock
+    exportStock: report.getExportStock,
+    getRole: user.getRole
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Stock)

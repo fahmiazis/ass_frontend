@@ -82,7 +82,7 @@ const SidebarContent = props => {
             <text className={stile.txtSide}>My Asset</text>
         </button>
       )}
-      <button className={stile.btnSide} onClick={() => goHome('pengadaan')}>
+      <button className={stile.btnSide} onClick={() => goHome('navtick')}>
         <FaCartPlus size={20} className="mr-2" />
         <text className={stile.txtSide}>Pengadaan Asset</text>
       </button>

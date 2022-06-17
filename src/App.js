@@ -48,6 +48,11 @@ import EditStock from './pages/EditStock'
 import NavBar from './components/NavBar'
 import EditPurch from './pages/EditPurch'
 import TrackingStock from './pages/TrackingStock'
+import EksekusiTicket from './pages/EksekusiTicket'
+import NavTicket from './pages/NavTicket'
+import CartTicket from './pages/CartTicket'
+import TrackingTicket  from './pages/TrackingTicket'
+import EditTicket from './pages/EditTicket'
 
 class App extends Component {
 
@@ -181,6 +186,21 @@ class App extends Component {
                 </PrivateRoute>
                 <PrivateRoute path='/tespeng'>
                     <Tespeng />
+                </PrivateRoute>
+                <PrivateRoute path='/ekstick'>
+                    <EksekusiTicket />
+                </PrivateRoute>
+                <PrivateRoute path='/navtick'>
+                    <NavTicket />
+                </PrivateRoute>
+                <PrivateRoute path='/carttick'>
+                    <CartTicket />
+                </PrivateRoute>
+                <PrivateRoute path='/tracktick'>
+                    <TrackingTicket />
+                </PrivateRoute>
+                <PrivateRoute path='/revtick'>
+                    <EditTicket />
                 </PrivateRoute>
             </Switch>
         </BrowserRouter>

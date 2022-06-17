@@ -266,6 +266,21 @@
     flex-direction: row;
     align-items: center;
 }
+.inputRecent {
+    width: 30% !important;
+}
+.inputRec {
+    width: 50% !important;
+}
+.colRecent {
+    display: flex;
+    flex-direction: column;
+}
+.colModal1 {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+}
 .colModalTab {
     display: flex;
     flex-direction: row;
@@ -409,16 +424,18 @@
     text-align: start;
 }
 .imgCard {
-    width: 288px;
+    width: 100%;
     height: 230px;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: 5% 5% 0 0;
+    margin-bottom: 3%;
 }
 .imgCard1 {
     width: 100%;
     height: 230px;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: 5% 5% 0 0;
+    margin-bottom: 3%;
 }
 .footCard {
     justify-content: center;
@@ -573,6 +590,10 @@
     margin-top: 5%;
     font-weight: bold;
     font-size: 120%;
+}
+.txtDisposEmpty1 {
+    margin-left: 2%;
+    font-weight: bold;
 }
 .btnDispos {
     border: 0;
@@ -1096,6 +1117,10 @@
 .titStatus {
     font-size: 20px;
 }
+.quest {
+    font-size: 20px;
+    color: #D83022;
+}
 .textPict {
     text-align: center;
     margin-top: 10%;
@@ -1109,4 +1134,8 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+}
+.colTable {
+    display: flex;
+    flex-direction: column;
 }

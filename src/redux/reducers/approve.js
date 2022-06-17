@@ -205,7 +205,8 @@ export default (state=approveState, action) => {
                     isAdd: false,
                     isDelete: false,
                     isGet: false,
-                    isExport: false
+                    isExport: false,
+                    isLoading: false
                 }
             }
             default: {

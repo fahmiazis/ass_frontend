@@ -67,7 +67,7 @@ class Home extends Component {
     }
 
     goPengadaan = () => {
-        this.props.history.push('/pengadaan')
+        this.props.history.push('/navtick')
     }
 
     goRoute = (route) => {

@@ -43,7 +43,7 @@ const alasanDisSchema = Yup.object().shape({
     jenis_reject: Yup.string().required()
 });
 
-class Pengadaan extends Component {
+class EditTicket extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -111,9 +111,7 @@ class Pengadaan extends Component {
             listMut: [],
             newIo: [],
             filter: 'available',
-            isAppall: false,
-            stat: '',
-            listStat: []
+            isAppall: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -122,25 +120,6 @@ class Pengadaan extends Component {
     getApproveDis = async (value) => {
         const token = localStorage.getItem('token')
         await this.props.getApproveDisposal(token, value.no, value.nama)
-    }
-
-    statusApp = (val) => {
-        const { listStat } = this.state
-        listStat.push(val)
-        this.setState({listStat: listStat})
-    }
-
-    statusRej = (val) => {
-        const { listStat } = this.state
-        const data = []
-        for (let i = 0; i < listStat.length; i++) {
-            if (listStat[i] === val) {
-                data.push()
-            } else {
-                data.push(listStat[i])
-            }
-        }
-        this.setState({listStat: data})
     }
 
     openModalRinci = () => {
@@ -236,7 +215,7 @@ class Pengadaan extends Component {
             this.setState({confirm: 'recent'})
             this.openConfirm()
         } else {
-            this.setState({listStat: [], openReject: !this.state.openReject})
+            this.setState({openReject: !this.state.openReject})
         }
     }
 
@@ -270,26 +249,9 @@ class Pengadaan extends Component {
 
     rejectIo = async (value) => {
         const { detailIo } = this.props.pengadaan
-        const {listStat} = this.state
         const token = localStorage.getItem('token')
-        let temp = ''
-        let status = ''
-        for (let i = 0; i < listStat.length; i++) {
-            temp += listStat[i] + '.'
-            if ('Deskripsi, kuantitas, dan harga tidak sesuai' === listStat[i]) {
-                status += '1'
-            } else if ('Dokumen lampiran tidak sesuai' === listStat[i]) {
-                status += '5'
-            } else if ('Alasan di form io yang tidak sesuai' === listStat[i]) {
-                status += '5'
-            }
-        }
-        const data = {
-            alasan: temp + value.alasan,
-            status: parseInt(status)
-        }
         this.openModalReject()
-        await this.props.rejectIo(token, detailIo[0].no_pengadaan, data)
+        await this.props.rejectIo(token, detailIo[0].no_pengadaan, value)
         this.getDataAsset()
     }
 
@@ -558,7 +520,6 @@ class Pengadaan extends Component {
         const {isError, isUpload, isUpdate, approve, rejApprove, reject, rejReject, detailIo} = this.props.pengadaan
         const {rinciIo, listMut, newIo} = this.state
         const token = localStorage.getItem('token')
-        console.log(this.state.listStat)
         if (isError) {
             this.props.resetError()
             this.showAlert()
@@ -627,9 +588,9 @@ class Pengadaan extends Component {
 
     getDataAsset = async (value) => {
         const level = localStorage.getItem('level')
-        const status = level === '2' ? '1' : level === '8' ? '3' : '2'
+        const status = ''
         const token = localStorage.getItem("token")
-        await this.props.getPengadaan(token, status)
+        await this.props.getRevisi(token, status)
         this.changeFilter('available')
     }
 
@@ -638,59 +599,60 @@ class Pengadaan extends Component {
     }
 
     changeFilter = (val) => {
-        const {dataPeng} = this.props.pengadaan
-        const role = localStorage.getItem('role')
+        const {revPeng} = this.props.pengadaan
+        // const role = localStorage.getItem('role')
         const level = localStorage.getItem('level')
-        if (level === '2' || level === '8') {
-            this.setState({filter: val, newIo: dataPeng})
+        if (level === '2') {
+            this.setState({filter: val, newIo: revPeng})
         } else {
-            if (val === 'available') {
-                const newIo = []
-                for (let i = 0; i < dataPeng.length; i++) {
-                    const app = dataPeng[i].appForm ===  undefined ? [] : dataPeng[i].appForm
-                    const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
-                    if (level === '5' || level === '9') {
-                        if (app[find] === undefined || (app[find - 1].status === null && (app[find].status === null || app[find].status === 0))) {
-                            newIo.push(dataPeng[i])
-                        }
-                    } else if (find === 0 || find === '0') {
-                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
-                            newIo.push(dataPeng[i])
-                        }
-                    } else {
-                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
-                            newIo.push(dataPeng[i])
-                        }
-                    }
-                }
-                this.setState({filter: val, newIo: newIo})
-            } else {
-                const newIo = []
-                for (let i = 0; i < dataPeng.length; i++) {
-                    const app = dataPeng[i].appForm ===  undefined ? [] : dataPeng[i].appForm
-                    const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
-                    if (level === '5' || level === '9') {
-                        if (app[find] === undefined || (app[find - 1].status === null && (app[find].status === null || app[find].status === 0))) {
-                            newIo.push()
-                        } else {
-                            newIo.push(dataPeng[i])
-                        }
-                    } else if (find === 0 || find === '0') {
-                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
-                            newIo.push()
-                        } else {
-                            newIo.push(dataPeng[i])
-                        }
-                    } else {
-                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
-                            newIo.push()
-                        } else {
-                            newIo.push(dataPeng[i])
-                        }
-                    }
-                }
-                this.setState({filter: val, newIo: newIo})
-            }
+            this.setState({filter: val, newIo: revPeng})
+            // if (val === 'available') {
+            //     const newIo = []
+            //     for (let i = 0; i < revPeng.length; i++) {
+            //         const app = revPeng[i].appForm ===  undefined ? [] : revPeng[i].appForm
+            //         const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
+            //         if (level === '5' || level === '9') {
+            //             if (app[find] === undefined || (app[find - 1].status === null && (app[find].status === null || app[find].status === 0))) {
+            //                 newIo.push(revPeng[i])
+            //             }
+            //         } else if (find === 0 || find === '0') {
+            //             if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
+            //                 newIo.push(revPeng[i])
+            //             }
+            //         } else {
+            //             if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
+            //                 newIo.push(revPeng[i])
+            //             }
+            //         }
+            //     }
+            //     this.setState({filter: val, newIo: newIo})
+            // } else {
+            //     const newIo = []
+            //     for (let i = 0; i < revPeng.length; i++) {
+            //         const app = revPeng[i].appForm ===  undefined ? [] : revPeng[i].appForm
+            //         const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
+            //         if (level === '5' || level === '9') {
+            //             if (app[find] === undefined || (app[find - 1].status === null && (app[find].status === null || app[find].status === 0))) {
+            //                 newIo.push()
+            //             } else {
+            //                 newIo.push(revPeng[i])
+            //             }
+            //         } else if (find === 0 || find === '0') {
+            //             if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
+            //                 newIo.push()
+            //             } else {
+            //                 newIo.push(revPeng[i])
+            //             }
+            //         } else {
+            //             if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
+            //                 newIo.push()
+            //             } else {
+            //                 newIo.push(revPeng[i])
+            //             }
+            //         }
+            //     }
+            //     this.setState({filter: val, newIo: newIo})
+            // }
         }
     }
 
@@ -764,10 +726,10 @@ class Pengadaan extends Component {
     }
 
     render() {
-        const {alert, upload, errMsg, rinciIo, total, listMut, newIo, listStat} = this.state
+        const {alert, upload, errMsg, rinciIo, total, listMut, newIo} = this.state
         const {dataAsset, alertM, alertMsg, alertUpload, page} = this.props.asset
         const pages = this.props.disposal.page 
-        const {dataPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataDocCart} = this.props.pengadaan
+        const {revPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataDocCart} = this.props.pengadaan
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
         const dataNotif = this.props.notif.data
@@ -819,12 +781,12 @@ class Pengadaan extends Component {
                             </Alert> */}
                             <div className={style.bodyDashboard}>
                                 <div className={style.headMaster}> 
-                                    <div className={style.titleDashboard}>Pengadaan Asset</div>
+                                    <div className={style.titleDashboard}>Revisi Pengadaan Asset</div>
                                 </div>
                                 <div className={level === '2' ? style.secEmail1 : style.secEmail}>
                                     {level === '5' || level === '9' ? (
                                         <div className={style.headEmail}>
-                                            <button className="btnGoCart" onClick={() => this.props.history.push('/carttick')}><FaCartPlus size={60} className="green ml-2" /></button>
+                                            {/* <button className="btnGoCart" onClick={() => this.props.history.push('/carttick')}><FaCartPlus size={60} className="green ml-2" /></button> */}
                                         </div>
                                     ) : level === '2' || level === '8' ? (
                                         <div className="mt-5">
@@ -868,12 +830,7 @@ class Pengadaan extends Component {
                                 {level === '2' || level === '8' ? (
                                     null
                                 ) : (
-                                    <div className={style.headEmail1}>
-                                        <Input type="select" value={this.state.filter} onChange={e => this.changeFilter(e.target.value)}>
-                                            <option value="not available">All</option>
-                                            <option value="available">Available To Approve</option>
-                                        </Input>
-                                    </div>
+                                    null
                                 )}
                                 {level === '5' || level === '9' ? (
                                     newIo === undefined ? (
@@ -882,7 +839,7 @@ class Pengadaan extends Component {
                                         <Row className="bodyDispos">
                                         {newIo.length !== 0 && newIo.map(item => {
                                             return (
-                                                item.status_form !== '2' ? (
+                                                item.status_form !== null ? (
                                                     null
                                                 ) : (
                                                     <div className="bodyCard">
@@ -890,7 +847,7 @@ class Pengadaan extends Component {
                                                     <Button size="sm" color="success" className="labelBut">Pengadaan</Button>
                                                     <div className="ml-2">
                                                         <div className="txtDoc mb-2">
-                                                            Pengadaan Asset
+                                                            Revisi
                                                         </div>
                                                         <Row className="mb-2">
                                                             <Col md={6} className="txtDoc">
@@ -956,13 +913,13 @@ class Pengadaan extends Component {
                                                 newIo.length === 0 ? (
                                                     <div></div>
                                                 ) : (
-                                                    item.status_form === '3' ? (
+                                                    item.status_form !== null ? (
                                                         <div className="bodyCard">
                                                         <img src={placeholder} className="imgCard1" />
                                                         <Button size="sm" color="success" className="labelBut">Pengadaan</Button>
                                                         <div className="ml-2">
                                                             <div className="txtDoc mb-2">
-                                                                Pengadaan Asset
+                                                                Revisi
                                                             </div>
                                                             <Row className="mb-2">
                                                                 <Col md={6} className="txtDoc">
@@ -1031,13 +988,13 @@ class Pengadaan extends Component {
                                                 newIo.length === 0 ? (
                                                     <div></div>
                                                 ) : (
-                                                    item.status_form === '1' && (
+                                                    item.status_form !== null && (
                                                         <div className="bodyCard">
                                                         <img src={placeholder} className="imgCard1" />
                                                         <Button size="sm" color="success" className="labelBut">Pengadaan</Button>
                                                         <div className="ml-2">
                                                             <div className="txtDoc mb-2">
-                                                                Pengadaan Asset
+                                                                Revisi
                                                             </div>
                                                             <Row className="mb-2">
                                                                 <Col md={6} className="txtDoc">
@@ -1105,13 +1062,13 @@ class Pengadaan extends Component {
                                                         newIo.length === 0 ? (
                                                             <div></div>
                                                         ) : (
-                                                            item.status_form === '2' && (
+                                                            item.status_form !== null && (
                                                                 <div className="bodyCard">
                                                                     <img src={placeholder} className="imgCard1" />
                                                                     <Button size="sm" color="success" className="labelBut">Pengadaan</Button>
                                                                     <div className="ml-2">
                                                                         <div className="txtDoc mb-2">
-                                                                            Pengadaan Asset
+                                                                            Revisi pengadaan
                                                                         </div>
                                                                         <Row className="mb-2">
                                                                             <Col md={6} className="txtDoc">
@@ -1193,7 +1150,7 @@ class Pengadaan extends Component {
                                                     {newIo !== undefined && newIo.map(item => {
                                                         return (
                                                             <tbody>
-                                                                {item.status_form === '2' ? (
+                                                                {item.status_app !== null ? (
                                                                     <tr>
                                                                         <td onClick={() => this.openForm(item)}>{newIo.indexOf(item) + 1}</td>
                                                                         <td onClick={() => this.openForm(item)}>{item.no_pengadaan}</td>
@@ -1480,23 +1437,12 @@ class Pengadaan extends Component {
                             Preview
                         </Button>
                     </div>
-                    {level === '2' || level === '8' ? (
-                        <div className="btnFoot">
-                            <div></div>
-                            <Button color="success" onClick={level === '2' ? () => this.submitAsset(detailIo[0].no_pengadaan) : this.submitBudget}>
-                                Submit
-                            </Button>
-                        </div>
-                    ) : (
                     <div className="btnFoot">
-                        <Button className="mr-2" color="primary" onClick={this.openModalApproveIo}>
-                            Approve
-                        </Button>
-                        <Button color="danger" onClick={this.openModalReject}>
-                            Reject 
+                        <div></div>
+                        <Button color="success" onClick={level === '2' ? () => this.submitAsset(detailIo[0].no_pengadaan) : this.submitBudget}>
+                            Submit
                         </Button>
                     </div>
-                    )}
                 </div>
             </Modal>
             <Modal size="xl" isOpen={this.state.preview} toggle={this.openPreview}>
@@ -1899,7 +1845,7 @@ class Pengadaan extends Component {
                             </div>
                         {level === '1' || level === '2' || level === '3' ? (
                             <div>
-                                <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
+                                <Button color="danger" className="mr-3" onClick={this.openModalReject}>Reject</Button>
                                 <Button color="primary" onClick={this.openModalApprove}>Approve</Button>
                             </div>
                             ) : (
@@ -1959,60 +1905,33 @@ class Pengadaan extends Component {
                     <ModalBody>
                     <Formik
                     initialValues={{
-                    alasan: ".",
+                    alasan: "",
                     }}
                     validationSchema={alasanSchema}
                     onSubmit={(values) => {this.rejectIo(values)}}
                     >
                         {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
                             <div className={style.modalApprove}>
-                            <div className='mb-2 quest'>Anda yakin untuk reject ?</div>
-                            <div className='mb-2 titStatus'>Pilih alasan :</div>
-                            <div className="ml-2">
-                                <Input
-                                addon
-                                type="checkbox"
-                                checked= {listStat.find(element => element === 'Deskripsi, kuantitas, dan harga tidak sesuai') !== undefined ? true : false}
-                                onClick={listStat.find(element => element === 'Deskripsi, kuantitas, dan harga tidak sesuai') === undefined ? () => this.statusApp('Deskripsi, kuantitas, dan harga tidak sesuai') : () => this.statusRej('Deskripsi, kuantitas, dan harga tidak sesuai')}
-                                />  Deskripsi, kuantitas, dan harga tidak sesuai
-                            </div>
-                            <div className="ml-2">
-                                <Input
-                                addon
-                                type="checkbox"
-                                checked= {listStat.find(element => element === 'Dokumen lampiran tidak sesuai') !== undefined ? true : false}
-                                onClick={listStat.find(element => element === 'Dokumen lampiran tidak sesuai') === undefined ? () => this.statusApp('Dokumen lampiran tidak sesuai') : () => this.statusRej('Dokumen lampiran tidak sesuai')}
-                                />  Dokumen lampiran tidak sesuai
-                            </div>
-                            <div className="ml-2">
-                                <Input
-                                addon
-                                type="checkbox"
-                                checked= {listStat.find(element => element === 'Alasan di form io yang tidak sesuai') !== undefined ? true : false}
-                                onClick={listStat.find(element => element === 'Alasan di form io yang tidak sesuai') === undefined ? () => this.statusApp('Alasan di form io yang tidak sesuai') : () => this.statusRej('Alasan di form io yang tidak sesuai')}
-                                />  Alasan di form io yang tidak sesuai
-                            </div>
+                            <div className={style.quest}>Anda yakin untuk reject ?</div>
                             <div className={style.alasan}>
-                                <text className='ml-2'>
-                                    Lainnya
+                                <text className="col-md-3">
+                                    Alasan
                                 </text>
+                                <Input 
+                                type="name" 
+                                name="select" 
+                                className="col-md-9"
+                                value={values.alasan}
+                                onChange={handleChange('alasan')}
+                                onBlur={handleBlur('alasan')}
+                                />
                             </div>
-                            <Input 
-                            type="name" 
-                            name="select" 
-                            className="ml-2 inputRec"
-                            value={values.alasan}
-                            onChange={handleChange('alasan')}
-                            onBlur={handleBlur('alasan')}
-                            />
-                            <div className='ml-2'>
-                                {errors.alasan ? (
+                            {errors.alasan ? (
                                     <text className={style.txtError}>{errors.alasan}</text>
                                 ) : null}
-                            </div>
                             <div className={style.btnApprove}>
-                                <Button color="primary" disabled={(values.alasan === '.' || values.alasan === '') && listStat.length === 0 ? true : false} onClick={handleSubmit}>Submit</Button>
-                                <Button className='ml-2' color="secondary" onClick={this.openModalReject}>Close</Button>
+                                <Button color="primary" onClick={handleSubmit}>Ya</Button>
+                                <Button color="secondary" onClick={this.openModalReject}>Tidak</Button>
                             </div>
                         </div>
                         )}
@@ -2129,7 +2048,7 @@ const mapDispatchToProps = {
     logout: auth.logout,
     getNotif: notif.getNotif,
     resetAuth: auth.resetError,
-    getPengadaan: pengadaan.getPengadaan,
+    getRevisi: pengadaan.getRevisi,
     getApproveIo: pengadaan.getApproveIo,
     getDocumentIo: pengadaan.getDocumentIo,
     uploadDocument: pengadaan.uploadDocument,
@@ -2150,4 +2069,4 @@ const mapDispatchToProps = {
     updateRecent: pengadaan.updateRecent
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Pengadaan)
+export default connect(mapStateToProps, mapDispatchToProps)(EditTicket)

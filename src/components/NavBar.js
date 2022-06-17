@@ -146,7 +146,7 @@ class NavBar extends Component {
                     <UncontrolledDropdown>
                             <DropdownToggle nav>
                                 <FaUserCircle size={30} className="mr-2 white" />
-                                <text className="mr-3 white">{level === '1' ? 'Super Admin' : names}</text>
+                                <text className="mr-3 white">{level === '1' ? 'Super Admin' : names.slice(0, 12)}</text>
                             </DropdownToggle>
                             <DropdownMenu right>
                                 <DropdownItem onClick={this.openModalEdit}>

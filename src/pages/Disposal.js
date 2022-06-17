@@ -14,6 +14,7 @@ import Pdf from "../components/Pdf"
 import asset from '../redux/actions/asset'
 import pengadaan from '../redux/actions/pengadaan'
 import approve from '../redux/actions/approve'
+import user from '../redux/actions/user'
 import {connect} from 'react-redux'
 import moment from 'moment'
 import auth from '../redux/actions/auth'
@@ -459,6 +460,7 @@ class Disposal extends Component {
         const search = value === undefined ? '' : this.state.search
         const limit = value === undefined ? this.state.limit : value.limit
         await this.props.getDisposal(token, limit, search, page === undefined || page.currentPage === undefined ? 1 : page.currentPage, 2)
+        await this.props.getRole(token)
         this.changeView('available')
         this.setState({limit: value === undefined ? 10 : value.limit})
     }
@@ -502,8 +504,10 @@ class Disposal extends Component {
 
     changeView = (val) => {
         const { dataDis, noDis } = this.props.disposal
+        const {dataRole} = this.props.user
         const role = localStorage.getItem('role')
         const level = localStorage.getItem('level')
+        const divisi = level === '16' || level === '13' ? dataRole.find(({nomor}) => nomor === '27').name : localStorage.getItem('role')
         if (val === 'available') {
             const newDis = []
             for (let i = 0; i < noDis.length; i++) {
@@ -511,13 +515,23 @@ class Disposal extends Component {
                 if (dataDis[index] !== undefined && dataDis[index].status_form !== 26) {
                     const app = dataDis[index].appForm
                     const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
+                    const findApp = app.indexOf(app.find(({jabatan}) => jabatan === divisi))
+                    console.log({findApp, find})
                     if (level === '11') {
                         if (app[find] !== undefined && app[find + 1].status === 1 && (app[find].status === null)) {
                             newDis.push(dataDis[index])
                         }
-                    } else if (level === '12') {
+                    } else if (level === '12' || level === '27') {
                         if ((app.length === 0 || app[app.length - 1].status === null) || (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (app[find].status === null))) {
                             newDis.push(dataDis[index])
+                        }
+                    } else if (level === '13' || level === '16') {
+                        if ((app.length === 0 || app[app.length - 1].status === null) || (app[find] !== undefined && app[find + 1].status === 1 && (app[find].status === null))) {
+                            newDis.push(dataDis[index])
+                        } else if ((app.length === 0 || app[app.length - 1].status === null) || (app[findApp] !== undefined && app[findApp + 1].status === 1 && (app[findApp].status === null))) {
+                            newDis.push(dataDis[index])
+                        } else {
+                            console.log('out')
                         }
                     } else if (find === 0 || find === '0') {
                         if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status === null) {
@@ -648,7 +662,7 @@ class Disposal extends Component {
                                         <div className={style.headEmail}>
                                             <button onClick={this.goCartDispos} className="btnGoCart"><FaCartPlus size={60} className="green ml-2" /></button>
                                         </div>
-                                    ) : level === '2' || level === '12' ? (
+                                    ) : level === '2' || level === '12' || level === '27'? (
                                         <div className="mt-5">
                                             <Button onClick={this.getSubmitDisposal} color="info" size="lg" className="mb-4">Submit</Button>
                                             <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
@@ -685,50 +699,50 @@ class Disposal extends Component {
                                         {dataAsset.length !== 0 && dataAsset.map(item => {
                                             return (
                                                 <div className="bodyCard">
-                                                    <button className="btnDispos" disabled={item.status === '1' ? true : false} onClick={() => this.openModalRinci(this.setState({dataRinci: item, img: item.pict.length > 0 ? item.pict[0].path : ''}))}>
-                                                        <img src={item.pict.length > 0 ? `${REACT_APP_BACKEND_URL}/${item.pict[0].path}` : placeholder} className="imgCard" />
-                                                        <div className="txtDoc mb-2">
+                                                    <img src={item.pict.length > 0 ? `${REACT_APP_BACKEND_URL}/${item.pict[0].path}` : placeholder} className="imgCard" />
+                                                    <div className='ml-2'>
+                                                        <div className="txtDoc mb-2 mt-1">
                                                             {item.nama_asset}
                                                         </div>
                                                         <Row className="mb-2">
-                                                            <Col md={4} className="txtDoc">
+                                                            <Col md={6} className="txtDoc">
                                                             No Asset
                                                             </Col>
-                                                            <Col md={8} className="txtDoc">
+                                                            <Col md={6} className="txtDoc">
                                                             : {item.no_asset}
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">
-                                                                <Col md={4} className="txtDoc">Nilai Buku</Col>
-                                                                <Col md={8} className="txtDoc">: {item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</Col>
+                                                            <Col md={6} className="txtDoc">Nilai Buku</Col>
+                                                            <Col md={6} className="txtDoc">: {item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</Col>
+                                                        </Row>
+                                                        <Row className="mb-2">
+                                                            <Col md={6} className="txtDoc">Kategori</Col>
+                                                            <Col md={6} className="txtDoc">: {item.kategori}</Col>
+                                                        </Row>
+                                                        {item.status === '1' ? (
+                                                            <Row className="footCard">
+                                                                <Col md={12} xl={12}>
+                                                                    <Button disabled className="btnSell" color="secondary">On Process Disposal</Button>
+                                                                </Col>
                                                             </Row>
-                                                            <Row className="mb-2">
-                                                                <Col md={4} className="txtDoc">Kategori</Col>
-                                                                <Col md={8} className="txtDoc">: {item.kategori}</Col>
+                                                        ) : item.status === '11' ? (
+                                                            <Row className="footCard">
+                                                                <Col md={12} xl={12}>
+                                                                    <Button disabled className="btnSell" color="secondary">On Proses Mutasi</Button>
+                                                                </Col>
                                                             </Row>
-                                                    </button>
-                                                    {item.status === '1' ? (
-                                                        <Row className="footCard">
-                                                            <Col md={12} xl={12}>
-                                                                <Button disabled className="btnSell" color="secondary">On Process Disposal</Button>
-                                                            </Col>
-                                                        </Row>
-                                                    ) : item.status === '11' ? (
-                                                        <Row className="footCard">
-                                                            <Col md={12} xl={12}>
-                                                                <Button disabled className="btnSell" color="secondary">On Proses Mutasi</Button>
-                                                            </Col>
-                                                        </Row>
-                                                    ) : (
-                                                        <Row className="footCard">
-                                                            <Col md={6} xl={6}>
-                                                                <Button className="btnSell" color="warning" onClick={() => this.addSell(item.no_asset)}>Penjualan</Button>
-                                                            </Col>
-                                                            <Col md={6} xl={6}>
-                                                                <Button className="btnSell" color="info" onClick={() => this.addDisposal(item.no_asset)}>Pemusnahan</Button>
-                                                            </Col>
-                                                        </Row>
-                                                    )}
+                                                        ) : (
+                                                            <Row className="footCard">
+                                                                <Col md={6} xl={6}>
+                                                                    <Button className="btnSell" color="warning" onClick={() => this.addSell(item.no_asset)}>Penjualan</Button>
+                                                                </Col>
+                                                                <Col md={6} xl={6}>
+                                                                    <Button className="btnSell" color="info" onClick={() => this.addDisposal(item.no_asset)}>Pemusnahan</Button>
+                                                                </Col>
+                                                            </Row>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             )
                                         })}
@@ -1464,9 +1478,9 @@ class Disposal extends Component {
                             <div>
                                 <Button color="success" onClick={() => this.downloadData()}>Download</Button>
                             </div>
-                        {level === '12' || level === '2' ? (
+                        {level === '12' || level === '2' || level === '27'? (
                              <div>
-                                 {level === '12' ? (
+                                 {level === '12' || level === '27'? (
                                         (fileName.status !== 0 && fileName.status !== 3) || (app[find] !== undefined && app[find - 1].status === null && fileName.status !== 0 && fileName.status !== 3) ? (
                                             <>
                                                 <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
@@ -1674,7 +1688,8 @@ const mapStateToProps = state => ({
     pengadaan: state.pengadaan,
     setuju: state.setuju,
     notif: state.notif,
-    auth: state.auth
+    auth: state.auth,
+    user: state.user
 })
 
 const mapDispatchToProps = {
@@ -1700,7 +1715,8 @@ const mapDispatchToProps = {
     resAppRej: disposal.resAppRej,
     getSubmitDisposal: disposal.getSubmitDisposal,
     getNotif: notif.getNotif,
-    resetAuth: auth.resetError
+    resetAuth: auth.resetError,
+    getRole: user.getRole
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Disposal)

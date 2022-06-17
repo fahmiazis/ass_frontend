@@ -651,6 +651,7 @@ class Approve extends Component {
                                     <option value="pembuat">Pembuat</option>
                                     <option value="pemeriksa">Pemeriksa</option>
                                     <option value="penyetuju">Penyetuju</option>
+                                    <option value="penerima">Penerima</option>
                                 </Input>
                                 {errors.sebagai ? (
                                         <text className={style.txtError}>{errors.sebagai}</text>

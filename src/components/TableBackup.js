@@ -11,34 +11,50 @@ class TablePdf extends Component {
 
 
     state = {
-        num: 1
+        num: 1,
+        dataStock: []
     }
 
     componentDidMount() {
         const { detailStock } = this.props.stock
         if (detailStock.length <= 18) {
-            this.setState({num: 1})
+            this.setState({num: 1, dataStock: [detailStock]})
         } else if (detailStock.length > 18) {
             const temp = (detailStock - 18)/36
             const dataStock = []
             for (let i = 0; i < Math.ceil(temp) + 1; i++) {
-                if (i === 1) {
+                if (i === 0) {
                     const data = []
-                    for (let j = 0; j <= 18; j++) {
-                        if (detailStock[i] !== undefined) {
+                    for (let j = 0; j < 18; j++) {
+                        if (detailStock[j] !== undefined) {
                             data.push(detailStock[i])
                         }
                     }
+                    dataStock.push(data)
+                } else if (i === 1) {
+                    const data = []
+                    for (let j = 18; j < 54 ; j++) {
+                        if (detailStock[j] !== undefined) {
+                            data.push(detailStock[i])
+                        }
+                    }
+                    dataStock.push(data)
                 } else {
-                    
+                    const data = []
+                    for (let j = (36 * i) - 18; j < (36 * i) + 18; j++) {
+                        if (detailStock[j] !== undefined) {
+                            data.push(detailStock[i])
+                        }
+                    }
+                    dataStock.push(data)
                 }
             }
-            this.setState({num: (Math.ceil(temp) + 1)})
+            this.setState({num: (Math.ceil(temp) + 1), dataStock: dataStock})
         }
     }
 
     render() {
-        const { num } = this.state
+        const { num, dataStock } = this.state
         const { detailStock, stockApp } = this.props.stock
         return (
             <PDFDownloadLink className="btnDownloadForm" document={
@@ -58,37 +74,40 @@ class TablePdf extends Component {
                             OPNAME PER TANGGAL       : {detailStock.length !== 0 ? moment(detailStock[0].createdAt).format('DD MMMM YYYY') : ''}
                             </Text>
                         </View>
-                        {}
-                        <Table
-                            data={detailStock} style={styles.marbot}
-                        >
-                            <TableHeader style={styles.header}>
-                                <TableCell style={[styles.font, styles.headerText, styles.number]}  weighting={0.1}>No</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>NO. ASET</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.4} >DESKRIPSI</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2} >MERK</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>SATUAN</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.1}>UNIT</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>STATUS FISIK</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>KONDISI</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>LOKASI</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>GROUPING</TableCell>
-                                <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>KETERANGAN</TableCell>
-                            </TableHeader>
-                            <TableBody>
-                                <DataTableCell style={[styles.font, styles.number]} weighting={0.1} getContent={(r) => detailStock.indexOf(r) + 1}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.no_asset}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.4} getContent={(r) => r.deskripsi}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.merk}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.satuan}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.1} getContent={(r) => r.unit}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.status_fisik}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.kondisi}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.lokasi}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.grouping}/>
-                                <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.keterangan}/>
-                            </TableBody>
-                        </Table>
+                        {dataStock.map(item => {
+                            return (
+                                <Table
+                                    data={item} style={styles.marbot}
+                                >
+                                    <TableHeader style={styles.header}>
+                                        <TableCell style={[styles.font, styles.headerText, styles.number]}  weighting={0.1}>No</TableCell>
+                                        <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>NO. ASET</TableCell>
+                                        <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.4} >DESKRIPSI</TableCell>
+                                        <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2} >MERK</TableCell>
+                                        <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>SATUAN</TableCell>
+                                        <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.1}>UNIT</TableCell>
+                                        <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>STATUS FISIK</TableCell>
+                                        <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>KONDISI</TableCell>
+                                        <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>LOKASI</TableCell>
+                                        <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>GROUPING</TableCell>
+                                        <TableCell style={[styles.font, styles.padingTbl, styles.headerText]} weighting={0.2}>KETERANGAN</TableCell>
+                                    </TableHeader>
+                                    <TableBody>
+                                        <DataTableCell style={[styles.font, styles.number]} weighting={0.1} getContent={(r) => detailStock.indexOf(r) + 1}/>
+                                        <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.no_asset}/>
+                                        <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.4} getContent={(r) => r.deskripsi}/>
+                                        <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.merk}/>
+                                        <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.satuan}/>
+                                        <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.1} getContent={(r) => r.unit}/>
+                                        <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.status_fisik}/>
+                                        <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.kondisi}/>
+                                        <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.lokasi}/>
+                                        <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.grouping}/>
+                                        <DataTableCell style={[styles.font, styles.padingTbl]} weighting={0.2} getContent={(r) => r.keterangan}/>
+                                    </TableBody>
+                                </Table>
+                            )
+                        })}
                         <Text break={detailStock.length <= 13 ? false : detailStock.length > 13 && detailStock.length <= 18 ? true : (detailStock.length - 18) % 36 >= 1 && (detailStock.length - 18) % 36 <= 27 ? false : true} style={[styles.marbotT, styles.font, styles.martop]}>.</Text>
                         <Table data={[{id: 1}]}>
                             <TableHeader>
