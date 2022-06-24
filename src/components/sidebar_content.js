@@ -19,6 +19,7 @@ const styles = {
   sidebar: {
     width: 350,
     height: "100%",
+    backgroundColor: "#9A1353"
   },
   sidebarLink: {
     display: "block",
@@ -30,11 +31,12 @@ const styles = {
   divider: {
     margin: "8px 0",
     height: 1,
-    backgroundColor: "#757575"
+    backgroundColor: "#9A1353"
   },
   content: {
-    padding: "16px",
+    // padding: "16px",
     // height: "60%",
+    height: "auto",
     backgroundColor: "#9A1353"
   }
 };
@@ -68,36 +70,36 @@ const SidebarContent = props => {
 
   return (
     <MaterialTitlePanel title="" style={style}>
-      <div className={stile.divSide}>
-        <img src={logo} className={stile.imgSide}/>
-      </div>
       <div style={styles.content}>
-      <button onClick={() => goHome('')} className={stile.btnSide}>
-          <FaHome size={20} className="mr-2"/>
-          <text className={stile.txtSide}>Home</text>
-      </button>
-      {(level === '1' || level === '2' || level === '5') && (
-        <button className={stile.btnSide} onClick={() => goHome('asset')}>
-            <RiMoneyDollarCircleFill size={20} className="mr-2" />
-            <text className={stile.txtSide}>My Asset</text>
+        <div className={stile.divSide}>
+          <img src={logo} className={stile.imgSide}/>
+        </div>
+        <button onClick={() => goHome('')} className={stile.btnSideTop}>
+            <FaHome size={20} className="mr-2"/>
+            <text className={stile.txtSide}>Home</text>
         </button>
-      )}
-      <button className={stile.btnSide} onClick={() => goHome('navtick')}>
-        <FaCartPlus size={20} className="mr-2" />
-        <text className={stile.txtSide}>Pengadaan Asset</text>
-      </button>
-      <button className={stile.btnSide} onClick={() => goHome('navdis')}>
-          <FaRecycle size={20} className="mr-2" />
-          <text className={stile.txtSide}>Disposal Asset</text>
-      </button>
-      <button className={stile.btnSide} onClick={() => goHome('navmut')}>
-          <RiArrowLeftRightFill size={20} className="mr-2" />
-          <text className={stile.txtSide}>Mutasi Asset</text>
-      </button>
-      <button className={level === '1' ? stile.btnSide : stile.marginSide} onClick={() => goHome('navstock')} >
-          <FaTasks size={20} className="mr-2" />
-          <text className={stile.txtSide}>Stock Opname Asset</text>
-      </button>
+        {(level === '1' || level === '2' || level === '5') && (
+          <button className={stile.btnSide} onClick={() => goHome('asset')}>
+              <RiMoneyDollarCircleFill size={20} className="mr-2" />
+              <text className={stile.txtSide}>My Asset</text>
+          </button>
+        )}
+        <button className={stile.btnSide} onClick={() => goHome('navtick')}>
+          <FaCartPlus size={20} className="mr-2" />
+          <text className={stile.txtSide}>Pengadaan Asset</text>
+        </button>
+        <button className={stile.btnSide} onClick={() => goHome('navdis')}>
+            <FaRecycle size={20} className="mr-2" />
+            <text className={stile.txtSide}>Disposal Asset</text>
+        </button>
+        <button className={stile.btnSide} onClick={() => goHome('navmut')}>
+            <RiArrowLeftRightFill size={20} className="mr-2" />
+            <text className={stile.txtSide}>Mutasi Asset</text>
+        </button>
+        <button className={level === '1' ? stile.btnSide : stile.marginSide} onClick={() => goHome('navstock')} >
+            <FaTasks size={20} className="mr-2" />
+            <text className={stile.txtSide}>Stock Opname Asset</text>
+        </button>
         {level === '1' ? (
           <button className={isOpen === true ? [stile.btnSide1] : [stile.btnSide3]} onClick={toggle}>
             <div>
@@ -115,29 +117,29 @@ const SidebarContent = props => {
         <Collapse isOpen={isOpen} className="ml-4">
           {/* <button onClick={() => goHome('alasan')} className={stile.btnSide}>
             <RiFileUnknowLine size={20} className="mr-2"/>
-             Masterdata Alasan
+            Masterdata Alasan
           </button> */}
           <button onClick={() => goHome('depo')} className={stile.btnSide}>
             <BsHouseDoor size={20} className="mr-2"/>
-             Masterdata Depo
+            Masterdata Depo
           </button>
           <button onClick={() => goHome('email')} className={stile.btnSide}>
             <FiMail size={20} className="mr-2"/>
-             Masterdata Email
+            Masterdata Email
           </button>
           <button onClick={() => goHome('user')} className={stile.btnSide}>
             <FiUser size={20} className="mr-2"/>
-             Masterdata User
+            Masterdata User
           </button>
           <button onClick={() => goHome('dokumen')} className={stile.marginSide}>
             <BsClipboardData size={20} className="mr-2"/>
-             Masterdata Document
+            Masterdata Document
           </button>
         </Collapse>
         {/* <button onClick={() => goHome('report')} className={level === '1' ? stile.marginSide : level === '2' ? stile.marginSide : stile.marginSide}>
             <FaFileArchive size={20} className="mr-2"/> Report
         </button> */}
-        <button onClick={() => logout()} className={stile.btnSide}>
+        <button onClick={() => logout()} className={stile.btnLogout}>
             <FiLogOut size={20} className="mr-2"/> Logout
         </button>
       </div>

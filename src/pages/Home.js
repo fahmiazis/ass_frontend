@@ -3,7 +3,7 @@ import React, { Component } from 'react'
 import Sidebar from '../components/Sidebar'
 import auth from '../redux/actions/auth'
 import { Input, Button, Modal, ModalHeader, ModalBody, Alert, 
-    UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem, Dropdown } from 'reactstrap'
+    UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem, Dropdown, Row } from 'reactstrap'
 import {connect} from 'react-redux'
 import addPicture from '../assets/img/add.png'
 import disposPicture from '../assets/img/disposal.png'
@@ -40,7 +40,8 @@ class Home extends Component {
         relog: false,
         alert: false,
         setting: false,
-        modalChange: false
+        modalChange: false,
+        dataNull: []
     }
 
     openModalEdit = () => {
@@ -74,6 +75,22 @@ class Home extends Component {
         this.props.history.push(`/${route}`)
     }
 
+    goNotif = async (val) => {
+        const token = localStorage.getItem('token')
+        if (val === 'notif') {
+            localStorage.setItem('route', val)
+            this.props.history.push(`/${val}`)
+        } else {
+            await this.props.upNotif(token, val.id)
+            await this.props.getNotif(token)
+            const ket = val.keterangan
+            const jenis = (val.jenis === '' || val.jenis === null) && val.no_proses.split('')[0] === 'O' ? 'Stock Opname' : val.jenis
+            const route = ket === 'tax' || ket === 'finance' || ket === 'tax and finance' ? 'taxfin' : ket === 'eksekusi' && jenis === 'disposal' ? 'eksdis' : jenis === 'disposal' && ket === 'pengajuan' ? 'disposal' : jenis === 'mutasi' && ket === 'pengajuan' ? 'mutasi' : jenis === 'Stock Opname' && ket === 'pengajuan' ? 'stock' : jenis === 'disposal' ? 'navdis' : jenis === 'mutasi' ? 'navmut' : jenis === 'Stock Opname' && 'navstock' 
+            localStorage.setItem('route', route)
+            this.props.history.push(`/${route}`)
+        }
+    }
+
     editUser = async (values,id) => {
         const token = localStorage.getItem("token")
         const names = localStorage.getItem('name')
@@ -97,6 +114,17 @@ class Home extends Component {
     getNotif = async () => {
         const token = localStorage.getItem("token")
         await this.props.getNotif(token)
+        const { data } = this.props.notif
+        const dataNull = []
+        const dataRead = []
+        for (let i = 0; i < data.length; i++) {
+            if (data[i].status === null) {
+                dataNull.push(data[i])
+            } else {
+                dataRead.push(data[i])
+            }
+        }
+        this.setState({ dataNull: dataNull })
     }
 
     componentDidUpdate() {
@@ -148,6 +176,7 @@ class Home extends Component {
         const names = localStorage.getItem('name')
         const email = localStorage.getItem('email')
         const fullname = localStorage.getItem('fullname')
+        const {dataNull} = this.state
         const id = localStorage.getItem('id')
         const { alertM, alertMsg } = this.props.user
         const dataNotif = this.props.notif.data
@@ -165,7 +194,7 @@ class Home extends Component {
                                 <DropdownToggle nav>
                                     <div className={style.optionType}>
                                         <BsBell size={30} className="black" />
-                                        {dataNotif.length > 0 ? (
+                                        {dataNull.length > 0 ? (
                                             <BsFillCircleFill className="red ball" size={10} />
                                         ) : (
                                             <div></div>
@@ -189,12 +218,18 @@ class Home extends Component {
                                         },
                                     },
                                 }}>
+                                    <DropdownItem>
+                                        <div className='allnotif' onClick={() => this.goNotif('notif')}>
+                                            See all notifications
+                                        </div>        
+                                    </DropdownItem>
                                     {dataNotif.length > 0 ? (
                                         dataNotif.map(item => {
                                             return (
-                                                <DropdownItem onClick={() => this.goRoute(item.keterangan === 'tax' || item.keterangan === 'finance' ? 'taxfin' : item.keterangan === 'eksekusi' && item.jenis === 'disposal' ? 'eksdis' : item.jenis === 'disposal' ? 'navdis' : item.jenis === 'mutasi' && 'navmut')}>
+                                                <DropdownItem onClick={() => this.goNotif(item)}>
                                                     <div className={style.notif}>
                                                         <FaFileSignature size={90} className="mr-4"/>
+                                                        <Button className="labelBut" color={item.status === null ? "danger" : "success"} size="sm">{item.status === null ? 'unread' : 'read'}</Button>
                                                         <div>
                                                             <div>Request</div>
                                                             <div className="textNotif">{item.keterangan} {item.jenis}</div>
@@ -439,7 +474,8 @@ const mapDispatchToProps = {
     reset: user.resetError,
     logout: auth.logout,
     changePassword: user.changePassword,
-    getNotif: notif.getNotif
+    getNotif: notif.getNotif,
+    upNotif: notif.upNotif
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Home)

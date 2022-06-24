@@ -5,14 +5,17 @@ const styles = {
   root: {
     fontFamily:
       '"HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif',
-    fontWeight: 300
+    fontWeight: 300,
   },
   header: {
-    backgroundColor: "white",
+    backgroundColor: "#9A1353",
     color: "#9A1353",
     // padding: "16px",
     // paddingLeft: "10px",
-    fontSize: "1.5em",
+    // width: '95%',
+    // height: '10%',
+    // fontSize: "1.5em",
+    // position: 'fixed'
   }
 };
 

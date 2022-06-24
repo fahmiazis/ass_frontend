@@ -2,6 +2,7 @@
 import React, { Component } from 'react'
 import Sidebar from '../components/Sidebar'
 import {VscAccount} from 'react-icons/vsc'
+import { Row } from 'reactstrap'
 import '../assets/css/style.css'
 
 export default class NavMut extends Component {
@@ -33,7 +34,7 @@ export default class NavMut extends Component {
                     <div>
                         <div className="titHome">Mutasi menu</div>
                         <div className="txtChoose">Please select an option</div>
-                        <div className="mainBody">
+                        <Row className="mainBody">
                             {level === '5' ? (
                                 <>
                                     <button className="cardNav1" onClick={() => this.goRoute('mutasi')}>
@@ -79,6 +80,11 @@ export default class NavMut extends Component {
                                             Report mutasi
                                         </div>
                                     </button>
+                                    <button className="cardNav1" onClick={() => this.goRoute('trackmut')}>
+                                        <div className="titCard">
+                                            Tracking mutasi
+                                        </div>
+                                    </button>
                                 </>
                             ) : level === '8' ? (
                                 <button className="cardNav1" onClick={() => this.goRoute('budmut')}>
@@ -87,13 +93,20 @@ export default class NavMut extends Component {
                                     </div>
                                 </button>
                             ) : (
-                                <button className="cardNav1" onClick={() => this.goRoute('mutasi')}>
-                                    <div className="titCard">
-                                        Pengajuan mutasi
-                                    </div>
-                                </button>
+                                <>
+                                    <button className="cardNav1" onClick={() => this.goRoute('mutasi')}>
+                                        <div className="titCard">
+                                            Pengajuan mutasi
+                                        </div>
+                                    </button>
+                                    <button className="cardNav1" onClick={() => this.goRoute('trackmut')}>
+                                        <div className="titCard">
+                                            Tracking mutasi
+                                        </div>
+                                    </button>
+                                </>
                             )}
-                        </div>
+                        </Row>
                     </div>
                 </div>
             </div>

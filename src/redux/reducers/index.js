@@ -1,4 +1,5 @@
 import {combineReducers} from 'redux'
+import { persistReducer } from "redux-persist";
 
 import pengadaan from './pengadaan'
 import auth from './auth'

@@ -450,8 +450,8 @@ class Mutasi extends Component {
                                         {dataAsset.length !== 0 && dataAsset.map(item => {
                                             return (
                                                 <div className="bodyCard">
-                                                    <button className="btnDispos" disabled={item.status === '1' ? true : false}>
-                                                        <img src={item.pict.length > 0 ? `${REACT_APP_BACKEND_URL}/${item.pict[0].path}` : placeholder} className="imgCard" />
+                                                    <img src={item.pict.length > 0 ? `${REACT_APP_BACKEND_URL}/${item.pict[0].path}` : placeholder} className="imgCard" />
+                                                    <div className="ml-2" disabled={item.status === '1' ? true : false}>
                                                         <div className="txtDoc mb-2">
                                                             {item.nama_asset}
                                                         </div>
@@ -467,7 +467,7 @@ class Mutasi extends Component {
                                                             <Col md={4} className="txtDoc">Kategori</Col>
                                                             <Col md={8} className="txtDoc">: {item.kategori}</Col>
                                                         </Row>
-                                                    </button>
+                                                    </div>
                                                     {item.status === '1' ? (
                                                         <Row className="footCard">
                                                             <Col md={12} xl={12}>

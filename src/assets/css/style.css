@@ -164,7 +164,7 @@
 .rightHome {
     background-color: #F2F5F8;
     width: 85%;
-    /* height: 100%; */
+    height: 100% !important;
 }
 .bodyAkun {
     /* margin-top: 2%; */
@@ -184,6 +184,9 @@
     font-size: 250%;
     margin-left: 5%;
 }
+.btnprev {
+    width: 100% !important;
+}
 .txtChoose {
     font-size: 150%;
     margin-left: 5%;
@@ -193,8 +196,11 @@
     display: flex;
     flex-direction: row;
     margin-top: 2%;
-    margin-bottom: 10%;
+    margin-bottom: 12%;
     padding-left: 3%;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
 }
 .mainPeng {
     margin-top: 5%;
@@ -523,6 +529,16 @@
 .noCart {
     margin-bottom: 5%;
 }
+.openReq {
+    background-color: #0da9ef !important;
+    color: white !important;
+    align-items: center;
+    width: 80% !important;
+    display: flex;
+    flex-direction: column;
+    border-radius: 10px !important;
+    border: 0;
+}
 .txtCart {
     margin-left: 5%;
     display: flex;
@@ -555,7 +571,19 @@
     box-shadow: 0px 6px 40px rgba(173, 173, 173, 0.4);
     border-radius: 20px;
 }
+.allnotif {
+    display: flex;
+    color: grey;
+    flex-direction: column;
+    align-items: center;
+}
 .txtSum {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 5%;
+}
+.txtSum1 {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -579,6 +607,20 @@
     padding-bottom: 3%;
     border: 0;
     border-radius: 25px;
+    height: 100%;
+}
+.btnSum1 {
+    width: 100%;
+    background-color: #9b9b9b;
+    color: white;
+    padding-top: 3%;
+    padding-bottom: 3%;
+    border: 0;
+    border-radius: 25px;
+    height: 100%;
+}
+.btnSum1 ::hover {
+    color: black;
 }
 .txtDoc {
     display: flex;
@@ -975,11 +1017,12 @@
 }
 @import url("https://cdn.jsdelivr.net/npm/pixeden-stroke-7-icon@1.2.3/pe-icon-7-stroke/dist/pe-icon-7-stroke.min.css");
 /* body{margin-top:20px;} */
+
 .steps .step {
     display: block;
     width: 100%;
     margin-bottom: 35px;
-    text-align: center
+    text-align: center;
 }
 .steps .step .step-icon-wrap {
     display: block;

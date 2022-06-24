@@ -788,7 +788,17 @@ class Stock extends Component {
                                     </div>
                                 )}
                                 {this.state.view === 'list' ? (
-                                    <Button className='marDown' color='success' onClick={() => this.getDokumentasi({no: 'all'})} >Download All</Button>
+                                    <div>
+                                        <Button className='marDown' color='primary' onClick={() => this.getDokumentasi({no: 'all'})} >Download All</Button>
+                                        <ReactHtmlToExcel
+                                            id="test-table-xls-button"
+                                            className="btn btn-success marDown ml-2"
+                                            table="table-tracking"
+                                            filename="Dokumentasi Tracking Stock Opname"
+                                            sheet="Dokumentasi"
+                                            buttonText="Download Tracking"
+                                        />
+                                    </div>
                                 ) : level !== '5' && level !== '9' && level !== '2' && (
                                     <div className='mt-4'>
                                         <Input type="select" value={this.state.filter} onChange={e => this.changeFilter(e.target.value)}>
@@ -1073,10 +1083,10 @@ class Stock extends Component {
                                                             null
                                                         ) : (
                                                             <div className="bodyCard">
-                                                                <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="imgCard1" />
+                                                                <img src={placeholder} className="imgCard1" />
                                                                 <Button size="sm" color="success" className="labelBut">Stock Opname</Button>
                                                                 {/* <button className="btnDispos" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}></button> */}
-                                                                <div className="btnDispos ml-2">
+                                                                <div className="ml-2">
                                                                     <div className="txtDoc mb-2">
                                                                         Pengajuan Stock Opname
                                                                     </div>
@@ -1126,7 +1136,7 @@ class Stock extends Component {
                                             </Row>
                                         ) : (
                                             <div className={style.tableDashboard}>
-                                                <Table bordered responsive hover className={style.tab}>
+                                                <Table bordered responsive hover className={style.tab} id="table-tracking">
                                                     <thead>
                                                         <tr>
                                                             <th>No</th>
@@ -1167,8 +1177,8 @@ class Stock extends Component {
                                                                 <td>{item.nama_om}</td>
                                                                 <td>{item.nama_bm}</td>
                                                                 <td>
-                                                                    <Button size='small' color="primary" disabled={dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? true : false} onClick={() => {this.getDetailStock(dataStock.find(({kode_plant}) => kode_plant === item.kode_plant)); this.getApproveStock({nama: item.kode_plant.split('').length === 4 ? 'stock opname' : 'stock opname HO', no: dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).no_stock})}}>Preview</Button>
-                                                                    <Button className='' size='small' color="success" onClick={() => this.getDokumentasi({no: dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? '' : dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).no_stock})} disabled={dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? true : false}>Download</Button>
+                                                                    <Button size='small' className='mb-2 btnprev' color="primary" disabled={dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? true : false} onClick={() => {this.getDetailStock(dataStock.find(({kode_plant}) => kode_plant === item.kode_plant)); this.getApproveStock({nama: item.kode_plant.split('').length === 4 ? 'stock opname' : 'stock opname HO', no: dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).no_stock})}}>Preview</Button>
+                                                                    <Button className='btnprev' size='small' color="success" onClick={() => this.getDokumentasi({no: dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? '' : dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).no_stock})} disabled={dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? true : false}>Download</Button>
                                                                 </td>
                                                             </tr>
                                                             )})}

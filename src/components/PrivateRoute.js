@@ -6,6 +6,10 @@ import moment from 'moment'
 
 class PrivateRoute extends Component {
 
+  logoutUser = () => {
+    this.props.logout()
+  } 
+
   render () {
     return (
       <Route render={

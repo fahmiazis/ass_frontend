@@ -321,7 +321,6 @@ class Disposal extends Component {
         const token = localStorage.getItem('token')
         await this.props.showDokumen(token, value.id)
         this.setState({date: value.updatedAt, idDoc: value.id, fileName: value})
-        console.log(value)
         const {isShow} = this.props.pengadaan
         if (isShow) {
             this.openModalPdf()
@@ -516,7 +515,6 @@ class Disposal extends Component {
                     const app = dataDis[index].appForm
                     const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
                     const findApp = app.indexOf(app.find(({jabatan}) => jabatan === divisi))
-                    console.log({findApp, find})
                     if (level === '11') {
                         if (app[find] !== undefined && app[find + 1].status === 1 && (app[find].status === null)) {
                             newDis.push(dataDis[index])
@@ -530,8 +528,6 @@ class Disposal extends Component {
                             newDis.push(dataDis[index])
                         } else if ((app.length === 0 || app[app.length - 1].status === null) || (app[findApp] !== undefined && app[findApp + 1].status === 1 && (app[findApp].status === null))) {
                             newDis.push(dataDis[index])
-                        } else {
-                            console.log('out')
                         }
                     } else if (find === 0 || find === '0') {
                         if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status === null) {

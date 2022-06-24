@@ -3,8 +3,24 @@ import http from '../../helpers/http'
 import qs from 'qs'
 
 export default {
-    getNotif: (token) => ({
+    getNotif: (token, limit) => ({
         type: 'GET_NOTIF',
-        payload: http(token).get(`/notif/get`)
-    })
+        payload: http(token).get(`/notif/get?limit=${limit === undefined ? 20 : limit}`)
+    }),
+    delNotif: (token, id) => ({
+        type: 'DEL_NOTIF',
+        payload: http(token).delete(`/notif/delete/${id}`)
+    }),
+    upNotif: (token, id) => ({
+        type: 'UP_NOTIF',
+        payload: http(token).patch(`/notif/update/${id}`)
+    }),
+    delAllNotif: (token) => ({
+        type: 'DELALL_NOTIF',
+        payload: http(token).delete(`/notif/delall`)
+    }),
+    upAllNotif: (token) => ({
+        type: 'UPALL_NOTIF',
+        payload: http(token).patch(`/notif/upall`)
+    }),
 }

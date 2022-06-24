@@ -18,6 +18,7 @@ import pengadaan from '../redux/actions/pengadaan'
 import disposal from '../redux/actions/disposal'
 import tracking from '../redux/actions/tracking'
 import setuju from '../redux/actions/setuju'
+import stock from '../redux/actions/stock'
 import {connect} from 'react-redux'
 import moment from 'moment'
 import auth from '../redux/actions/auth'
@@ -83,6 +84,7 @@ class TrackingStock extends Component {
             detailMut: [],
             formDis: false,
             collap: true,
+            dataItem: {},
             tipeCol: ''
         }
         this.onSetOpen = this.onSetOpen.bind(this);
@@ -118,6 +120,11 @@ class TrackingStock extends Component {
         if (isShow) {
             this.openModalPdf()
         }
+    }
+
+    getApproveStock = async (value) => { 
+        const token = localStorage.getItem('token')
+        await this.props.getApproveStock(token, value.no, value.nama)
     }
 
     openModalPdf = () => {
@@ -222,7 +229,7 @@ class TrackingStock extends Component {
     getDataTrack = async () => {
         const token = localStorage.getItem('token')
         await this.props.trackStock(token)
-        this.filterData()
+        // this.filterData()
     }
     
     filterData = () => {
@@ -235,6 +242,13 @@ class TrackingStock extends Component {
             }
         }
         this.setState({ newMut: newMut })
+    }
+
+    getDetailStock = async (value) => {
+        const token = localStorage.getItem("token")
+        this.setState({dataItem: value})
+        await this.props.getDetailStock(token, value.id)
+        this.openModalDis()
     }
 
     menuButtonClick(ev) {
@@ -274,6 +288,7 @@ class TrackingStock extends Component {
     render() {
         const {isOpen, dropOpen, dropOpenNum, detail, alert, newMut, detailMut} = this.state
         const {dataDis, isGet, alertM, alertMsg, alertUpload, page, dataDoc} = this.props.disposal
+        const {detailStock} = this.props.stock
         const { dataStock } = this.props.tracking
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
@@ -317,7 +332,7 @@ class TrackingStock extends Component {
             <>
                 <Sidebar {...sidebarProps}>
                     <MaterialTitlePanel title={contentHeader}>
-                        <div className={style.backgroundLogo}>
+                        <div className={level === '5' || level === '9' ? style.backgroundTrack : style.backgroundLogo}>
                             <div className={style.bodyDashboard}>
                                 <Alert color="danger" className={style.alertWrong} isOpen={alert}>
                                     <div>{alertMsg}</div>
@@ -331,145 +346,202 @@ class TrackingStock extends Component {
                                 <div className={style.headMaster}>
                                     <div className={style.titleDashboard2}>Tracking Stock Opname</div>
                                 </div>
-                                <div>
-                                    <Row className='ml-4 trackSub'>
-                                        <Col md={2}>
-                                            Area
-                                        </Col>
-                                        <Col md={10}>
-                                        : {dataStock[0] === undefined ? '' : dataStock[0].area}
-                                        </Col>
-                                    </Row>
-                                    <Row className='ml-4 trackSub'>
-                                        <Col md={2}>
-                                        No Stock Opname
-                                        </Col>
-                                        <Col md={10}>
-                                        : {dataStock[0] === undefined ? '' : dataStock[0].no_stock}
-                                        </Col>
-                                    </Row>
-                                    <Row className='ml-4 trackSub1'>
-                                        <Col md={2}>
-                                        Tanggal Pengajuan Stock Opname
-                                        </Col>
-                                        <Col md={10}>
-                                        : {dataStock[0] === undefined ? '' : moment(dataStock[0].tanggalStock === null ? dataStock[0].createdAt : dataStock[0].tanggalStock).locale('idn').format('DD MMMM YYYY ')}
-                                        </Col>
-                                    </Row>
-                                    <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
-                                        <div class="step completed">
-                                            <div class="step-icon-wrap">
-                                            <button class="step-icon" onClick={() => this.showCollap('Submit')} ><FiSend size={40} className="center1" /></button>
+                                {level === '5' || level === '9' ? (
+                                    <div>
+                                        <Row className='ml-4 trackSub'>
+                                            <Col md={2}>
+                                                Area
+                                            </Col>
+                                            <Col md={10}>
+                                            : {dataStock[0] === undefined ? '' : dataStock[0].area}
+                                            </Col>
+                                        </Row>
+                                        <Row className='ml-4 trackSub'>
+                                            <Col md={2}>
+                                            No Stock Opname
+                                            </Col>
+                                            <Col md={10}>
+                                            : {dataStock[0] === undefined ? '' : dataStock[0].no_stock}
+                                            </Col>
+                                        </Row>
+                                        <Row className='ml-4 trackSub1'>
+                                            <Col md={2}>
+                                            Tanggal Pengajuan Stock Opname
+                                            </Col>
+                                            <Col md={10}>
+                                            : {dataStock[0] === undefined ? '' : moment(dataStock[0].tanggalStock === null ? dataStock[0].createdAt : dataStock[0].tanggalStock).locale('idn').format('DD MMMM YYYY ')}
+                                            </Col>
+                                        </Row>
+                                        <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
+                                            <div class="step completed">
+                                                <div class="step-icon-wrap">
+                                                    <button class="step-icon" onClick={() => this.showCollap('Submit')} ><FiSend size={40} className="center1" /></button>
+                                                </div>
+                                                <h4 class="step-title">Submit Stock Opname</h4>
                                             </div>
-                                            <h4 class="step-title">Submit Stock Opname</h4>
+                                            <div class={dataStock[0] === undefined ? 'step' : dataStock[0].status_form > 2 ? "step completed" : 'step'} >
+                                                <div class="step-icon-wrap">
+                                                    <button class="step-icon" onClick={() => this.showCollap('Pengajuan')}><MdAssignment size={40} className="center" /></button>
+                                                </div>
+                                                <h4 class="step-title">Pengajuan Stock Opname</h4>
+                                            </div> 
+                                            <div class={dataStock[0] === undefined ? 'step' : dataStock[0].status_form !== 9 && dataStock[0].status_form >= 8 ? "step completed" : 'step'}>
+                                                <div class="step-icon-wrap">
+                                                    <button class="step-icon" onClick={() => this.showCollap('Eksekusi')}><FiTruck size={40} className="center" /></button>
+                                                </div>
+                                                <h4 class="step-title">Terima Stock Opname</h4>
+                                            </div>
+                                            <div class={dataStock[0] === undefined ? 'step' : dataStock[0].status_form === 8 ? "step completed" : 'step'}>
+                                                <div class="step-icon-wrap">
+                                                    <button class="step-icon"><AiOutlineCheck size={40} className="center" /></button>
+                                                </div>
+                                                <h4 class="step-title">Selesai</h4>
+                                            </div>
                                         </div>
-                                        <div class={dataStock[0] === undefined ? 'step' : dataStock[0].status_form > 2 ? "step completed" : 'step'} >
-                                            <div class="step-icon-wrap">
-                                                <button class="step-icon" onClick={() => this.showCollap('Pengajuan')}><MdAssignment size={40} className="center" /></button>
-                                            </div>
-                                            <h4 class="step-title">Pengajuan Stock Opname</h4>
-                                        </div> 
-                                        <div class={dataStock[0] === undefined ? 'step' : dataStock[0].status_form !== 9 && dataStock[0].status_form >= 8 ? "step completed" : 'step'}>
-                                            <div class="step-icon-wrap">
-                                                <button class="step-icon" onClick={() => this.showCollap('Eksekusi')}><FiTruck size={40} className="center" /></button>
-                                            </div>
-                                            <h4 class="step-title">Terima Stock Opname</h4>
-                                        </div>
-                                        <div class={dataStock[0] === undefined ? 'step' : dataStock[0].status_form === 8 ? "step completed" : 'step'}>
-                                            <div class="step-icon-wrap">
-                                                <button class="step-icon"><AiOutlineCheck size={40} className="center" /></button>
-                                            </div>
-                                            <h4 class="step-title">Selesai</h4>
-                                        </div>
-                                    </div>
-                                    <Collapse isOpen={this.state.collap} className="collapBody">
-                                        <Card className="cardCollap">
-                                            <CardBody>
-                                                <div className='textCard1'>{this.state.tipeCol} Stock Opname</div>
-                                                {this.state.tipeCol === 'submit' ? (
-                                                    <div>Tanggal submit : {dataStock[0] === undefined ? '' : moment(dataStock[0].tanggalStock === null ? dataStock[0].createdAt : dataStock[0].tanggalStock).locale('idn').format('DD MMMM YYYY ')}</div>
-                                                ) : (
-                                                    <div></div>
-                                                )}
-                                                <div>Rincian Asset:</div>
-                                                <Table striped bordered responsive hover className="tableDis mb-3">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>No</th>
-                                                            <th>Nomor Asset</th>
-                                                            <th>Nama Barang</th>
-                                                            <th>Merk/Type</th>
-                                                            <th>Kategori</th>
-                                                            <th>Status Fisik</th>
-                                                            <th>Kondisi</th>
-                                                            <th>Status Aset</th>
-                                                            <th>Keterangan</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {dataStock.length !== 0 && dataStock.map(item => {
-                                                            return (
-                                                                <tr>
-                                                                    <th scope="row">{dataStock.indexOf(item) + 1}</th>
-                                                                    <td>{item.no_asset}</td>
-                                                                    <td>{item.nama_asset}</td>
-                                                                    <td>{item.merk}</td>
-                                                                    <td>{item.kategori}</td>
-                                                                    <td>{item.status_fisik}</td>
-                                                                    <td>{item.kondisi}</td>
-                                                                    <td>{item.grouping}</td>
-                                                                    <td>{item.keterangan}</td>
-                                                                </tr>
-                                                            )
-                                                        })}
-                                                    </tbody>
-                                                </Table>
-                                                {dataStock[0] === undefined || this.state.tipeCol === 'Submit' ? (
-                                                    <div></div>
-                                                ) : (
-                                                    <div>
-                                                        <div className="mb-4 mt-2">Tracking {this.state.tipeCol} :</div>
-                                                        {this.state.tipeCol === 'Pengajuan' ? (
-                                                            <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
-                                                                {dataStock[0] !== undefined && dataStock[0].appForm.length && dataStock[0].appForm.slice(0).reverse().map(item => {
-                                                                    return (
-                                                                        <div class={item.status === 1 ? 'step completed' : item.status === 0 ? 'step reject' : 'step'}>
-                                                                            <div class="step-icon-wrap">
-                                                                            <button class="step-icon"><FaFileSignature size={30} className="center2" /></button>
+                                        <Collapse isOpen={this.state.collap} className="collapBody">
+                                            <Card className="cardCollap">
+                                                <CardBody>
+                                                    <div className='textCard1'>{this.state.tipeCol} Stock Opname</div>
+                                                    {this.state.tipeCol === 'submit' ? (
+                                                        <div>Tanggal submit : {dataStock[0] === undefined ? '' : moment(dataStock[0].tanggalStock === null ? dataStock[0].createdAt : dataStock[0].tanggalStock).locale('idn').format('DD MMMM YYYY ')}</div>
+                                                    ) : (
+                                                        <div></div>
+                                                    )}
+                                                    <div>Rincian Asset:</div>
+                                                    <Table striped bordered responsive hover className="tableDis mb-3">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>No</th>
+                                                                <th>Nomor Asset</th>
+                                                                <th>Nama Barang</th>
+                                                                <th>Merk/Type</th>
+                                                                <th>Kategori</th>
+                                                                <th>Status Fisik</th>
+                                                                <th>Kondisi</th>
+                                                                <th>Status Aset</th>
+                                                                <th>Keterangan</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {dataStock.length !== 0 && dataStock.map(item => {
+                                                                return (
+                                                                    <tr>
+                                                                        <th scope="row">{dataStock.indexOf(item) + 1}</th>
+                                                                        <td>{item.no_asset}</td>
+                                                                        <td>{item.nama_asset}</td>
+                                                                        <td>{item.merk}</td>
+                                                                        <td>{item.kategori}</td>
+                                                                        <td>{item.status_fisik}</td>
+                                                                        <td>{item.kondisi}</td>
+                                                                        <td>{item.grouping}</td>
+                                                                        <td>{item.keterangan}</td>
+                                                                    </tr>
+                                                                )
+                                                            })}
+                                                        </tbody>
+                                                    </Table>
+                                                    {dataStock[0] === undefined || this.state.tipeCol === 'Submit' ? (
+                                                        <div></div>
+                                                    ) : (
+                                                        <div>
+                                                            <div className="mb-4 mt-2">Tracking {this.state.tipeCol} :</div>
+                                                            {this.state.tipeCol === 'Pengajuan' ? (
+                                                                <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
+                                                                    {dataStock[0] !== undefined && dataStock[0].appForm.length && dataStock[0].appForm.slice(0).reverse().map(item => {
+                                                                        return (
+                                                                            <div class={item.status === 1 ? 'step completed' : item.status === 0 ? 'step reject' : 'step'}>
+                                                                                <div class="step-icon-wrap">
+                                                                                <button class="step-icon"><FaFileSignature size={30} className="center2" /></button>
+                                                                                </div>
+                                                                                <h5 class="step-title">{moment(item.updatedAt).format('DD-MM-YYYY')} </h5>
+                                                                                <h4 class="step-title">{item.jabatan}</h4>
                                                                             </div>
-                                                                            <h5 class="step-title">{moment(item.updatedAt).format('DD-MM-YYYY')} </h5>
-                                                                            <h4 class="step-title">{item.jabatan}</h4>
+                                                                        )
+                                                                    })}
+                                                                </div>
+                                                            ) :  this.state.tipeCol === 'Eksekusi' && (
+                                                                <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
+                                                                    <div class={dataStock[0] === undefined ? 'step' : dataStock[0].status_form !== 9 && dataStock[0].status_form > 2 ? "step completed" : 'step'}>
+                                                                        <div class="step-icon-wrap">
+                                                                        <button class="step-icon" ><FaFileSignature size={30} className="center2" /></button>
                                                                         </div>
-                                                                    )
-                                                                })}
-                                                            </div>
-                                                        ) :  this.state.tipeCol === 'Eksekusi' && (
-                                                            <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
-                                                                <div class={dataStock[0] === undefined ? 'step' : dataStock[0].status_form !== 9 && dataStock[0].status_form > 2 ? "step completed" : 'step'}>
-                                                                    <div class="step-icon-wrap">
-                                                                    <button class="step-icon" ><FaFileSignature size={30} className="center2" /></button>
+                                                                        <h4 class="step-title">Check Data Stock Opname</h4>
                                                                     </div>
-                                                                    <h4 class="step-title">Check Data Stock Opname</h4>
-                                                                </div>
-                                                                <div class={dataStock[0] === undefined ? 'step' : dataStock[0].status_form !== 9 && dataStock[0].status_form >= 8 ? "step completed" : 'step'}>
-                                                                    <div class="step-icon-wrap">
-                                                                    <button class="step-icon" ><AiOutlineCheck size={30} className="center2" /></button>
+                                                                    <div class={dataStock[0] === undefined ? 'step' : dataStock[0].status_form !== 9 && dataStock[0].status_form >= 8 ? "step completed" : 'step'}>
+                                                                        <div class="step-icon-wrap">
+                                                                        <button class="step-icon" ><AiOutlineCheck size={30} className="center2" /></button>
+                                                                        </div>
+                                                                        <h4 class="step-title">Selesai</h4>
                                                                     </div>
-                                                                    <h4 class="step-title">Selesai</h4>
                                                                 </div>
-                                                            </div>
-                                                        )}
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </CardBody>
+                                            </Card>
+                                        </Collapse>
+                                    </div>
+                                ) : (
+                                    <Row className="bodyDispos">
+                                    {dataStock.length !== undefined && dataStock.length > 0 && dataStock.map(item => {
+                                        return (
+                                            
+                                            <div className="bodyCard">
+                                                <img src={placeholder} className="imgCard1" />
+                                                <Button size="sm" color="success" className="labelBut">Stock Opname</Button>
+                                                <div className="ml-2">
+                                                    <div className="txtDoc mb-2">
+                                                        Pengajuan Stock Opname
                                                     </div>
-                                                )}
-                                            </CardBody>
-                                        </Card>
-                                    </Collapse>
-                                </div>
+                                                    <Row className="mb-2">
+                                                        <Col md={5} className="txtDoc">
+                                                        Kode Area
+                                                        </Col>
+                                                        <Col md={7} className="txtDoc">
+                                                        : {item.kode_plant}
+                                                        </Col>
+                                                    </Row>
+                                                    <Row className="mb-2">
+                                                        <Col md={5} className="txtDoc">
+                                                        Area
+                                                        </Col>
+                                                        <Col md={7} className="txtDoc">
+                                                        : {item.area}
+                                                        </Col>
+                                                    </Row>
+                                                    <Row className="mb-2">
+                                                        <Col md={5} className="txtDoc">
+                                                        Tanggal Opname
+                                                        </Col>
+                                                        <Col md={7} className="txtDoc">
+                                                        : {moment(item.tanggalStock).format('LL')}
+                                                        </Col>
+                                                    </Row>
+                                                    <Row className="mb-2">
+                                                        <Col md={5} className="txtDoc">
+                                                        No Opname
+                                                        </Col>
+                                                        <Col md={7} className="txtDoc">
+                                                        : {item.no_stock}
+                                                        </Col>
+                                                    </Row>
+                                                </div>
+                                                <Row className="footCard mb-3 mt-3">
+                                                    <Col md={12} xl={12}>
+                                                        <Button className="btnSell" color="primary" onClick={() => {this.getDetailStock(item); this.getApproveStock({nama: item.kode_plant.split('').length === 4 ? 'stock opname' : 'stock opname HO', no: item.no_stock})}}>Lacak</Button>
+                                                    </Col>
+                                                </Row>
+                                            </div>
+                                        )
+                                        
+                                    })}
+                                    </Row>
+                                )}
                             </div>
                         </div>
                     </MaterialTitlePanel>
                 </Sidebar>
-                <Modal isOpen={this.props.disposal.isLoading ? true: false} size="sm">
+                <Modal isOpen={this.props.tracking.isLoading ? true: false} size="sm">
                         <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>
@@ -484,73 +556,50 @@ class TrackingStock extends Component {
                         <div>Data Penjualan Asset Sedang Dilengkapi oleh divisi purchasing</div>
                     </Alert> */}
                     <ModalBody>
-                        <Row className='trackTitle ml-4'>
-                            <Col>
-                                Tracking Stock Opname
+                        <Row className='ml-4 trackSub'>
+                            <Col md={2}>
+                                Area
+                            </Col>
+                            <Col md={10}>
+                            : {detailStock[0] === undefined ? '' : detailStock[0].area}
                             </Col>
                         </Row>
                         <Row className='ml-4 trackSub'>
-                            <Col md={3}>
-                                Area asal
-                            </Col>
-                            <Col md={9}>
-                            : {detailMut[0] === undefined ? '' : detailMut[0].area}
-                            </Col>
-                        </Row>
-                        <Row className='ml-4 trackSub'>
-                            <Col md={3}>
-                                Area tujuan
-                            </Col>
-                            <Col md={9}>
-                            : {detailMut[0] === undefined ? '' : detailMut[0].area_rec}
-                            </Col>
-                        </Row>
-                        <Row className='ml-4 trackSub'>
-                            <Col md={3}>
+                            <Col md={2}>
                             No Stock Opname
                             </Col>
-                            <Col md={9}>
-                            : {detailMut[0] === undefined ? '' : detailMut[0].no_stock}
+                            <Col md={10}>
+                            : {detailStock[0] === undefined ? '' : detailStock[0].no_stock}
                             </Col>
                         </Row>
                         <Row className='ml-4 trackSub1'>
-                            <Col md={3}>
+                            <Col md={2}>
                             Tanggal Pengajuan Stock Opname
                             </Col>
-                            <Col md={9}>
-                            : {detailMut[0] === undefined ? '' : moment(detailMut[0].tanggalStock === null ? detailMut[0].createdAt : detailMut[0].tanggalStock).locale('idn').format('DD MMMM YYYY ')}
+                            <Col md={10}>
+                            : {detailStock[0] === undefined ? '' : moment(detailStock[0].tanggalStock === null ? detailStock[0].createdAt : detailStock[0].tanggalStock).locale('idn').format('DD MMMM YYYY ')}
                             </Col>
                         </Row>
                         <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
                             <div class="step completed">
                                 <div class="step-icon-wrap">
-                                <button class="step-icon" onClick={() => this.showCollap('Submit')} ><FiSend size={40} className="center1" /></button>
+                                    <button class="step-icon" onClick={() => this.showCollap('Submit')} ><FiSend size={40} className="center1" /></button>
                                 </div>
                                 <h4 class="step-title">Submit Stock Opname</h4>
                             </div>
-                            <div class={detailMut[0] === undefined ? 'step' : detailMut[0].status_form > 2 ? "step completed" : 'step'} >
+                            <div class={detailStock[0] === undefined ? 'step' : detailStock[0].status_form > 2 ? "step completed" : 'step'} >
                                 <div class="step-icon-wrap">
                                     <button class="step-icon" onClick={() => this.showCollap('Pengajuan')}><MdAssignment size={40} className="center" /></button>
                                 </div>
                                 <h4 class="step-title">Pengajuan Stock Opname</h4>
                             </div> 
-                            <div class={detailMut[0] === undefined ? 'step' : detailMut[0].status_form !== 9 && detailMut[0].status_form >= 3 ? "step completed" : 'step'}>
+                            <div class={detailStock[0] === undefined ? 'step' : detailStock[0].status_form !== 9 && detailStock[0].status_form >= 8 ? "step completed" : 'step'}>
                                 <div class="step-icon-wrap">
                                     <button class="step-icon" onClick={() => this.showCollap('Eksekusi')}><FiTruck size={40} className="center" /></button>
                                 </div>
-                                <h4 class="step-title">Eksekusi Stock Opname</h4>
+                                <h4 class="step-title">Terima Stock Opname</h4>
                             </div>
-                            {detailMut[0] === undefined ? (
-                                <div></div>
-                            ) : detailMut.find(({isbudget}) => isbudget === 'ya') && (
-                                <div class={detailMut[0] === undefined ? 'step' : detailMut[0].status_form !== 7 && detailMut[0].status_form !== 9 && detailMut[0].status_form > 4 ? "step completed" : 'step'}>
-                                    <div class="step-icon-wrap">
-                                        <button class="step-icon" onClick={() => this.showCollap('Proses Budget')}><FiSettings size={40} className="center" /></button>
-                                    </div>
-                                    <h4 class="step-title">Proses Budget</h4>
-                                </div>
-                            )}
-                            <div class={detailMut[0] === undefined ? 'step' : detailMut[0].status_form === 8 ? "step completed" : 'step'}>
+                            <div class={detailStock[0] === undefined ? 'step' : detailStock[0].status_form === 8 ? "step completed" : 'step'}>
                                 <div class="step-icon-wrap">
                                     <button class="step-icon"><AiOutlineCheck size={40} className="center" /></button>
                                 </div>
@@ -562,7 +611,7 @@ class TrackingStock extends Component {
                                 <CardBody>
                                     <div className='textCard1'>{this.state.tipeCol} Stock Opname</div>
                                     {this.state.tipeCol === 'submit' ? (
-                                        <div>Tanggal submit : {detailMut[0] === undefined ? '' : moment(detailMut[0].tanggalStock === null ? detailMut[0].createdAt : detailMut[0].tanggalStock).locale('idn').format('DD MMMM YYYY ')}</div>
+                                        <div>Tanggal submit : {detailStock[0] === undefined ? '' : moment(detailStock[0].tanggalStock === null ? detailStock[0].createdAt : detailStock[0].tanggalStock).locale('idn').format('DD MMMM YYYY ')}</div>
                                     ) : (
                                         <div></div>
                                     )}
@@ -575,36 +624,38 @@ class TrackingStock extends Component {
                                                 <th>Nama Barang</th>
                                                 <th>Merk/Type</th>
                                                 <th>Kategori</th>
-                                                <th>Nilai Buku</th>
-                                                <th>Nilai Jual</th>
+                                                <th>Status Fisik</th>
+                                                <th>Kondisi</th>
+                                                <th>Status Aset</th>
                                                 <th>Keterangan</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {detailMut.length !== 0 && detailMut.map(item => {
+                                            {detailStock.length !== 0 && detailStock.map(item => {
                                                 return (
                                                     <tr>
-                                                        <th scope="row">{detailMut.indexOf(item) + 1}</th>
+                                                        <th scope="row">{detailStock.indexOf(item) + 1}</th>
                                                         <td>{item.no_asset}</td>
                                                         <td>{item.nama_asset}</td>
                                                         <td>{item.merk}</td>
                                                         <td>{item.kategori}</td>
-                                                        <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                        <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                        <td>{item.status_fisik}</td>
+                                                        <td>{item.kondisi}</td>
+                                                        <td>{item.grouping}</td>
                                                         <td>{item.keterangan}</td>
                                                     </tr>
                                                 )
                                             })}
                                         </tbody>
                                     </Table>
-                                    {detailMut[0] === undefined || this.state.tipeCol === 'Submit' ? (
+                                    {detailStock[0] === undefined || this.state.tipeCol === 'Submit' ? (
                                         <div></div>
                                     ) : (
                                         <div>
                                             <div className="mb-4 mt-2">Tracking {this.state.tipeCol} :</div>
                                             {this.state.tipeCol === 'Pengajuan' ? (
                                                 <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
-                                                    {detailMut[0] !== undefined && detailMut[0].appForm.length && detailMut[0].appForm.slice(0).reverse().map(item => {
+                                                    {detailStock[0] !== undefined && detailStock[0].appForm.length && detailStock[0].appForm.slice(0).reverse().map(item => {
                                                         return (
                                                             <div class={item.status === 1 ? 'step completed' : item.status === 0 ? 'step reject' : 'step'}>
                                                                 <div class="step-icon-wrap">
@@ -616,36 +667,15 @@ class TrackingStock extends Component {
                                                         )
                                                     })}
                                                 </div>
-                                            ) :  this.state.tipeCol === 'Eksekusi' ? (
+                                            ) :  this.state.tipeCol === 'Eksekusi' && (
                                                 <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
-                                                    <div class={detailMut[0] === undefined ? 'step' : detailMut[0].status_form !== 9 && detailMut[0].status_form > 2 ? "step completed" : 'step'}>
+                                                    <div class={detailStock[0] === undefined ? 'step' : detailStock[0].status_form !== 9 && detailStock[0].status_form > 2 ? "step completed" : 'step'}>
                                                         <div class="step-icon-wrap">
                                                         <button class="step-icon" ><FaFileSignature size={30} className="center2" /></button>
                                                         </div>
-                                                        <h4 class="step-title">Check Dokumen Terima Stock Opname</h4>
+                                                        <h4 class="step-title">Check Data Stock Opname</h4>
                                                     </div>
-                                                    <div class={detailMut[0] === undefined ? 'step' : detailMut[0].status_form !== 9 && detailMut[0].status_form > 2 ? "step completed" : 'step'}>
-                                                        <div class="step-icon-wrap">
-                                                        <button class="step-icon" ><AiOutlineCheck size={30} className="center2" /></button>
-                                                        </div>
-                                                        <h4 class="step-title">Selesai</h4>
-                                                    </div>
-                                                </div>
-                                            ) : this.state.tipeCol === 'Proses Budget' && (
-                                                <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
-                                                    <div class={detailMut[0] === undefined ? 'step' : detailMut[0].status_form !== 9 && detailMut[0].status_form > 3 ? "step completed" : 'step'}>
-                                                        <div class="step-icon-wrap">
-                                                        <button class="step-icon" ><FiSettings size={30} className="center2" /></button>
-                                                        </div>
-                                                        <h4 class="step-title">Proses Ubah Cost Center</h4>
-                                                    </div>
-                                                    <div class={detailMut[0] === undefined ? 'step' : detailMut[0].status_form !== 9 && detailMut[0].status_form > 4  ? "step completed" : 'step'}>
-                                                        <div class="step-icon-wrap">
-                                                        <button class="step-icon" ><FiSettings size={30} className="center2" /></button>
-                                                        </div>
-                                                        <h4 class="step-title">Proses SAP</h4>
-                                                    </div>
-                                                    <div class={detailMut[0] === undefined ? 'step' : detailMut[0].status_form !== 9 && detailMut[0].status_form > 4 ? "step completed" : 'step'}>
+                                                    <div class={detailStock[0] === undefined ? 'step' : detailStock[0].status_form !== 9 && detailStock[0].status_form >= 8 ? "step completed" : 'step'}>
                                                         <div class="step-icon-wrap">
                                                         <button class="step-icon" ><AiOutlineCheck size={30} className="center2" /></button>
                                                         </div>
@@ -759,7 +789,8 @@ const mapStateToProps = state => ({
     disposal: state.disposal,
     setuju: state.setuju,
     pengadaan: state.pengadaan,
-    tracking: state.tracking
+    tracking: state.tracking,
+    stock: state.stock
 })
 
 const mapDispatchToProps = {
@@ -775,7 +806,9 @@ const mapDispatchToProps = {
     showDokumen: pengadaan.showDokumen,
     getTrack: tracking.getTrack,
     trackMutasi: tracking.trackMutasi,
-    trackStock: tracking.trackStock
+    trackStock: tracking.trackStock,
+    getDetailStock: stock.getDetailStock,
+    getApproveStock: stock.getApproveStock,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(TrackingStock)

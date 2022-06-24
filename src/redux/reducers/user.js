@@ -295,6 +295,12 @@ export default (state=userState, action) => {
                     isReset: false
                 }
             }
+            // case 'USERS_LOADED': {
+            //     return {
+            //         loadedAt: moment(),
+            //         users: payload
+            //     }
+            // }
             default: {
                 return state;
             }

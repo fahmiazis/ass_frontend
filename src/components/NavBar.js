@@ -40,11 +40,21 @@ class NavBar extends Component {
         this.props.logout()
     }
 
-    goRoute = (route) => {
-        localStorage.setItem('route', route)
-        this.props.goRoute()
+    goRoute = async (val) => {
+        const token = localStorage.getItem('token')
+        if (val === 'notif') {
+            localStorage.setItem('route', val)
+            this.props.goRoute()
+        } else {
+            await this.props.upNotif(token, val.id)
+            await this.props.getNotif(token)
+            const ket = val.keterangan
+            const jenis = (val.jenis === '' || val.jenis === null) && val.no_proses.split('')[0] === 'O' ? 'Stock Opname' : val.jenis
+            const route = ket === 'tax' || ket === 'finance' || ket === 'tax and finance' ? 'taxfin' : ket === 'eksekusi' && jenis === 'disposal' ? 'eksdis' : jenis === 'disposal' && ket === 'pengajuan' ? 'disposal' : jenis === 'mutasi' && ket === 'pengajuan' ? 'mutasi' : jenis === 'Stock Opname' && ket === 'pengajuan' ? 'stock' : jenis === 'disposal' ? 'navdis' : jenis === 'mutasi' ? 'navmut' : jenis === 'Stock Opname' && 'navstock' 
+            localStorage.setItem('route', route)
+            this.props.goRoute()
+        }
     }
-
 
      editUser = async (val) => {
         const token = localStorage.getItem("token")
@@ -78,7 +88,7 @@ class NavBar extends Component {
     render() {
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
-        const dataNotif = this.props.dataNotif
+        const { data } = this.props.notif
         const id = localStorage.getItem('id')
         return (
             <>
@@ -91,7 +101,7 @@ class NavBar extends Component {
                         <DropdownToggle nav>
                             <div className={style.optionType}>
                                 <BsBell size={30} className="white" />
-                                {dataNotif.length > 0 ? (
+                                {data.find(({status}) => status === null) !== undefined ? (
                                     <BsFillCircleFill className="red ball" size={10} />
                                 ) : (
                                     <div></div>
@@ -115,14 +125,20 @@ class NavBar extends Component {
                                 },
                             },
                         }}>
-                            {dataNotif.length > 0 ? (
-                                dataNotif.map(item => {
+                            <DropdownItem>
+                                <div className='allnotif' onClick={() => this.goRoute('notif')}>
+                                    See all notifications
+                                </div>        
+                            </DropdownItem>
+                            {data.length > 0 ? (
+                                data.map(item => {
                                     return (
                                         <DropdownItem 
-                                            onClick={() => this.goRoute(item.keterangan === 'tax' || item.keterangan === 'finance' ? 'taxfin' : item.keterangan === 'eksekusi' && item.jenis === 'disposal' ? 'eksdis' : item.jenis === 'disposal' ? 'navdis' : item.jenis === 'mutasi' && 'navmut')}
+                                            onClick={() => this.goRoute(item)}
                                         >
                                             <div className={style.notif}>
                                                 <FaFileSignature size={90} className="mr-4"/>
+                                                <Button className="labelBut" color={item.status === null ? "danger" : "success"} size="sm">{item.status === null ? 'unread' : 'read'}</Button>
                                                 <div>
                                                     <div>Request</div>
                                                     <div className="textNotif">{item.keterangan} {item.jenis}</div>
@@ -277,7 +293,8 @@ const mapDispatchToProps = {
     logout: auth.logout,
     getNotif: notif.getNotif,
     changePassword: user.changePassword,
-    goRoute: auth.goRoute
+    goRoute: auth.goRoute,
+    upNotif: notif.upNotif
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(NavBar)

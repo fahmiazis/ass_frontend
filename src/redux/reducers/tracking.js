@@ -25,6 +25,7 @@ export default (state=trackingState, action) => {
         case 'GET_TRACK_FULFILLED': {
             return {
                 ...state,
+                isLoading: false,
                 isGet: true,
                 dataDis: action.payload.data.result.rows,
                 noDis: action.payload.data.noDis,

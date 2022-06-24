@@ -261,7 +261,6 @@ class TrackingMutasi extends Component {
                 detail.push(dataMut[i])
             }
         }
-        console.log(detail[0].no_mutasi)
         this.setState({detailMut: detail})
         this.openModalDis()
     }
@@ -422,7 +421,7 @@ class TrackingMutasi extends Component {
                         </div>
                     </MaterialTitlePanel>
                 </Sidebar>
-                <Modal isOpen={this.props.disposal.isLoading ? true: false} size="sm">
+                <Modal isOpen={this.props.tracking.isLoading ? true: false} size="sm">
                         <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>

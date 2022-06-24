@@ -53,6 +53,7 @@ import NavTicket from './pages/NavTicket'
 import CartTicket from './pages/CartTicket'
 import TrackingTicket  from './pages/TrackingTicket'
 import EditTicket from './pages/EditTicket'
+import Notif from './pages/Notif'
 
 class App extends Component {
 
@@ -201,6 +202,9 @@ class App extends Component {
                 </PrivateRoute>
                 <PrivateRoute path='/revtick'>
                     <EditTicket />
+                </PrivateRoute>
+                <PrivateRoute path='/notif'>
+                    <Notif />
                 </PrivateRoute>
             </Switch>
         </BrowserRouter>

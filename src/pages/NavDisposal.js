@@ -110,6 +110,11 @@ export default class NavDisposal extends Component {
                                         Tax & Finance disposal
                                     </div>
                                 </button>
+                                <button className="cardNav1" onClick={() => this.goRoute('trackdis')}>
+                                    <div className="titCard">
+                                        Tracking Disposal
+                                    </div>
+                                </button>
                                 {level === '2' ? (
                                     <>
                                         <button className="cardNav1" onClick={() => this.goRoute('report')}>

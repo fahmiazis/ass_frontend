@@ -334,7 +334,7 @@ class MonitoringDisposal extends Component {
                                         <div></div>
                                     ) : (
                                         <Row className="bodyDispos">
-                                        {newDis.length !== 0 && newDis.map(item => {
+                                        {newDis !== undefined && newDis.length !== 0 && newDis.map(item => {
                                             return (
                                                 newDis.length === 0 ? (
                                                     <div></div>
@@ -438,7 +438,7 @@ class MonitoringDisposal extends Component {
                         </div>
                     </MaterialTitlePanel>
                 </Sidebar>
-                <Modal isOpen={this.props.disposal.isLoading ? true: false} size="sm">
+                <Modal isOpen={this.props.tracking.isLoading ? true: false} size="sm">
                         <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>

@@ -5,7 +5,11 @@ const notifState = {
     isLoading: false,
     isError: false,
     alertMsg: '',
-    data: []
+    data: [],
+    delete: false,
+    delall: false,
+    update: false,
+    upall: false
 }
 
 export default (state=notifState, action) => {
@@ -22,6 +26,7 @@ export default (state=notifState, action) => {
             return {
                 ...state,
                 isGet: true,
+                isLoading: false,
                 data: action.payload.data.result,
                 alertMsg: 'get notif Succesfully'
             };
@@ -31,6 +36,98 @@ export default (state=notifState, action) => {
                 ...state,
                 isLoading: false,
                 isGet: false,
+                isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'DEL_NOTIF_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'DEL_NOTIF_FULFILLED': {
+            return {
+                ...state,
+                delete: true,
+                isLoading: false,
+                alertMsg: 'delete notif Succesfully'
+            };
+        }
+        case 'DEL_NOTIF_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'DELALL_NOTIF_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'DELALL_NOTIF_FULFILLED': {
+            return {
+                ...state,
+                delall: true,
+                isLoading: false,
+                alertMsg: 'delete notif Succesfully'
+            };
+        }
+        case 'DELALL_NOTIF_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'UP_NOTIF_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'UP_NOTIF_FULFILLED': {
+            return {
+                ...state,
+                update: true,
+                isLoading: false,
+                alertMsg: 'delete notif Succesfully'
+            };
+        }
+        case 'UP_NOTIF_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'UPALL_NOTIF_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'UPALL_NOTIF_FULFILLED': {
+            return {
+                ...state,
+                upall: true,
+                isLoading: false,
+                alertMsg: 'delete notif Succesfully'
+            };
+        }
+        case 'UPALL_NOTIF_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
                 isError: true,
                 alertMsg: "Unable connect to server"
             };

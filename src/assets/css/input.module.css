@@ -303,6 +303,11 @@ html,body{
   padding-right: 2%;
   padding-left: 2%;
 }
+.backgroundTrack {
+  background-color: white;
+  padding-right: 5%;
+  padding-left: 5%;
+}
 .backgroundLogo1 {
   background-color: white;
   padding-left: 5%;
@@ -597,8 +602,21 @@ html,body{
   display: flex;
   flex-direction: row;
   justify-content: center;
-  padding-top: 10%;
-  padding-bottom: 10%;
+  padding-top: 10% !important;
+  padding-bottom: 10% !important;
+}
+.btnSideTop {
+  width: 100%;
+  background-color: transparent;
+  border: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  color: white;
+  margin-bottom: 10%;
+  margin-top: 10%;
+  font-size: 15px;
+  padding-left: 8%;
 }
 .btnSide {
   width: 100%;
@@ -610,6 +628,7 @@ html,body{
   color: white;
   margin-bottom: 10%;
   font-size: 15px;
+  padding-left: 8%;
 }
 .btnSide1 {
   width: 100%;
@@ -622,6 +641,15 @@ html,body{
   color: white;
   margin-bottom: 10%;
   font-size: 15px;
+  padding-left: 8%;
+}
+.content {
+  height: "auto";
+  background-color: "#9A1353";
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
 }
 .btnSide3 {
   width: 100%;
@@ -634,6 +662,7 @@ html,body{
   color: white;
   margin-bottom: 50%;
   font-size: 15px;
+  padding-left: 8%;
 }
 .btnSide2 {
   width: 90%;
@@ -662,6 +691,7 @@ html,body{
   color: white;
   font-size: 15px;
   margin-bottom: 50%;
+  padding-left: 8%;
 }
 .marginSide1 {
   width: 100%;
@@ -687,11 +717,24 @@ html,body{
   font-size: 15px;
   margin-bottom: 60%;
 }
+.btnLogout {
+  width: 100%;
+  background-color: transparent;
+  border: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  color: white;
+  font-size: 15px;
+  padding-left: 8%;
+  align-self: flex-end;
+  padding-bottom: 5%;
+}
 .white {
   color: white;
 }
 .divLogo {
-  width: 95%;
+  width: 100%;
   font-size: 20px;
   display: flex;
   flex-direction: row;
