@@ -555,10 +555,9 @@ class Pengadaan extends Component {
     }
 
     componentDidUpdate() {
-        const {isError, isUpload, isUpdate, approve, rejApprove, reject, rejReject, detailIo} = this.props.pengadaan
+        const {isError, isUpload, isUpdate, approve, rejApprove, reject, rejReject, detailIo, testPods} = this.props.pengadaan
         const {rinciIo, listMut, newIo} = this.state
         const token = localStorage.getItem('token')
-        console.log(this.state.listStat)
         if (isError) {
             this.props.resetError()
             this.showAlert()
@@ -596,6 +595,14 @@ class Pengadaan extends Component {
             this.props.resetApp()
         } else if (listMut.length > newIo.length) {
             this.setState({listMut: []})
+        } else if (testPods === 'true') {
+            this.setState({confirm: 'apitrue'})
+            this.openConfirm()
+            this.props.resetApp()
+        } else if (testPods === 'false') {
+            this.setState({confirm: 'apifalse'})
+            this.openConfirm()
+            this.props.resetApp()
         }
     }
 
@@ -692,6 +699,11 @@ class Pengadaan extends Component {
                 this.setState({filter: val, newIo: newIo})
             }
         }
+    }
+
+    testConnect = async () => {
+        const token = localStorage.getItem("token")
+        await this.props.testApiPods(token)
     }
 
     getSubmitDisposal = async (value) => {
@@ -834,6 +846,10 @@ class Pengadaan extends Component {
                                                 <option value="available">Available To Approve</option>
                                                 <option value="revisi">Revisi</option>
                                             </Input> */}
+                                        </div>
+                                    ) : level === '1' ? (
+                                        <div className={style.headEmail}>
+                                            <Button color="primary" className="transBtn" onClick={this.testConnect}>Test Api Pods</Button>
                                         </div>
                                     ) : (
                                         <div className={style.headEmail}>
@@ -2105,7 +2121,21 @@ class Pengadaan extends Component {
                             <div className="errApprove mt-2">Mohon isi alasan terlebih dahulu</div>
                         </div>
                         </div>
-                    ) : (
+                    ) : this.state.confirm === 'apitrue' ?(
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Connection Success</div>
+                            </div>
+                        </div>
+                    ) : this.state.confirm === 'apifalse' ? (
+                        <div>
+                            <div className={style.cekUpdate}>
+                            <AiOutlineClose size={80} className={style.red} />
+                            <div className={[style.sucUpdate, style.green]}>Connection Failed</div>
+                        </div>
+                        </div>
+                    ): (
                         <div></div>
                     )}
                 </ModalBody>
@@ -2147,7 +2177,8 @@ const mapDispatchToProps = {
     resetApp: pengadaan.resetApp,
     getDocCart: pengadaan.getDocCart,
     approveAll: pengadaan.approveAll,
-    updateRecent: pengadaan.updateRecent
+    updateRecent: pengadaan.updateRecent,
+    testApiPods: pengadaan.testApiPods
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Pengadaan)

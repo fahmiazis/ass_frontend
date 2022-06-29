@@ -115,6 +115,10 @@ export default {
         type: 'UPDATE_RECENT',
         payload: http(token).patch(`/ticket/uprecent/${no}`, qs.stringify(data))
     }),
+    testApiPods: (token) => ({
+        type: 'TESTAPI_PODS',
+        payload: http(token).get(`/ticket/tpods`)
+    }),
     resetError: () => ({
         type: 'RESET'
     }),

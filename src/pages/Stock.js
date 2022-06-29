@@ -273,7 +273,7 @@ class Stock extends Component {
             this.setState({
                 alert: false
             })
-         }, 10000)
+         }, 2000)
     }
 
     submitAset = async () => {
@@ -387,7 +387,12 @@ class Stock extends Component {
                     this.modalStatus()
                 } else {
                     await this.props.getStatus(token, detailAsset.status_fisik === null ? '' : detailAsset.status_fisik, detailAsset.kondisi === null ? '' : detailAsset.kondisi, 'true')
-                    this.setState({noAsset: val.no_asset, dropOp: !this.state.dropOp})
+                    const { dataStatus } = this.props.stock
+                    if (dataStatus.length === 0) {
+                        this.modalStatus()
+                    } else {
+                        this.setState({noAsset: val.no_asset, dropOp: !this.state.dropOp})
+                    }
                 }
             } else {
                 await this.props.getStatus(token, '', '', 'true')
@@ -765,9 +770,9 @@ class Stock extends Component {
                     <MaterialTitlePanel title={contentHeader}>
                     <div className={style.backgroundLogo}>
                         <div className={style.bodyDashboard}>
-                            <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
+                            {/* <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
                                 <div>{alertM}</div>
-                            </Alert>
+                            </Alert> */}
                             <div className={style.headMaster}>
                                 <div className={style.titleDashboard}>Stock Opname Asset</div>
                             </div>
@@ -1205,9 +1210,9 @@ class Stock extends Component {
                     <ModalHeader>
                         Tambah Data Asset
                     </ModalHeader>
-                    <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
+                    {/* <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
                         <div>{alertM}</div>
-                    </Alert>
+                    </Alert> */}
                     <ModalBody>
                         <div className="mainRinci2">
                             {/* <div className="leftRinci2 mb-5">
@@ -2400,9 +2405,9 @@ class Stock extends Component {
                         </div>
                         )}
                     </ModalBody>
-                    <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
+                    {/* <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
                         <div>{alertM}</div>
-                    </Alert>
+                    </Alert> */}
                     <div className="modalFoot ml-3">
                         <div></div>
                         <div className="btnFoot">
@@ -2561,9 +2566,9 @@ class Stock extends Component {
                         </div>
                         )}
                     </ModalBody>
-                    <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
+                    {/* <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
                         <div>{alertM}</div>
-                    </Alert>
+                    </Alert> */}
                     <div className="modalFoot ml-3">
                         <div></div>
                         <div className="btnFoot">
@@ -2643,9 +2648,9 @@ class Stock extends Component {
                     ) : this.state.confirm === 'rejReject' ?(
                         <div>
                             <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Gagal Reject</div>
-                        </div>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Reject</div>
+                            </div>
                         </div>
                     ) : this.state.confirm === 'isApprove' ? (
                         <div>
@@ -2664,6 +2669,16 @@ class Stock extends Component {
                     ) : (
                         <div></div>
                     )}
+                </ModalBody>
+            </Modal>
+            <Modal isOpen={this.state.alert} size="sm">
+                <ModalBody>
+                    <div>
+                        <div className={style.cekUpdate}>
+                            <AiOutlineClose size={80} className={style.red} />
+                            <div className={[style.sucUpdate, style.green]}>{alertM}</div>
+                        </div>
+                    </div>
                 </ModalBody>
             </Modal>
             <Modal size="xl" isOpen={this.state.modalDoc} toggle={this.openModalDoc}>

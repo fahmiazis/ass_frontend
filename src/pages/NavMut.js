@@ -35,7 +35,7 @@ export default class NavMut extends Component {
                         <div className="titHome">Mutasi menu</div>
                         <div className="txtChoose">Please select an option</div>
                         <Row className="mainBody">
-                            {level === '5' ? (
+                            {level === '5' || level === '9' ? (
                                 <>
                                     <button className="cardNav1" onClick={() => this.goRoute('mutasi')}>
                                         <div className="titCard">
@@ -92,6 +92,24 @@ export default class NavMut extends Component {
                                         Budget mutasi
                                     </div>
                                 </button>
+                            ) : level === '13' || level === '16' || level === '27' || level === "12" ? (
+                                <>
+                                    <button className="cardNav1" onClick={() => this.goRoute('mutasi')}>
+                                        <div className="titCard">
+                                            Pengajuan mutasi
+                                        </div>
+                                    </button>
+                                    <button className="cardNav1" onClick={() => this.goRoute('termut')}>
+                                        <div className="titCard">
+                                            Terima mutasi
+                                        </div>
+                                    </button>
+                                    <button className="cardNav1" onClick={() => this.goRoute('trackmut')}>
+                                        <div className="titCard">
+                                            Tracking mutasi
+                                        </div>
+                                    </button>
+                                </>
                             ) : (
                                 <>
                                     <button className="cardNav1" onClick={() => this.goRoute('mutasi')}>

@@ -22,6 +22,7 @@ import {Formik} from 'formik'
 import * as Yup from 'yup'
 import logo from '../assets/img/logo.png'
 import moment from 'moment'
+import user from '../redux/actions/user'
 import disposal from '../redux/actions/disposal'
 import pengadaan from '../redux/actions/pengadaan'
 import Pdf from "../components/Pdf"
@@ -228,6 +229,7 @@ class TerimaMutasi extends Component {
     openDetailMut = async (value) => {
         const { dataMut } = this.props.mutasi
         const token = localStorage.getItem('token')
+        const level = localStorage.getItem('level')
         await this.props.getDetailMutasi(token, value) 
         const detail = []
         for (let i = 0; i < dataMut.length; i++) {
@@ -237,7 +239,7 @@ class TerimaMutasi extends Component {
         }
         this.setState({detailMut: detail})
         const {detailMut} = this.props.mutasi
-        if (detailMut[0].tgl_mutasifisik === null || detailMut[0].tgl_mutasifisik === 'null' || detailMut[0].tgl_mutasifisik === '') {
+        if ((level === '5' || level === '9') && (detailMut[0].tgl_mutasifisik === null || detailMut[0].tgl_mutasifisik === 'null' || detailMut[0].tgl_mutasifisik === '')) {
             this.openModalMut()
             this.openModalDate()
         } else {
@@ -320,11 +322,16 @@ class TerimaMutasi extends Component {
     getDataMutasiRec = async () => {
         const token = localStorage.getItem('token')
         await this.props.getMutasiRec(token)
+        await this.props.getRole(token)
         this.changeView('available')
     }
 
     changeView = async (val) => {
         const { dataMut, noMut } = this.props.mutasi
+        const {dataRole} = this.props.user
+        const level = localStorage.getItem('level')
+        const author = level === '16' || level === '13' || level === '12'
+        const divisi = author ? dataRole.find(({nomor}) => nomor === '27').name : localStorage.getItem('role')
         const role = localStorage.getItem('role')
         if (val === 'available') {
             const newMut = []
@@ -333,8 +340,25 @@ class TerimaMutasi extends Component {
                 if (dataMut[index] !== undefined) {
                     const app = dataMut[index].appForm
                     const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
-                    if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
-                        newMut.push(dataMut[index])
+                    const findApp = app.indexOf(app.find(({jabatan}) => jabatan === divisi))
+                    if (level === '12' || level === '27') {
+                        if ((app.length === 0 || app[app.length - 1].status === null) || (app[findApp] !== undefined && app[findApp].status === null)) {
+                            newMut.push(dataMut[index])
+                        }
+                    } else if (level === '13' || level === '16') {
+                        if ((app.length === 0 || app[app.length - 1].status === null) || (app[find] !== undefined && app[find + 1].status === 1 && app[find].status === null)) {
+                            newMut.push(dataMut[index])
+                        } else if ((app.length === 0 || app[app.length - 1].status === null) || (app[findApp - 1] !== undefined && app[findApp + 2].status === 1 && (app[findApp - 1].status === null))) {
+                            newMut.push(dataMut[index])
+                        }
+                    } else if (find === 0 || find === '0') {
+                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status === null) {
+                            newMut.push(dataMut[index])
+                        }
+                    } else {
+                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
+                            newMut.push(dataMut[index])
+                        }
                     }
                 }
             }
@@ -399,7 +423,7 @@ class TerimaMutasi extends Component {
     render() {
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
-        const { dataRinci, newMut } = this.state
+        const { dataRinci, newMut, view } = this.state
         const { detailDepo } = this.props.depo
         const { dataMut, noMut, mutApp, detailMut, dataDoc } = this.props.mutasi
         const { dataAsset, page } = this.props.asset
@@ -460,6 +484,10 @@ class TerimaMutasi extends Component {
                                         </div>
                                     ) : (
                                         <div className={style.headEmail}>
+                                            <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
+                                                <option value="not available">All</option>
+                                                <option value="available">Available To Approve</option>
+                                            </Input>
                                         </div>
                                     )}
                                     <div className={style.searchEmail1}>
@@ -534,7 +562,64 @@ class TerimaMutasi extends Component {
                                         </Row>
                                     )
                                 ) : (
-                                    <div></div>
+                                    newMut === undefined ? (
+                                        <div></div>
+                                    ) : ( 
+                                        <Row className="bodyDispos">
+                                        {newMut.length !== 0 && newMut.map(item => {
+                                            return (
+                                                <div className="bodyCard">
+                                                    <img src={placeholder} className="imgCard1" />
+                                                    <Button size="sm" color="danger" className="labelBut">Mutasi</Button>
+                                                    <div className="ml-2">
+                                                        <div className="txtDoc mb-2">
+                                                            Terima Mutasi Aset
+                                                        </div>
+                                                        <Row className="mb-2">
+                                                            <Col md={6} className="txtDoc">
+                                                            Area Pengirim
+                                                            </Col>
+                                                            <Col md={6} className="txtDoc">
+                                                            : {item.area}
+                                                            </Col>
+                                                        </Row>
+                                                        <Row className="mb-2">
+                                                            <Col md={6} className="txtDoc">
+                                                            No Mutasi
+                                                            </Col>
+                                                            <Col md={6} className="txtDoc">
+                                                            : {item.no_mutasi}
+                                                            </Col>
+                                                        </Row>
+                                                        <Row className="mb-2">
+                                                            <Col md={6} className="txtDoc">
+                                                            Status Approval
+                                                            </Col>
+                                                            {item.appForm.find(({status}) => status === 0) !== undefined ? (
+                                                                <Col md={6} className="txtDoc">
+                                                                : Reject {item.appForm.find(({status}) => status === 0).jabatan}
+                                                                </Col>
+                                                            ) : item.appForm.find(({status}) => status === 1) !== undefined ? (
+                                                                <Col md={6} className="txtDoc">
+                                                                : Approve {item.appForm.find(({status}) => status === 1).jabatan}
+                                                                </Col>
+                                                            ) : (
+                                                                <Col md={6} className="txtDoc">
+                                                                : -
+                                                                </Col>
+                                                            )}
+                                                        </Row>
+                                                    </div>
+                                                    <Row className="footCard mb-3 mt-3">
+                                                        <Col md={12} xl={12}>
+                                                            <Button className="btnSell" color="primary" onClick={() => this.openDetailMut(item.no_mutasi)}>Proses</Button>
+                                                        </Col>
+                                                    </Row>
+                                                </div>
+                                            )
+                                        })}
+                                        </Row>
+                                    )
                                 )}
                                 <div>
                                     <div className={style.infoPageEmail}>
@@ -737,7 +822,7 @@ class TerimaMutasi extends Component {
                     </ModalBody>
                 </Modal>
                 <Modal isOpen={this.state.formMut} toggle={this.openModalMut} size="xl">
-                    <Alert color="danger" className={style.alertWrong} isOpen={detailMut[0] === undefined || detailMut[0].docAsset.find(({status}) => status === 1) === undefined ? true : false}>
+                    <Alert color="danger" className={style.alertWrong} isOpen={(level === '5' || level === '9') && (detailMut[0] === undefined || detailMut[0].docAsset.find(({status}) => status === 1) === undefined ? true : false)}>
                         <div>Mohon upload dokumen terlebih dahulu sebelum approve</div>
                     </Alert>
                     <ModalBody>
@@ -814,14 +899,25 @@ class TerimaMutasi extends Component {
                             <Button className="mr-2" color="primary" onClick={this.getDataApprove}>Preview</Button>
                             <Button color='success' onClick={this.openProsesModalDoc}>Upload dokumen</Button>
                         </div>
-                        <div className="btnFoot">
-                            <Button className="mr-2" color="danger" disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({status}) => status === 1) === undefined ? true : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? true : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 1 ? true : false} onClick={() => this.openReject()}>
-                                Reject
-                            </Button>
-                            <Button color="success" disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({status}) => status === 1) === undefined ? true : false} onClick={() => this.openApprove()}>
-                                Approve
-                            </Button>
-                        </div>
+                        {level === '5' || level === '9' ? (
+                            <div className="btnFoot">
+                                <Button className="mr-2" color="danger" disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({status}) => status === 1) === undefined ? true : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? true : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 1 ? true : false} onClick={() => this.openReject()}>
+                                    Reject
+                                </Button>
+                                <Button color="success" disabled={detailMut[0] === undefined || detailMut[0].docAsset.find(({status}) => status === 1) === undefined ? true : false} onClick={() => this.openApprove()}>
+                                    Approve
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className="btnFoot">
+                                <Button className="mr-2" disabled={true} color="danger" onClick={() => this.openReject()}>
+                                    Reject
+                                </Button>
+                                <Button color="success" disabled={detailMut[0] === undefined ? false : view === 'available' ? false : true} onClick={() => this.openApprove()}>
+                                    Approve
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </Modal>
                 <Modal isOpen={this.state.preview} toggle={this.openModalPre} size="xl">
@@ -1253,7 +1349,8 @@ const mapStateToProps = state => ({
     depo: state.depo,
     mutasi: state.mutasi,
     disposal: state.disposal,
-    pengadaan: state.pengadaan
+    pengadaan: state.pengadaan,
+    user: state.user
 })
 
 const mapDispatchToProps = {
@@ -1276,7 +1373,8 @@ const mapDispatchToProps = {
     showDokumen: pengadaan.showDokumen,
     resetAppRej: mutasi.resetAppRej,
     getDetailMutasi: mutasi.getDetailMutasi,
-    changeDate: mutasi.changeDate
+    changeDate: mutasi.changeDate,
+    getRole: user.getRole
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(TerimaMutasi)

@@ -40,7 +40,9 @@ const pengState = {
     dataAppall: [],
     updateRecent: false,
     getRev: false,
-    revPeng: []
+    revPeng: [],
+    testPods: '',
+    dataTest: {}
 }
 
 export default (state=pengState, action) => {
@@ -618,6 +620,30 @@ export default (state=pengState, action) => {
                 alertMsg: "Unable connect to server"
             };
         }
+        case 'TESTAPI_PODS_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'TESTAPI_PODS_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                testPods: 'true',
+                dataTest: action.payload.data.result,
+                alertMsg: 'get document io Succesfully',
+            };
+        }
+        case 'TESTAPI_PODS_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                testPods: 'false',
+                alertMsg: "Unable connect to server"
+            };
+        }
         case 'UPLOAD_DOCIO_PENDING': {
             return {
                 ...state,
@@ -741,7 +767,8 @@ export default (state=pengState, action) => {
                 rejApprove: false,
                 rejReject: false,
                 approve: false,
-                reject: false
+                reject: false,
+                testPods: ''
             }
         }
         default: {

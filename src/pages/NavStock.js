@@ -51,11 +51,6 @@ export default class NavStock extends Component {
                                             Revisi stock opname
                                         </div>
                                     </button>
-                                    <button className="cardNav1" onClick={() => this.goRoute('trackstock')}>
-                                        <div className="titCard">
-                                            Tracking stock opname
-                                        </div>
-                                    </button>
                                 </>
                             ) : (
                                 <div></div>

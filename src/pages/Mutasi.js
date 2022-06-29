@@ -22,6 +22,7 @@ import TableMut from '../components/TableMut'
 import * as Yup from 'yup'
 import logo from '../assets/img/logo.png'
 import moment from 'moment'
+import user from '../redux/actions/user'
 const {REACT_APP_BACKEND_URL} = process.env
 
 
@@ -244,6 +245,7 @@ class Mutasi extends Component {
     getDataMutasi = async () => {
         const token = localStorage.getItem('token')
         await this.props.getMutasi(token)
+        await this.props.getRole(token)
         this.changeView('available')
     }
 
@@ -281,8 +283,10 @@ class Mutasi extends Component {
 
     changeView = async (val) => {
         const { dataMut, noMut } = this.props.mutasi
+        const {dataRole} = this.props.user
         const role = localStorage.getItem('role')
         const level = localStorage.getItem('level')
+        const divisi = level === '16' || level === '13' ? dataRole.find(({nomor}) => nomor === '27').name : localStorage.getItem('role')
         if (val === 'available') {
             const newMut = []
             for (let i = 0; i < noMut.length; i++) {
@@ -290,8 +294,21 @@ class Mutasi extends Component {
                 if (dataMut[index] !== undefined) {
                     const app = dataMut[index].appForm
                     const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
-                    if (level === '12') {
+                    const findApp = app.indexOf(app.find(({jabatan}) => jabatan === divisi))
+                    if (level === '12' || level === '27') {
                         if ((app.length === 0 || app[app.length - 1].status === null) || (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (app[find].status === null || app[find].status === 0))) {
+                            newMut.push(dataMut[index])
+                        }
+                    } else if (level === '13' || level === '16') {
+                        if ((app.length === 0 || app[app.length - 1].status === null) || (app[find] !== undefined && app[find + 1].status === 1 && (app[find].status === null))) {
+                            newMut.push(dataMut[index])
+                        } else if ((app.length === 0 || app[app.length - 1].status === null) || (app[findApp - 1] !== undefined && app[findApp + 2].status === 1 && (app[findApp - 1].status === null))) {
+                            newMut.push(dataMut[index])
+                        } else {
+                            console.log(findApp - 1)
+                        }
+                    } else if (find === 0 || find === '0') {
+                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status === null) {
                             newMut.push(dataMut[index])
                         }
                     } else {
@@ -369,6 +386,7 @@ class Mutasi extends Component {
         const names = localStorage.getItem('name')
         const { dataRinci, newMut, listMut } = this.state
         const { detailDepo } = this.props.depo
+        const { dataRole } = this.props.user
         const { dataMut, noMut, mutApp, dataDoc, detailMut  } = this.props.mutasi
         const { dataAsset, page } = this.props.asset
         const pages = this.props.mutasi.page
@@ -979,7 +997,7 @@ class Mutasi extends Component {
                                                 <tr>
                                                 {mutApp.pembuat !== undefined && mutApp.pembuat.map(item => {
                                                     return (
-                                                        <td className="footPre">{item.jabatan === null ? "-" : 'SPV'}</td>
+                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'HO' ? 'SPV' : item.jabatan}</td>
                                                     )
                                                 })}
                                                 </tr>
@@ -1004,7 +1022,7 @@ class Mutasi extends Component {
                                                 <tr>
                                                 {mutApp.penerima !== undefined && mutApp.penerima.map(item => {
                                                     return (
-                                                        <td className="footPre">{item.jabatan === null ? "-" : 'SPV'}</td>
+                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'HO' ? 'SPV' : item.jabatan}</td>
                                                     )
                                                 })}
                                                 </tr>
@@ -1250,7 +1268,8 @@ class Mutasi extends Component {
 const mapStateToProps = state => ({
     asset: state.asset,
     depo: state.depo,
-    mutasi: state.mutasi
+    mutasi: state.mutasi,
+    user: state.user
 })
 
 const mapDispatchToProps = {
@@ -1270,6 +1289,7 @@ const mapDispatchToProps = {
     resetAddMut: mutasi.resetAddMut,
     resetAppRej: mutasi.resetAppRej,
     getDetailMutasi: mutasi.getDetailMutasi,
+    getRole: user.getRole
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Mutasi)
