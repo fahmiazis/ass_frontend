@@ -2,6 +2,7 @@
 import React, { Component } from 'react'
 import Sidebar from '../components/Sidebar'
 import {VscAccount} from 'react-icons/vsc'
+import { Row } from 'reactstrap'
 import '../assets/css/style.css'
 
 export default class NavMut extends Component {
@@ -33,9 +34,8 @@ export default class NavMut extends Component {
                     <div>
                         <div className="titHome">Menu pengadaan asset</div>
                         <div className="txtChoose">Please select an option</div>
-                        <div className="mainBody">
                             {level === '5' ? (
-                                <>
+                                <Row className="mainBody">
                                     <button className="cardNav1" onClick={() => this.goRoute('pengadaan')}>
                                         <div className="titCard">
                                             Pengajuan form IO
@@ -51,9 +51,9 @@ export default class NavMut extends Component {
                                             Tracking pengadaan asset
                                         </div>
                                     </button>
-                                </>
+                                </Row>
                             ) : level === '2' ? (
-                                <>
+                                <Row className="mainBody">
                                     <button className="cardNav1" onClick={() => this.goRoute('pengadaan')}>
                                         <div className="titCard">
                                             Pengajuan form IO
@@ -69,14 +69,19 @@ export default class NavMut extends Component {
                                             Revisi Pengadaan Asset
                                         </div>
                                     </button>
+                                    <button className="cardNav1" onClick={() => this.goRoute('tracktick')}>
+                                        <div className="titCard">
+                                            Tracking pengadaan asset
+                                        </div>
+                                    </button>
                                     <button className="cardNav1">
                                         <div className="titCard">
                                             Report pengadaan asset
                                         </div>
                                     </button>
-                                </>
+                                </Row>
                             ) : level === '8' ? (
-                                <>
+                                <Row className="mainBody">
                                     <button className="cardNav1" onClick={() => this.goRoute('pengadaan')}>
                                         <div className="titCard">
                                             Pengajuan form IO
@@ -87,15 +92,26 @@ export default class NavMut extends Component {
                                             Revisi Pengadaan Asset
                                         </div>
                                     </button>
-                                </>
+                                    <button className="cardNav1" onClick={() => this.goRoute('tracktick')}>
+                                        <div className="titCard">
+                                            Tracking pengadaan asset
+                                        </div>
+                                    </button>
+                                </Row>
                             ) : (
-                                <button className="cardNav1" onClick={() => this.goRoute('pengadaan')}>
-                                    <div className="titCard">
-                                        Pengajuan form IO
-                                    </div>
-                                </button>
+                                <Row className="mainBody">
+                                    <button className="cardNav1" onClick={() => this.goRoute('pengadaan')}>
+                                        <div className="titCard">
+                                            Pengajuan form IO
+                                        </div>
+                                    </button>
+                                    <button className="cardNav1" onClick={() => this.goRoute('tracktick')}>
+                                        <div className="titCard">
+                                            Tracking pengadaan asset
+                                        </div>
+                                    </button>
+                                </Row>
                             )}
-                        </div>
                     </div>
                 </div>
             </div>

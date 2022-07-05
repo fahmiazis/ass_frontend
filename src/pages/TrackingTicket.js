@@ -208,7 +208,7 @@ class TrackingMutasi extends Component {
 
     getDataTrack = async () => {
         const token = localStorage.getItem("token")
-        await this.props.getPengadaan(token, '')
+        await this.props.getTrackIo(token)
     }
     
     filterData = () => {
@@ -265,7 +265,7 @@ class TrackingMutasi extends Component {
     render() {
         const {isOpen, dropOpen, dropOpenNum, detail, alert, newMut, detailMut} = this.state
         const {dataDis, isGet, alertM, alertMsg, alertUpload, page, dataDoc} = this.props.disposal
-        const {dataPeng} = this.props.pengadaan
+        const {trackIo} = this.props.pengadaan
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
 
@@ -322,13 +322,13 @@ class TrackingMutasi extends Component {
                                 <div className={style.headMaster}>
                                     <div className={style.titleDashboard1}>Tracking Pengadaan Asset</div>
                                 </div>
-                                {dataPeng === undefined ? (
+                                {trackIo === undefined ? (
                                         <div></div>
                                     ) : (
                                         <Row className="bodyDispos">
-                                        {dataPeng.length !== 0 && dataPeng.map(item => {
+                                        {trackIo.length !== 0 && trackIo.map(item => {
                                             return (
-                                                dataPeng.length === 0 ? (
+                                                trackIo.length === 0 ? (
                                                     <div></div>
                                                 ) : (
                                                     <div className="bodyCard">
@@ -687,6 +687,7 @@ const mapDispatchToProps = {
     getPengadaan: pengadaan.getPengadaan,
     getDetail: pengadaan.getDetail,
     getApproveIo: pengadaan.getApproveIo,
+    getTrackIo: pengadaan.getTrackIo
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(TrackingMutasi)

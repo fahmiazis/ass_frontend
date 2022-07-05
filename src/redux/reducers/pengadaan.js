@@ -42,7 +42,11 @@ const pengState = {
     getRev: false,
     revPeng: [],
     testPods: '',
-    dataTest: {}
+    dataTest: {},
+    appdoc: null,
+    rejdoc: null,
+    isGetTrack: false,
+    trackIo: []
 }
 
 export default (state=pengState, action) => {
@@ -70,6 +74,30 @@ export default (state=pengState, action) => {
                 ...state,
                 isLoading: false,
                 isGet: false,
+                isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'GET_TRACKIO_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'GET_TRACKIO_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isGetTrack: true,
+                trackIo: action.payload.data.result,
+                alertMsg: 'get pengadaan Succesfully',
+            };
+        }
+        case 'GET_TRACKIO_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
                 isError: true,
                 alertMsg: "Unable connect to server"
             };
@@ -673,7 +701,6 @@ export default (state=pengState, action) => {
         case 'APPROVE_DOCIO_PENDING': {
             return {
                 ...state,
-                isUpdate: false,
                 isLoading: true,
                 alertMsg: 'Waiting ...'
             };
@@ -682,8 +709,7 @@ export default (state=pengState, action) => {
             return {
                 ...state,
                 isLoading: false,
-                isError: false,
-                isUpdate: true,
+                appdoc: true,
                 alertMsg: 'upload document succesfully',
             };
         }
@@ -691,8 +717,7 @@ export default (state=pengState, action) => {
             return {
                 ...state,
                 isLoading: false,
-                isUpdate: false,
-                isError: true,
+                appdoc: false,
                 alertMsg: "Unable connect to server"
             };
         }
@@ -708,8 +733,7 @@ export default (state=pengState, action) => {
             return {
                 ...state,
                 isLoading: false,
-                isError: false,
-                isUpdate: true,
+                rejdoc: true,
                 alertMsg: 'upload document succesfully',
             };
         }
@@ -717,8 +741,7 @@ export default (state=pengState, action) => {
             return {
                 ...state,
                 isLoading: false,
-                isUpdate: false,
-                isError: true,
+                rejdoc: false,
                 alertMsg: "Unable connect to server"
             };
         }
@@ -768,7 +791,9 @@ export default (state=pengState, action) => {
                 rejReject: false,
                 approve: false,
                 reject: false,
-                testPods: ''
+                testPods: '',
+                appdoc: null,
+                rejdoc: null
             }
         }
         default: {

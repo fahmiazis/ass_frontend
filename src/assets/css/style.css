@@ -15,6 +15,25 @@
 .secLogo {
     background-color: #F6F2F0;
 }
+.headReport {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-right: 10px !important;
+}
+.colon {
+    margin-right: 20px;
+}
+.optionType {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    /* width: 30%; */
+}
+.fontReport {
+    font-size: 20px;
+}
 .marDown {
     margin-top: 50px;
 }

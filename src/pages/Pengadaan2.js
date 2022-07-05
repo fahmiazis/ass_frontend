@@ -113,7 +113,9 @@ class Pengadaan extends Component {
             filter: 'available',
             isAppall: false,
             stat: '',
-            listStat: []
+            listStat: [],
+            url: '',
+            valdoc: {}
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -251,6 +253,7 @@ class Pengadaan extends Component {
     prosesModalDoc = async (val) => {
         const data = this.props.pengadaan.detailIo
         const token = localStorage.getItem('token')
+        this.setState({valdoc: val})
         if (val.asset_token === null || val.asset_token === '') {
             this.props.getDocCart(token, val.id)
             this.closeProsesModalDoc()
@@ -260,11 +263,29 @@ class Pengadaan extends Component {
         }
     }
 
+    prosesDoc = async (val) => {
+        const data = this.props.pengadaan.detailIo
+        const token = localStorage.getItem('token')
+        if (val.asset_token === null || val.asset_token === '') {
+            this.props.getDocCart(token, val.id)
+        } else {
+            await this.props.getDocumentIo(token, data[0].no_pengadaan)
+        }
+    }
+
     approveDokumen = async () => {
         const {fileName} = this.state
         const token = localStorage.getItem('token')
-        await this.props.approveDocDis(token, fileName.id)
+        await this.props.approveDocument(token, fileName.id)
         this.setState({openApprove: !this.state.openApprove})
+        this.openModalPdf()
+    }
+
+    rejectDokumen = async (value) => {
+        const {fileName} = this.state
+        const token = localStorage.getItem('token')
+        this.setState({openRejectDis: !this.state.openRejectDis})
+        await this.props.rejectDocument(token, fileName.id, value)
         this.openModalPdf()
     }
 
@@ -312,14 +333,30 @@ class Pengadaan extends Component {
     submitAsset = async (val) => {
         const token = localStorage.getItem('token')
         const cek = []
+        const cekDok = []
         const { detailIo } = this.props.pengadaan
         for (let i = 0; i < detailIo.length; i++) {
             if (detailIo[i].isAsset !== 'true' && detailIo[i].isAsset !== 'false') {
                 cek.push(detailIo[i])  
+            } else if (detailIo[i].asset_token === null) {
+                await this.props.getDocCart(token, detailIo[i].id)
+                const {dataDocCart} = this.props.pengadaan
+                if (dataDocCart.find(({status}) => status === null) || dataDocCart.find(({status}) => status === 0)) {
+                    cekDok.push(dataDocCart)
+                }
+            } else {
+                await this.props.getDocumentIo(token, detailIo[i].no_pengadaan)
+                const {dataDoc} = this.props.pengadaan
+                if (dataDoc.find(({status}) => status === null) || dataDoc.find(({status}) => status === 0)) {
+                    cekDok.push(dataDoc)
+                }
             }
         }
         if (cek.length > 0) {
             this.setState({confirm: 'falseSubmit'})
+            this.openConfirm()
+        } else if (cekDok.length > 0) {
+            this.setState({confirm: 'falseSubmitDok'})
             this.openConfirm()
         } else {
             await this.props.submitIsAsset(token, val)
@@ -498,9 +535,8 @@ class Pengadaan extends Component {
 
     showDokumen = async (value) => {
         const token = localStorage.getItem('token')
-        await this.props.showDokumen(token, value.id)
         this.setState({date: value.updatedAt, idDoc: value.id, fileName: value})
-        console.log(value)
+        await this.props.showDokumen(token, value.id, value.no_pengadaan)
         const {isShow} = this.props.pengadaan
         if (isShow) {
             this.openModalPdf()
@@ -523,6 +559,37 @@ class Pengadaan extends Component {
             document.body.appendChild(link);
             link.click();
         });
+        // const cek = download[2].split('.')
+        // const arr = fileName.path.split('localhost:8000')
+        // if (arr.length >= 2) {
+        //     const urln = 'https://devpods.pinusmerahabadi.co.id' + arr[1]
+        //     console.log(urln)
+        //     axios({
+        //         url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+        //         method: 'GET',
+        //         responseType: 'blob', // important
+        //     }).then((response) => {
+        //         const url = window.URL.createObjectURL(new Blob([response.data]));
+        //         const link = document.createElement('a');
+        //         link.href = url;
+        //         link.setAttribute('download', `${fileName.nama_dokumen}`); //or any other extension
+        //         document.body.appendChild(link);
+        //         link.click();
+        //     });
+        // } else {
+        //     axios({
+        //         url: `${REACT_APP_BACKEND_URL}/uploads/${download[2]}`,
+        //         method: 'GET',
+        //         responseType: 'blob', // important
+        //     }).then((response) => {
+        //         const url = window.URL.createObjectURL(new Blob([response.data]));
+        //         const link = document.createElement('a');
+        //         link.href = url;
+        //         link.setAttribute('download', `${fileName.nama_dokumen}.${cek[1]}`); //or any other extension
+        //         document.body.appendChild(link);
+        //         link.click();
+        //     });
+        // }
     }
 
 
@@ -555,7 +622,7 @@ class Pengadaan extends Component {
     }
 
     componentDidUpdate() {
-        const {isError, isUpload, isUpdate, approve, rejApprove, reject, rejReject, detailIo, testPods} = this.props.pengadaan
+        const {isError, isUpload, isUpdate, approve, rejApprove, reject, rejReject, detailIo, testPods, appdoc, rejdoc} = this.props.pengadaan
         const {rinciIo, listMut, newIo} = this.state
         const token = localStorage.getItem('token')
         if (isError) {
@@ -601,6 +668,24 @@ class Pengadaan extends Component {
             this.props.resetApp()
         } else if (testPods === 'false') {
             this.setState({confirm: 'apifalse'})
+            this.openConfirm()
+            this.props.resetApp()
+        } else if (appdoc === true) {
+            this.setState({confirm: 'appDocTrue'})
+            this.openConfirm()
+            this.props.resetApp()
+            this.prosesDoc(this.state.valdoc)
+        } else if (appdoc === false) {
+            this.setState({confirm: 'appDocFalse'})
+            this.openConfirm()
+            this.props.resetApp()
+        } else if (rejdoc === true) {
+            this.setState({confirm: 'rejDocTrue'})
+            this.openConfirm()
+            this.props.resetApp()
+            this.prosesDoc(this.state.valdoc)
+        } else if (rejdoc === false) {
+            this.setState({confirm: 'rejDocFalse'})
             this.openConfirm()
             this.props.resetApp()
         }
@@ -776,7 +861,7 @@ class Pengadaan extends Component {
     }
 
     render() {
-        const {alert, upload, errMsg, rinciIo, total, listMut, newIo, listStat} = this.state
+        const {alert, upload, errMsg, rinciIo, total, listMut, newIo, listStat, fileName, url} = this.state
         const {dataAsset, alertM, alertMsg, alertUpload, page} = this.props.asset
         const pages = this.props.disposal.page 
         const {dataPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataDocCart} = this.props.pengadaan
@@ -1274,6 +1359,7 @@ class Pengadaan extends Component {
                                 numInputs={11}
                                 inputStyle={style.otp}
                                 containerStyle={style.containerOtp}
+                                isDisabled={level === '8' ? false : true}
                             />
                             {level === '8' && (
                                 <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo(detailIo[0].no_pengadaan)}>Save</Button>
@@ -1905,15 +1991,15 @@ class Pengadaan extends Component {
                 <ModalHeader>Dokumen</ModalHeader>
                     <ModalBody>
                         <div className={style.readPdf}>
-                            <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
+                            <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}?no=${fileName.no_pengadaan}`} />
                         </div>
                         <hr/>
                         <div className={style.foot}>
                             <div>
                                 {/* <div>{moment(this.state.date).format('LLL')}</div> */}
-                                <Button color="success">Download</Button>
+                                <Button color="success" onClick={this.downloadData}>Download</Button>
                             </div>
-                        {level === '1' || level === '2' || level === '3' ? (
+                        {level === '2' ? (
                             <div>
                                 <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
                                 <Button color="primary" onClick={this.openModalApprove}>Approve</Button>
@@ -1935,22 +2021,59 @@ class Pengadaan extends Component {
                         <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
                     </ModalFooter>)} */}
                 </Modal>
-                <Modal isOpen={this.state.openApprove} toggle={this.openModalApprove} centered={true}>
+                <Modal isOpen={this.state.openApprove} size="lg" toggle={this.openModalApprove} centered={true}>
                     <ModalBody>
                         <div className={style.modalApprove}>
                             <div>
                                 <text>
                                     Anda yakin untuk approve 
-                                    <text className={style.verif}> {this.state.fileName.nama_dokumen} </text>
+                                    <text className={style.verif}> {fileName.nama_dokumen} </text>
                                     pada tanggal
                                     <text className={style.verif}> {moment().format('LL')}</text> ?
                                 </text>
                             </div>
-                            <div className={style.btnApprove}>
+                            <div className={style.btnApproveIo}>
                                 <Button color="primary" onClick={this.approveDokumen}>Ya</Button>
                                 <Button color="secondary" onClick={this.openModalApprove}>Tidak</Button>
                             </div>
                         </div>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.openRejectDis} toggle={this.openModalRejectDis} centered={true}>
+                    <ModalBody>
+                    <Formik
+                    initialValues={{
+                    alasan: "",
+                    }}
+                    validationSchema={alasanSchema}
+                    onSubmit={(values) => {this.rejectDokumen(values)}}
+                    >
+                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                            <div className={style.modalApprove}>
+                            <div className={style.quest}>Anda yakin untuk reject {this.state.fileName.nama_dokumen} ?</div>
+                            <div className={style.alasan}>
+                                <text className="col-md-3">
+                                    Alasan
+                                </text>
+                                <Input 
+                                type="name" 
+                                name="select" 
+                                className="col-md-9"
+                                value={values.alasan}
+                                onChange={handleChange('alasan')}
+                                onBlur={handleBlur('alasan')}
+                                />
+                            </div>
+                            {errors.alasan ? (
+                                    <text className={style.txtError}>{errors.alasan}</text>
+                                ) : null}
+                            <div className={style.btnApprove}>
+                                <Button color="primary" onClick={handleSubmit}>Ya</Button>
+                                <Button color="secondary" onClick={this.openModalRejectDis}>Tidak</Button>
+                            </div>
+                        </div>
+                        )}
+                        </Formik>
                     </ModalBody>
                 </Modal>
                 <Modal isOpen={this.state.isAppall} toggle={this.openAppall} centered={true}>
@@ -2113,6 +2236,14 @@ class Pengadaan extends Component {
                             <div className="errApprove mt-2">Mohon identifikasi asset terlebih dahulu</div>
                         </div>
                         </div>
+                    ) : this.state.confirm === 'falseSubmitDok' ?(
+                        <div>
+                            <div className={style.cekUpdate}>
+                            <AiOutlineClose size={80} className={style.red} />
+                            <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                            <div className="errApprove mt-2">Mohon approve dokumen terlebih dahulu</div>
+                        </div>
+                        </div>
                     ) : this.state.confirm === 'recent' ?(
                         <div>
                             <div className={style.cekUpdate}>
@@ -2135,7 +2266,35 @@ class Pengadaan extends Component {
                             <div className={[style.sucUpdate, style.green]}>Connection Failed</div>
                         </div>
                         </div>
-                    ): (
+                    ) : this.state.confirm === 'appDocTrue' ?(
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Approve Dokumen</div>
+                            </div>
+                        </div>
+                    ) : this.state.confirm === 'rejDocTrue' ?(
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Reject Dokumen</div>
+                            </div>
+                        </div>
+                    ) : this.state.confirm === 'appDocFalse' ?(
+                        <div>
+                            <div className={style.cekUpdate}>
+                            <AiOutlineClose size={80} className={style.red} />
+                            <div className={[style.sucUpdate, style.green]}>Gagal Approve Dokumen</div>
+                        </div>
+                        </div>
+                    ) : this.state.confirm === 'rejDocFalse' ?(
+                        <div>
+                            <div className={style.cekUpdate}>
+                            <AiOutlineClose size={80} className={style.red} />
+                            <div className={[style.sucUpdate, style.green]}>Gagal Reject Dokumen</div>
+                        </div>
+                        </div>
+                    ) : (
                         <div></div>
                     )}
                 </ModalBody>

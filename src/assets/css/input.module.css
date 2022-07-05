@@ -383,6 +383,15 @@ html,body{
   width: 30%;
   left: 50%;
 }
+.btnApproveIo {
+  align-self: center;
+  margin-top: 30px;
+  display: flex;
+  flex-direction: row;
+  justify-content:space-between;
+  width: 15%;
+  left: 50%;
+}
 .modalApprove {
   display: flex;
   justify-content: center;

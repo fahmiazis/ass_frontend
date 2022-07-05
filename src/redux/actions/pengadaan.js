@@ -7,6 +7,10 @@ export default {
         type: 'GET_PENGADAAN',
         payload: http(token).get(`/ticket/get?status=${status}`)
     }),
+    getTrackIo: (token) => ({
+        type: 'GET_TRACKIO',
+        payload: http(token).get(`/ticket/track`)
+    }),
     getRevisi: (token, status) => ({
         type: 'GET_REVISI',
         payload: http(token).get(`/ticket/rev?status=${status}`)
@@ -31,9 +35,9 @@ export default {
         type: 'REJECT_DOCIO',
         payload: http(token).patch(`/ticket/rejdoc/${id}`, qs.stringify(data))
     }),
-    showDokumen: (token, id) => ({
+    showDokumen: (token, id, no) => ({
         type: 'SHOW',
-        payload: http(token).get(`/show/doc/${id}`)
+        payload: http(token).get(`/show/doc/${id}?no=${no}`)
     }),
     getDetail: (token, no) => ({
         type: 'DETAIL_IO',

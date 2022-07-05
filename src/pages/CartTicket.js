@@ -26,7 +26,9 @@ const cartSchema = Yup.object().shape({
     price: Yup.string().required(),
     kategori: Yup.string().required(),
     tipe: Yup.string().required(),
-    akta: Yup.string().nullable(true)
+    akta: Yup.string().nullable(true),
+    start: Yup.date().nullable(true),
+    end: Yup.date().nullable(true)
 });
 
 class CartMutasi extends Component {
@@ -318,6 +320,7 @@ class CartMutasi extends Component {
                                                                 <div className="nameCart">{item.nama}</div>
                                                                 <div className="noCart">kategori: {item.kategori}</div>
                                                                 <div className="noCart">Price: {item.price}</div>
+                                                                <div className="noCart">Tipe: {item.tipe === 'gudang' ? 'Sewa Gudang' : "Barang"}</div>
                                                                 <div className="noCart">Qty: {item.qty}</div>
                                                             </div>
                                                             <Button color="primary" onClick={() => this.proseModalRinci(item)}>Rincian</Button>
@@ -331,16 +334,20 @@ class CartMutasi extends Component {
                                         })}
                                     </Col>
                                     )}
-                                    <Col md={4} xl={4} sm={12} className="mt-5">
-                                        <div className="sideSum">
-                                            <div className="titSum">Cart summary</div>
-                                            <div className="txtSum">
-                                                <div className="totalSum">Total Item</div>
-                                                <div className="angkaSum">{dataCart.length}</div>
+                                    {dataCart.length === 0 ? (
+                                        <div></div>
+                                    ) : (
+                                        <Col md={4} xl={4} sm={12} className="mt-5">
+                                            <div className="sideSum">
+                                                <div className="titSum">Cart summary</div>
+                                                <div className="txtSum">
+                                                    <div className="totalSum">Total Item</div>
+                                                    <div className="angkaSum">{dataCart.length}</div>
+                                                </div>
+                                                <button className="btnSum" disabled={dataCart.length === 0 ? true : false } onClick={() => this.submitCart()}>Submit</button>
                                             </div>
-                                            <button className="btnSum" disabled={dataCart.length === 0 ? true : false } onClick={() => this.submitCart()}>Submit</button>
-                                        </div>
-                                    </Col>
+                                        </Col>
+                                    )}
                                 </Row>
                             </div>
                         </div>
@@ -355,7 +362,9 @@ class CartMutasi extends Component {
                     qty: "",
                     kategori: "",
                     tipe: "",
-                    akta: null
+                    akta: null,
+                    start: null,
+                    end: null
                     }}
                     validationSchema={cartSchema}
                     onSubmit={(values) => {this.addCart(values)}}
@@ -457,33 +466,63 @@ class CartMutasi extends Component {
                             </div>
                         </div>
                         {values.tipe === 'gudang' && (
-                            <div className={style.addModalDepo}>
-                                <text className="col-md-3">
-                                    Dokumen Akta
-                                </text>
-                                <div className="col-md-9">
-                                <Input 
-                                    type="select"
-                                    name="select"
-                                    value={values.akta}
-                                    onChange={handleChange("akta")}
-                                    onBlur={handleBlur("akta")}
-                                    >   
-                                        <option value="null">-Pilih-</option>
-                                        <option value="ada">Ada</option>
-                                        <option value="tidak">Tidak ada</option>
-                                    </Input>
-                                    {values.tipe === 'gudang' && (values.akta === null || values.akta === "null") ? (
-                                        <text className={style.txtError}>Must be filled</text>
-                                    ) : null}
+                            <>
+                                <div className="headReport">
+                                    <text className="col-md-3">Periode</text>
+                                    <div className="optionType col-md-9">
+                                        <Input 
+                                        type="date" 
+                                        name="start" 
+                                        onChange={handleChange("start")}
+                                        onBlur={handleBlur("start")}
+                                        value={values.start}
+                                        ></Input>
+                                        <text className="toColon">To</text>
+                                        <Input 
+                                        type="date" 
+                                        name="end" 
+                                        value={values.end}
+                                        onChange={handleChange("end")}
+                                        onBlur={handleBlur("end")} 
+                                        ></Input>
+                                    </div>
                                 </div>
-                            </div>
+                                <div className={style.addModalDepo}>
+                                    <div className="col-md-3"></div>
+                                    <div className="col-md-9">
+                                        {values.tipe === 'gudang' && (values.start === 'null' || values.end === 'null' || values.start === null || values.end === null) ? (
+                                            <text className={style.txtError}>Must be filled</text>
+                                        ) : null}
+                                    </div>
+                                </div>
+                                <div className={style.addModalDepo}>
+                                    <text className="col-md-3">
+                                        Dokumen Akta
+                                    </text>
+                                    <div className="col-md-9">
+                                        <Input 
+                                        type="select"
+                                        name="select"
+                                        value={values.akta}
+                                        onChange={handleChange("akta")}
+                                        onBlur={handleBlur("akta")}
+                                        >   
+                                            <option value="null">-Pilih-</option>
+                                            <option value="ada">Ada</option>
+                                            <option value="tidak">Tidak ada</option>
+                                        </Input>
+                                        {values.tipe === 'gudang' && (values.akta === null || values.akta === "null") ? (
+                                            <text className={style.txtError}>Must be filled</text>
+                                        ) : null}
+                                    </div>
+                                </div>
+                            </>
                         )}
                         <hr/>
                         <div className={style.foot}>
                             <div></div>
                             <div>
-                                <Button className="mr-2" disabled={values.tipe === 'gudang' && (values.akta === null || values.akta === "null")  ? true : false} onClick={handleSubmit} color="primary">Save</Button>
+                                <Button className="mr-2" disabled={values.tipe === 'gudang' && (values.akta === null || values.akta === "null" || values.start === null || values.end === null)  ? true : false} onClick={handleSubmit} color="primary">Save</Button>
                                 <Button className="mr-3" onClick={this.prosesAdd}>Cancel</Button>
                             </div>
                         </div>
@@ -535,8 +574,8 @@ class CartMutasi extends Component {
                                 onBlur={handleBlur("tipe")}
                                 >   
                                     <option>-Pilih Tipe-</option>
-                                    <option value="budget">Sewa Gudang</option>
-                                    <option value="non-budget">Barang</option>
+                                    <option value="gudang">Sewa Gudang</option>
+                                    <option value="barang">Barang</option>
                                 </Input>
                                 {errors.tipe ? (
                                     <text className={style.txtError}>Must be filled</text>
@@ -599,6 +638,48 @@ class CartMutasi extends Component {
                                 ) : null}
                             </div>
                         </div>
+                        {dataRinci.tipe === 'gudang' && (
+                            <>
+                                <div className="headReport">
+                                    <text className="col-md-3">Periode</text>
+                                    <div className="optionType col-md-9">
+                                        <Input 
+                                        type="name" 
+                                        name="start" 
+                                        onChange={handleChange("start")}
+                                        onBlur={handleBlur("start")}
+                                        value={dataRinci.start.slice(0, 10)}
+                                        ></Input>
+                                        <text className="toColon mr-2 ml-2">To</text>
+                                        <Input 
+                                        type="name" 
+                                        name="end" 
+                                        value={dataRinci.end.slice(0, 10)}
+                                        onChange={handleChange("end")}
+                                        onBlur={handleBlur("end")}
+                                        ></Input>
+                                    </div>
+                                </div>
+                                <div className={style.addModalDepo}>
+                                    <text className="col-md-3">
+                                        Dokumen Akta
+                                    </text>
+                                    <div className="col-md-9">
+                                        <Input 
+                                        type="select"
+                                        name="select"
+                                        value={dataRinci.akta}
+                                        onChange={handleChange("akta")}
+                                        onBlur={handleBlur("akta")}
+                                        >   
+                                            <option value="null">-Pilih-</option>
+                                            <option value="ada">Ada</option>
+                                            <option value="tidak">Tidak ada</option>
+                                        </Input>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                         <hr/>
                         <div className={style.foot}>
                             <div>

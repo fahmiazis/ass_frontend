@@ -755,9 +755,8 @@ class Disposal extends Component {
                                                     <div></div>
                                                 ) : (
                                                     <div className="bodyCard">
-                                                    <img src={placeholder} className="imgCard1" />
-                                                    
-                                                    {item.nilai_jual === '0' ? 
+                                                        <img src={placeholder} className="imgCard1" />
+                                                        {item.nilai_jual === '0' ? 
                                                         (
                                                         <Button size="sm" color="success" className="labelBut">Pemusnahan</Button>
                                                         ) : (
@@ -769,62 +768,62 @@ class Disposal extends Component {
                                                         ) : (
                                                             <div></div>
                                                         )}
-                                                    <div className="ml-2">
-                                                        <div className="txtDoc mb-2">
-                                                            Pengajuan Disposal Asset
-                                                        </div>
-                                                        <Row className="mb-2">
-                                                            <Col md={6} className="txtDoc">
-                                                            Kode Plant
-                                                            </Col>
-                                                            <Col md={6} className="txtDoc">
-                                                            : {item.kode_plant}
-                                                            </Col>
-                                                        </Row>
-                                                        <Row className="mb-2">
-                                                            <Col md={6} className="txtDoc">
-                                                            Area
-                                                            </Col>
-                                                            <Col md={6} className="txtDoc">
-                                                            : {item.area}
-                                                            </Col>
-                                                        </Row>
-                                                        <Row className="mb-2">
-                                                            <Col md={6} className="txtDoc">
-                                                            No Disposal
-                                                            </Col>
-                                                            <Col md={6} className="txtDoc">
-                                                            : D{item.no_disposal}
-                                                            </Col>
-                                                        </Row>
-                                                        <Row className="mb-2">
-                                                            <Col md={6} className="txtDoc">
-                                                            Status Approval
-                                                            </Col>
-                                                            {item.appForm.find(({status}) => status === 0) !== undefined ? (
-                                                                <Col md={6} className="txtDoc">
-                                                                : Reject {item.appForm.find(({status}) => status === 0).jabatan}
-                                                                </Col>
-                                                            ) : item.appForm.find(({status}) => status === 1) !== undefined ? (
-                                                                <Col md={6} className="txtDoc">
-                                                                : Approve {item.appForm.find(({status}) => status === 1).jabatan}
-                                                                </Col>
-                                                            ) : (
-                                                                <Col md={6} className="txtDoc">
-                                                                : -
-                                                                </Col>
-                                                            )}
-                                                        </Row>
-                                                        {(this.state.view === 'revisi') && (
+                                                        <div className="ml-2">
+                                                            <div className="txtDoc mb-2">
+                                                                Pengajuan Disposal Asset
+                                                            </div>
                                                             <Row className="mb-2">
                                                                 <Col md={6} className="txtDoc">
-                                                                    Status Revisi
+                                                                Kode Plant
                                                                 </Col>
                                                                 <Col md={6} className="txtDoc">
-                                                                : {item.revisi}
+                                                                : {item.kode_plant}
                                                                 </Col>
                                                             </Row>
-                                                        )}
+                                                            <Row className="mb-2">
+                                                                <Col md={6} className="txtDoc">
+                                                                Area
+                                                                </Col>
+                                                                <Col md={6} className="txtDoc">
+                                                                : {item.area}
+                                                                </Col>
+                                                            </Row>
+                                                            <Row className="mb-2">
+                                                                <Col md={6} className="txtDoc">
+                                                                No Disposal
+                                                                </Col>
+                                                                <Col md={6} className="txtDoc">
+                                                                : D{item.no_disposal}
+                                                                </Col>
+                                                            </Row>
+                                                            <Row className="mb-2">
+                                                                <Col md={6} className="txtDoc">
+                                                                Status Approval
+                                                                </Col>
+                                                                {item.appForm.find(({status}) => status === 0) !== undefined ? (
+                                                                    <Col md={6} className="txtDoc">
+                                                                    : Reject {item.appForm.find(({status}) => status === 0).jabatan}
+                                                                    </Col>
+                                                                ) : item.appForm.find(({status}) => status === 1) !== undefined ? (
+                                                                    <Col md={6} className="txtDoc">
+                                                                    : Approve {item.appForm.find(({status}) => status === 1).jabatan}
+                                                                    </Col>
+                                                                ) : (
+                                                                    <Col md={6} className="txtDoc">
+                                                                    : -
+                                                                    </Col>
+                                                                )}
+                                                            </Row>
+                                                            {(this.state.view === 'revisi') && (
+                                                                <Row className="mb-2">
+                                                                    <Col md={6} className="txtDoc">
+                                                                        Status Revisi
+                                                                    </Col>
+                                                                    <Col md={6} className="txtDoc">
+                                                                    : {item.revisi}
+                                                                    </Col>
+                                                                </Row>
+                                                            )}
                                                     </div>
                                                     <Row className="footCard mb-3 mt-3">
                                                         <Col md={12} xl={12}>
