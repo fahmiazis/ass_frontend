@@ -7,7 +7,7 @@ import { Container, NavbarBrand, Table, Input, Button, Col,
 import style from '../assets/css/input.module.css'
 import {FaSearch, FaUserCircle, FaBars, FaCartPlus, FaFileSignature} from 'react-icons/fa'
 import {BsCircle, BsBell, BsFillCircleFill} from 'react-icons/bs'
-import { AiOutlineCheck, AiOutlineClose, AiFillCheckCircle, AiOutlineFileExcel} from 'react-icons/ai'
+import { AiOutlineInfoCircle, AiOutlineCheck, AiOutlineClose, AiFillCheckCircle, AiOutlineFileExcel} from 'react-icons/ai'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
 import Pdf from "../components/Pdf"
@@ -296,9 +296,13 @@ class EksekusiTicket extends Component {
             this.openConfirm()
         } else {
             await this.props.submitEks(token, val)
-            this.getDataAsset()
-            this.setState({confirm: 'submit'})
-            this.openConfirm()
+            if (detailIo[0].ticket_code === null) {
+                this.getDataAsset()
+                this.setState({confirm: 'submit'})
+                this.openConfirm()
+            } else {
+                await this.props.podsSend(token, val)
+            }
         }
     }
 
@@ -513,7 +517,7 @@ class EksekusiTicket extends Component {
     }
 
     componentDidUpdate() {
-        const {isError, isUpload, isUpdate, approve, rejApprove, reject, rejReject, detailIo, errUpload, uploadTemp} = this.props.pengadaan
+        const {isError, isUpload, isUpdate, approve, rejApprove, reject, rejReject, detailIo, errUpload, uploadTemp, podssend} = this.props.pengadaan
         const {rinciIo} = this.state
         const token = localStorage.getItem('token')
         if (isError) {
@@ -561,6 +565,16 @@ class EksekusiTicket extends Component {
             this.setState({confirm: 'failed'})
             this.openConfirm()
             this.props.resetError()
+        } else if (podssend === true) {
+            this.getDataAsset()
+            this.setState({confirm: 'sucpods'})
+            this.openConfirm()
+            this.props.resetApp()
+        } else if (podssend === false) {
+            this.getDataAsset()
+            this.setState({confirm: 'falpods'})
+            this.openConfirm()
+            this.props.resetApp()
         }
     }
 
@@ -1689,6 +1703,22 @@ class EksekusiTicket extends Component {
                             <div className="errApprove mt-2">Pastikan telah mengidentifikasi status IT dan mengisi no asset dengan benar</div>
                         </div>
                         </div>
+                    ) : this.state.confirm === 'sucpods' ?(
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil submit dan kirim ke pods</div>
+                                <div className="errApprove mt-2">Berhasil kirim data ke pods</div>
+                            </div>
+                        </div>
+                    ) : this.state.confirm === 'falpods' ?(
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiOutlineInfoCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil submit</div>
+                                <div className="errApprove mt-2">Gagal kirim data ke pods</div>
+                            </div>
+                        </div>
                     ) : (
                         <div></div>
                     )}
@@ -1760,7 +1790,8 @@ const mapDispatchToProps = {
     submitEks: pengadaan.submitEks,
     getTempAsset: pengadaan.getTempAsset,
     updateTemp: pengadaan.updateTemp,
-    uploadMasterTemp: pengadaan.uploadMasterTemp
+    uploadMasterTemp: pengadaan.uploadMasterTemp,
+    podsSend: pengadaan.podsSend
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EksekusiTicket)

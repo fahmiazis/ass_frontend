@@ -1,4 +1,5 @@
 /* eslint-disable import/no-anonymous-default-export */
+
 const authState = {
     isLogin: false,
     isRegister: false,
@@ -57,7 +58,9 @@ export default (state=authState, action) => {
             case 'LOGOUT': {
                 localStorage.removeItem('token')
                 localStorage.removeItem('level')
-                return authState
+                return {
+                    state: undefined
+                }
             }
             case 'RESET': {
                 return {

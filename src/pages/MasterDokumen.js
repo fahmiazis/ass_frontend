@@ -16,6 +16,7 @@ import moment from 'moment'
 import auth from '../redux/actions/auth'
 import {default as axios} from 'axios'
 import Sidebar from "../components/Header";
+import NavBar from '../components/NavBar'
 import MaterialTitlePanel from "../components/material_title_panel";
 import SidebarContent from "../components/sidebar_content";
 const {REACT_APP_BACKEND_URL} = process.env
@@ -271,15 +272,7 @@ class MasterDokumen extends Component {
                     >
                         <FaBars size={20} className={style.white} />
                     </NavbarBrand>
-                    <div className={style.divLogo}>
-                        <marquee className={style.marquee}>
-                            <span>WEB ASSET</span>
-                        </marquee>
-                        <div className={style.textLogo}>
-                            <FaUserCircle size={24} className="mr-2" />
-                            <text className="mr-3">{level === '1' ? 'Super admin' : names }</text>
-                        </div>
-                    </div>
+                    <NavBar />
             </div>
         )
 
@@ -580,7 +573,7 @@ class MasterDokumen extends Component {
                     <ModalBody className={style.modalUpload}>
                         <div className={style.titleModalUpload}>
                             <text>Upload File: </text>
-                            <div className={style.uploadFileInput, "ml-4"}>
+                            <div className={[style.uploadFileInput, "ml-4"]}>
                                 <AiOutlineFileExcel size={35} />
                                 <div className="ml-3">
                                     <Input

@@ -15,6 +15,7 @@ import {default as axios} from 'axios'
 import Sidebar from "../components/Header";
 import MaterialTitlePanel from "../components/material_title_panel";
 import SidebarContent from "../components/sidebar_content";
+import NavBar from '../components/NavBar'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const emailSchema = Yup.object().shape({
@@ -286,15 +287,7 @@ class MasterEmail extends Component {
                     >
                         <FaBars size={20} className={style.white} />
                     </NavbarBrand>
-                    <div className={style.divLogo}>
-                        <marquee className={style.marquee}>
-                            <span>WEB ASSET</span>
-                        </marquee>
-                        <div className={style.textLogo}>
-                            <FaUserCircle size={24} className="mr-2" />
-                            <text className="mr-3">{level === '1' ? 'Super admin' : names }</text>
-                        </div>
-                    </div>
+                    <NavBar />
             </div>
         )
 

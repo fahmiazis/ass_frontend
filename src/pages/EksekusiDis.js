@@ -30,6 +30,7 @@ import f from "../assets/img/f.png"
 import g from "../assets/img/g.png"
 import TablePdf from "../components/Table"
 import TablePeng from '../components/TablePeng'
+import NavBar from '../components/NavBar'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -379,15 +380,7 @@ class EksekusiDisposal extends Component {
                     >
                         <FaBars size={20} className={style.white} />
                     </NavbarBrand>
-                    <div className={style.divLogo}>
-                        <marquee className={style.marquee}>
-                            <span>WEB ASSET</span>
-                        </marquee>
-                        <div className={style.textLogo}>
-                            <FaUserCircle size={24} className="mr-2" />
-                            <text className="mr-3">{level === '1' ? 'Super admin' : names }</text>
-                        </div>
-                    </div>
+                    <NavBar />
             </div>
         )
 

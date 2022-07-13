@@ -23,6 +23,7 @@ import Pdf from "../components/Pdf"
 import TablePdf from "../components/Table"
 import TablePeng from '../components/TablePeng'
 import notif from '../redux/actions/notif'
+import NavBar from '../components/NavBar'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const alasanDisSchema = Yup.object().shape({
@@ -215,69 +216,7 @@ class PersetujuanDis extends Component {
                     >
                         <FaBars size={20} className={style.white} />
                     </NavbarBrand>
-                    <div className={style.divLogo}>
-                        <marquee className={style.marquee}>
-                            <span>WEB ASSET</span>
-                        </marquee>
-                        <div className={style.textLogo}>
-                        <UncontrolledDropdown>
-                                <DropdownToggle nav>
-                                    <div className={style.optionType}>
-                                        <BsBell size={30} className="white" />
-                                        {dataNotif.length > 0 ? (
-                                            <BsFillCircleFill className="red ball" size={10} />
-                                        ) : (
-                                            <div></div>
-                                        ) }
-                                    </div>
-                                </DropdownToggle>
-                                <DropdownMenu right
-                                modifiers={{
-                                    setMaxHeight: {
-                                        enabled: true,
-                                        order: 890,
-                                        fn: (data) => {
-                                        return {
-                                            ...data,
-                                            styles: {
-                                            ...data.styles,
-                                            overflow: 'auto',
-                                            maxHeight: '600px',
-                                            },
-                                        };
-                                        },
-                                    },
-                                }}>
-                                    {dataNotif.length > 0 ? (
-                                        dataNotif.map(item => {
-                                            return (
-                                                <DropdownItem>
-                                                    <div className={style.notif}>
-                                                        <FaFileSignature size={90} className="mr-4"/>
-                                                        <div>
-                                                            <div>Request</div>
-                                                            <div className="textNotif">{item.keterangan} {item.jenis}</div>
-                                                            <div className="textNotif">No {item.jenis}: {item.no_proses}</div>
-                                                            <div>{moment(item.createdAt).format('LLL')}</div>
-                                                        </div>
-                                                    </div>
-                                                    <hr/>
-                                                </DropdownItem>
-                                            )
-                                        })
-                                    ) : (
-                                        <DropdownItem>
-                                            <div className={style.grey}>
-                                                You don't have any notifications 
-                                            </div>        
-                                        </DropdownItem>
-                                    )}
-                                </DropdownMenu>
-                            </UncontrolledDropdown>
-                            <FaUserCircle size={24} className="mr-2" />
-                            <text className="mr-3">{level === '1' ? 'Super admin' : names }</text>
-                        </div>
-                    </div>
+                    <NavBar />
             </div>
         )
 

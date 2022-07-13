@@ -46,7 +46,8 @@ const pengState = {
     appdoc: null,
     rejdoc: null,
     isGetTrack: false,
-    trackIo: []
+    trackIo: [],
+    podssend: null
 }
 
 export default (state=pengState, action) => {
@@ -724,7 +725,6 @@ export default (state=pengState, action) => {
         case 'REJECT_DOCIO_PENDING': {
             return {
                 ...state,
-                isUpdate: false,
                 isLoading: true,
                 alertMsg: 'Waiting ...'
             };
@@ -742,6 +742,29 @@ export default (state=pengState, action) => {
                 ...state,
                 isLoading: false,
                 rejdoc: false,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'PODS_SEND_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'PODS_SEND_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                podssend: true,
+                alertMsg: 'upload document succesfully',
+            };
+        }
+        case 'PODS_SEND_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                podssend: false,
                 alertMsg: "Unable connect to server"
             };
         }
@@ -793,7 +816,8 @@ export default (state=pengState, action) => {
                 reject: false,
                 testPods: '',
                 appdoc: null,
-                rejdoc: null
+                rejdoc: null,
+                podssend: null
             }
         }
         default: {

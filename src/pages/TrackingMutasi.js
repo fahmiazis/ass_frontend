@@ -28,6 +28,7 @@ import SidebarContent from "../components/sidebar_content";
 import placeholder from  "../assets/img/placeholder.png"
 import b from "../assets/img/b.jpg"
 import e from "../assets/img/e.jpg"
+import NavBar from '../components/NavBar'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const dokumenSchema = Yup.object().shape({
@@ -284,15 +285,7 @@ class TrackingMutasi extends Component {
                     >
                         <FaBars size={20} className={style.white} />
                     </NavbarBrand>
-                    <div className={style.divLogo}>
-                        <marquee className={style.marquee}>
-                            <span>WEB ASSET</span>
-                        </marquee>
-                        <div className={style.textLogo}>
-                            <FaUserCircle size={24} className="mr-2" />
-                            <text className="mr-3">{level === '1' ? 'Super admin' : names }</text>
-                        </div>
-                    </div>
+                    <NavBar />
             </div>
         )
 

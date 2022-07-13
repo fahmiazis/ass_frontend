@@ -123,6 +123,10 @@ export default {
         type: 'TESTAPI_PODS',
         payload: http(token).get(`/ticket/tpods`)
     }),
+    podsSend: (token, no) => ({
+        type: 'PODS_SEND',
+        payload: http(token).get(`/ticket/send/${no}`)
+    }),
     resetError: () => ({
         type: 'RESET'
     }),

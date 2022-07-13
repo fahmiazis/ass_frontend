@@ -21,6 +21,8 @@ import moment from 'moment'
 import {BsFillCircleFill, BsBell} from 'react-icons/bs'
 import { FaFileSignature } from 'react-icons/fa'
 import { FiLogOut } from 'react-icons/fi'
+import Bell from '../components/Bell'
+import Account from '../components/Account'
 
 const userEditSchema = Yup.object().shape({
     fullname: Yup.string().required('must be filled'),
@@ -190,81 +192,8 @@ class Home extends Component {
                     <div className="bodyAkun">
                         <div></div>
                         <div className="akun">
-                            <UncontrolledDropdown>
-                                <DropdownToggle nav>
-                                    <div className={style.optionType}>
-                                        <BsBell size={30} className="black" />
-                                        {dataNull.length > 0 ? (
-                                            <BsFillCircleFill className="red ball" size={10} />
-                                        ) : (
-                                            <div></div>
-                                        ) }
-                                    </div>
-                                </DropdownToggle>
-                                <DropdownMenu right
-                                modifiers={{
-                                    setMaxHeight: {
-                                        enabled: true,
-                                        order: 890,
-                                        fn: (data) => {
-                                        return {
-                                            ...data,
-                                            styles: {
-                                            ...data.styles,
-                                            overflow: 'auto',
-                                            maxHeight: '600px',
-                                            },
-                                        };
-                                        },
-                                    },
-                                }}>
-                                    <DropdownItem>
-                                        <div className='allnotif' onClick={() => this.goNotif('notif')}>
-                                            See all notifications
-                                        </div>        
-                                    </DropdownItem>
-                                    {dataNotif.length > 0 ? (
-                                        dataNotif.map(item => {
-                                            return (
-                                                <DropdownItem onClick={() => this.goNotif(item)}>
-                                                    <div className={style.notif}>
-                                                        <FaFileSignature size={90} className="mr-4"/>
-                                                        <Button className="labelBut" color={item.status === null ? "danger" : "success"} size="sm">{item.status === null ? 'unread' : 'read'}</Button>
-                                                        <div>
-                                                            <div>Request</div>
-                                                            <div className="textNotif">{item.keterangan} {item.jenis}</div>
-                                                            <div className="textNotif">No {item.jenis}: {item.no_proses}</div>
-                                                            <div>{moment(item.createdAt).format('LLL')}</div>
-                                                        </div>
-                                                    </div>
-                                                    <hr/>
-                                                </DropdownItem>
-                                            )
-                                        })
-                                    ) : (
-                                        <DropdownItem>
-                                            <div className={style.grey}>
-                                                You don't have any notifications 
-                                            </div>        
-                                        </DropdownItem>
-                                    )}
-                                </DropdownMenu>
-                            </UncontrolledDropdown>
-                            <UncontrolledDropdown>
-                                <DropdownToggle nav>
-                                    <VscAccount size={30} className="mr-2 black" />
-                                    <text className="black">{level === '1' ? 'Super Admin' : names}</text>
-                                </DropdownToggle>
-                                <DropdownMenu right>
-                                    <DropdownItem onClick={this.openModalChange}>
-                                        Change Password
-                                    </DropdownItem>
-                                    <DropdownItem onClick={() => this.logout()}>
-                                        <FiLogOut size={15} />
-                                        <text className="txtMenu2">Logout</text>
-                                    </DropdownItem>
-                                </DropdownMenu>
-                            </UncontrolledDropdown>
+                            <Bell dataNotif={dataNotif} color={"black"}/>
+                            <Account color={"black"}/>
                         </div>
                     </div>
                     <div>

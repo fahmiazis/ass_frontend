@@ -4,8 +4,14 @@ import Sidebar from '../components/Sidebar'
 import {VscAccount} from 'react-icons/vsc'
 import { Row } from 'reactstrap'
 import '../assets/css/style.css'
+import {connect} from 'react-redux'
+import Bell from '../components/Bell'
+import Account from '../components/Account'
+import auth from '../redux/actions/auth'
+import user from '../redux/actions/user'
+import notif from '../redux/actions/notif'
 
-export default class NavMut extends Component {
+class NavMut extends Component {
 
     goPengadaan = () => {
         this.props.history.push('/pengadaan')
@@ -15,9 +21,34 @@ export default class NavMut extends Component {
         this.props.history.push(`/${route}`)
     }
 
+    getNotif = async () => {
+        const token = localStorage.getItem("token")
+        await this.props.getNotif(token)
+    }
+
+    componentDidMount() {
+        const email = localStorage.getItem('email')
+        const fullname = localStorage.getItem('fullname')
+        const id = localStorage.getItem('id')
+        const level = localStorage.getItem('level')
+        this.getNotif()
+        if (email === 'null' || email === '' || fullname === 'null' || fullname === '') {
+            if (id !== null && level !== '5') {
+                this.openModalEdit()
+            } else if (level === '5') {
+                console.log('5')
+            } else {
+                this.relogin()
+            }
+        } else if (id === null) {
+            this.relogin()
+        }
+    }
+
     render() {
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
+        const dataNotif = this.props.notif.data
         return (
             <div className="bodyHome">
                 <div className="leftHome">
@@ -27,8 +58,8 @@ export default class NavMut extends Component {
                     <div className="bodyAkun">
                         <div></div>
                         <div className="akun">
-                            <VscAccount size={30} className="mr-2" />
-                            <text>{level === '1' ? 'Super Admin' : names}</text>
+                            <Bell dataNotif={dataNotif} color={"black"}/>
+                            <Account color={"black"}/>
                         </div>
                     </div>
                     <div>
@@ -131,3 +162,20 @@ export default class NavMut extends Component {
         )
     }
 }
+
+const mapStateToProps = state => ({
+    auth: state.auth,
+    user: state.user,
+    notif: state.notif
+})
+
+const mapDispatchToProps = {
+    updateUser: user.updateUser,
+    reset: user.resetError,
+    logout: auth.logout,
+    changePassword: user.changePassword,
+    getNotif: notif.getNotif,
+    upNotif: notif.upNotif
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(NavMut)

@@ -1,21 +1,16 @@
-/* eslint-disable jsx-a11y/no-distracting-elements */
 import React, { Component } from 'react'
-import notif from '../redux/actions/notif'
+import { Input, Button, UncontrolledDropdown, DropdownToggle,
+    DropdownMenu, DropdownItem, Modal, ModalHeader, ModalBody } from 'reactstrap'
+import {FaBars, FaFileSignature, FaUserCircle} from 'react-icons/fa'
+import { FiLogOut } from 'react-icons/fi'
 import auth from '../redux/actions/auth'
 import user from '../redux/actions/user'
 import {connect} from 'react-redux'
-import { Input, Button, UncontrolledDropdown, DropdownToggle,
-DropdownMenu, DropdownItem, Modal, ModalHeader, ModalBody } from 'reactstrap'
-import {FaBars, FaFileSignature, FaUserCircle} from 'react-icons/fa'
-import {BsBell, BsFillCircleFill} from 'react-icons/bs'
-import { FiLogOut } from 'react-icons/fi'
-import style from '../assets/css/input.module.css'
-import moment from 'moment'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
-import {AiOutlineClose} from 'react-icons/ai'
-import Bell from './Bell'
-import Account from './Account'
+import notif from '../redux/actions/notif'
+import {VscAccount} from 'react-icons/vsc'
+import style from '../assets/css/input.module.css'
 
 const changeSchema = Yup.object().shape({
     current_password: Yup.string().required('must be filled'),
@@ -23,7 +18,7 @@ const changeSchema = Yup.object().shape({
     new_password: Yup.string().required('must be filled')
 });
 
-class NavBar extends Component {
+class Account extends Component {
 
     state = {
         modalEdit: false,
@@ -33,32 +28,7 @@ class NavBar extends Component {
         modalConfirm: false
     }
 
-    getNotif = async () => {
-        const token = localStorage.getItem("token")
-        await this.props.getNotif(token)
-    }
-
-    logout = () => {
-        this.props.logout()
-    }
-
-    goRoute = async (val) => {
-        const token = localStorage.getItem('token')
-        if (val === 'notif') {
-            localStorage.setItem('route', val)
-            this.props.goRoute()
-        } else {
-            await this.props.upNotif(token, val.id)
-            await this.props.getNotif(token)
-            const ket = val.keterangan
-            const jenis = (val.jenis === '' || val.jenis === null) && val.no_proses.split('')[0] === 'O' ? 'Stock Opname' : val.jenis
-            const route = ket === 'tax' || ket === 'finance' || ket === 'tax and finance' ? 'taxfin' : ket === 'eksekusi' && jenis === 'disposal' ? 'eksdis' : jenis === 'disposal' && ket === 'pengajuan' ? 'disposal' : jenis === 'mutasi' && ket === 'pengajuan' ? 'mutasi' : jenis === 'Stock Opname' && ket === 'pengajuan' ? 'stock' : jenis === 'disposal' ? 'navdis' : jenis === 'mutasi' ? 'navmut' : jenis === 'Stock Opname' && 'navstock' 
-            localStorage.setItem('route', route)
-            this.props.goRoute()
-        }
-    }
-
-     editUser = async (val) => {
+    editUser = async (val) => {
         const token = localStorage.getItem("token")
         const data = {
             new: val.new_password,
@@ -75,34 +45,31 @@ class NavBar extends Component {
         this.setState({modalConfirm: !this.state.modalConfirm})
     }
 
-    componentDidUpdate() {
-        const {isChange, isError} = this.props.user
-        if (isChange) {
-            this.openModalEdit()
-            this.setState({relog: true})
-            this.props.reset()
-        } else if (isError) {
-            this.openConfirm()
-            this.props.reset()
-        }
+    logout = () => {
+        this.props.logout()
     }
 
-    render() {
-        const level = localStorage.getItem('level')
-        const names = localStorage.getItem('name')
-        const { data } = this.props.notif
-        const id = localStorage.getItem('id')
-        return (
-            <>
-            <div className={style.divLogo}>
-                <marquee className={style.marquee}>
-                    <span>WEB ASSET</span>
-                </marquee>
-                <div className={style.textLogo}>
-                    <Bell dataNotif={data} />
-                    <Account />
-                </div>
-            </div>
+  render() {
+    const level = localStorage.getItem('level')
+    const names = localStorage.getItem('name')
+    const color = this.props.color
+    return (
+        <>
+            <UncontrolledDropdown>
+                <DropdownToggle nav>
+                    <VscAccount size={30} className={color === undefined ? 'mr-2 white' : `mr-2 ${color}`} />
+                    <text className={color === undefined ? 'mr-2 white' : `mr-2 ${color}`}>{level === '1' ? 'Super Admin' : names.slice(0, 15)}</text>
+                </DropdownToggle>
+                <DropdownMenu right>
+                    <DropdownItem onClick={this.openModalEdit}>
+                        Change Password
+                    </DropdownItem>
+                    <DropdownItem onClick={() => this.logout()}>
+                        <FiLogOut size={15} />
+                        <text className="txtMenu2">Logout</text>
+                    </DropdownItem>
+                </DropdownMenu>
+            </UncontrolledDropdown>
             <Modal isOpen={this.state.modalEdit} toggle={this.openModalEdit}>
                 <ModalHeader>Change Password</ModalHeader>
                 <Formik
@@ -180,32 +147,24 @@ class NavBar extends Component {
                         </div>
                     </div>
                 </ModalBody>
-                    )}
-                </Formik>
-            </Modal>
-            <Modal isOpen={this.state.relog}>
-                <ModalBody>
-                    <div className={style.modalApprove}>
-                        <div className="relogin">
-                            System membutuhkan anda untuk login ulang
-                        </div>
-                        <div className={style.btnApprove}>
-                            <Button color="primary" onClick={this.logout}>Relogin</Button>
-                        </div>
+                )}
+            </Formik>
+        </Modal>
+        <Modal isOpen={this.state.relog}>
+            <ModalBody>
+                <div className={style.modalApprove}>
+                    <div className="relogin">
+                        System membutuhkan anda untuk login ulang
                     </div>
-                </ModalBody>
-            </Modal>
-            <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="sm">
-                <div>
-                    <div className={style.cekUpdate}>
-                        <AiOutlineClose size={80} className={style.red} />
-                        <div className={[style.sucUpdate, style.green]}>Failed Change Password</div>
+                    <div className={style.btnApprove}>
+                        <Button color="primary" onClick={this.logout}>Relogin</Button>
                     </div>
                 </div>
-            </Modal>
-            </>
-        )
-    }
+            </ModalBody>
+        </Modal>
+    </>
+    )
+  }
 }
 
 const mapStateToProps = state => ({
@@ -224,4 +183,4 @@ const mapDispatchToProps = {
     upNotif: notif.upNotif
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(NavBar)
+export default connect(mapStateToProps, mapDispatchToProps)(Account)
