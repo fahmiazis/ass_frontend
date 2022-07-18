@@ -75,6 +75,7 @@ class PersetujuanDis extends Component {
             alasan: value.value.alasan
         }
         await this.props.rejectSetDisposal(token, dataDis[0].status_app, data, value.value.jenis_reject)
+        await this.props.notifDisposal(token, dataDis[0].status_app, 'reject', value.value.jenis_reject, null, 'persetujuan')
         this.getApproveSet(dataDis[0].status_app)
         this.openModalReject()
     }
@@ -196,6 +197,7 @@ class PersetujuanDis extends Component {
         const {dataDis} = this.props.setuju
         const token = localStorage.getItem("token")
         await this.props.approveSetDisposal(token, dataDis[0].status_app)
+        await this.props.notifDisposal(token, dataDis[0].status_app, 'approve', null, null, 'persetujuan')
         this.getApproveSet(dataDis[0].status_app)
     }
 
@@ -763,7 +765,8 @@ const mapDispatchToProps = {
     getApproveDisposal: disposal.getApproveDisposal,
     rejectSetDisposal: setuju.rejectSetDisposal,
     resetAppSet: setuju.resetAppSet,
-    getNotif: notif.getNotif
+    getNotif: notif.getNotif,
+    notifDisposal: notif.notifDisposal
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(PersetujuanDis)

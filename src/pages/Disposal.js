@@ -186,8 +186,11 @@ class Disposal extends Component {
     approveDisposal = async (value) => {
         const token = localStorage.getItem('token')
         await this.props.approveDisposal(token, value)
-        this.openModalApprove()
+        await this.props.notifDisposal(token, value, 'approve', 'HO', null, null)
         this.getDataDisposal()
+        this.openModalApprove()
+        this.openConfirm(this.setState({confirm: 'approve'}))
+        this.openModalDis()
     }
 
     rejectDisposal = async (value) => {
@@ -199,7 +202,10 @@ class Disposal extends Component {
             this.openModalDis()
         } 
         await this.props.rejectDisposal(token, value.no, data, value.value.jenis_reject)
+        await this.props.notifDisposal(token, value, 'reject', value.value.jenis_reject, null, null)
         this.openModalReject()
+        this.openModalDis()
+        this.openConfirm(this.setState({confirm: 'reject'}))
         this.getDataDisposal()
     }
 
@@ -394,15 +400,18 @@ class Disposal extends Component {
              setTimeout(() => {
                 this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'pengajuan')
              }, 1100)
-        } else if (reject) {
-            this.openConfirm(this.setState({confirm: 'reject'}))
-            this.props.resAppRej()
-            this.openModalDis()
-        } else if (approve) {
-            this.openConfirm(this.setState({confirm: 'approve'}))
-            this.props.resAppRej()
-            this.openModalDis()
-        } else if (rejReject) {
+        } 
+        // else if (reject) {
+        //     this.openConfirm(this.setState({confirm: 'reject'}))
+        //     this.props.resAppRej()
+        //     this.openModalDis()
+        // }
+        // else if (approve) {
+        //     this.openConfirm(this.setState({confirm: 'approve'}))
+        //     this.props.resAppRej()
+        //     this.openModalDis()
+        // }
+        else if (rejReject) {
             this.openConfirm(this.setState({confirm: 'rejReject'}))
             this.openModalReject()
             this.props.resAppRej()
@@ -422,7 +431,7 @@ class Disposal extends Component {
         }
     }
 
-    goSetDispos = async () => {
+    goSetDispos = async (val) => {
         const token = localStorage.getItem("token")
         await this.props.submitSetDisposal(token)
         this.modalSubmitPre()
@@ -658,9 +667,11 @@ class Disposal extends Component {
                                         <div className={style.headEmail}>
                                             <button onClick={this.goCartDispos} className="btnGoCart"><FaCartPlus size={60} className="green ml-2" /></button>
                                         </div>
-                                    ) : level === '2' || level === '12' || level === '27'? (
+                                    ) : level === '2' || level === '12' || level === '27' ? (
                                         <div className="mt-5">
-                                            <Button onClick={this.getSubmitDisposal} color="info" size="lg" className="mb-4">Submit</Button>
+                                            {level === '2' && (
+                                                <Button onClick={this.getSubmitDisposal} color="info" size="lg" className="mb-4">Submit</Button>
+                                            )}
                                             <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
                                                 <option value="not available">All</option>
                                                 <option value="available">Available To Approve</option>
@@ -872,7 +883,7 @@ class Disposal extends Component {
                         </div>
                         </ModalBody>
                 </Modal>
-                <Modal isOpen={this.props.disposal.isLoading ? true: false} size="sm">
+                <Modal isOpen={this.props.disposal.isLoading || this.props.notif.isLoading ? true: false} size="sm">
                         <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>
@@ -1664,7 +1675,7 @@ class Disposal extends Component {
                             </Table>
                             <div className="mb-3">Demikian hal yang dapat kami sampaikan perihal persetujuan disposal aset, atas perhatiannya kami mengucapkan terima kasih.</div>
                             <div className="btnFoot">
-                                <Button className="mr-2" color="success" onClick={this.goSetDispos}>
+                                <Button className="mr-2" color="success" onClick={() => this.goSetDispos(dataSubmit[0] !== undefined ? dataSubmit[0] : null)}>
                                     Submit
                                 </Button>
                             </div>
@@ -1711,7 +1722,8 @@ const mapDispatchToProps = {
     getSubmitDisposal: disposal.getSubmitDisposal,
     getNotif: notif.getNotif,
     resetAuth: auth.resetError,
-    getRole: user.getRole
+    getRole: user.getRole,
+    notifDisposal: notif.notifDisposal
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Disposal)

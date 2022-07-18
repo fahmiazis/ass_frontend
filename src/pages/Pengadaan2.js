@@ -26,6 +26,7 @@ import placeholder from  "../assets/img/placeholder.png"
 import TablePeng from '../components/TablePeng'
 import notif from '../redux/actions/notif'
 import NavBar from '../components/NavBar'
+import renderHTML from 'react-render-html'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -49,6 +50,8 @@ class Pengadaan extends Component {
         this.state = {
             docked: false,
             open: false,
+            openBid: false,
+            dataBid: '',
             transitions: true,
             touch: true,
             shadow: true,
@@ -278,7 +281,7 @@ class Pengadaan extends Component {
         const token = localStorage.getItem('token')
         await this.props.approveDocument(token, fileName.id)
         this.setState({openApprove: !this.state.openApprove})
-        this.openModalPdf()
+        this.setState({openPdf: false, openBid: false})
     }
 
     rejectDokumen = async (value) => {
@@ -286,7 +289,7 @@ class Pengadaan extends Component {
         const token = localStorage.getItem('token')
         this.setState({openRejectDis: !this.state.openRejectDis})
         await this.props.rejectDocument(token, fileName.id, value)
-        this.openModalPdf()
+        this.setState({openPdf: false, openBid: false})
     }
 
     rejectIo = async (value) => {
@@ -332,19 +335,22 @@ class Pengadaan extends Component {
 
     submitAsset = async (val) => {
         const token = localStorage.getItem('token')
+        const dataFalse = []
         const cek = []
         const cekDok = []
         const { detailIo } = this.props.pengadaan
         for (let i = 0; i < detailIo.length; i++) {
             if (detailIo[i].isAsset !== 'true' && detailIo[i].isAsset !== 'false') {
                 cek.push(detailIo[i])  
+            } else if (detailIo[i].isAsset === 'false') {
+                dataFalse.push(detailIo[i])
             } else if (detailIo[i].asset_token === null) {
                 await this.props.getDocCart(token, detailIo[i].id)
                 const {dataDocCart} = this.props.pengadaan
                 if (dataDocCart.find(({status}) => status === null) || dataDocCart.find(({status}) => status === 0)) {
                     cekDok.push(dataDocCart)
                 }
-            } else {
+            } else if (detailIo[i].asset_token !== null) {
                 await this.props.getDocumentIo(token, detailIo[i].no_pengadaan)
                 const {dataDoc} = this.props.pengadaan
                 if (dataDoc.find(({status}) => status === null) || dataDoc.find(({status}) => status === 0)) {
@@ -359,10 +365,18 @@ class Pengadaan extends Component {
             this.setState({confirm: 'falseSubmitDok'})
             this.openConfirm()
         } else {
-            await this.props.submitIsAsset(token, val)
-            this.getDataAsset()
-            this.setState({confirm: 'submit'})
-            this.openConfirm()
+            if (dataFalse.length === detailIo.length) {
+                await this.props.submitNotAsset(token, val)
+                await this.props.podsSend(token, val)
+                this.getDataAsset()
+                this.setState({confirm: 'submitnot'})
+                this.openConfirm()
+            } else {
+                await this.props.submitIsAsset(token, val)
+                this.getDataAsset()
+                this.setState({confirm: 'submit'})
+                this.openConfirm()
+            }
         }
     }
 
@@ -536,11 +550,24 @@ class Pengadaan extends Component {
     showDokumen = async (value) => {
         const token = localStorage.getItem('token')
         this.setState({date: value.updatedAt, idDoc: value.id, fileName: value})
-        await this.props.showDokumen(token, value.id, value.no_pengadaan)
-        const {isShow} = this.props.pengadaan
-        if (isShow) {
-            this.openModalPdf()
+        const data = this.props.pengadaan.detailIo
+        const url = value.path
+        const cekBidding = url.search('bidding')
+        if (cekBidding !== -1) {
+            this.setState({dataBid: url})
+            this.openModalBidding()
+        } else {
+            await this.props.showDokumen(token, value.id, value.no_pengadaan)
+            const {isShow} = this.props.pengadaan
+            if (isShow) {
+                this.prosesDoc(data)
+                this.openModalPdf()
+            }
         }
+    }
+
+    openModalBidding = () => {
+        this.setState({openBid: !this.state.openBid})
     }
 
     downloadData = () => {
@@ -988,7 +1015,7 @@ class Pengadaan extends Component {
                                                 ) : (
                                                     <div className="bodyCard">
                                                     <img src={placeholder} className="imgCard1" />
-                                                    <Button size="sm" color="success" className="labelBut">Pengadaan</Button>
+                                                    <Button size="sm" color="success" className="labelBut">{item.ticket_code === null ? 'Web Asset' : 'PODS'}</Button>
                                                     <div className="ml-2">
                                                         <div className="txtDoc mb-2">
                                                             Pengadaan Asset
@@ -1060,7 +1087,7 @@ class Pengadaan extends Component {
                                                     item.status_form === '3' ? (
                                                         <div className="bodyCard">
                                                         <img src={placeholder} className="imgCard1" />
-                                                        <Button size="sm" color="success" className="labelBut">Pengadaan</Button>
+                                                        <Button size="sm" color="success" className="labelBut">{item.ticket_code === null ? 'Web Asset' : 'PODS'}</Button>
                                                         <div className="ml-2">
                                                             <div className="txtDoc mb-2">
                                                                 Pengadaan Asset
@@ -1135,7 +1162,7 @@ class Pengadaan extends Component {
                                                     item.status_form === '1' && (
                                                         <div className="bodyCard">
                                                         <img src={placeholder} className="imgCard1" />
-                                                        <Button size="sm" color="success" className="labelBut">Pengadaan</Button>
+                                                        <Button size="sm" color="success" className="labelBut">{item.ticket_code === null ? 'Web Asset' : 'PODS'}</Button>
                                                         <div className="ml-2">
                                                             <div className="txtDoc mb-2">
                                                                 Pengadaan Asset
@@ -1209,7 +1236,7 @@ class Pengadaan extends Component {
                                                             item.status_form === '2' && (
                                                                 <div className="bodyCard">
                                                                     <img src={placeholder} className="imgCard1" />
-                                                                    <Button size="sm" color="success" className="labelBut">Pengadaan</Button>
+                                                                    <Button size="sm" color="success" className="labelBut">{item.ticket_code === null ? 'Web Asset' : 'PODS'}</Button>
                                                                     <div className="ml-2">
                                                                         <div className="txtDoc mb-2">
                                                                             Pengadaan Asset
@@ -2021,6 +2048,34 @@ class Pengadaan extends Component {
                         <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
                     </ModalFooter>)} */}
                 </Modal>
+                <Modal className='modalBid' isOpen={this.state.openBid} size="xl" toggle={this.openModalBidding} centered={true}>
+                <ModalHeader>Dokumen</ModalHeader>
+                    <ModalBody className='bodyBid'>
+                        {/* <div className={style.readPdf}>
+                        </div> */}
+                        <iframe 
+                        allowfullscreen={true}
+                        height="600"
+                        className='bidding' 
+                        src={fileName.path} 
+                        title="Dokumen Bidding"
+                        />
+                        <hr/>
+                        <div className={style.foot}>
+                            <div>
+                                {/* <Button color="success" onClick={this.downloadData}>Download</Button> */}
+                            </div>
+                        {level === '2' ? (
+                            <div>
+                                <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
+                                <Button color="primary" onClick={this.openModalApprove}>Approve</Button>
+                            </div>
+                            ) : (
+                                <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                            )}
+                        </div>
+                    </ModalBody>
+                </Modal>
                 <Modal isOpen={this.state.openApprove} size="lg" toggle={this.openModalApprove} centered={true}>
                     <ModalBody>
                         <div className={style.modalApprove}>
@@ -2185,6 +2240,14 @@ class Pengadaan extends Component {
                             <div className={[style.sucUpdate, style.green]}>Berhasil Submit</div>
                         </div>
                         </div>
+                    ) : this.state.confirm === 'submitnot' ? (
+                        <div>
+                            <div className={style.cekUpdate}>
+                            <AiFillCheckCircle size={80} className={style.green} />
+                            <div className={[style.sucUpdate, style.green]}>Berhasil Submit</div>
+                            <div className="errApprove mt-2">Transaksi dibatalkan</div>
+                        </div>
+                        </div>
                     ) : this.state.confirm === 'isupdate' ?(
                         <div>
                             <div className={style.cekUpdate}>
@@ -2337,7 +2400,9 @@ const mapDispatchToProps = {
     getDocCart: pengadaan.getDocCart,
     approveAll: pengadaan.approveAll,
     updateRecent: pengadaan.updateRecent,
-    testApiPods: pengadaan.testApiPods
+    testApiPods: pengadaan.testApiPods,
+    submitNotAsset: pengadaan.submitNotAsset,
+    podsSend: pengadaan.podsSend
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Pengadaan)

@@ -23,4 +23,8 @@ export default {
         type: 'UPALL_NOTIF',
         payload: http(token).patch(`/notif/upall`)
     }),
+    notifDisposal: (token, no, tipe, apptipe, act, status) => ({
+        type: 'NOTIF_DIS',
+        payload: http(token).patch(`/notif/disposal/${no}?tipe=${tipe}&apptipe=${apptipe}&act=${act}&status=${status}`)
+    })
 }

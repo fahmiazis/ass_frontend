@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import {  NavbarBrand, DropdownToggle, DropdownMenu,
     DropdownItem, Table, ButtonDropdown, Input, Button,
-    Modal, ModalHeader, ModalBody, Alert, Spinner} from 'reactstrap'
+    Modal, ModalHeader, ModalBody, Alert, Spinner, UncontrolledDropdown} from 'reactstrap'
 import style from '../assets/css/input.module.css'
 import {FaSearch, FaUserCircle, FaBars} from 'react-icons/fa'
 import {AiFillCheckCircle, AiOutlineFileExcel} from 'react-icons/ai'
@@ -72,7 +72,9 @@ class MasterUser extends Component {
             fileUpload: '',
             limit: 10,
             search: '',
-            modalReset: false
+            modalReset: false,
+            filter: null,
+            filterName: 'All'
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -291,15 +293,21 @@ class MasterUser extends Component {
         const token = localStorage.getItem("token")
         const search = value === undefined ? '' : this.state.search
         const limit = value === undefined ? this.state.limit : value.limit
-        await this.props.getUser(token, limit, search, page.currentPage)
-        this.setState({limit: value === undefined ? 10 : value.limit})
+        const filter = value === undefined || value.filter === undefined ? this.state.filter : value.filter
+        console.log(this.state.filter)
+        await this.props.getUser(token, limit, search, page.currentPage, filter)
+        this.setState({limit: value === undefined ? 10 : value.limit, search: search, filter: filter})
+    }
+
+    changeFilter = async (val) => {
+        this.setState({filter: val.nomor, filterName: val.name})
+        this.getDataUser({limit: this.state.limit, search: this.state.search, filter: val.nomor})
     }
 
     getDataDepo = async () => {
         const token = localStorage.getItem("token")
         await this.props.getDepo(token, 1000, '')
-        const { dataDepo } = this.props.depo
-        console.log(dataDepo)
+        // const { dataDepo } = this.props.depo
     }
 
     menuButtonClick(ev) {
@@ -384,6 +392,39 @@ class MasterUser extends Component {
                                         </DropdownMenu>
                                         </ButtonDropdown>
                                         <text className={style.textEntries}>entries</text>
+                                    </div>
+                                    <div className='filterUser'>
+                                        <text className='mr-2'>Filter:</text>
+                                        <UncontrolledDropdown className={style.drop}>
+                                            <DropdownToggle caret color="light">
+                                                {this.state.filterName}
+                                            </DropdownToggle>
+                                            <DropdownMenu 
+                                                right
+                                                modifiers={{
+                                                setMaxHeight: {
+                                                    enabled: true,
+                                                    order: 890,
+                                                    fn: (data) => {
+                                                    return {
+                                                        ...data,
+                                                        styles: {
+                                                        ...data.styles,
+                                                        overflow: 'auto',
+                                                        maxHeight: '400px',
+                                                        },
+                                                    };
+                                                    },
+                                                },
+                                            }}
+                                            >
+                                                {dataRole !== undefined && dataRole.map(item => {
+                                                    return (
+                                                        <DropdownItem onClick={() => {this.setState({filter: item.id, filterName: item.name}); this.changeFilter({name: item.name, nomor: item.id})}}>{item.name}</DropdownItem>
+                                                    )
+                                                })}
+                                            </DropdownMenu>
+                                        </UncontrolledDropdown>
                                     </div>
                                 </div>
                                 <div className={style.secEmail}>

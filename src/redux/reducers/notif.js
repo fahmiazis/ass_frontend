@@ -9,7 +9,8 @@ const notifState = {
     delete: false,
     delall: false,
     update: false,
-    upall: false
+    upall: false,
+    notifDis: null
 }
 
 export default (state=notifState, action) => {
@@ -106,6 +107,29 @@ export default (state=notifState, action) => {
                 ...state,
                 isLoading: false,
                 isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'NOTIF_DIS_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'NOTIF_DIS_FULFILLED': {
+            return {
+                ...state,
+                notifDis: true,
+                isLoading: false,
+                alertMsg: 'delete notif Succesfully'
+            };
+        }
+        case 'NOTIF_DIS_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                notifDis: false,
                 alertMsg: "Unable connect to server"
             };
         }

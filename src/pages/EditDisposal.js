@@ -262,6 +262,12 @@ class EditDisposal extends Component {
         this.getDataDisposal()
     }
 
+    submitRevDis = async (val) => {
+        const token = localStorage.getItem('token')
+        await this.props.submitEditDis(token, val.no_disposal)
+        this.getDataDisposal()
+    }
+
     render() {
         const {isOpen, dropOpen, dropOpenNum, detail, alert, upload, errMsg, dataRinci} = this.state
         const {dataDis, isGet, alertM, alertMsg, alertUpload, page, dataDoc} = this.props.disposal
@@ -342,7 +348,7 @@ class EditDisposal extends Component {
                                                 </div>
                                                 <div className="footCart">
                                                     <Button color="primary" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}>Rincian</Button>
-                                                    <div></div>
+                                                    <Button color="primary" onClick={() => this.submitRevDis(item)}>Submit</Button>
                                                 </div>
                                             </div>
                                         )

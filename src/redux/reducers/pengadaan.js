@@ -47,7 +47,8 @@ const pengState = {
     rejdoc: null,
     isGetTrack: false,
     trackIo: [],
-    podssend: null
+    podssend: null,
+    submitNotAset: null
 }
 
 export default (state=pengState, action) => {
@@ -472,6 +473,29 @@ export default (state=pengState, action) => {
             };
         }
         case 'SUBMIT_ISASSET_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'SUBMIT_NOTASSET_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'SUBMIT_NOTASSET_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                subNotAsset: true,
+                alertMsg: 'update is asset succesfully',
+            };
+        }
+        case 'SUBMIT_NOTASSET_REJECTED': {
             return {
                 ...state,
                 isLoading: false,

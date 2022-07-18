@@ -750,7 +750,7 @@ class EksekusiTicket extends Component {
                                                 ) : (
                                                     <div className="bodyCard">
                                                     <img src={placeholder} className="imgCard1" />
-                                                    <Button size="sm" color="success" className="labelBut">Pengadaan</Button>
+                                                    <Button size="sm" color="success" className="labelBut">{item.ticket_code === null ? 'Web Asset' : 'PODS'}</Button>
                                                     <div className="ml-2">
                                                         <div className="txtDoc mb-2">
                                                             Pengadaan Asset
@@ -822,7 +822,7 @@ class EksekusiTicket extends Component {
                                                     item.status_form === '9' && (
                                                         <div className="bodyCard">
                                                         <img src={placeholder} className="imgCard1" />
-                                                        <Button size="sm" color="success" className="labelBut">Pengadaan</Button>
+                                                        <Button size="sm" color="success" className="labelBut">{item.ticket_code === null ? 'Web Asset' : 'PODS'}</Button>
                                                         <div className="ml-2">
                                                             <div className="txtDoc mb-2">
                                                                 Pengadaan Asset

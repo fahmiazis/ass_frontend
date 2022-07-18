@@ -30,6 +30,7 @@ import f from "../assets/img/f.png"
 import g from "../assets/img/g.png"
 import NumberInput from "../components/NumberInput";
 import NavBar from '../components/NavBar'
+import notif from '../redux/actions/notif'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -155,6 +156,7 @@ class PurchDisposal extends Component {
             }, 10000)
         } else {
             await this.props.submitPurch(token, value.no_asset)
+            await this.props.notifDisposal(token, value.no_disposal, 'proses', 'submitpurch', null, null)
             this.getDataDisposal()
         }
     }
@@ -699,7 +701,8 @@ class PurchDisposal extends Component {
 const mapStateToProps = state => ({
     disposal: state.disposal,
     setuju: state.setuju,
-    pengadaan: state.pengadaan
+    pengadaan: state.pengadaan,
+    notif: state.notif
 })
 
 const mapDispatchToProps = {
@@ -716,7 +719,8 @@ const mapDispatchToProps = {
     submitPurch: setuju.submitPurchDisposal,
     resetSetuju: setuju.resetSetuju,
     showDokumen: pengadaan.showDokumen,
-    resetDis: disposal.reset
+    resetDis: disposal.reset,
+    notifDisposal: notif.notifDisposal
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(PurchDisposal)

@@ -71,6 +71,10 @@ export default {
         type:'REJECT_DOCDIS',
         payload: http(token).patch(`/disposal/docrej/${id}?tipe=${tipe}&ket=${ket}`, qs.stringify(data))
     }),
+    submitEditDis: (token, no) => ({
+        type: 'SUBMIT_EDITDIS',
+        payload: http(token).patch(`/disposal/editdis/${no}`)
+    }),
     getKeterangan: (token, nilai) => ({
         type: 'GET_KET',
         payload: http(token).get(`/ket/get/${nilai}`)

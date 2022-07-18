@@ -119,6 +119,10 @@ export default {
         type: 'UPDATE_RECENT',
         payload: http(token).patch(`/ticket/uprecent/${no}`, qs.stringify(data))
     }),
+    submitNotAsset: (token, no) => ({
+        type: 'SUBMIT_NOTASSET',
+        payload: http(token).patch(`/ticket/subnot/${no}`)
+    }),
     testApiPods: (token) => ({
         type: 'TESTAPI_PODS',
         payload: http(token).get(`/ticket/tpods`)

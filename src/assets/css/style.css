@@ -12,6 +12,22 @@
     height: auto;
     margin-bottom: 5%;
 }
+.filterUser {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.bidding {
+    width: 100%;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+.modalBid {
+    height: 800px !important;
+}
+.bodyBid {
+    height: 100% !important;
+}
 .secLogo {
     background-color: #F6F2F0;
 }

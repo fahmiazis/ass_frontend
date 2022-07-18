@@ -326,7 +326,7 @@ class TrackingMutasi extends Component {
                                                 ) : (
                                                     <div className="bodyCard">
                                                     <img src={placeholder} className="imgCard1" />
-                                                    <Button size="sm" color="success" className="labelBut">Pengadaan</Button>
+                                                    <Button size="sm" color="success" className="labelBut">{item.ticket_code === null ? 'Web Asset' : 'PODS'}</Button>
                                                     <div className="ml-2">
                                                         <div className="txtDoc mb-2">
                                                             Pengadaan Asset
@@ -438,7 +438,7 @@ class TrackingMutasi extends Component {
                             Tanggal Pengajuan
                             </Col>
                             <Col md={9}>
-                            : {detailMut[0] === undefined ? '' : moment(detailMut[0].tanggalMut === null ? detailMut[0].createdAt : detailMut[0].tanggalMut).locale('idn').format('DD MMMM YYYY ')}
+                            : {detailMut[0] === undefined ? '' : moment(detailMut[0].createdAt === null ? detailMut[0].createdAt : detailMut[0].createdAt).locale('idn').format('DD MMMM YYYY ')}
                             </Col>
                         </Row>
                         <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
@@ -478,7 +478,7 @@ class TrackingMutasi extends Component {
                                 <CardBody>
                                     <div className='textCard1'>{this.state.tipeCol} Pengadaan Asset</div>
                                     {this.state.tipeCol === 'submit' ? (
-                                        <div>Tanggal submit : {detailMut[0] === undefined ? '' : moment(detailMut[0].tanggalMut === null ? detailMut[0].createdAt : detailMut[0].tanggalMut).locale('idn').format('DD MMMM YYYY ')}</div>
+                                        <div>Tanggal submit : {detailMut[0] === undefined ? '' : moment(detailMut[0].createdAt === null ? detailMut[0].createdAt : detailMut[0].createdAt).locale('idn').format('DD MMMM YYYY ')}</div>
                                     ) : (
                                         <div></div>
                                     )}
