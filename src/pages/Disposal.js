@@ -973,10 +973,10 @@ class Disposal extends Component {
                     <div className="modalFoot ml-3">
                         <Button color="primary" onClick={() => this.openModPreview({nama: detailDis[0] !== undefined && detailDis[0].kode_plant.split('').length === 4 ? 'disposal pengajuan' : 'disposal pengajuan HO', no: detailDis[0] !== undefined && detailDis[0].no_disposal})}>Preview</Button>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="danger" disabled={detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true} onClick={this.openModalReject}>
+                            <Button className="mr-2" color="danger" disabled={this.state.view !== 'available' || this.state.view !== 'revisi' ? true : detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true} onClick={this.openModalReject}>
                                 Reject
                             </Button>
-                            <Button color="success" onClick={this.openModalApprove} disabled={detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true}>
+                            <Button color="success" onClick={this.openModalApprove} disabled={this.state.view !== 'available' || this.state.view !== 'revisi' ? true : detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true}>
                                 Approve
                             </Button>
                         </div>
@@ -1489,8 +1489,8 @@ class Disposal extends Component {
                                  {level === '12' || level === '27'? (
                                         (fileName.status !== 0 && fileName.status !== 3) || (app[find] !== undefined && app[find - 1].status === null && fileName.status !== 0 && fileName.status !== 3) ? (
                                             <>
-                                                <Button color="danger" disabled={this.state.view === 'available' || this.state.view === 'revisi' ? false : true} className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
-                                                <Button color="primary" disabled={this.state.view === 'available' || this.state.view === 'revisi' ? false : true} onClick={this.openModalApproveDis}>Approve</Button>
+                                                <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
+                                                <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
                                             </>
                                         ) : (
                                             <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
@@ -1498,8 +1498,8 @@ class Disposal extends Component {
                                     ) : (
                                         app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (fileName.divisi !== '0' && fileName.divisi !== '3') ? (
                                             <>
-                                                <Button color="danger" disabled={this.state.view === 'available' || this.state.view === 'revisi' ? false : true} className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
-                                                <Button color="primary" disabled={this.state.view === 'available' || this.state.view === 'revisi' ? false : true} onClick={this.openModalApproveDis}>Approve</Button>
+                                                <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
+                                                <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
                                             </>
                                         ) : (
                                             <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
