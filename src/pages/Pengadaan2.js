@@ -258,7 +258,7 @@ class Pengadaan extends Component {
         const token = localStorage.getItem('token')
         this.setState({valdoc: val})
         if (val.asset_token === null || val.asset_token === '') {
-            this.props.getDocCart(token, val.id)
+            await this.props.getDocCart(token, val.id)
             this.closeProsesModalDoc()
         } else {
             await this.props.getDocumentIo(token, data[0].no_pengadaan)
@@ -551,18 +551,26 @@ class Pengadaan extends Component {
         const token = localStorage.getItem('token')
         this.setState({date: value.updatedAt, idDoc: value.id, fileName: value})
         const data = this.props.pengadaan.detailIo
-        const url = value.path
+        await this.props.showDokumen(token, value.id, value.no_pengadaan)
+        const {isShow} = this.props.pengadaan
+        if (isShow) {
+            this.prosesDoc(data)
+            this.openModalPdf()
+        }
+    }
+
+    showDokPods = async (val) => {
+        this.setState({date: val.updatedAt, idDoc: val.id, fileName: val})
+        const data = this.props.pengadaan.detailIo
+        const url = val.path
         const cekBidding = url.search('bidding')
         if (cekBidding !== -1) {
             this.setState({dataBid: url})
             this.openModalBidding()
         } else {
-            await this.props.showDokumen(token, value.id, value.no_pengadaan)
-            const {isShow} = this.props.pengadaan
-            if (isShow) {
-                this.prosesDoc(data)
-                this.openModalPdf()
-            }
+            window.open(url, '_blank')
+            this.prosesDoc(data)
+            this.openModalPdf()
         }
     }
 
@@ -1371,6 +1379,7 @@ class Pengadaan extends Component {
                         <div className="mb-4">
                             <Form.Check 
                                 type="checkbox"
+                                checked
                                 label="CB-20 IO Capex"
                             />
                         </div>
@@ -1407,14 +1416,12 @@ class Pengadaan extends Component {
                                             <th>Price/unit</th>
                                             <th>Total Amount</th>
                                             {level === '2' && (
-                                                <>
-                                                    <th>Asset</th>
-                                                    {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
-                                                        <th>Dokumen</th>
-                                                    ) : (
-                                                        null
-                                                    )}
-                                                </>
+                                                <th>Asset</th>
+                                            )}
+                                            {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
+                                                <th>Dokumen</th>
+                                            ) : (
+                                                null
                                             )}
                                         </tr>
                                     </thead>
@@ -1430,37 +1437,35 @@ class Pengadaan extends Component {
                                                         <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                         <td>Rp {(parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                         {level === '2' && (
-                                                            <>
-                                                                <td className='colTable'>
-                                                                    <div>
-                                                                        <Input
-                                                                        addon
-                                                                        disabled={item.status_app === null ? false : true}
-                                                                        checked={item.isAsset === 'true' ? true : false}
-                                                                        type="checkbox"
-                                                                        onClick={() => this.updateIo({item: item, value: 'true'})}
-                                                                        value={item.no_asset} />
-                                                                        <text className='ml-2'>Ya</text>
-                                                                    </div>
-                                                                    <div>
-                                                                        <Input
-                                                                        addon
-                                                                        disabled={item.status_app === null ? false : true}
-                                                                        checked={item.isAsset === 'false' ? true : false}
-                                                                        type="checkbox"
-                                                                        onClick={() => this.updateIo({item: item, value: 'false'})}
-                                                                        value={item.no_asset} />
-                                                                        <text className='ml-2'>Tidak</text>
-                                                                    </div>
-                                                                </td>
-                                                                {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
-                                                                    <td>
-                                                                        <Button color='success' size='sm' onClick={() => this.prosesModalDoc(item)}>Show Dokumen</Button>
-                                                                    </td>
-                                                                ) : (
-                                                                    null
-                                                                )}
-                                                            </>
+                                                            <td className='colTable'>
+                                                                <div>
+                                                                    <Input
+                                                                    addon
+                                                                    disabled={item.status_app === null ? false : true}
+                                                                    checked={item.isAsset === 'true' ? true : false}
+                                                                    type="checkbox"
+                                                                    onClick={() => this.updateIo({item: item, value: 'true'})}
+                                                                    value={item.no_asset} />
+                                                                    <text className='ml-2'>Ya</text>
+                                                                </div>
+                                                                <div>
+                                                                    <Input
+                                                                    addon
+                                                                    disabled={item.status_app === null ? false : true}
+                                                                    checked={item.isAsset === 'false' ? true : false}
+                                                                    type="checkbox"
+                                                                    onClick={() => this.updateIo({item: item, value: 'false'})}
+                                                                    value={item.no_asset} />
+                                                                    <text className='ml-2'>Tidak</text>
+                                                                </div>
+                                                            </td>
+                                                        )}
+                                                        {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
+                                                            <td>
+                                                                <Button color='success' size='sm' onClick={() => this.prosesModalDoc(item)}>Show Dokumen</Button>
+                                                            </td>
+                                                        ) : (
+                                                            null
                                                         )}
                                                     </tr>
                                                 )
@@ -1618,10 +1623,10 @@ class Pengadaan extends Component {
                         </div>
                     ) : (
                     <div className="btnFoot">
-                        <Button className="mr-2" color="primary" onClick={this.openModalApproveIo}>
+                        <Button className="mr-2" disabled={this.state.filter === 'available' ? false : true} color="primary" onClick={this.openModalApproveIo}>
                             Approve
                         </Button>
-                        <Button color="danger" onClick={this.openModalReject}>
+                        <Button color="danger" disabled={this.state.filter === 'available' ? false : true} onClick={this.openModalReject}>
                             Reject 
                         </Button>
                     </div>
@@ -1642,6 +1647,7 @@ class Pengadaan extends Component {
                         <div className="mt-4 mb-3">Io type:</div>
                         <div className="mb-4">
                             <Form.Check 
+                                checked
                                 type="checkbox"
                                 label="CB-20 IO Capex"
                             />
@@ -1770,7 +1776,7 @@ class Pengadaan extends Component {
                             </Col>
                             <Col md={10} lg={10} className="colModal">
                             <text className="mr-3">:</text>
-                            <text>-</text>
+                            <text>{detailIo[0] === undefined ? '-' : detailIo[0].alasan}</text>
                             </Col>
                         </Row>
                     </Container>
@@ -1964,7 +1970,7 @@ class Pengadaan extends Component {
                                                 ) : (
                                                     <BsCircle size={20} />
                                                 )}
-                                                <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
+                                                <button className="btnDocIo" onClick={() => this.showDokPods(x)} >{x.nama_dokumen}</button>
                                                 {/* <div>
                                                     <input
                                                     // className="ml-4"

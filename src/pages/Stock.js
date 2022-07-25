@@ -2012,15 +2012,15 @@ class Stock extends Component {
                     <div className="modalFoot ml-3">
                         <Button color="primary"  onClick={() => this.openPreview(dataItem)}>Preview</Button>
                         <div className="btnFoot">
-                            <Button className="mr-2" disabled={listMut.length === 0 ? true : false} color="danger" onClick={this.openModalReject}>
+                            <Button className="mr-2" disabled={this.state.filter !== 'available' ? true : listMut.length === 0 ? true : false} color="danger" onClick={this.openModalReject}>
                                 Reject
                             </Button>
                             {level === '2' ? (
-                                <Button color="success" disabled={detailStock.find(({status_app}) => status_app === 0) !== undefined ? true : listMut.length === 0 ? false : true} onClick={this.openModalSub}>
+                                <Button color="success" disabled={this.state.filter !== 'available' ? true : detailStock.find(({status_app}) => status_app === 0) !== undefined ? true : listMut.length === 0 ? false : true} onClick={this.openModalSub}>
                                     Submit
                                 </Button>
                             ) : (
-                                <Button color="success" disabled={detailStock.find(({status_app}) => status_app === 0) !== undefined ? true : listMut.length === 0 ? false : true} onClick={this.openModalApprove}>
+                                <Button color="success" disabled={this.state.filter !== 'available' ? true : detailStock.find(({status_app}) => status_app === 0) !== undefined ? true : listMut.length === 0 ? false : true} onClick={this.openModalApprove}>
                                     Approve
                                 </Button>
                             )}

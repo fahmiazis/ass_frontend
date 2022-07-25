@@ -875,19 +875,19 @@ class Mutasi extends Component {
                         <Button color="primary" onClick={() => this.getDataApprove(detailMut[0])}>Preview</Button>
                         {level === '12' ? (
                             <div className="btnFoot">
-                                <Button className="mr-2" disabled={detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 1 ? true : false} color="danger" onClick={() => this.openReject()}>
+                                <Button className="mr-2" disabled={this.state.view !== 'available' ? true : detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 1 ? true : false} color="danger" onClick={() => this.openReject()}>
                                     Reject
                                 </Button>
-                                <Button color="success" disabled={detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 0 ? true : false} onClick={() => this.openApprove()}>
+                                <Button color="success" disabled={this.state.view !== 'available' ? true : detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 0 ? true : false} onClick={() => this.openApprove()}>
                                     Approve
                                 </Button>
                             </div>
                         ) : (
                             <div className="btnFoot">
-                                <Button className="mr-2" disabled={detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? true : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 1 ? true : false} color="danger" onClick={() => this.openReject()}>
+                                <Button className="mr-2" disabled={this.state.view !== 'available' ? true : detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? true : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 1 ? true : false} color="danger" onClick={() => this.openReject()}>
                                     Reject
                                 </Button>
-                                <Button color="success" disabled={detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? true : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 0 ? true : false} onClick={() => this.openApprove()}>
+                                <Button color="success" disabled={this.state.view !== 'available' ? true : detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? true : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 0 ? true : false} onClick={() => this.openApprove()}>
                                     Approve
                                 </Button>
                             </div>

@@ -39,9 +39,8 @@ const alasanSchema = Yup.object().shape({
     alasan: Yup.string().required()
 });
 
-const alasanDisSchema = Yup.object().shape({
-    alasan: Yup.string().required(),
-    jenis_reject: Yup.string().required()
+const fillAsset = Yup.object().shape({
+    no_asset: Yup.number().typeError("Hanya menerima input angka").required("no asset harus diisi")
 });
 
 class EksekusiTicket extends Component {
@@ -236,11 +235,17 @@ class EksekusiTicket extends Component {
         await this.props.uploadMasterTemp(token, data, dataTemp[0].no_pengadaan)
     }
 
-    prosesModalDoc = async () => {
+    prosesModalDoc = async (val) => {
         const data = this.props.pengadaan.detailIo
         const token = localStorage.getItem('token')
-        await this.props.getDocumentIo(token, data[0].no_pengadaan)
-        this.closeProsesModalDoc()
+        this.setState({valdoc: val})
+        if (val.asset_token === null || val.asset_token === '') {
+            await this.props.getDocCart(token, val.id)
+            this.closeProsesModalDoc()
+        } else {
+            await this.props.getDocumentIo(token, data[0].no_pengadaan)
+            this.closeProsesModalDoc()
+        }
     }
 
     approveDokumen = async () => {
@@ -459,11 +464,25 @@ class EksekusiTicket extends Component {
 
     showDokumen = async (value) => {
         const token = localStorage.getItem('token')
-        await this.props.showDokumen(token, value.id)
         this.setState({date: value.updatedAt, idDoc: value.id, fileName: value})
-        console.log(value)
+        const data = this.props.pengadaan.detailIo
+        await this.props.showDokumen(token, value.id, value.no_pengadaan)
         const {isShow} = this.props.pengadaan
         if (isShow) {
+            this.openModalPdf()
+        }
+    }
+
+    showDokPods = async (val) => {
+        this.setState({date: val.updatedAt, idDoc: val.id, fileName: val})
+        const data = this.props.pengadaan.detailIo
+        const url = val.path
+        const cekBidding = url.search('bidding')
+        if (cekBidding !== -1) {
+            this.setState({dataBid: url})
+            this.openModalBidding()
+        } else {
+            window.open(url, '_blank')
             this.openModalPdf()
         }
     }
@@ -514,6 +533,16 @@ class EksekusiTicket extends Component {
                 this.setState({idTab: value.item.id})
             }
         }
+    }
+
+    updateFillAsset = async (val) => {
+        const token = localStorage.getItem("token")
+        const data = {
+            no_asset: val.no_asset
+        }
+        await this.props.updateTemp(token, val.item.id, data)
+        await this.props.getTempAsset(token, val.item.no_pengadaan)
+        await this.props.getDetail(token, val.item.no_pengadaan)
     }
 
     componentDidUpdate() {
@@ -650,7 +679,7 @@ class EksekusiTicket extends Component {
         const {alert, upload, errMsg, rinciIo, total} = this.state
         const {dataAsset, alertM, alertMsg, alertUpload, page} = this.props.asset
         const pages = this.props.disposal.page 
-        const {dataPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataTemp} = this.props.pengadaan
+        const {dataPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataTemp, dataDocCart} = this.props.pengadaan
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
         const dataNotif = this.props.notif.data
@@ -903,6 +932,7 @@ class EksekusiTicket extends Component {
                         <div className="mt-4 mb-3">Io type:</div>
                         <div className="mb-4">
                             <Form.Check 
+                                checked
                                 type="checkbox"
                                 label="CB-20 IO Capex"
                             />
@@ -918,6 +948,7 @@ class EksekusiTicket extends Component {
                                 onChange={this.onChange}
                                 numInputs={11}
                                 inputStyle={style.otp}
+                                isDisabled
                                 containerStyle={style.containerOtp}
                             />
                             {level === '8' && (
@@ -940,6 +971,11 @@ class EksekusiTicket extends Component {
                                             <th>Total Amount</th>
                                             {level === '2' && (
                                                 <th>Cek IT</th>
+                                            )}
+                                            {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
+                                                <th>Dokumen</th>
+                                            ) : (
+                                                null
                                             )}
                                         </tr>
                                     </thead>
@@ -975,6 +1011,13 @@ class EksekusiTicket extends Component {
                                                                     <text className='ml-2'>NON IT</text>
                                                                 </div>
                                                             </td>
+                                                        )}
+                                                        {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
+                                                            <td>
+                                                                <Button color='success' size='sm' onClick={() => this.prosesModalDoc(item)}>Show Dokumen</Button>
+                                                            </td>
+                                                        ) : (
+                                                            null
                                                         )}
                                                     </tr>
                                                 )
@@ -1058,7 +1101,7 @@ class EksekusiTicket extends Component {
                             </Col>
                             <Col md={10} lg={10} className="colModal">
                             <text className="mr-3">:</text>
-                            <text>-</text>
+                            <text>{detailIo[0] === undefined ? '-' : detailIo[0].alasan}</text>
                             </Col>
                         </Row>
                     </Container>
@@ -1066,9 +1109,13 @@ class EksekusiTicket extends Component {
                 <hr />
                 <div className="modalFoot">
                     <div className="btnFoot">
-                        <Button className="ml-4" color="primary" onClick={this.prosesModalDoc}>
-                            Dokumen 
-                        </Button>
+                        {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
+                            null
+                        ) : (
+                            <Button className="ml-4" color="info" onClick={this.prosesModalDoc}>
+                                Dokumen 
+                            </Button>
+                        )}
                         <Button className="ml-2" color="warning" onClick={() => this.openModPreview(detailIo[0])}>
                             Preview
                         </Button>
@@ -1123,13 +1170,37 @@ class EksekusiTicket extends Component {
                                                 {this.state.download === 'true' ? (
                                                     item.no_asset
                                                 ) : (
-                                                    <Input 
-                                                    name="no_asset"
-                                                    value={this.state.idTab == item.id ? null : item.no_asset !== null ? item.no_asset : ''}
-                                                    defaultValue={item.no_asset === null ? '' : item.no_asset}
-                                                    onChange={e => this.updateNoAsset({item: item, target: e.target, key: e.key})}
-                                                    onKeyPress={e => this.updateNoAsset({item: item, target: e.target, key: e.key})}
-                                                     />
+                                                    <Formik 
+                                                        initialValues={{
+                                                            no_asset: item.no_asset,
+                                                            item: item
+                                                        }}
+                                                        validationSchema={fillAsset}
+                                                        onSubmit={(val) => {this.updateFillAsset(val)}}
+                                                        >
+                                                            {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                                                                <>
+                                                                    <div className='filldiv'>
+                                                                            <Input 
+                                                                            name="no_asset"
+                                                                            // value={this.state.idTab == item.id ? null : item.no_asset !== null ? item.no_asset : ''}
+                                                                            // defaultValue={item.no_asset === null ? '' : item.no_asset}
+                                                                            value={values.no_asset}
+                                                                            onBlur={handleBlur("no_asset")}
+                                                                            onChange={handleChange("no_asset")}
+                                                                            // onChange={e => this.updateNoAsset({item: item, target: e.target, key: e.key})}
+                                                                            // onKeyPress={e => this.updateNoAsset({item: item, target: e.target, key: e.key})}
+                                                                            />
+                                                                            <Button className='ml-2' color='success' onClick={handleSubmit} disabled={errors.no_asset ? true : false}>Update</Button>
+                                                                        
+                                                                    </div>
+                                                                    {errors.no_asset ? (
+                                                                        <text className={style.txtError}>{errors.no_asset}</text>
+                                                                    ) : null}
+                                                                </>
+                                                            )}
+                                                    </Formik>
+                                                    
                                                 )}
                                             </td>
                                             <td>{item.id}</td>
@@ -1181,6 +1252,7 @@ class EksekusiTicket extends Component {
                         <div className="mt-4 mb-3">Io type:</div>
                         <div className="mb-4">
                             <Form.Check 
+                                checked
                                 type="checkbox"
                                 label="CB-20 IO Capex"
                             />
@@ -1309,7 +1381,7 @@ class EksekusiTicket extends Component {
                             </Col>
                             <Col md={10} lg={10} className="colModal">
                             <text className="mr-3">:</text>
-                            <text>-</text>
+                            <text>{detailIo[0] === undefined ? '-' : detailIo[0].alasan}</text>
                             </Col>
                         </Row>
                     </Container>
@@ -1453,44 +1525,75 @@ class EksekusiTicket extends Component {
                         <Alert color="danger" className="alertWrong" isOpen={this.state.upload}>
                             <div>{this.state.errMsg}</div>
                         </Alert>
-                        {dataDoc !== undefined && dataDoc.map(x => {
-                            return (
-                                <Row className="mt-3 mb-4">
-                                    <Col md={12} lg={12} >
-                                        <text>{dataDoc.indexOf(x) + 1}. {x.nama_dokumen}</text>
-                                    </Col>
-                                    {x.path !== null ? (
+                        {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
+                            dataDocCart !== undefined && dataDocCart.map(x => {
+                                return (
+                                    <Row className="mt-3 mb-4">
                                         <Col md={12} lg={12} >
-                                            {x.status === 0 ? (
-                                                <AiOutlineClose size={20} />
-                                            ) : x.status === 3 ? (
-                                                <AiOutlineCheck size={20} />
-                                            ) : (
-                                                <BsCircle size={20} />
-                                            )}
-                                            <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
-                                            <div>
-                                                <input
-                                                // className="ml-4"
-                                                type="file"
-                                                onClick={() => this.setState({detail: x})}
-                                                onChange={this.onChangeUpload}
-                                                />
-                                            </div>
+                                            <text>{dataDocCart.indexOf(x) + 1}. {x.nama_dokumen}</text>
                                         </Col>
-                                    ) : (
+                                        {x.path !== null ? (
+                                            <Col md={12} lg={12} >
+                                                {x.status === 0 ? (
+                                                    <AiOutlineClose size={20} />
+                                                ) : x.status === 3 ? (
+                                                    <AiOutlineCheck size={20} />
+                                                ) : (
+                                                    <BsCircle size={20} />
+                                                )}
+                                                <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
+                                                {/* <div>
+                                                    <input
+                                                    // className="ml-4"
+                                                    type="file"
+                                                    onClick={() => this.setState({detail: x})}
+                                                    onChange={this.onChangeUpload}
+                                                    />
+                                                </div> */}
+                                            </Col>
+                                        ) : (
+                                            <Col md={12} lg={12} >
+                                                -
+                                            </Col>
+                                        )}
+                                    </Row>
+                                )
+                            })
+                        ) : (
+                            dataDoc !== undefined && dataDoc.map(x => {
+                                return (
+                                    <Row className="mt-3 mb-4">
                                         <Col md={12} lg={12} >
-                                            <input
-                                            // className="ml-4"
-                                            type="file"
-                                            onClick={() => this.setState({detail: x})}
-                                            onChange={this.onChangeUpload}
-                                            />
+                                            <text>{dataDoc.indexOf(x) + 1}. {x.nama_dokumen}</text>
                                         </Col>
-                                    )}
-                                </Row>
-                            )
-                        })}
+                                        {x.path !== null ? (
+                                            <Col md={12} lg={12} >
+                                                {x.status === 0 ? (
+                                                    <AiOutlineClose size={20} />
+                                                ) : x.status === 3 ? (
+                                                    <AiOutlineCheck size={20} />
+                                                ) : (
+                                                    <BsCircle size={20} />
+                                                )}
+                                                <button className="btnDocIo" onClick={() => this.showDokPods(x)} >{x.nama_dokumen}</button>
+                                                {/* <div>
+                                                    <input
+                                                    // className="ml-4"
+                                                    type="file"
+                                                    onClick={() => this.setState({detail: x})}
+                                                    onChange={this.onChangeUpload}
+                                                    />
+                                                </div> */}
+                                            </Col>
+                                        ) : (
+                                            <Col md={12} lg={12} >
+                                                -
+                                            </Col>
+                                        )}
+                                    </Row>
+                                )
+                            })
+                        )}
                     </Container>
                 </ModalBody>
                 <ModalFooter>
@@ -1600,8 +1703,8 @@ class EksekusiTicket extends Component {
                                 />
                             </div>
                             {errors.alasan ? (
-                                    <text className={style.txtError}>{errors.alasan}</text>
-                                ) : null}
+                                <text className={style.txtError}>{errors.alasan}</text>
+                            ) : null}
                             <div className={style.btnApprove}>
                                 <Button color="primary" onClick={handleSubmit}>Ya</Button>
                                 <Button color="secondary" onClick={this.openModalReject}>Tidak</Button>
@@ -1791,7 +1894,8 @@ const mapDispatchToProps = {
     getTempAsset: pengadaan.getTempAsset,
     updateTemp: pengadaan.updateTemp,
     uploadMasterTemp: pengadaan.uploadMasterTemp,
-    podsSend: pengadaan.podsSend
+    podsSend: pengadaan.podsSend,
+    getDocCart: pengadaan.getDocCart,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EksekusiTicket)

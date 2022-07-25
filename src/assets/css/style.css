@@ -12,6 +12,11 @@
     height: auto;
     margin-bottom: 5%;
 }
+.filldiv {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
 .filterUser {
     display: flex;
     flex-direction: row;
