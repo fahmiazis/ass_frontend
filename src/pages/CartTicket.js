@@ -394,7 +394,7 @@ class CartMutasi extends Component {
                                 onBlur={handleBlur("tipe")}
                                 >   
                                     <option value="">-Pilih Tipe-</option>
-                                    <option value="gudang">Sewa Gudang</option>
+                                    {/* <option value="gudang">Sewa Gudang</option> */}
                                     <option value="barang">Barang</option>
                                 </Input>
                                 {errors.tipe ? (

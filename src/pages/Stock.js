@@ -28,6 +28,7 @@ import {Formik} from 'formik'
 import * as Yup from 'yup'
 import auth from '../redux/actions/auth'
 import disposal from '../redux/actions/disposal'
+import notif from '../redux/actions/notif'
 import Pdf from "../components/Pdf"
 import depo from '../redux/actions/depo'
 import stock from '../redux/actions/stock'
@@ -186,6 +187,7 @@ class Stock extends Component {
         const token = localStorage.getItem('token')
         await this.props.approveStock(token, dataItem.no_stock)
         await this.props.getApproveStock(token, dataItem.no_stock, dataItem.kode_plant.split('').length === 4 ? 'stock opname' : 'stock opname HO')
+        await this.props.notifStock(token, dataItem.no_stock, 'approve', 'HO', null, null)
     }
 
     rejectStock = async (value) => {
@@ -198,6 +200,7 @@ class Stock extends Component {
         await this.props.rejectStock(token, dataItem.no_stock, data)
         await this.props.getDetailStock(token, dataItem.id)
         await this.props.getApproveStock(token, dataItem.no_stock, dataItem.kode_plant.split('').length === 4 ? 'stock opname' : 'stock opname HO')
+        await this.props.notifStock(token, dataItem.no_stock, 'reject', null, null, null, data)
     }
 
     dropApp = () => {
@@ -311,7 +314,7 @@ class Stock extends Component {
 
     componentDidUpdate() {
         const {isUpload, isError, isApprove, isReject, rejReject, rejApprove, isImage, isSubmit, isSubaset} = this.props.stock
-        const {dataRinci, dataId} = this.state
+        const {dataRinci, dataId, dataItem} = this.state
         const { isUpdateNew } = this.props.asset
         const errUpload = this.props.disposal.isUpload
         const token = localStorage.getItem('token')
@@ -338,6 +341,8 @@ class Stock extends Component {
             this.openModalReject()
             this.openConfirm(this.setState({confirm: 'reject'}))
             this.props.resetStock()
+            this.getDataStock()
+            this.openModalRinci()
         } else if (isSubaset) {
             this.openConfirm(this.setState({confirm: 'submit'}))
             this.props.resetStock()
@@ -1433,6 +1438,9 @@ class Stock extends Component {
                             </div>
                         </div>
                     </ModalBody>
+                    <ModalFooter>
+                        <Button color='primary'>Done</Button>
+                    </ModalFooter>
                 </Modal>
                 <Modal isOpen={this.state.modalEdit} toggle={this.openModalEdit} size="lg">
                     <ModalHeader>
@@ -2811,7 +2819,8 @@ const mapStateToProps = state => ({
     depo: state.depo,
     stock: state.stock,
     report: state.report,
-    user: state.user
+    user: state.user,
+    notif: state.notif
 })
 
 const mapDispatchToProps = {
@@ -2852,7 +2861,8 @@ const mapDispatchToProps = {
     uploadImage: stock.uploadImage,
     submitAsset: stock.submitAsset,
     exportStock: report.getExportStock,
-    getRole: user.getRole
+    getRole: user.getRole,
+    notifStock: notif.notifStock
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Stock)

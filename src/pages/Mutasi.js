@@ -13,6 +13,7 @@ import MaterialTitlePanel from "../components/material_title_panel"
 import auth from '../redux/actions/auth'
 import depo from '../redux/actions/depo'
 import mutasi from '../redux/actions/mutasi'
+import notif from '../redux/actions/notif'
 import asset from '../redux/actions/asset'
 import {connect} from 'react-redux'
 import placeholder from  "../assets/img/placeholder.png"
@@ -89,13 +90,13 @@ class Mutasi extends Component {
         }
     }
 
-    chekRej = (val) => {
+    chekApp = (val) => {
         const { listMut } = this.state
         listMut.push(val)
         this.setState({listMut: listMut})
     }
 
-    chekApp = (val) => {
+    chekRej = (val) => {
         const { listMut } = this.state
         const data = []
         for (let i = 0; i < listMut.length; i++) {
@@ -177,6 +178,7 @@ class Mutasi extends Component {
         } else if (isApprove) {
             this.openConfirm(this.setState({confirm: 'approve'}))
             this.openApprove()
+            this.openModalMut()
             this.props.resetAppRej()
             this.getDataMutasi()
         } else if (rejReject) {
@@ -342,9 +344,10 @@ class Mutasi extends Component {
 
     approveMutasi = async () => {
         const { detailMut } = this.state
+        const level = localStorage.getItem('level')
         const token = localStorage.getItem("token")
         await this.props.approveMut(token, detailMut[0].no_mutasi)
-        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi)
+        await this.props.notifMutasi(token, detailMut[0].no_mutasi, 'approve', level === 12 ? 'area' : 'HO', null, null)
     }
 
     rejectMutasi = async (val) => {
@@ -355,7 +358,7 @@ class Mutasi extends Component {
             listMut: listMut
         }
         await this.props.rejectMut(token, detailMut[0].no_mutasi, data)
-        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi)
+        await this.props.notifMutasi(token, detailMut[0].no_mutasi, 'reject', null, null, null, data)
     }
 
     prepareSelect = async () => {
@@ -842,6 +845,7 @@ class Mutasi extends Component {
                                     <th>Cost Center</th>
                                     <th>Cabang/Depo Penerima</th>
                                     <th>Cost Center Penerima</th>
+                                    <th>Select item to reject</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -857,6 +861,15 @@ class Mutasi extends Component {
                                             <td onClick={() => this.openRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.cost_center}</td>
                                             <td onClick={() => this.openRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.area_rec}</td>
                                             <td onClick={() => this.openRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.cost_center_rec}</td>
+                                            <td> 
+                                                <Input
+                                                addon
+                                                disabled={item.status_app === 0 ? true : false}
+                                                checked={item.status_app === 0 ? true : listMut.find(element => element === item.id) !== undefined ? true : false}
+                                                type="checkbox"
+                                                onClick={listMut.find(element => element === item.id) === undefined ? () => this.chekApp(item.id) : () => this.chekRej(item.id)}
+                                                value={item.id} />
+                                            </td>
                                         </tr>
                                     )
                                 })}
@@ -875,7 +888,7 @@ class Mutasi extends Component {
                         <Button color="primary" onClick={() => this.getDataApprove(detailMut[0])}>Preview</Button>
                         {level === '12' ? (
                             <div className="btnFoot">
-                                <Button className="mr-2" disabled={this.state.view !== 'available' ? true : detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 1 ? true : false} color="danger" onClick={() => this.openReject()}>
+                                <Button className="mr-2" disabled={this.state.view !== 'available' ? true : listMut.length === 0 ? true : detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 1 ? true : false} color="danger" onClick={() => this.openReject()}>
                                     Reject
                                 </Button>
                                 <Button color="success" disabled={this.state.view !== 'available' ? true : detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 0 ? true : false} onClick={() => this.openApprove()}>
@@ -884,7 +897,7 @@ class Mutasi extends Component {
                             </div>
                         ) : (
                             <div className="btnFoot">
-                                <Button className="mr-2" disabled={this.state.view !== 'available' ? true : detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? true : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 1 ? true : false} color="danger" onClick={() => this.openReject()}>
+                                <Button className="mr-2" disabled={this.state.view !== 'available' ? true : listMut.length === 0 ? true : detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? true : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 1 ? true : false} color="danger" onClick={() => this.openReject()}>
                                     Reject
                                 </Button>
                                 <Button color="success" disabled={this.state.view !== 'available' ? true : detailMut[0] === undefined ? false : detailMut[0].appForm.find(({jabatan}) => jabatan === role) === undefined ? true : detailMut[0].appForm.find(({jabatan}) => jabatan === role).status === 0 ? true : false} onClick={() => this.openApprove()}>
@@ -1262,7 +1275,8 @@ const mapStateToProps = state => ({
     asset: state.asset,
     depo: state.depo,
     mutasi: state.mutasi,
-    user: state.user
+    user: state.user,
+    notif: state.notif
 })
 
 const mapDispatchToProps = {
@@ -1282,7 +1296,8 @@ const mapDispatchToProps = {
     resetAddMut: mutasi.resetAddMut,
     resetAppRej: mutasi.resetAppRej,
     getDetailMutasi: mutasi.getDetailMutasi,
-    getRole: user.getRole
+    getRole: user.getRole,
+    notifMutasi: notif.notifMutasi
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Mutasi)

@@ -203,6 +203,7 @@ class PersetujuanDis extends Component {
 
     render() {
         const level = localStorage.getItem('level')
+        const role = localStorage.getItem('role')
         const names = localStorage.getItem('name')
         const {dataDis, disApp} = this.props.setuju
         const { dataDoc } = this.props.disposal
@@ -366,20 +367,26 @@ class PersetujuanDis extends Component {
                             </Table>
                             <div className="btnFoot1">
                                 <div className="btnfootapp">
-                                    <Button className="mr-2" color="danger" onClick={this.openModalReject}>
-                                        Reject
-                                    </Button>
-                                    {level === '23' || level === '22' || level === '25' ? (
-                                        <Button color="success">
-                                            <label>
-                                                <input type="file" className="file-upload2" onChange={this.approveSet}/>
-                                                Approve
-                                            </label>
-                                        </Button>
+                                    {disApp.pembuat.find(({jabatan}) => jabatan === role) !== undefined || disApp.penyetuju.find(({jabatan}) => jabatan === role) !== undefined ? (
+                                        <>
+                                            <Button className="mr-2" color="danger" onClick={this.openModalReject}>
+                                                Reject
+                                            </Button>
+                                            {level === '23' || level === '22' || level === '25' ? (
+                                                <Button color="success">
+                                                    <label>
+                                                        <input type="file" className="file-upload2" onChange={this.approveSet}/>
+                                                        Approve
+                                                    </label>
+                                                </Button>
+                                            ) : (
+                                                <Button color="success" onClick={this.approveSet}>
+                                                    Approve
+                                                </Button>
+                                            )}
+                                        </>
                                     ) : (
-                                        <Button color="success" onClick={this.approveSet}>
-                                            Approve
-                                        </Button>
+                                        null
                                     )}
                                 </div>
                                 <Button color="primary" className="btnDownloadForm">

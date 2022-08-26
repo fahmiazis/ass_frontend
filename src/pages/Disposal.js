@@ -198,9 +198,6 @@ class Disposal extends Component {
         const data = {
             alasan: value.value.alasan
         }
-        if (value.value.jenis_reject === 'batal') {
-            this.openModalDis()
-        } 
         await this.props.rejectDisposal(token, value.no, data, value.value.jenis_reject)
         await this.props.notifDisposal(token, value, 'reject', value.value.jenis_reject, null, null)
         this.openModalReject()
@@ -243,7 +240,9 @@ class Disposal extends Component {
 
     getDetailDisposal = async (value) => {
         const { dataDis } = this.props.disposal
+        const token = localStorage.getItem('token')
         const detail = []
+        await this.props.getDetailDis(token, value, 'pengajuan')
         for (let i = 0; i < dataDis.length; i++) {
             if (dataDis[i].no_disposal === value) {
                 detail.push(dataDis[i])
@@ -608,6 +607,7 @@ class Disposal extends Component {
         const {dataAsset, alertM, alertMsg, alertUpload, page} = this.props.asset
         const pages = this.props.disposal.page 
         const { dataDis, noDis, dataDoc, disApp, dataSubmit } = this.props.disposal
+        const detailData = this.props.disposal.detailDis
         const {dataRinci, newDis} = this.state
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
@@ -951,10 +951,10 @@ class Disposal extends Component {
                                 </tr>
                             </thead>
                             <tbody>
-                                {detailDis.length !== 0 && detailDis.map(item => {
+                                {detailData.length !== 0 && detailData.map(item => {
                                     return (
                                         <tr onClick={() => this.openDataRinci(item)}>
-                                            <th scope="row">{detailDis.indexOf(item) + 1}</th>
+                                            <th scope="row">{detailData.indexOf(item) + 1}</th>
                                             <td>{item.no_asset}</td>
                                             <td>{item.nama_asset}</td>
                                             <td>{item.merk}</td>
@@ -973,10 +973,10 @@ class Disposal extends Component {
                     <div className="modalFoot ml-3">
                         <Button color="primary" onClick={() => this.openModPreview({nama: detailDis[0] !== undefined && detailDis[0].kode_plant.split('').length === 4 ? 'disposal pengajuan' : 'disposal pengajuan HO', no: detailDis[0] !== undefined && detailDis[0].no_disposal})}>Preview</Button>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="danger" disabled={this.state.view !== 'available' || this.state.view !== 'revisi' ? true : detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true} onClick={this.openModalReject}>
+                            <Button className="mr-2" color="danger" disabled={this.state.view !== 'available' && this.state.view !== 'revisi' ? true : detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true} onClick={this.openModalReject}>
                                 Reject
                             </Button>
-                            <Button color="success" onClick={this.openModalApprove} disabled={this.state.view !== 'available' || this.state.view !== 'revisi' ? true : detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true}>
+                            <Button color="success" onClick={this.openModalApprove} disabled={this.state.view !== 'available' && this.state.view !== 'revisi' ? true : detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true}>
                                 Approve
                             </Button>
                         </div>
@@ -1028,10 +1028,10 @@ class Disposal extends Component {
                                 </tr>
                             </thead>
                             <tbody>
-                                {detailDis.length !== 0 && detailDis.map(item => {
+                                {detailData.length !== 0 && detailData.map(item => {
                                     return (
                                         <tr>
-                                            <th scope="row">{detailDis.indexOf(item) + 1}</th>
+                                            <th scope="row">{detailData.indexOf(item) + 1}</th>
                                             <td>{item.no_asset}</td>
                                             <td>{item.nama_asset}</td>
                                             <td>{item.merk}</td>
@@ -1147,7 +1147,7 @@ class Disposal extends Component {
                         <div></div>
                         <div className="btnFoot">
                             <Button className="mr-2" color="warning">
-                                <TablePeng detailDis={detailDis} />
+                                <TablePeng detailDis={detailData} />
                             </Button>
                             <Button color="success" onClick={this.openPreview}>
                                 Close
@@ -1375,7 +1375,7 @@ class Disposal extends Component {
                                                 ) : x.divisi === '3' ? (
                                                     <AiOutlineCheck size={20} />
                                                 ) : (
-                                                    <div></div>
+                                                    <BsCircle size={20} />
                                                 )}
                                                 <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
                                         </Col>
@@ -1423,8 +1423,8 @@ class Disposal extends Component {
                                 onChange={handleChange('jenis_reject')}
                                 onBlur={handleBlur('jenis_reject')}
                                 >
-                                    <option value="batal">Pembatalan </option>
                                     <option value="revisi">Perbaikan </option>
+                                    <option value="batal">Pembatalan </option>
                                 </Input>
                             </div>
                             {errors.jenis_reject ? (
@@ -1583,21 +1583,21 @@ class Disposal extends Component {
                             <div>
                                 <div className={style.cekUpdate}>
                                 <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={[style.sucUpdate, style.green]}>Berhasil Approve Dokumen</div>
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Approve</div>
                             </div>
                             </div>
                         ) : this.state.confirm === 'reject' ?(
                             <div>
                                 <div className={style.cekUpdate}>
                                     <AiFillCheckCircle size={80} className={style.green} />
-                                    <div className={[style.sucUpdate, style.green]}>Berhasil Reject Dokumen</div>
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Reject</div>
                                 </div>
                             </div>
                         ) : this.state.confirm === 'rejApprove' ?(
                             <div>
                                 <div className={style.cekUpdate}>
                                 <AiOutlineClose size={80} className={style.red} />
-                                <div className={[style.sucUpdate, style.green]}>Gagal Approve Dokumen</div>
+                                <div className={[style.sucUpdate, style.green]}>Gagal Approve</div>
                                 <div className="errApprove mt-2">{this.props.disposal.alertM === undefined ? '' : this.props.disposal.alertM}</div>
                             </div>
                             </div>
@@ -1605,7 +1605,7 @@ class Disposal extends Component {
                             <div>
                                 <div className={style.cekUpdate}>
                                 <AiOutlineClose size={80} className={style.red} />
-                                <div className={[style.sucUpdate, style.green]}>Gagal Reject Dokumen</div>
+                                <div className={[style.sucUpdate, style.green]}>Gagal Reject</div>
                                 <div className="errApprove mt-2">{this.props.disposal.alertM === undefined ? '' : this.props.disposal.alertM}</div>
                             </div>
                             </div>
@@ -1723,7 +1723,8 @@ const mapDispatchToProps = {
     getNotif: notif.getNotif,
     resetAuth: auth.resetError,
     getRole: user.getRole,
-    notifDisposal: notif.notifDisposal
+    notifDisposal: notif.notifDisposal,
+    getDetailDis: disposal.getDetailDisposal,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Disposal)

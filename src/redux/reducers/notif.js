@@ -10,7 +10,9 @@ const notifState = {
     delall: false,
     update: false,
     upall: false,
-    notifDis: null
+    notifDis: null,
+    notifStock: null,
+    notifMut: null
 }
 
 export default (state=notifState, action) => {
@@ -130,6 +132,52 @@ export default (state=notifState, action) => {
                 ...state,
                 isLoading: false,
                 notifDis: false,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'NOTIF_STOCK_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'NOTIF_STOCK_FULFILLED': {
+            return {
+                ...state,
+                notifStock: true,
+                isLoading: false,
+                alertMsg: 'delete notif Succesfully'
+            };
+        }
+        case 'NOTIF_STOCK_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                notifStock: false,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'NOTIF_MUT_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'NOTIF_MUT_FULFILLED': {
+            return {
+                ...state,
+                notifMut: true,
+                isLoading: false,
+                alertMsg: 'delete notif Succesfully'
+            };
+        }
+        case 'NOTIF_MUT_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                notifMut: false,
                 alertMsg: "Unable connect to server"
             };
         }

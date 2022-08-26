@@ -79,7 +79,7 @@ export default function Bell({dataNotif, color}) {
                                 <div>
                                     <div>Request</div>
                                     <div className="textNotif">{item.keterangan} {item.jenis}</div>
-                                    <div className="textNotif">No {item.jenis}: {item.no_proses}</div>
+                                    <div className="textNotif">No transaksi: {item.no_proses}</div>
                                     <div>{moment(item.createdAt).format('LLL')}</div>
                                 </div>
                             </div>

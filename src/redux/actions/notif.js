@@ -23,8 +23,16 @@ export default {
         type: 'UPALL_NOTIF',
         payload: http(token).patch(`/notif/upall`)
     }),
-    notifDisposal: (token, no, tipe, apptipe, act, status) => ({
+    notifDisposal: (token, no, tipe, apptipe, act, status, data) => ({
         type: 'NOTIF_DIS',
-        payload: http(token).patch(`/notif/disposal/${no}?tipe=${tipe}&apptipe=${apptipe}&act=${act}&status=${status}`)
-    })
+        payload: http(token).patch(`/notif/disposal/${no}?tipe=${tipe}&apptipe=${apptipe}&act=${act}&status=${status}`, qs.stringify(data))
+    }),
+    notifStock: (token, no, tipe, apptipe, act, status, data) => ({
+        type: 'NOTIF_STOCK',
+        payload: http(token).patch(`/notif/stock/${no}?tipe=${tipe}&apptipe=${apptipe}&act=${act}&status=${status}`, qs.stringify(data))
+    }),
+    notifMutasi: (token, no, tipe, apptipe, act, status, data) => ({
+        type: 'NOTIF_MUT',
+        payload: http(token).patch(`/notif/mutasi/${no}?tipe=${tipe}&apptipe=${apptipe}&act=${act}&status=${status}`, qs.stringify(data))
+    }),
 }

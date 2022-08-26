@@ -681,6 +681,7 @@ class Pengadaan extends Component {
             this.setState({confirm: 'approve'})
             this.openConfirm()
             this.props.resetApp()
+            this.prosesModalIo()
             this.props.getApproveIo(token, detailIo[0].no_pengadaan)
         } else if (rejApprove) {
             this.setState({confirm: 'rejApprove'})
@@ -690,6 +691,7 @@ class Pengadaan extends Component {
             this.setState({confirm: 'reject'})
             this.openConfirm()
             this.props.resetApp()
+            this.prosesModalIo()
             this.props.getApproveIo(token, detailIo[0].no_pengadaan)
         } else if (rejReject) {
             this.setState({confirm: 'rejReject'})
