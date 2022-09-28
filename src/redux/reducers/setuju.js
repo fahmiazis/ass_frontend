@@ -12,7 +12,7 @@ const setujuState = {
     errorRej: false,
     alertMsg: '',
     alertM: '',
-    isSubmitEks: false,
+    isSubmitEks: null,
     isSubmitTax: false,
     isSubmitFinal: false,
     isSubmitPurch: false,
@@ -57,7 +57,6 @@ export default (state=setujuState, action) => {
             case 'SUBMIT_EKSEKUSI_PENDING': {
                 return {
                     ...state,
-                    isSubmitEks: false,
                     isLoading: true,
                     alertMsg: 'Waiting ...'
                 };
@@ -66,7 +65,6 @@ export default (state=setujuState, action) => {
                 return {
                     ...state,
                     isLoading: false,
-                    isError: false,
                     isSubmitEks: true,
                     alertMsg: 'submit eksekusi disposal Succesfully',
                 };
@@ -76,7 +74,6 @@ export default (state=setujuState, action) => {
                     ...state,
                     isLoading: false,
                     isSubmitEks: false,
-                    isError: true,
                     alertM: action.payload.response === undefined || action.payload.response.data === undefined ? 'unable connect to server': action.payload.response.data.message,
                     alertMsg: "Unable connect to server"
                 };
@@ -334,7 +331,8 @@ export default (state=setujuState, action) => {
                 return {
                     ...state,
                     isError: false,
-                    isGet: false
+                    isGet: false,
+                    isSubmitEks: null
                 }
             }
             case 'RESET_APPSET': {

@@ -478,7 +478,6 @@ class TrackingStock extends Component {
                                     <Row className="bodyDispos">
                                     {dataStock.length !== undefined && dataStock.length > 0 && dataStock.map(item => {
                                         return (
-                                            
                                             <div className="bodyCard">
                                                 <img src={placeholder} className="imgCard1" />
                                                 <Button size="sm" color="success" className="labelBut">Stock Opname</Button>
@@ -491,7 +490,8 @@ class TrackingStock extends Component {
                                                         Kode Area
                                                         </Col>
                                                         <Col md={7} className="txtDoc">
-                                                        : {item.kode_plant}
+                                                         <div>:</div>
+                                                         {item.kode_plant}
                                                         </Col>
                                                     </Row>
                                                     <Row className="mb-2">
@@ -499,7 +499,8 @@ class TrackingStock extends Component {
                                                         Area
                                                         </Col>
                                                         <Col md={7} className="txtDoc">
-                                                        : {item.area}
+                                                         <div>:</div>
+                                                         {item.area}
                                                         </Col>
                                                     </Row>
                                                     <Row className="mb-2">
@@ -507,7 +508,8 @@ class TrackingStock extends Component {
                                                         Tanggal Opname
                                                         </Col>
                                                         <Col md={7} className="txtDoc">
-                                                        : {moment(item.tanggalStock).format('LL')}
+                                                         <div>:</div>
+                                                         {moment(item.tanggalStock).format('LL')}
                                                         </Col>
                                                     </Row>
                                                     <Row className="mb-2">
@@ -515,7 +517,8 @@ class TrackingStock extends Component {
                                                         No Opname
                                                         </Col>
                                                         <Col md={7} className="txtDoc">
-                                                        : {item.no_stock}
+                                                         <div>:</div>
+                                                         {item.no_stock}
                                                         </Col>
                                                     </Row>
                                                 </div>

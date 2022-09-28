@@ -84,7 +84,8 @@ class MonitoringDisposal extends Component {
             detailDis: [],
             formDis: false,
             collap: false,
-            tipeCol: ''
+            tipeCol: '',
+            view: ''
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -179,6 +180,47 @@ class MonitoringDisposal extends Component {
         this.setState({modalConfirm: !this.state.modalConfirm})
     }
 
+    changeView = (val) => {
+        const newDis = []
+        const { dataDis, noDis } = this.props.tracking
+        if (val === 'selesai') {
+            for (let i = 0; i < noDis.length; i++) {
+                const index = dataDis.indexOf(dataDis.find(({no_disposal}) => no_disposal === noDis[i]))
+                const resdis = dataDis[index]
+                if (resdis !== undefined && resdis.status_form === 8) {
+                    newDis.push(dataDis[index])
+                }
+            }
+            this.setState({view: val, newDis: newDis})
+        } else if (val === 'proses') {
+            for (let i = 0; i < noDis.length; i++) {
+                const index = dataDis.indexOf(dataDis.find(({no_disposal}) => no_disposal === noDis[i]))
+                const resdis = dataDis[index]
+                if (resdis !== undefined && resdis.status_form !== 8 && (resdis.status_reject === null || resdis.status_reject === 4 || resdis.status_reject === 6)) {
+                    newDis.push(resdis)
+                }
+            }
+            this.setState({view: val, newDis: newDis})
+        } else if (val === 'reject') {
+            for (let i = 0; i < noDis.length; i++) {
+                const index = dataDis.indexOf(dataDis.find(({no_disposal}) => no_disposal === noDis[i]))
+                const resdis = dataDis[index]
+                if (resdis !== undefined && (resdis.status_reject === 0 || resdis.status_reject === 1 || resdis.status_reject === 2 || resdis.status_reject === 3 || resdis.status_reject === 5)) {
+                    newDis.push(resdis)
+                }
+            }
+            this.setState({view: val, newDis: newDis})
+        } else {
+            for (let i = 0; i < noDis.length; i++) {
+                const index = dataDis.indexOf(dataDis.find(({no_disposal}) => no_disposal === noDis[i]))
+                if (dataDis[index] !== undefined) {
+                    newDis.push(dataDis[index])
+                }
+            }
+            this.setState({view: val, newDis: newDis})
+        }
+    }
+
     dropDown = () => {
         this.setState({dropOpen: !this.state.dropOpen})
     }
@@ -223,7 +265,7 @@ class MonitoringDisposal extends Component {
     getDataTrack = async () => {
         const token = localStorage.getItem('token')
         await this.props.getTrack(token)
-        this.filterData()
+        this.changeView('all')
     }
     
     filterData = () => {
@@ -321,7 +363,28 @@ class MonitoringDisposal extends Component {
                                     })}
                                 </Alert>
                                 <div className={style.headMaster}>
-                                    <div className={style.titleDashboard1}>Tracking Disposal</div>
+                                    <div className={style.titleDashboard}>Tracking Disposal</div>
+                                </div>
+                                <div className={[style.secEmail]}>
+                                    <div className="mt-5">
+                                        <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
+                                            <option value="all">All</option>
+                                            <option value="proses">On Proses</option>
+                                            <option value="reject">Reject</option>
+                                            <option value="selesai">Selesai</option>
+                                        </Input>
+                                    </div>
+                                    <div className={[style.searchEmail]}>
+                                        <text>Search: </text>
+                                        <Input 
+                                        className={style.search}
+                                        onChange={this.onSearch}
+                                        value={this.state.search}
+                                        onKeyPress={this.onSearch}
+                                        >
+                                            <FaSearch size={20} />
+                                        </Input>
+                                    </div>
                                 </div>
                                 {newDis === undefined ? (
                                         <div></div>
@@ -336,17 +399,17 @@ class MonitoringDisposal extends Component {
                                                     <img src={placeholder} className="imgCard1" />
                                                     
                                                     {item.nilai_jual === '0' ? 
-                                                        (
+                                                    (
                                                         <Button size="sm" color="success" className="labelBut">Pemusnahan</Button>
-                                                        ) : (
-                                                            <div></div>
-                                                        )}
-                                                        {item.nilai_jual !== '0' ?
-                                                        (
+                                                    ) : (
+                                                        <div></div>
+                                                    )}
+                                                    {item.nilai_jual !== '0' ?
+                                                    (
                                                         <Button size="sm" color="warning" className="labelBut">Penjualan</Button>
-                                                        ) : (
-                                                            <div></div>
-                                                        )}
+                                                    ) : (
+                                                        <div></div>
+                                                    )}
                                                     <div className="ml-2">
                                                         <div className="txtDoc mb-2">
                                                             Pengajuan Disposal Asset
@@ -356,7 +419,8 @@ class MonitoringDisposal extends Component {
                                                             Kode Plant
                                                             </Col>
                                                             <Col md={6} className="txtDoc">
-                                                            : {item.kode_plant}
+                                                             <div>:</div>
+                                                             {item.kode_plant}
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">
@@ -364,7 +428,8 @@ class MonitoringDisposal extends Component {
                                                             Area
                                                             </Col>
                                                             <Col md={6} className="txtDoc">
-                                                            : {item.area}
+                                                             <div>:</div>
+                                                             {item.area}
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">
@@ -372,7 +437,8 @@ class MonitoringDisposal extends Component {
                                                             No Disposal
                                                             </Col>
                                                             <Col md={6} className="txtDoc">
-                                                            : D{item.no_disposal}
+                                                             <div>:</div>
+                                                             D{item.no_disposal}
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">
@@ -387,33 +453,49 @@ class MonitoringDisposal extends Component {
                                                                 item.ttdSet.length > 0 ? (
                                                                     item.ttdSet.find(({status}) => status === 0) !== undefined ? (
                                                                         <Col md={6} className="txtDoc">
-                                                                        : Reject {item.ttdSet.find(({status}) => status === 0).jabatan}
+                                                                         <div>:</div>
+                                                                         Reject {item.ttdSet.find(({status}) => status === 0).jabatan}
                                                                         </Col>
                                                                     ) : item.ttdSet.find(({status}) => status === 1) !== undefined ? (
                                                                         <Col md={6} className="txtDoc">
-                                                                        : Approve {item.ttdSet.find(({status}) => status === 1).jabatan}
+                                                                         <div>:</div>
+                                                                         Approve {item.ttdSet.find(({status}) => status === 1).jabatan}
                                                                         </Col>
                                                                     ) : (
                                                                         <Col md={6} className="txtDoc">
-                                                                        : -
+                                                                         <div>:</div>
+                                                                         -
                                                                         </Col>
                                                                     )
                                                                 ) : (
                                                                     item.appForm.find(({status}) => status === 0) !== undefined ? (
                                                                         <Col md={6} className="txtDoc">
-                                                                        : Reject {item.appForm.find(({status}) => status === 0).jabatan}
+                                                                         <div>:</div>
+                                                                         Reject {item.appForm.find(({status}) => status === 0).jabatan}
                                                                         </Col>
                                                                     ) : item.appForm.find(({status}) => status === 1) !== undefined ? (
                                                                         <Col md={6} className="txtDoc">
-                                                                        : Approve {item.appForm.find(({status}) => status === 1).jabatan}
+                                                                         <div>:</div>
+                                                                         Approve {item.appForm.find(({status}) => status === 1).jabatan}
                                                                         </Col>
                                                                     ) : (
                                                                         <Col md={6} className="txtDoc">
-                                                                        : -
+                                                                         <div>:</div>
+                                                                         -
                                                                         </Col>
                                                                     )
                                                                 )
                                                             )}
+                                                            
+                                                        </Row>
+                                                        <Row className="mb-2">
+                                                            <Col md={6} className="txtDoc">
+                                                                Status Transaksi
+                                                            </Col>
+                                                            <Col md={6} className="txtDoc">
+                                                                <div>:</div>
+                                                                {item.status_form === 8 ? 'Selesai' : item.status_form === 0 ? 'Reject Pembatalan' : item.status_reject === 4 || item.status_reject === 6 ? 'Revisi' : item.status_reject !== null ? 'Reject Perbaikan' : 'On Proses'}
+                                                            </Col>
                                                         </Row>
                                                     </div>
                                                     <Row className="footCard mb-3 mt-3">

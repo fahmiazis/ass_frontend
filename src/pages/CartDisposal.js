@@ -426,6 +426,7 @@ class CartDisposal extends Component {
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.merk}
+                                                disabled
                                                 onBlur={handleBlur("merk")}
                                                 onChange={handleChange("merk")}
                                                 />
@@ -566,9 +567,6 @@ class CartDisposal extends Component {
                 <ModalFooter>
                     <Button className="mr-2" color="secondary" onClick={this.closeProsesModalDoc}>
                         Close
-                    </Button>
-                    <Button color="primary" onClick={this.closeProsesModalDoc}>
-                        Save 
                     </Button>
                 </ModalFooter>
             </Modal>

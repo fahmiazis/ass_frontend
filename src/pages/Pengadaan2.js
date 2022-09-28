@@ -1035,7 +1035,8 @@ class Pengadaan extends Component {
                                                             Kode Area
                                                             </Col>
                                                             <Col md={6} className="txtDoc">
-                                                            : {item.kode_plant}
+                                                            <div>:</div>
+                                                            {item.kode_plant}
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">
@@ -1043,7 +1044,8 @@ class Pengadaan extends Component {
                                                             Area
                                                             </Col>
                                                             <Col md={6} className="txtDoc">
-                                                            : {item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}
+                                                            <div>:</div>
+                                                            {item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">
@@ -1051,7 +1053,8 @@ class Pengadaan extends Component {
                                                             No Pengadaan
                                                             </Col>
                                                             <Col md={6} className="txtDoc">
-                                                            : {item.no_pengadaan}
+                                                            <div>:</div>
+                                                            {item.no_pengadaan}
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">
@@ -1060,15 +1063,18 @@ class Pengadaan extends Component {
                                                             </Col> */}
                                                             {/* {item.appForm.find(({status}) => status === 0) !== undefined ? (
                                                                 <Col md={6} className="txtDoc">
-                                                                : Reject {item.appForm.find(({status}) => status === 0).jabatan}
+                                                                <div>:</div>
+                                                                Reject {item.appForm.find(({status}) => status === 0).jabatan}
                                                                 </Col>
                                                             ) : item.appForm.find(({status}) => status === 1) !== undefined ? (
                                                                 <Col md={6} className="txtDoc">
-                                                                : Approve {item.appForm.find(({status}) => status === 1).jabatan}
+                                                                <div>:</div>
+                                                                Approve {item.appForm.find(({status}) => status === 1).jabatan}
                                                                 </Col>
                                                             ) : (
                                                                 <Col md={6} className="txtDoc">
-                                                                : -
+                                                                <div>:</div>
+                                                                -
                                                                 </Col>
                                                             )} */}
                                                         </Row>
@@ -1107,7 +1113,8 @@ class Pengadaan extends Component {
                                                                 Kode Area
                                                                 </Col>
                                                                 <Col md={6} className="txtDoc">
-                                                                : {item.kode_plant}
+                                                                <div>:</div>
+                                                                {item.kode_plant}
                                                                 </Col>
                                                             </Row>
                                                             <Row className="mb-2">
@@ -1115,7 +1122,8 @@ class Pengadaan extends Component {
                                                                 Area
                                                                 </Col>
                                                                 <Col md={6} className="txtDoc">
-                                                                : {item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}
+                                                                <div>:</div>
+                                                                {item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}
                                                                 </Col>
                                                             </Row>
                                                             <Row className="mb-2">
@@ -1123,7 +1131,8 @@ class Pengadaan extends Component {
                                                                 No Pengadaan
                                                                 </Col>
                                                                 <Col md={6} className="txtDoc">
-                                                                : {item.no_pengadaan}
+                                                                <div>:</div>
+                                                                {item.no_pengadaan}
                                                                 </Col>
                                                             </Row>
                                                             <Row className="mb-2">
@@ -1182,7 +1191,8 @@ class Pengadaan extends Component {
                                                                 Kode Area
                                                                 </Col>
                                                                 <Col md={6} className="txtDoc">
-                                                                : {item.kode_plant}
+                                                                <div>:</div>
+                                                                {item.kode_plant}
                                                                 </Col>
                                                             </Row>
                                                             <Row className="mb-2">
@@ -1190,7 +1200,8 @@ class Pengadaan extends Component {
                                                                 Area
                                                                 </Col>
                                                                 <Col md={6} className="txtDoc">
-                                                                : {item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}
+                                                                <div>:</div>
+                                                                {item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}
                                                                 </Col>
                                                             </Row>
                                                             <Row className="mb-2">
@@ -1198,7 +1209,8 @@ class Pengadaan extends Component {
                                                                 No Pengadaan
                                                                 </Col>
                                                                 <Col md={6} className="txtDoc">
-                                                                : {item.no_pengadaan}
+                                                                <div>:</div>
+                                                                {item.no_pengadaan}
                                                                 </Col>
                                                             </Row>
                                                             <Row className="mb-2">
@@ -1256,7 +1268,8 @@ class Pengadaan extends Component {
                                                                             Kode Area
                                                                             </Col>
                                                                             <Col md={6} className="txtDoc">
-                                                                            : {item.kode_plant}
+                                                                            <div>:</div>
+                                                                            {item.kode_plant}
                                                                             </Col>
                                                                         </Row>
                                                                         <Row className="mb-2">
@@ -1264,7 +1277,8 @@ class Pengadaan extends Component {
                                                                             Area
                                                                             </Col>
                                                                             <Col md={6} className="txtDoc">
-                                                                            : {item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}
+                                                                            <div>:</div>
+                                                                            {item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}
                                                                             </Col>
                                                                         </Row>
                                                                         <Row className="mb-2">
@@ -1272,7 +1286,8 @@ class Pengadaan extends Component {
                                                                             No Pengadaan
                                                                             </Col>
                                                                             <Col md={6} className="txtDoc">
-                                                                            : {item.no_pengadaan}
+                                                                            <div>:</div>
+                                                                            {item.no_pengadaan}
                                                                             </Col>
                                                                         </Row>
                                                                         <Row className="mb-2">
@@ -2168,55 +2183,55 @@ class Pengadaan extends Component {
                     >
                         {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
                             <div className={style.modalApprove}>
-                            <div className='mb-2 quest'>Anda yakin untuk reject ?</div>
-                            <div className='mb-2 titStatus'>Pilih alasan :</div>
-                            <div className="ml-2">
-                                <Input
-                                addon
-                                type="checkbox"
-                                checked= {listStat.find(element => element === 'Deskripsi, kuantitas, dan harga tidak sesuai') !== undefined ? true : false}
-                                onClick={listStat.find(element => element === 'Deskripsi, kuantitas, dan harga tidak sesuai') === undefined ? () => this.statusApp('Deskripsi, kuantitas, dan harga tidak sesuai') : () => this.statusRej('Deskripsi, kuantitas, dan harga tidak sesuai')}
-                                />  Deskripsi, kuantitas, dan harga tidak sesuai
+                                <div className='mb-2 quest'>Anda yakin untuk reject ?</div>
+                                <div className='mb-2 titStatus'>Pilih alasan :</div>
+                                <div className="ml-2">
+                                    <Input
+                                    addon
+                                    type="checkbox"
+                                    checked= {listStat.find(element => element === 'Deskripsi, kuantitas, dan harga tidak sesuai') !== undefined ? true : false}
+                                    onClick={listStat.find(element => element === 'Deskripsi, kuantitas, dan harga tidak sesuai') === undefined ? () => this.statusApp('Deskripsi, kuantitas, dan harga tidak sesuai') : () => this.statusRej('Deskripsi, kuantitas, dan harga tidak sesuai')}
+                                    />  Deskripsi, kuantitas, dan harga tidak sesuai
+                                </div>
+                                <div className="ml-2">
+                                    <Input
+                                    addon
+                                    type="checkbox"
+                                    checked= {listStat.find(element => element === 'Dokumen lampiran tidak sesuai') !== undefined ? true : false}
+                                    onClick={listStat.find(element => element === 'Dokumen lampiran tidak sesuai') === undefined ? () => this.statusApp('Dokumen lampiran tidak sesuai') : () => this.statusRej('Dokumen lampiran tidak sesuai')}
+                                    />  Dokumen lampiran tidak sesuai
+                                </div>
+                                <div className="ml-2">
+                                    <Input
+                                    addon
+                                    type="checkbox"
+                                    checked= {listStat.find(element => element === 'Alasan di form io yang tidak sesuai') !== undefined ? true : false}
+                                    onClick={listStat.find(element => element === 'Alasan di form io yang tidak sesuai') === undefined ? () => this.statusApp('Alasan di form io yang tidak sesuai') : () => this.statusRej('Alasan di form io yang tidak sesuai')}
+                                    />  Alasan di form io yang tidak sesuai
+                                </div>
+                                <div className={style.alasan}>
+                                    <text className='ml-2'>
+                                        Lainnya
+                                    </text>
+                                </div>
+                                <Input 
+                                type="name" 
+                                name="select" 
+                                className="ml-2 inputRec"
+                                value={values.alasan}
+                                onChange={handleChange('alasan')}
+                                onBlur={handleBlur('alasan')}
+                                />
+                                <div className='ml-2'>
+                                    {errors.alasan ? (
+                                        <text className={style.txtError}>{errors.alasan}</text>
+                                    ) : null}
+                                </div>
+                                <div className={style.btnApprove}>
+                                    <Button color="primary" disabled={(values.alasan === '.' || values.alasan === '') && listStat.length === 0 ? true : false} onClick={handleSubmit}>Submit</Button>
+                                    <Button className='ml-2' color="secondary" onClick={this.openModalReject}>Close</Button>
+                                </div>
                             </div>
-                            <div className="ml-2">
-                                <Input
-                                addon
-                                type="checkbox"
-                                checked= {listStat.find(element => element === 'Dokumen lampiran tidak sesuai') !== undefined ? true : false}
-                                onClick={listStat.find(element => element === 'Dokumen lampiran tidak sesuai') === undefined ? () => this.statusApp('Dokumen lampiran tidak sesuai') : () => this.statusRej('Dokumen lampiran tidak sesuai')}
-                                />  Dokumen lampiran tidak sesuai
-                            </div>
-                            <div className="ml-2">
-                                <Input
-                                addon
-                                type="checkbox"
-                                checked= {listStat.find(element => element === 'Alasan di form io yang tidak sesuai') !== undefined ? true : false}
-                                onClick={listStat.find(element => element === 'Alasan di form io yang tidak sesuai') === undefined ? () => this.statusApp('Alasan di form io yang tidak sesuai') : () => this.statusRej('Alasan di form io yang tidak sesuai')}
-                                />  Alasan di form io yang tidak sesuai
-                            </div>
-                            <div className={style.alasan}>
-                                <text className='ml-2'>
-                                    Lainnya
-                                </text>
-                            </div>
-                            <Input 
-                            type="name" 
-                            name="select" 
-                            className="ml-2 inputRec"
-                            value={values.alasan}
-                            onChange={handleChange('alasan')}
-                            onBlur={handleBlur('alasan')}
-                            />
-                            <div className='ml-2'>
-                                {errors.alasan ? (
-                                    <text className={style.txtError}>{errors.alasan}</text>
-                                ) : null}
-                            </div>
-                            <div className={style.btnApprove}>
-                                <Button color="primary" disabled={(values.alasan === '.' || values.alasan === '') && listStat.length === 0 ? true : false} onClick={handleSubmit}>Submit</Button>
-                                <Button className='ml-2' color="secondary" onClick={this.openModalReject}>Close</Button>
-                            </div>
-                        </div>
                         )}
                         </Formik>
                     </ModalBody>

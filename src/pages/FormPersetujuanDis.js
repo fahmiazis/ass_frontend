@@ -74,9 +74,9 @@ class PersetujuanDis extends Component {
         const data = {
             alasan: value.value.alasan
         }
-        await this.props.rejectSetDisposal(token, dataDis[0].status_app, data, value.value.jenis_reject)
-        await this.props.notifDisposal(token, dataDis[0].status_app, 'reject', value.value.jenis_reject, null, 'persetujuan')
-        this.getApproveSet(dataDis[0].status_app)
+        await this.props.rejectSetDisposal(token, dataDis[0].no_persetujuan, data, value.value.jenis_reject)
+        await this.props.notifDisposal(token, dataDis[0].no_persetujuan, 'reject', value.value.jenis_reject, null, 'persetujuan')
+        this.getApproveSet(dataDis[0].no_persetujuan)
         this.openModalReject()
     }
 
@@ -160,15 +160,15 @@ class PersetujuanDis extends Component {
 
     componentDidMount () {
         const {dataDis} = this.props.setuju
-        this.setState({idStatus: dataDis[0].status_app})
-        this.getApproveSet(dataDis[0].status_app)
+        this.setState({idStatus: dataDis[0].no_persetujuan})
+        this.getApproveSet(dataDis[0].no_persetujuan)
         this.getNotif()
     }
 
     getDataDisposal = async (value) => {
         const token = localStorage.getItem("token")
         const {dataDis} = this.props.setuju
-        await this.props.getSetDisposal(token, 100, "", 1, dataDis[0].status_app, 'persetujuan')
+        await this.props.getSetDisposal(token, 100, "", 1, dataDis[0].no_persetujuan, 'persetujuan')
     }
 
     getApproveSet = async (val) => {
@@ -193,12 +193,22 @@ class PersetujuanDis extends Component {
         }
     }
 
-    approveSet = async () => {
+    approveSet = async e => {
         const {dataDis} = this.props.setuju
         const token = localStorage.getItem("token")
-        await this.props.approveSetDisposal(token, dataDis[0].status_app)
-        await this.props.notifDisposal(token, dataDis[0].status_app, 'approve', null, null, 'persetujuan')
-        this.getApproveSet(dataDis[0].status_app)
+        const data = new FormData()
+        data.append('document', e.target.files[0])
+        await this.props.approveSetDisposal(token, dataDis[0].no_persetujuan, data)
+        await this.props.notifDisposal(token, dataDis[0].no_persetujuan, 'approve', null, null, 'persetujuan')
+        this.getApproveSet(dataDis[0].no_persetujuan)
+    }
+
+    approveSetDis = async () => {
+        const {dataDis} = this.props.setuju
+        const token = localStorage.getItem("token")
+        await this.props.approveSetDisposal(token, dataDis[0].no_persetujuan)
+        await this.props.notifDisposal(token, dataDis[0].no_persetujuan, 'approve', null, null, 'persetujuan')
+        this.getApproveSet(dataDis[0].no_persetujuan)
     }
 
     render() {
@@ -367,7 +377,7 @@ class PersetujuanDis extends Component {
                             </Table>
                             <div className="btnFoot1">
                                 <div className="btnfootapp">
-                                    {disApp.pembuat.find(({jabatan}) => jabatan === role) !== undefined || disApp.penyetuju.find(({jabatan}) => jabatan === role) !== undefined ? (
+                                    {(disApp.pembuat !== undefined || disApp.penyetuju !== undefined) && (disApp.pembuat.find(({jabatan}) => jabatan === role) !== undefined || disApp.penyetuju.find(({jabatan}) => jabatan === role) !== undefined) ? (
                                         <>
                                             <Button className="mr-2" color="danger" onClick={this.openModalReject}>
                                                 Reject
@@ -380,7 +390,7 @@ class PersetujuanDis extends Component {
                                                     </label>
                                                 </Button>
                                             ) : (
-                                                <Button color="success" onClick={this.approveSet}>
+                                                <Button color="success" onClick={this.approveSetDis}>
                                                     Approve
                                                 </Button>
                                             )}
@@ -431,14 +441,11 @@ class PersetujuanDis extends Component {
                 </ModalBody>
                 <ModalFooter>
                     <Button className="mr-2" color="secondary" onClick={this.closeProsesModalDoc}>
-                            Close
-                        </Button>
-                        <Button color="primary" onClick={this.closeProsesModalDoc}>
-                            Save 
+                        Close
                     </Button>
                 </ModalFooter>
             </Modal>
-            <Modal isOpen={this.props.setuju.isLoading ? true: false} size="sm">
+            <Modal isOpen={this.props.setuju.isLoading === true || this.props.disposal.isLoading === true ? true: false} size="sm">
                 <ModalBody>
                 <div>
                     <div className={style.cekUpdate}>
@@ -648,7 +655,7 @@ class PersetujuanDis extends Component {
                     jenis_reject: "revisi"
                     }}
                     validationSchema={alasanDisSchema}
-                    onSubmit={(values) => {this.rejectDisposal({value: values, no: dataDis[0].status_app})}}
+                    onSubmit={(values) => {this.rejectDisposal({value: values, no: dataDis[0].no_persetujuan})}}
                     >
                         {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
                             <div className={style.modalApprove}>

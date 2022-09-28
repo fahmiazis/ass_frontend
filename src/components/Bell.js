@@ -16,19 +16,14 @@ export default function Bell({dataNotif, color}) {
     async function goRoute(val) {
         const token = localStorage.getItem('token')
         if (val === 'notif') {
-            // localStorage.setItem('route', val)
-            // this.props.goRoute()
             history.push(`/${val}`)
         } else {
-            // await this.props.upNotif(token, val.id)
-            // await this.props.getNotif(token)
             dispatch(notif.upNotif(token, val.id))
             dispatch(notif.getNotif(token))
-            const ket = val.keterangan
+            const ket = val.keterangan === null
             const jenis = (val.jenis === '' || val.jenis === null) && val.no_proses.split('')[0] === 'O' ? 'Stock Opname' : val.jenis
-            const route = val.route !== undefined || val.route !== null ? val.route : ket === 'tax' || ket === 'finance' || ket === 'tax and finance' ? 'taxfin' : ket === 'eksekusi' && jenis === 'disposal' ? 'eksdis' : jenis === 'disposal' && ket === 'pengajuan' ? 'disposal' : jenis === 'mutasi' && ket === 'pengajuan' ? 'mutasi' : jenis === 'Stock Opname' && ket === 'pengajuan' ? 'stock' : jenis === 'disposal' ? 'navdis' : jenis === 'mutasi' ? 'navmut' : jenis === 'Stock Opname' && 'navstock' 
-            // localStorage.setItem('route', route)
-            // this.props.goRoute()
+            console.log(val.route)
+            const route = val.route !== undefined && val.route !== null && val.route !== 'null' ? val.route : ket === 'tax' || ket === 'finance' || ket === 'tax and finance' ? 'taxfin' : ket === 'eksekusi' && jenis === 'disposal' ? 'eksdis' : jenis === 'disposal' && ket === 'pengajuan' ? 'disposal' : jenis === 'mutasi' && ket === 'pengajuan' ? 'mutasi' : jenis === 'Stock Opname' && ket === 'pengajuan' ? 'stock' : jenis === 'disposal' ? 'navdis' : jenis === 'mutasi' ? 'navmut' : jenis === 'Stock Opname' && 'navstock' 
             history.push(`/${route}`)
         }
     }
@@ -46,22 +41,22 @@ export default function Bell({dataNotif, color}) {
             </div>
         </DropdownToggle>
         <DropdownMenu right
-        modifiers={{
-            setMaxHeight: {
-                enabled: true,
-                order: 890,
-                fn: (data) => {
-                return {
-                    ...data,
-                    styles: {
-                    ...data.styles,
-                    overflow: 'auto',
-                    maxHeight: '600px',
+            modifiers={{
+                setMaxHeight: {
+                    enabled: true,
+                    order: 890,
+                    fn: (data) => {
+                    return {
+                        ...data,
+                        styles: {
+                        ...data.styles,
+                        overflow: 'auto',
+                        maxHeight: '600px',
+                        },
+                    };
                     },
-                };
                 },
-            },
-        }}>
+            }}>
             <DropdownItem>
                 <div className='allnotif' onClick={() => goRoute('notif')}>
                     See all notifications

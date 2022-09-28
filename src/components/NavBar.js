@@ -87,6 +87,10 @@ class NavBar extends Component {
         }
     }
 
+    cek = (val) => {
+        console.log(val)
+    }
+
     render() {
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
@@ -99,6 +103,7 @@ class NavBar extends Component {
                     <span>WEB ASSET</span>
                 </marquee>
                 <div className={style.textLogo}>
+                    {/* <Button onClick={() => this.cek('king')}>klik guys</Button> */}
                     <Bell dataNotif={data} />
                     <Account />
                 </div>

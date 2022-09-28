@@ -15,13 +15,13 @@ export default {
         type: 'GET_APPSET',
         payload: http(token).get(`/disposal/setuju/approve/${no}?nama=${nama}`)
     }),
-    approveSetDisposal: (token, no) => ({
+    approveSetDisposal: (token, no, data) => ({
         type: 'APPROVE_SETDIS',
-        payload: http(token).patch(`/disposal/setuju/app/${no}`)
+        payload: http(token).patch(`/disposal/setuju/app/${no}`, data)
     }),
-    rejectSetDisposal: (token, no, data, tipe) => ({
+    rejectSetDisposal: (token, no, data, tipe, status) => ({
         type: 'REJECT_SETDIS',
-        payload: http(token).patch(`/disposal/setuju/rej/${no}?tipe=${tipe}`, qs.stringify(data))
+        payload: http(token).patch(`/disposal/setuju/rej/${no}?tipe=${tipe}&status=${status}`, qs.stringify(data))
     }),
     submitEksDisposal: (token, no) => ({
         type: 'SUBMIT_EKSEKUSI',

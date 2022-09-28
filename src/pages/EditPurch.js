@@ -32,6 +32,7 @@ import f from "../assets/img/f.png"
 import g from "../assets/img/g.png"
 import notif from '../redux/actions/notif'
 import NavBar from '../components/NavBar'
+import NumberInput from "../components/NumberInput";
 const {REACT_APP_BACKEND_URL} = process.env
 
 const dokumenSchema = Yup.object().shape({
@@ -82,7 +83,9 @@ class EditPurch extends Component {
             dataRinci: {},
             openModalDoc: false,
             alertSubmit: false,
-            openPdf: false
+            openPdf: false,
+            dataSubmit: {},
+            openSubmit: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -96,6 +99,10 @@ class EditPurch extends Component {
                 alert: false
             })
          }, 10000)
+    }
+
+    openModalSubmit = () => {
+        this.setState({openSubmit: !this.state.openSubmit})
     }
 
     showDokumen = async (value) => {
@@ -215,7 +222,7 @@ class EditPurch extends Component {
     }
 
     componentDidUpdate() {
-        const {isError, isGet, isUpload, isSubmit} = this.props.disposal
+        const {isError, isGet, isUpload, isSubmit, isSubmitDis} = this.props.disposal
         const token = localStorage.getItem('token')
         const {dataRinci} = this.state
         if (isError) {
@@ -234,7 +241,35 @@ class EditPurch extends Component {
             setTimeout(() => {
                 this.getDataDisposal()
              }, 1000)
+        } else if (isSubmitDis === true) {
+            this.setState({confirm: 'submit'})
+            this.openConfirm()
+            this.props.resetError()
+            this.getDataDisposal()
+        } else if (isSubmitDis === false) {
+            this.setState({confirm: 'falsubmit'})
+            this.openConfirm()
+            this.props.resetError()
         }
+    }
+
+    cekSubmit = async (val) => {
+        const docaset = val.docAsset
+        if (docaset.find(({status, tipe}) => (status === 0 && tipe === 'purch')) !== undefined || docaset.find(({divisi, tipe}) => (divisi === '0' && tipe === 'purch')) !== undefined) {
+            this.setState({confirm: 'rejsubmit'})
+            this.openConfirm()
+        } else {
+            this.setState({dataSubmit: val})
+           this.openModalSubmit()
+        }
+        
+    }
+
+    submitRevDis = async () => {
+        this.openModalSubmit()
+        const token = localStorage.getItem('token')
+        const val = this.state.dataSubmit
+        await this.props.submitEditDis(token, val.no_disposal, val.id)
     }
 
     onSearch = (e) => {
@@ -261,6 +296,13 @@ class EditPurch extends Component {
 
     onSetOpen(open) {
         this.setState({ open });
+    }
+
+    submitRevDis = async () => {
+        this.openModalSubmit()
+        const token = localStorage.getItem('token')
+        const val = this.state.dataSubmit
+        await this.props.submitEditDis(token, val.no_disposal, val.id)
     }
 
     updateDataDis = async (value) => {
@@ -341,17 +383,17 @@ class EditPurch extends Component {
                                                     <img src={placeholder} className="cartImg" />
                                                     <div className="txtCart">
                                                         <div>
-                                                            <div className="nameCart mb-3">{item.disposal[0].nama_asset}</div>
-                                                            <div className="noCart mb-3">No asset : {item.disposal[0].no_asset}</div>
-                                                            <div className="noCart mb-3">No disposal : D{item.disposal[0].no_disposal}</div>
-                                                            <div className="noCart mb-3">Alasan reject: {item.alasan === null ? 'Salah satu dokumen tidak sesuai' : item.alasan}</div>
-                                                            <Button color="success" onClick={() => this.submitRevisi(item.disposal[0])}>Submit</Button>
+                                                            <div className="nameCart mb-3">{item.nama_asset}</div>
+                                                            <div className="noCart mb-3">No asset: <text className='subCart'>{item.no_asset}</text></div>
+                                                            <div className="noCart mb-3">No disposal: <text className='subCart'>D{item.no_disposal}</text></div>
+                                                            <div className="noCart mb-3">Status lampiran: <text className='subCart'>{item.docAsset.find(({status, tipe}) => (status === 0 && tipe === 'purch')) !== undefined ? item.docAsset.filter(data => { return data.status === 0 }).length + " Dokumen Reject" : item.docAsset.find(({divisi, tipe}) => (divisi === '0' && tipe === 'purch')) !== undefined ? item.docAsset.filter(data => { return data.divisi === '0' }).length + " Dokumen Reject" : "Tidak ada dokumen yang direject"}</text></div>
+                                                            <div className="noCart mb-3">Alasan reject: <text className='subCart'>{item.reason}</text></div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div className="footCart">
-                                                    <Button color="primary" onClick={() => this.openModalRinci(this.setState({dataRinci: item.disposal[0]}))}>Rincian</Button>
-                                                    <div></div>
+                                                    <Button color="primary" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}>Rincian</Button>
+                                                    <Button color="success" className='ml-2' onClick={() => this.cekSubmit(item)}>Submit</Button>
                                                 </div>
                                             </div>
                                         )
@@ -403,7 +445,7 @@ class EditPurch extends Component {
                             validationSchema = {disposalSchema}
                             onSubmit={(values) => {this.updateDataDis(values)}}
                             >
-                            {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                            {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue}) => (
                                 <div className="rightRinci">
                                     <div>
                                         <div className="titRinci">{dataRinci.nama_asset}</div>
@@ -451,15 +493,13 @@ class EditPurch extends Component {
                                             <Col md={3}>Nilai Buku</Col>
                                             <Col md={9} className="colRinci">:  <Input className="inputRinci" disabled value={dataRinci.nilai_buku === null || dataRinci.nilai_buku === undefined ? 0 : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} /></Col>
                                         </Row>
-                                        <Row className="mb-2 rowRinci">
-                                            <Col  md={3}>Nilai Jual</Col>
-                                            <Col md={9} className="colRinci">:  <Input
-                                                className="inputRinci" 
-                                                value={values.nilai_jual === null ? values.nilai_jual : values.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} 
-                                                onBlur={handleBlur("nilai_jual")}
-                                                onChange={handleChange("nilai_jual")}
-                                                disabled={true}
-                                                />
+                                        <Row className="mb-2">
+                                            <Col md={3}>Nilai Jual</Col>
+                                            <Col md={9} className="colRinci">:  <NumberInput 
+                                                value={values.nilai_jual}
+                                                className="inputRinci1"
+                                                onValueChange={val => setFieldValue("nilai_jual", val.floatValue)}
+                                            />
                                             </Col>
                                         </Row>
                                         {errors.nilai_jual ? (
@@ -504,22 +544,35 @@ class EditPurch extends Component {
                 </Modal>
                 <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="sm">
                     <ModalBody>
-                            {dataDoc !== undefined && dataDoc.find(({status}) => status === 0) ? (
-                                <div>
-                                    <div className={style.cekUpdate}>
-                                        <AiOutlineClose size={80} className={style.red} />
-                                        <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
-                                        <div className="errApprove mt-2">Revisi Dokumen Terlebih Dahulu</div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div>
-                                    <div className={style.cekUpdate}>
-                                        <AiFillCheckCircle size={80} className={style.green} />
-                                        <div className={[style.sucUpdate, style.green]}>Berhasil Submit</div>
-                                    </div>
-                                </div>
-                            )}
+                        {this.state.confirm === 'edit' ? (
+                        <div className={style.cekUpdate}>
+                            <AiFillCheckCircle size={80} className={style.green} />
+                            <div className={[style.sucUpdate, style.green]}>Berhasil Update Dokumen</div>
+                        </div>
+                        ) : this.state.confirm === 'submit' ? (
+                            <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Submit</div>
+                            </div>
+                        ) : this.state.confirm === 'rejsubmit' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                                <div className="errApprove mt-2">Pastikan dokumen lampiran telah diperbaiki</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'falsubmit' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                                <div className="errApprove mt-2">Terjadi kesalahan pada sistem</div>
+                            </div>
+                            </div>
+                        ) : (
+                            <div></div>
+                        )}
                     </ModalBody>
                 </Modal>
                 <Modal size="xl" isOpen={this.state.openModalDoc} toggle={this.closeProsesModalDoc}>
@@ -552,7 +605,7 @@ class EditPurch extends Component {
                                                 ) : x.divisi === '3' ? (
                                                     <AiOutlineCheck size={20} />
                                                 ) : (
-                                                    <div></div>
+                                                    <BsCircle size={20} />
                                                 )}
                                                 <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
                                             </div>
@@ -582,10 +635,7 @@ class EditPurch extends Component {
                 </ModalBody>
                 <ModalFooter>
                     <Button className="mr-2" color="secondary" onClick={this.closeProsesModalDoc}>
-                            Close
-                        </Button>
-                        <Button color="primary" onClick={this.closeProsesModalDoc}>
-                            Save 
+                        Close
                     </Button>
                 </ModalFooter>
             </Modal>
@@ -604,6 +654,21 @@ class EditPurch extends Component {
                     </div>
                 </ModalBody>
             </Modal>
+            <Modal isOpen={this.state.openSubmit} toggle={this.openModalSubmit} centered={true}>
+                    <ModalBody>
+                        <div className={style.modalApprove}>
+                            <div>
+                                <text>
+                                    Anda yakin untuk submit revisi ?
+                                </text>
+                            </div>
+                            <div className={style.btnApprove}>
+                                <Button color="primary" onClick={() => this.submitRevDis()}>Ya</Button>
+                                <Button color="secondary" onClick={this.openModalSubmit}>Tidak</Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                </Modal>
             </>
         )
     }
@@ -627,7 +692,8 @@ const mapDispatchToProps = {
     uploadDocumentDis: disposal.uploadDocumentDis,
     showDokumen: pengadaan.showDokumen,
     getNotif: notif.getNotif,
-    getPurchasing: setuju.getDataPurch
+    getPurchasing: setuju.getDataPurch,
+    submitEditDis: disposal.submitEditDis,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EditPurch)

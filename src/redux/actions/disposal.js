@@ -23,6 +23,10 @@ export default {
         type: 'DETAIL_DISPOSAL',
         payload: http(token).get(`/disposal/detail/${nomor}?tipe=${tipe === undefined ? 'pengajuan' : tipe}`)
     }),
+    getNewDetailDisposal: (token, nomor, tipe) => ({
+        type: 'DETAIL_DISPOSAL',
+        payload: http(token).get(`/disposal/detail/${nomor}?tipe=${tipe === undefined ? 'pengajuan' : tipe}`)
+    }),
     addDisposal: (token, no) => ({
         type: 'ADD_DISPOSAL',
         payload: http(token).post(`/disposal/add/${no}`)
@@ -51,9 +55,9 @@ export default {
         type: 'APPROVE_DIS',
         payload: http(token).patch(`/disposal/app/${no}`)
     }),
-    rejectDisposal: (token, no, data, tipe) => ({
+    rejectDisposal: (token, no, data, tipe, status) => ({
         type: 'REJECT_DIS',
-        payload: http(token).patch(`/disposal/rej/${no}?tipe=${tipe}`, qs.stringify(data))
+        payload: http(token).patch(`/disposal/rej/${no}?tipe=${tipe}&status=${status}`, qs.stringify(data))
     }),
     getDocumentDis: (token, no, tipeDokumen, tipe, npwp) => ({
         type: 'GET_DOCDIS',
@@ -71,9 +75,17 @@ export default {
         type:'REJECT_DOCDIS',
         payload: http(token).patch(`/disposal/docrej/${id}?tipe=${tipe}&ket=${ket}`, qs.stringify(data))
     }),
-    submitEditDis: (token, no) => ({
+    submitEditDis: (token, no, id) => ({
         type: 'SUBMIT_EDITDIS',
-        payload: http(token).patch(`/disposal/editdis/${no}`)
+        payload: http(token).patch(`/disposal/editdis/${no}?id=${id}`)
+    }),
+    submitEditEks: (token, id) => ({
+        type: 'SUBMIT_EDITEKS',
+        payload: http(token).patch(`/disposal/editeks?id=${id}`)
+    }),
+    rejectEks: (token, id, data) => ({
+        type: 'REJECT_EKS',
+        payload: http(token).patch(`/disposal/rejeks?id=${id}`, qs.stringify(data))
     }),
     getKeterangan: (token, nilai) => ({
         type: 'GET_KET',

@@ -32,8 +32,12 @@ const disposalState = {
     isExport: false,
     link: '',
     detailDis: [],
+    detailData: [],
     dataCart: [],
-    isGetCart: false
+    isGetCart: false,
+    isSubmitDis: null,
+    isEditEks: null,
+    rejEks: null
 };
 
 export default (state=disposalState, action) => {
@@ -133,6 +137,31 @@ export default (state=disposalState, action) => {
                 };
             }
             case 'DETAIL_DISPOSAL_REJECTED': {
+                return {
+                    ...state,
+                    isError: true,
+                    isLoading: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'DETAIL_PENGAJUAN_PENDING': {
+                return {
+                    ...state,
+                    isGetDet: false,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'DETAIL_PENGAJUAN_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isGetDet: true,
+                    detailData: action.payload.data.result,
+                    alertMsg: 'get detail disposal Succesfully',
+                };
+            }
+            case 'DETAIL_PENGAJUAN_REJECTED': {
                 return {
                     ...state,
                     isError: true,
@@ -400,7 +429,6 @@ export default (state=disposalState, action) => {
             case 'UPLOAD_DOCDIS_REJECTED': {
                 return {
                     ...state,
-                    isError: true,
                     isLoading: false,
                     alertMsg: "Unable connect to server"
                 };
@@ -451,6 +479,75 @@ export default (state=disposalState, action) => {
                     alertMsg: "Unable connect to server"
                 };
             }
+            case 'SUBMIT_EDITDIS_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'SUBMIT_EDITDIS_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isSubmitDis: true,
+                    alertMsg: 'approve document disposal succesfully',
+                };
+            }
+            case 'SUBMIT_EDITDIS_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isSubmitDis: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'SUBMIT_EDITEKS_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'SUBMIT_EDITEKS_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isEditEks: true,
+                    alertMsg: 'approve document disposal succesfully',
+                };
+            }
+            case 'SUBMIT_EDITEKS_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isEditEks: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'REJECT_EKS_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'REJECT_EKS_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    rejEks: true,
+                    alertMsg: 'approve document disposal succesfully',
+                };
+            }
+            case 'REJECT_EKS_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    rejEks: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
             case 'RESET_DISPOSAL': {
                 return {
                     ...state,
@@ -463,6 +560,9 @@ export default (state=disposalState, action) => {
                     isAdd: false,
                     isExport: false,
                     isDelete: false,
+                    isSubmitDis: null,
+                    isEditEks: null,
+                    rejEks: null
                 }
             }
             case 'RESET_APPREJ': {

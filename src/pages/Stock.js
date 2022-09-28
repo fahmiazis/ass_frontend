@@ -1119,7 +1119,8 @@ class Stock extends Component {
                                                                         Kode Area
                                                                         </Col>
                                                                         <Col md={7} className="txtDoc">
-                                                                        : {item.kode_plant}
+                                                                         <div>:</div>
+                                                                         {item.kode_plant}
                                                                         </Col>
                                                                     </Row>
                                                                     <Row className="mb-2">
@@ -1127,7 +1128,8 @@ class Stock extends Component {
                                                                         Area
                                                                         </Col>
                                                                         <Col md={7} className="txtDoc">
-                                                                        : {item.area}
+                                                                         <div>:</div>
+                                                                         {item.area}
                                                                         </Col>
                                                                     </Row>
                                                                     <Row className="mb-2">
@@ -1135,7 +1137,8 @@ class Stock extends Component {
                                                                         Tanggal Stock
                                                                         </Col>
                                                                         <Col md={7} className="txtDoc">
-                                                                        : {moment(item.tanggalStock).format('LL')}
+                                                                         <div>:</div>
+                                                                         {moment(item.tanggalStock).format('LL')}
                                                                         </Col>
                                                                     </Row>
                                                                     <Row className="mb-2">
@@ -1143,7 +1146,8 @@ class Stock extends Component {
                                                                         No Opname
                                                                         </Col>
                                                                         <Col md={7} className="txtDoc">
-                                                                        : {item.no_stock}
+                                                                         <div>:</div>
+                                                                         {item.no_stock}
                                                                         </Col>
                                                                     </Row>
                                                                 </div>
@@ -1439,7 +1443,7 @@ class Stock extends Component {
                         </div>
                     </ModalBody>
                     <ModalFooter>
-                        <Button color='primary'>Done</Button>
+                        <Button color='primary' onClick={this.openModalUpload}>Done</Button>
                     </ModalFooter>
                 </Modal>
                 <Modal isOpen={this.state.modalEdit} toggle={this.openModalEdit} size="lg">

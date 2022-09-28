@@ -476,10 +476,7 @@ class PurchDisposal extends Component {
                 </ModalBody>
                 <ModalFooter>
                     <Button className="mr-2" color="secondary" onClick={this.closeProsesModalDoc}>
-                            Close
-                        </Button>
-                        <Button color="primary" onClick={this.closeProsesModalDoc}>
-                            Save 
+                        Close
                     </Button>
                 </ModalFooter>
             </Modal>
@@ -576,12 +573,6 @@ class PurchDisposal extends Component {
                                             className="inputRinci1"
                                             onValueChange={val => setFieldValue("nilai_jual", val.floatValue)}
                                         />
-                                            {/* <Input 
-                                            className="inputRinci" 
-                                            value={values.nilai_jual} 
-                                            onBlur={handleBlur("nilai_jual")}
-                                            onChange={handleChange("nilai_jual")}
-                                            /> */}
                                         </Col>
                                     </Row>
                                     {errors.nilai_jual ? (

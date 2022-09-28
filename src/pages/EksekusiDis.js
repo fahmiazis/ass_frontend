@@ -5,8 +5,8 @@ import {NavbarBrand, Input, Button, Row, Col,
     Modal, ModalHeader, ModalBody, ModalFooter, Container, Alert, Spinner, Table} from 'reactstrap'
 import Pdf from "../components/Pdf"
 import style from '../assets/css/input.module.css'
-import {FaUserCircle, FaBars} from 'react-icons/fa'
-import {AiOutlineCheck, AiOutlineClose} from 'react-icons/ai'
+import {FaUserCircle, FaBars, FaSearch} from 'react-icons/fa'
+import {AiOutlineCheck, AiOutlineClose, AiFillCheckCircle} from 'react-icons/ai'
 import {BsCircle} from 'react-icons/bs'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
@@ -86,7 +86,12 @@ class EksekusiDisposal extends Component {
             openRejectDis: false,
             openApproveDis: false,
             preset: false,
-            preview: false
+            preview: false,
+            openRejEks: false,
+            dataEks: false,
+            view: '',
+            newDis: [],
+            baseData: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -176,6 +181,15 @@ class EksekusiDisposal extends Component {
     toggle = () => {
         this.setState({isOpen: !this.state.isOpen})
     }
+    
+    rejectEks = async (val) => {
+        const token = localStorage.getItem('token')
+        const {dataEks} = this.state
+        const data = {
+            reason: val.alasan
+        }
+        await this.props.rejectEks(token, dataEks.id, data)
+    }
 
     openConfirm = () => {
         this.setState({modalConfirm: !this.state.modalConfirm})
@@ -209,6 +223,17 @@ class EksekusiDisposal extends Component {
         const { dataRinci } = this.state
         await this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'pengajuan')
         this.closeProsesModalDoc()
+    }
+
+    openModalRejEks = () => {
+        this.setState({openRejEks: !this.state.openRejEks})
+    }
+
+    openModEks = (val, tipe) => {
+        this.setState({dataEks: val})
+        if (tipe === 'reject') {
+            this.openModalRejEks()
+        }
     }
 
     modalPers = () => {
@@ -278,11 +303,11 @@ class EksekusiDisposal extends Component {
         } else {
             await this.props.submitEksDisposal(token, value.no_asset)
         }
-        this.getDataDisposal()
     }
 
     componentDidUpdate() {
-        const {isError, isUpload, isSubmit} = this.props.disposal
+        const {isError, isUpload, isSubmit, isEditEks, rejEks} = this.props.disposal
+        const { isSubmitEks } = this.props.setuju
         const error = this.props.setuju.isError
         const token = localStorage.getItem('token')
         const {dataRinci} = this.state
@@ -305,6 +330,26 @@ class EksekusiDisposal extends Component {
         } else if (error) {
             this.props.resetSetuju()
             this.showAlert()
+        } else if (isSubmitEks === true) {
+            this.getDataDisposal()
+            this.setState({confirm: 'submit'})
+            this.openConfirm()
+            this.props.resetSetuju()
+        } else if (isSubmitEks === false) {
+            this.setState({confirm: 'falsubmit'})
+            this.openConfirm()
+            this.props.resetSetuju()
+        } else if (rejEks === true) {
+            this.getDataDisposal()
+            this.openModalRejEks()
+            this.setState({confirm: 'rejeks'})
+            this.openConfirm()
+            this.props.resetError()
+        } else if (rejEks === false) {
+            this.openModalRejEks()
+            this.setState({confirm: 'rejrejeks'})
+            this.openConfirm()
+            this.props.resetError()
         }
     }
 
@@ -334,6 +379,36 @@ class EksekusiDisposal extends Component {
         const token = localStorage.getItem('token')
         const level = localStorage.getItem('level')
         await this.props.getDisposal(token, 10, '',  1, level === '5' ? 4 : 5)
+        this.changeView('available')
+    }
+
+    changeView = (val) => {
+        const {dataDis} = this.props.disposal
+        const newDis = []
+        if (val === 'available') {
+            for (let i = 0; i < dataDis.length; i++) {
+                if (dataDis[i].status_reject !== 5 && dataDis[i].status_reject !== 6) {
+                    newDis.push(dataDis[i])
+                }
+            }
+            this.setState({view: val, newDis: newDis, baseData: newDis})
+        } else if (val === 'reject') {
+            for (let i = 0; i < dataDis.length; i++) {
+                if (dataDis[i].status_reject === 5) {
+                    newDis.push(dataDis[i])
+                }
+            }
+            this.setState({view: val, newDis: newDis, baseData: newDis})
+        } else if (val === 'revisi') {
+            for (let i = 0; i < dataDis.length; i++) {
+                if (dataDis[i].status_reject === 6) {
+                    newDis.push(dataDis[i])
+                }
+            }
+            this.setState({view: val, newDis: newDis, baseData: newDis})
+        } else if (val === 'all') {
+            this.setState({view: val, newDis: dataDis, baseData: newDis})
+        }
     }
 
     menuButtonClick(ev) {
@@ -352,6 +427,36 @@ class EksekusiDisposal extends Component {
         this.getDataDisposal()
     }
 
+    onSearch = async (e) => {
+        const str = e.target.value
+        this.setState({search: str})
+        const {baseData} = this.state 
+        const newData = []
+        if(e.key === 'Enter'){
+            if (str === '') {
+                this.setState({newDis: baseData})
+            } else {
+                for (let i = 0; i < baseData.length; i++) {
+                    const data = Object.values(baseData[i])
+                    const cek = []
+                    for (let j = 0; j < data.length; j++) {
+                        console.log(data[j])
+                        if (typeof data[j] !== 'object' && data[j] !== null && data[j] !== undefined) {
+                            const senten = data[j].toString()
+                            if (senten.includes(str)) {
+                                cek.push(1)
+                            }
+                        }
+                    }
+                    if (cek.length) {
+                        newData.push(baseData[i])
+                    }
+                }
+                this.setState({newDis: newData})
+            }
+        }
+    }
+
     updateNpwp = async (value) => {
         this.setState({npwp: value})
         const token =localStorage.getItem('token')
@@ -364,7 +469,7 @@ class EksekusiDisposal extends Component {
     }
 
     render() {
-        const {alert, dataRinci} = this.state
+        const {alert, dataRinci, newDis, view} = this.state
         const {dataDis, dataDoc, detailDis} = this.props.disposal
         const msgAlert = this.props.setuju.alertM
         const { disApp } = this.props.setuju
@@ -406,7 +511,7 @@ class EksekusiDisposal extends Component {
                         <div className={style.backgroundLogo}>
                             <div className={style.bodyDashboard}>
                                 <div className={style.headMaster}>
-                                    <div className={style.titleDashboard1}>Eksekusi Disposal </div>
+                                    <div className={style.titleDashboard}>Eksekusi Disposal </div>
                                 </div>
                                 <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit}>
                                     <div>Lengkapi no dokumen SAP sebelum submit</div>
@@ -417,14 +522,35 @@ class EksekusiDisposal extends Component {
                                 <Alert color="danger" className={style.alertWrong} isOpen={alert}>
                                     <div>{msgAlert}</div>
                                 </Alert>
+                                <div className={[style.secEmail2]}>
+                                    <div className="mt-5">
+                                        <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
+                                            <option value="all">All</option>
+                                            <option value="available">Available Submit</option>
+                                            <option value="revisi">Available Resubmit (Revisi)</option>
+                                            <option value="reject">Reject</option>
+                                        </Input>
+                                    </div>
+                                    <div className={[style.searchEmail]}>
+                                        <text>Search: </text>
+                                        <Input 
+                                        className={style.search}
+                                        onChange={this.onSearch}
+                                        value={this.state.search}
+                                        onKeyPress={this.onSearch}
+                                        >
+                                            <FaSearch size={20} />
+                                        </Input>
+                                    </div>
+                                </div>
                                 <Row className="cartDisposal2">
-                                    {dataDis.length === 0 ? (
+                                    {newDis.length === 0 ? (
                                         <Col md={8} xl={8} sm={12}>
-                                            <div className="txtDisposEmpty">Tidak ada data eksekusi disposal</div>
+                                            <div className="txtDisposEmpty"></div>
                                         </Col>
                                     ) : (
                                         <Col md={12} xl={12} sm={12} className="mb-5 mt-5">
-                                        {dataDis.length !== 0 && dataDis.map(item => {
+                                        {newDis.length !== 0 && newDis.map(item => {
                                             return (
                                                 <div className="cart1">
                                                     <div className="navCart">
@@ -436,7 +562,10 @@ class EksekusiDisposal extends Component {
                                                                 <div className="noCart mb-3">No asset : {item.no_asset}</div>
                                                                 <div className="noCart mb-3">No disposal : D{item.no_disposal}</div>
                                                                 <div className="noCart mb-3">{item.keterangan}</div>
-                                                                <Button color="success" onClick={() => this.submitEksDis(item)}>Submit</Button>
+                                                                <Row className="noCart mb-3">
+                                                                    <Button disabled={view === 'reject' || view === 'all' ? true : false} className='ml-3' color="success" onClick={() => this.submitEksDis(item)}>Submit</Button>
+                                                                    <Button disabled={view === 'reject' || view === 'all' ? true : false} className='ml-3' color="danger" onClick={() => this.openModEks(item, 'reject')}>Reject</Button>
+                                                                </Row>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -535,10 +664,7 @@ class EksekusiDisposal extends Component {
                 </ModalBody>
                 <ModalFooter>
                     <Button className="mr-2" color="secondary" onClick={this.closeProsesModalDoc}>
-                            Close
-                        </Button>
-                        <Button color="primary" onClick={this.closeProsesModalDoc}>
-                            Save 
+                        Close
                     </Button>
                 </ModalFooter>
             </Modal>
@@ -712,15 +838,21 @@ class EksekusiDisposal extends Component {
                                     )}
                                 </div>
                                     <Row className="footRinci1">
-                                        <Button className="btnFootRinci3" size="md" color="primary" outline onClick={handleSubmit}>Save</Button>
+                                        {/* <Button className="btnFootRinci3" size="md" color="primary" outline onClick={handleSubmit}>Save</Button> */}
                                         <Button className="btnFootRinci3" size="md" color="warning" outline onClick={() => this.openProsesModalDoc(dataRinci)}>Doc Eksekusi</Button>
-                                        <Button className="btnFootRinci3" size="md" color="danger" outline onClick={() => this.pengajuanDisposal(dataRinci.no_disposal)}>Form Pengajuan</Button>
-                                        <Button className="btnFootRinci3" size="md" color="info" outline onClick={() => this.persetujuanDisposal(dataRinci.status_app)}>Form Persetujuan</Button>
                                         <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocPeng()}>Doc Pengajuan</Button>
+                                        <Button className="btnFootRinci3" size="md" color="danger" outline onClick={() => this.pengajuanDisposal(dataRinci.no_disposal)}>Form Pengajuan</Button>
+                                        <Button className="btnFootRinci3" size="md" color="info" outline onClick={() => this.persetujuanDisposal(dataRinci.no_persetujuan)}>Form Persetujuan</Button>
                                         {level === '2' ? (
-                                            <Button className="btnFootRinci3 mb-5" size="md" color="danger" outline onClick={() => this.goReport(dataRinci.no_asset)}>Show Report</Button>
+                                            <>
+                                                <Button className="btnFootRinci3 mb-5" size="md" color="danger" outline onClick={() => this.goReport(dataRinci.no_asset)}>Show Report</Button>
+                                                <Button className="btnFootRinci3 mb-5" size="md" color="secondary" outline onClick={() => this.openModalRinci()}>Close</Button>
+                                            </>
                                         ) : (
-                                            <Button className="btnFootRinci3 mb-5" size="md" color="secondary" outline onClick={() => this.openModalRinci()}>Close</Button>
+                                            <>
+                                                <Button className="btnFootRinci3 mb-5" size="md" color="secondary" outline onClick={() => this.openModalRinci()}>Close</Button>
+                                                <div className="btnFootRinci3" size="md"></div>
+                                            </>
                                         )}
                                     </Row>
                             </div>
@@ -741,6 +873,43 @@ class EksekusiDisposal extends Component {
                         {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
                             <div className={style.modalApprove}>
                             <div className={style.quest}>Anda yakin untuk reject {this.state.fileName.nama_dokumen} ?</div>
+                            <div className={style.alasan}>
+                                <text className="col-md-3">
+                                    Alasan
+                                </text>
+                                <Input 
+                                type="name" 
+                                name="select" 
+                                className="col-md-9"
+                                value={values.alasan}
+                                onChange={handleChange('alasan')}
+                                onBlur={handleBlur('alasan')}
+                                />
+                            </div>
+                            {errors.alasan ? (
+                                    <text className={style.txtError}>{errors.alasan}</text>
+                                ) : null}
+                            <div className={style.btnApprove}>
+                                <Button color="primary" onClick={handleSubmit}>Ya</Button>
+                                <Button color="secondary" onClick={this.openModalRejectDis}>Tidak</Button>
+                            </div>
+                        </div>
+                        )}
+                        </Formik>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.openRejEks} toggle={this.openModalRejEks} centered={true}>
+                    <ModalBody>
+                    <Formik
+                    initialValues={{
+                    alasan: "",
+                    }}
+                    validationSchema={alasanSchema}
+                    onSubmit={(values) => {this.rejectEks(values)}}
+                    >
+                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                            <div className={style.modalApprove}>
+                            <div className={style.quest}>Anda yakin untuk reject ?</div>
                             <div className={style.alasan}>
                                 <text className="col-md-3">
                                     Alasan
@@ -1088,6 +1257,38 @@ class EksekusiDisposal extends Component {
                         </div>
                     </ModalBody>
                 </Modal>
+                <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="sm">
+                    <ModalBody>
+                        {this.state.confirm === 'rejeks' ? (
+                            <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Reject</div>
+                            </div>
+                        ) : this.state.confirm === 'rejrejeks' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green]}>Gagal Reject</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'submit' ? (
+                            <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Reject</div>
+                            </div>
+                        ) : this.state.confirm === 'falsubmit' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                                <div className="errApprove mt-2">Pastikan dokumen lampiran telah diapprove</div>
+                            </div>
+                            </div>
+                        ) : (
+                            <div></div>
+                        )}
+                    </ModalBody>
+                </Modal>
             </>
         )
     }
@@ -1116,6 +1317,8 @@ const mapDispatchToProps = {
     getApproveSetDisposal: setuju.getApproveSetDisposal,
     getDetailDis: disposal.getDetailDisposal,
     getApproveDisposal: disposal.getApproveDisposal,
+    submitEditEks: disposal.submitEditEks,
+    rejectEks: disposal.rejectEks
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EksekusiDisposal)

@@ -128,6 +128,29 @@ class EditEksekusi extends Component {
         });
     }
 
+    cekSubmit = async (val) => {
+        const docaset = val.docAsset
+        if (docaset.find(({status, tipe}) => (status === 0 && tipe !== 'purch')) !== undefined || docaset.find(({divisi, tipe}) => (divisi === '0' && tipe !== 'purch')) !== undefined) {
+            this.setState({confirm: 'rejsubmit'})
+            this.openConfirm()
+        } else {
+            this.setState({dataSubmit: val})
+            this.openModalSubmit()
+        }
+        
+    }
+
+    submitRevDis = async () => {
+        this.openModalSubmit()
+        const token = localStorage.getItem('token')
+        const val = this.state.dataSubmit
+        await this.props.submitEditEks(token, val.id)
+    }
+
+    openModalSubmit = () => {
+        this.setState({openSubmit: !this.state.openSubmit})
+    }
+
     onChangeUpload = e => {
         const {size, type} = e.target.files[0]
         this.setState({fileUpload: e.target.files[0]})
@@ -201,7 +224,7 @@ class EditEksekusi extends Component {
     }
 
     componentDidUpdate() {
-        const {isError, isGet, isUpload, isSubmit} = this.props.disposal
+        const {isError, isGet, isUpload, isSubmit, isEditEks} = this.props.disposal
         const token = localStorage.getItem('token')
         const {dataRinci} = this.state
         if (isError) {
@@ -220,6 +243,15 @@ class EditEksekusi extends Component {
             setTimeout(() => {
                 this.getDataDisposal()
              }, 1000)
+        } else if (isEditEks === true) {
+            this.setState({confirm: 'submit'})
+            this.openConfirm()
+            this.props.resetError()
+            this.getDataDisposal()
+        } else if (isEditEks === false) {
+            this.setState({confirm: 'falsubmit'})
+            this.openConfirm()
+            this.props.resetError()
         }
     }
 
@@ -321,20 +353,20 @@ class EditEksekusi extends Component {
                                                 return (
                                                     <div className="cart1">
                                                         <div className="navCart">
-                                                            <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="cartImg" />
+                                                            <img src={placeholder} className="cartImg" />
                                                             <div className="txtCart">
                                                                 <div>
                                                                     <div className="nameCart mb-3">{item.nama_asset}</div>
-                                                                    <div className="noCart mb-3">No asset : {item.no_asset}</div>
-                                                                    <div className="noCart mb-3">No disposal : D{item.no_disposal}</div>
-                                                                    <div className="noCart mb-3">{item.keterangan}</div>
-                                                                    <div className="noCart mb-3">Status lampiran : {item.docAsset.find(({divisi}) => divisi === '0') !== undefined ? 'Perlu diperbaiki' : 'Sesuai / Telah diperbaiki'}</div>
+                                                                    <div className="noCart mb-3">No asset: <text className='subCart'>{item.no_asset}</text></div>
+                                                                    <div className="noCart mb-3">No disposal: <text className='subCart'>D{item.no_disposal}</text></div>
+                                                                    <div className="noCart mb-3">Status lampiran: <text className='subCart'>{item.docAsset.find(({status, tipe}) => (status === 0 && tipe !== 'purch')) !== undefined ? item.docAsset.filter(data => { return data.status === 0 }).length + " Dokumen Reject" : item.docAsset.find(({divisi, tipe}) => (divisi === '0' && tipe !== 'purch')) !== undefined ? item.docAsset.filter(data => { return data.divisi === '0' }).length + " Dokumen Reject" : "Tidak ada dokumen yang direject"}</text></div>
+                                                                    <div className="noCart mb-3">Alasan reject: <text className='subCart'>{item.reason}</text></div>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div className="footCart">
                                                             <Button color="primary" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}>Rincian</Button>
-                                                            <div></div>
+                                                            <Button color="success" className='ml-2' onClick={() => this.cekSubmit(item)}>Submit</Button>
                                                         </div>
                                                     </div>
                                                 )
@@ -560,6 +592,54 @@ class EditEksekusi extends Component {
                     </div>
                 </ModalBody>
             </Modal>
+            <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="sm">
+                <ModalBody>
+                    {this.state.confirm === 'edit' ? (
+                    <div className={style.cekUpdate}>
+                        <AiFillCheckCircle size={80} className={style.green} />
+                        <div className={[style.sucUpdate, style.green]}>Berhasil Update Dokumen</div>
+                    </div>
+                    ) : this.state.confirm === 'submit' ? (
+                        <div className={style.cekUpdate}>
+                            <AiFillCheckCircle size={80} className={style.green} />
+                            <div className={[style.sucUpdate, style.green]}>Berhasil Submit</div>
+                        </div>
+                    ) : this.state.confirm === 'rejsubmit' ? (
+                        <div>
+                            <div className={style.cekUpdate}>
+                            <AiOutlineClose size={80} className={style.red} />
+                            <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                            <div className="errApprove mt-2">Pastikan dokumen lampiran telah diperbaiki</div>
+                        </div>
+                        </div>
+                    ) : this.state.confirm === 'falsubmit' ?(
+                        <div>
+                            <div className={style.cekUpdate}>
+                            <AiOutlineClose size={80} className={style.red} />
+                            <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                            <div className="errApprove mt-2">Terjadi kesalahan pada sistem</div>
+                        </div>
+                        </div>
+                    ) : (
+                        <div></div>
+                    )}
+                </ModalBody>
+            </Modal>
+                <Modal isOpen={this.state.openSubmit} toggle={this.openModalSubmit} centered={true}>
+                    <ModalBody>
+                        <div className={style.modalApprove}>
+                            <div>
+                                <text>
+                                    Anda yakin untuk submit revisi ?
+                                </text>
+                            </div>
+                            <div className={style.btnApprove}>
+                                <Button color="primary" onClick={() => this.submitRevDis()}>Ya</Button>
+                                <Button color="secondary" onClick={this.openModalSubmit}>Tidak</Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                </Modal>
             </>
         )
     }
@@ -580,6 +660,7 @@ const mapDispatchToProps = {
     getDocumentDis: disposal.getDocumentDis,
     uploadDocumentDis: disposal.uploadDocumentDis,
     showDokumen: pengadaan.showDokumen,
+    submitEditEks: disposal.submitEditEks,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EditEksekusi)

@@ -474,7 +474,7 @@ class MasterUser extends Component {
                                                     <tr>
                                                         <th scope="row">{dataRep.indexOf(item) + 1}</th>
                                                         <td>{item.no_disposal === null ? '-' : `D${item.no_disposal}`}</td>
-                                                        <td>{item.status_app}</td>
+                                                        <td>{item.no_persetujuan}</td>
                                                         <td>{item.no_asset}</td>
                                                         <td>{item.nama_asset}</td>
                                                         <td>{item.dataAsset === null ? '-' : item.dataAsset.kategori}</td>

@@ -196,7 +196,7 @@ class Home extends Component {
                             <Account color={"black"}/>
                         </div>
                     </div>
-                    <div>
+                    <div className='mainHome'>
                         <div className="titHome">Welcome to web asset</div>
                         <div className="txtChoose">Please select an option</div>
                         <div className="mainBody">

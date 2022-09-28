@@ -336,7 +336,8 @@ class TrackingMutasi extends Component {
                                                             Kode Area
                                                             </Col>
                                                             <Col md={6} className="txtDoc">
-                                                            : {item.kode_plant}
+                                                            <div>:</div>
+                                                            {item.kode_plant}
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">
@@ -344,7 +345,8 @@ class TrackingMutasi extends Component {
                                                             Area
                                                             </Col>
                                                             <Col md={6} className="txtDoc">
-                                                            : {item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}
+                                                            <div>:</div>
+                                                            {item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">
@@ -352,7 +354,8 @@ class TrackingMutasi extends Component {
                                                             No Pengadaan
                                                             </Col>
                                                             <Col md={6} className="txtDoc">
-                                                            : {item.no_pengadaan}
+                                                            <div>:</div>
+                                                            {item.no_pengadaan}
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">
@@ -361,15 +364,18 @@ class TrackingMutasi extends Component {
                                                             </Col>
                                                             {item.appForm.find(({status}) => status === 0) !== undefined ? (
                                                                 <Col md={6} className="txtDoc">
-                                                                : Reject {item.appForm.find(({status}) => status === 0).jabatan}
+                                                                <div>:</div>
+                                                                Reject {item.appForm.find(({status}) => status === 0).jabatan}
                                                                 </Col>
                                                             ) : item.appForm.find(({status}) => status === 1) !== undefined ? (
                                                                 <Col md={6} className="txtDoc">
-                                                                : Approve {item.appForm.find(({status}) => status === 1).jabatan}
+                                                                <div>:</div>
+                                                                Approve {item.appForm.find(({status}) => status === 1).jabatan}
                                                                 </Col>
                                                             ) : (
                                                                 <Col md={6} className="txtDoc">
-                                                                : -
+                                                                <div>:</div>
+                                                                -
                                                                 </Col>
                                                             )}
                                                         </Row>

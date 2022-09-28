@@ -333,19 +333,7 @@ class TrackingMutasi extends Component {
                                                 ) : (
                                                     <div className="bodyCard">
                                                     <img src={placeholder} className="imgCard1" />
-                                                    
-                                                    {item.nilai_jual === '0' ? 
-                                                        (
-                                                        <Button size="sm" color="success" className="labelBut">Pemusnahan</Button>
-                                                        ) : (
-                                                            <div></div>
-                                                        )}
-                                                        {item.nilai_jual !== '0' ?
-                                                        (
-                                                        <Button size="sm" color="warning" className="labelBut">Penjualan</Button>
-                                                        ) : (
-                                                            <div></div>
-                                                        )}
+                                                    <Button size="sm" color="warning" className="labelBut">Mutasi</Button>
                                                     <div className="ml-2">
                                                         <div className="txtDoc mb-2">
                                                             Pengajuan Mutasi Asset
@@ -355,7 +343,8 @@ class TrackingMutasi extends Component {
                                                             Area Asal
                                                             </Col>
                                                             <Col md={6} className="txtDoc">
-                                                            : {item.area}
+                                                             <div>:</div>
+                                                             {item.area}
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">
@@ -363,7 +352,8 @@ class TrackingMutasi extends Component {
                                                             Area Tujuan
                                                             </Col>
                                                             <Col md={6} className="txtDoc">
-                                                            : {item.area_rec}
+                                                             <div>:</div>
+                                                             {item.area_rec}
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">
@@ -371,7 +361,8 @@ class TrackingMutasi extends Component {
                                                             No Mutasi
                                                             </Col>
                                                             <Col md={6} className="txtDoc">
-                                                            : {item.no_mutasi}
+                                                             <div>:</div>
+                                                             {item.no_mutasi}
                                                             </Col>
                                                         </Row>
                                                         <Row className="mb-2">
@@ -385,15 +376,18 @@ class TrackingMutasi extends Component {
                                                             ) : ( 
                                                                 item.appForm.find(({status}) => status === 0) !== undefined ? (
                                                                     <Col md={6} className="txtDoc">
-                                                                    : Reject {item.appForm.find(({status}) => status === 0).jabatan}
+                                                                     <div>:</div>
+                                                                     Reject {item.appForm.find(({status}) => status === 0).jabatan}
                                                                     </Col>
                                                                 ) : item.appForm.find(({status}) => status === 1) !== undefined ? (
                                                                     <Col md={6} className="txtDoc">
-                                                                    : Approve {item.appForm.find(({status}) => status === 1).jabatan}
+                                                                     <div>:</div>
+                                                                     Approve {item.appForm.find(({status}) => status === 1).jabatan}
                                                                     </Col>
                                                                 ) : (
                                                                     <Col md={6} className="txtDoc">
-                                                                    : -
+                                                                     <div>:</div>
+                                                                     -
                                                                     </Col>
                                                                 )
                                                             )}

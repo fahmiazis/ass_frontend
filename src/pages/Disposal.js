@@ -103,7 +103,9 @@ class Disposal extends Component {
             view: '',
             newDis: [],
             app: [],
-            find: null
+            find: null,
+            listMut: [],
+            listStat: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -112,6 +114,25 @@ class Disposal extends Component {
     getApproveDis = async (value) => {
         const token = localStorage.getItem('token')
         await this.props.getApproveDisposal(token, value.no, value.nama)
+    }
+
+    statusApp = (val) => {
+        const { listStat } = this.state
+        listStat.push(val)
+        this.setState({listStat: listStat})
+    }
+
+    statusRej = (val) => {
+        const { listStat } = this.state
+        const data = []
+        for (let i = 0; i < listStat.length; i++) {
+            if (listStat[i] === val) {
+                data.push()
+            } else {
+                data.push(listStat[i])
+            }
+        }
+        this.setState({listStat: data})
     }
 
     openModalRinci = () => {
@@ -148,7 +169,7 @@ class Disposal extends Component {
     }
 
     openModalReject = () => {
-        this.setState({openReject: !this.state.openReject})
+        this.setState({listStat: [], openReject: !this.state.openReject})
     }
 
     openModalApprove = () => {
@@ -186,24 +207,40 @@ class Disposal extends Component {
     approveDisposal = async (value) => {
         const token = localStorage.getItem('token')
         await this.props.approveDisposal(token, value)
-        await this.props.notifDisposal(token, value, 'approve', 'HO', null, null)
         this.getDataDisposal()
         this.openModalApprove()
         this.openConfirm(this.setState({confirm: 'approve'}))
         this.openModalDis()
+        await this.props.notifDisposal(token, value, 'approve', 'HO', null, null)
     }
 
     rejectDisposal = async (value) => {
+        const detailData = this.props.disposal.detailDis
+        const list  = this.state.listMut
+        const { listStat } = this.state
         const token = localStorage.getItem('token')
-        const data = {
-            alasan: value.value.alasan
+        if (detailData.length !== list.length && value.value.jenis_reject === "batal") {
+            this.openConfirm(this.setState({confirm: 'rejbatal'}))
+        } else {
+            let reason = ''
+            let status = '1'
+            for (let i = 0; i < listStat.length; i++) {
+                reason += listStat[i] + '.'
+                if (listStat[i] === 'Nilai jual tidak sesuai') {
+                    status += '2'
+                }
+            }
+            const data = {
+                alasan: reason + value.value.alasan,
+                listMut: list
+            }
+            await this.props.rejectDisposal(token, value.no, data, value.value.jenis_reject, status)
+            this.getDataDisposal()
+            this.openModalReject()
+            this.openModalDis()
+            this.openConfirm(this.setState({confirm: 'reject'}))
+            await this.props.notifDisposal(token, value, 'reject', value.value.jenis_reject, null, null)
         }
-        await this.props.rejectDisposal(token, value.no, data, value.value.jenis_reject)
-        await this.props.notifDisposal(token, value, 'reject', value.value.jenis_reject, null, null)
-        this.openModalReject()
-        this.openModalDis()
-        this.openConfirm(this.setState({confirm: 'reject'}))
-        this.getDataDisposal()
     }
 
     showAlert = () => {
@@ -509,6 +546,25 @@ class Disposal extends Component {
         this.openRinciAdmin()
     }
 
+    chekApp = (val) => {
+        const { listMut } = this.state
+        listMut.push(val)
+        this.setState({listMut: listMut})
+    }
+
+    chekRej = (val) => {
+        const { listMut } = this.state
+        const data = []
+        for (let i = 0; i < listMut.length; i++) {
+            if (listMut[i] === val) {
+                data.push()
+            } else {
+                data.push(listMut[i])
+            }
+        }
+        this.setState({listMut: data})
+    }
+
     changeView = (val) => {
         const { dataDis, noDis } = this.props.disposal
         const {dataRole} = this.props.user
@@ -553,40 +609,35 @@ class Disposal extends Component {
             const newDis = []
             for (let i = 0; i < noDis.length; i++) {
                 const index = dataDis.indexOf(dataDis.find(({no_disposal}) => no_disposal === noDis[i]))
-                if (dataDis[index] !== undefined && dataDis[index].status_form !== 26) {
-                    const app = dataDis[index].appForm
-                    const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
+                const resdis = dataDis[index]
+                const app = dataDis[index].appForm
+                const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
+                const findApp = app.indexOf(app.find(({jabatan}) => jabatan === divisi))
+                if (resdis !== undefined && resdis.status_reject === 4) {
                     if (app[find] !== undefined && app[find].status === 0) {
-                        for (let j = 0; j < dataDis.length; j++) {
-                            if (dataDis[j].no_disposal === dataDis[index].no_disposal) {
-                                const scan = dataDis[j].docAsset.find(({status}) => status === 0) !== undefined
-                                const scanAss = dataDis[j].docAsset.find(({divisi}) => divisi === '0') !== undefined
-                                if (scan || scanAss) {
-                                    const find = newDis.find(({no_disposal}) => no_disposal === dataDis[j].no_disposal)
-                                    if (find === undefined) {
-                                        const obj = Object.assign(dataDis[index], { revisi: 'Proses Revisi' })
-                                        newDis.push(obj)   
-                                    } else {
-                                        if (find.revisi === 'Selesai Revisi') {
-                                            newDis.splice(find, 1)
-                                            const obj = Object.assign(dataDis[index], { revisi: 'Proses Revisi' })
-                                            newDis.push(obj)
-                                        }
-                                    }
-                                } else {
-                                    const find = newDis.find(({no_disposal}) => no_disposal === dataDis[j].no_disposal)
-                                    if (find === undefined) {
-                                        const obj = Object.assign(dataDis[index], { revisi: 'Selesai Revisi' })
-                                        newDis.push(obj)   
-                                    } else {
-                                        if (find.revisi === 'Selesai Revisi') {
-                                            console.log('selesai')
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        newDis.push(resdis)
                     }
+                }
+            }
+            this.setState({view: val, newDis: newDis})
+        } else if (val === 'reject') {
+            const newDis = []
+            for (let i = 0; i < noDis.length; i++) {
+                const index = dataDis.indexOf(dataDis.find(({no_disposal}) => no_disposal === noDis[i]))
+                const resdis = dataDis[index]
+                if (resdis !== undefined && resdis.status_reject !== null) {
+                    newDis.push(resdis)
+                }
+            }
+            this.setState({view: val, newDis: newDis})
+        } else if (val === 'full') {
+            const newDis = []
+            for (let i = 0; i < noDis.length; i++) {
+                const index = dataDis.indexOf(dataDis.find(({no_disposal}) => no_disposal === noDis[i]))
+                const resdis = dataDis[index]
+                const app = dataDis[index].appForm
+                if (app.find(({status}) => status === 0) === undefined && app.find(({status}) => status === null) === undefined) {
+                    newDis.push(resdis)
                 }
             }
             this.setState({view: val, newDis: newDis})
@@ -603,7 +654,7 @@ class Disposal extends Component {
     }
 
     render() {
-        const {alert, upload, errMsg, detailDis, app, find, fileName} = this.state
+        const {alert, upload, errMsg, detailDis, app, find, fileName, listMut, listStat} = this.state
         const {dataAsset, alertM, alertMsg, alertUpload, page} = this.props.asset
         const pages = this.props.disposal.page 
         const { dataDis, noDis, dataDoc, disApp, dataSubmit } = this.props.disposal
@@ -669,20 +720,25 @@ class Disposal extends Component {
                                         </div>
                                     ) : level === '2' || level === '12' || level === '27' ? (
                                         <div className="mt-5">
-                                            {level === '2' && (
+                                            {level === '2' && this.state.view === 'full' && (
                                                 <Button onClick={this.getSubmitDisposal} color="info" size="lg" className="mb-4">Submit</Button>
                                             )}
                                             <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
-                                                <option value="not available">All</option>
-                                                <option value="available">Available To Approve</option>
-                                                <option value="revisi">Revisi</option>
+                                                <option value="all">All</option>
+                                                <option value="available">Available Approve</option>
+                                                <option value="revisi">Available Reapprove (Revisi)</option>
+                                                <option value="full">Full Approve</option>
+                                                <option value="reject">Reject</option>
                                             </Input>
                                         </div>
                                     ) : (
                                         <div className="mt-3">
                                             <Input type="select" value={this.state.view} onChange={e => this.changeView(e.target.value)}>
-                                                <option value="not available">All</option>
-                                                <option value="available">Available To Approve</option>
+                                                <option value="all">All</option>
+                                                <option value="available">Available Approve</option>
+                                                <option value="revisi">Available Reapprove (Revisi)</option>
+                                                <option value="full">Full Approve</option>
+                                                <option value="reject">Reject</option>
                                             </Input>
                                         </div>
                                     )}
@@ -788,7 +844,8 @@ class Disposal extends Component {
                                                                 Kode Plant
                                                                 </Col>
                                                                 <Col md={6} className="txtDoc">
-                                                                : {item.kode_plant}
+                                                                    <div>:</div>
+                                                                    {item.kode_plant}
                                                                 </Col>
                                                             </Row>
                                                             <Row className="mb-2">
@@ -796,7 +853,8 @@ class Disposal extends Component {
                                                                 Area
                                                                 </Col>
                                                                 <Col md={6} className="txtDoc">
-                                                                : {item.area}
+                                                                    <div>:</div>
+                                                                    {item.area}
                                                                 </Col>
                                                             </Row>
                                                             <Row className="mb-2">
@@ -804,7 +862,8 @@ class Disposal extends Component {
                                                                 No Disposal
                                                                 </Col>
                                                                 <Col md={6} className="txtDoc">
-                                                                : D{item.no_disposal}
+                                                                    <div>:</div>
+                                                                    D{item.no_disposal}
                                                                 </Col>
                                                             </Row>
                                                             <Row className="mb-2">
@@ -813,25 +872,29 @@ class Disposal extends Component {
                                                                 </Col>
                                                                 {item.appForm.find(({status}) => status === 0) !== undefined ? (
                                                                     <Col md={6} className="txtDoc">
-                                                                    : Reject {item.appForm.find(({status}) => status === 0).jabatan}
+                                                                        <div>:</div>
+                                                                        Reject {item.appForm.find(({status}) => status === 0).jabatan}
                                                                     </Col>
                                                                 ) : item.appForm.find(({status}) => status === 1) !== undefined ? (
                                                                     <Col md={6} className="txtDoc">
-                                                                    : Approve {item.appForm.find(({status}) => status === 1).jabatan}
+                                                                        <div>:</div>
+                                                                        Approve {item.appForm.find(({status}) => status === 1).jabatan}
                                                                     </Col>
                                                                 ) : (
                                                                     <Col md={6} className="txtDoc">
-                                                                    : -
+                                                                        <div>:</div>
+                                                                        -
                                                                     </Col>
                                                                 )}
                                                             </Row>
-                                                            {(this.state.view === 'revisi') && (
+                                                            {(this.state.view === 'revisi' || this.state.view === 'reject') && (
                                                                 <Row className="mb-2">
                                                                     <Col md={6} className="txtDoc">
                                                                         Status Revisi
                                                                     </Col>
                                                                     <Col md={6} className="txtDoc">
-                                                                    : {item.revisi}
+                                                                        <div>:</div>
+                                                                        {item.status_reject === 4 ? 'Selesai Revisi' : item.status_reject === 0 ? '-' : 'Proses Revisi'}
                                                                     </Col>
                                                                 </Row>
                                                             )}
@@ -948,20 +1011,32 @@ class Disposal extends Component {
                                     <th>Nilai Buku</th>
                                     <th>Nilai Jual</th>
                                     <th>Keterangan</th>
+                                    <th>Select item to reject</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {detailData.length !== 0 && detailData.map(item => {
                                     return (
-                                        <tr onClick={() => this.openDataRinci(item)}>
-                                            <th scope="row">{detailData.indexOf(item) + 1}</th>
-                                            <td>{item.no_asset}</td>
-                                            <td>{item.nama_asset}</td>
-                                            <td>{item.merk}</td>
-                                            <td>{item.kategori}</td>
-                                            <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                            <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                            <td>{item.keterangan}</td>
+                                        <tr>
+                                            <th scope="row" onClick={() => this.openDataRinci(item)}>{detailData.indexOf(item) + 1}</th>
+                                            <td onClick={() => this.openDataRinci(item)}>{item.no_asset}</td>
+                                            <td onClick={() => this.openDataRinci(item)}>{item.nama_asset}</td>
+                                            <td onClick={() => this.openDataRinci(item)}>{item.merk}</td>
+                                            <td onClick={() => this.openDataRinci(item)}>{item.kategori}</td>
+                                            <td onClick={() => this.openDataRinci(item)}>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td onClick={() => this.openDataRinci(item)}>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td onClick={() => this.openDataRinci(item)}>{item.keterangan}</td>
+                                            <td> 
+                                                <Input
+                                                addon
+                                                disabled={this.state.view !== 'available' && this.state.view !== 'revisi' ? true : false}
+                                                checked={listMut.find(element => element === item.id) !== undefined ? true : false}
+                                                type="checkbox"
+                                                onClick={listMut.find(element => element === item.id) === undefined ? () => this.chekApp(item.id) : () => this.chekRej(item.id)}
+                                                value={item.id} />
+                                            </td>
+                                            <td>{item.isreject === 1 ? 'Reject' : item.isreject === 2 ? 'Revisi' : '-'}</td>
                                         </tr>
                                     )
                                 })}
@@ -973,7 +1048,7 @@ class Disposal extends Component {
                     <div className="modalFoot ml-3">
                         <Button color="primary" onClick={() => this.openModPreview({nama: detailDis[0] !== undefined && detailDis[0].kode_plant.split('').length === 4 ? 'disposal pengajuan' : 'disposal pengajuan HO', no: detailDis[0] !== undefined && detailDis[0].no_disposal})}>Preview</Button>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="danger" disabled={this.state.view !== 'available' && this.state.view !== 'revisi' ? true : detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true} onClick={this.openModalReject}>
+                            <Button className="mr-2" color="danger" disabled={this.state.view !== 'available' && this.state.view !== 'revisi' ? true : listMut.length === 0 ? true : detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true} onClick={this.openModalReject}>
                                 Reject
                             </Button>
                             <Button color="success" onClick={this.openModalApprove} disabled={this.state.view !== 'available' && this.state.view !== 'revisi' ? true : detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true}>
@@ -1275,6 +1350,7 @@ class Disposal extends Component {
                                             <Col md={9} className="colRinci">:  <Input
                                                 type= "text" 
                                                 className="inputRinci"
+                                                disabled
                                                 value={values.merk}
                                                 onBlur={handleBlur("merk")}
                                                 onChange={handleChange("merk")}
@@ -1335,10 +1411,10 @@ class Disposal extends Component {
                                             <text className={style.txtError}>{errors.keterangan}</text>
                                         ) : null}
                                     </div>
-                                    <div className="footRinci1">
-                                        <Button className="btnFootRinci1" size="lg" color="primary" onClick={handleSubmit}>Save</Button>
+                                    <div className="footRinci4">
+                                        {/* <Button className="btnFootRinci1" size="lg" color="primary" onClick={handleSubmit}>Save</Button> */}
                                         <Button className="btnFootRinci1" size="lg" color="success" onClick={this.openProsesModalDoc}>Dokumen</Button>
-                                        <Button className="btnFootRinci1" size="lg" color="secondary" onClick={() => this.openRinciAdmin()}>Close</Button>
+                                        <Button className="btnFootRinci1 ml-2" size="lg" color="secondary" onClick={() => this.openRinciAdmin()}>Close</Button>
                                     </div>
                                 </div>
                             )}
@@ -1363,21 +1439,21 @@ class Disposal extends Component {
                                     </Col>
                                     {x.path !== null ? (
                                         <Col md={6} lg={6} className="lsDoc">
-                                                {x.status === 0 ? (
-                                                    <AiOutlineClose size={20} />
-                                                ) : x.status === 3 ? (
-                                                    <AiOutlineCheck size={20} />
-                                                ) : (
-                                                    <BsCircle size={20} />
-                                                )}
-                                                {x.divisi === '0' ? (
-                                                    <AiOutlineClose size={20} />
-                                                ) : x.divisi === '3' ? (
-                                                    <AiOutlineCheck size={20} />
-                                                ) : (
-                                                    <BsCircle size={20} />
-                                                )}
-                                                <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
+                                            {x.status === 0 ? (
+                                                <AiOutlineClose size={20} />
+                                            ) : x.status === 3 ? (
+                                                <AiOutlineCheck size={20} />
+                                            ) : (
+                                                <BsCircle size={20} />
+                                            )}
+                                            {x.divisi === '0' ? (
+                                                <AiOutlineClose size={20} />
+                                            ) : x.divisi === '3' ? (
+                                                <AiOutlineCheck size={20} />
+                                            ) : (
+                                                <BsCircle size={20} />
+                                            )}
+                                            <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
                                         </Col>
                                     ) : (
                                         <Col md={6} lg={6} >
@@ -1391,10 +1467,7 @@ class Disposal extends Component {
                 </ModalBody>
                 <ModalFooter>
                     <Button className="mr-2" color="secondary" onClick={this.closeProsesModalDoc}>
-                            Close
-                        </Button>
-                        <Button color="primary" onClick={this.closeProsesModalDoc}>
-                            Save 
+                        Close
                     </Button>
                 </ModalFooter>
             </Modal>
@@ -1402,7 +1475,7 @@ class Disposal extends Component {
                     <ModalBody>
                     <Formik
                     initialValues={{
-                    alasan: "",
+                    alasan: ".",
                     jenis_reject: "revisi"
                     }}
                     validationSchema={alasanDisSchema}
@@ -1410,45 +1483,61 @@ class Disposal extends Component {
                     >
                         {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
                             <div className={style.modalApprove}>
-                            <div className={style.quest}>Anda yakin untuk reject ?</div>
-                            <div className={style.alasan}>
-                                <text className="col-md-3">
-                                    Reject
-                                </text>
-                                <Input 
-                                type="select" 
-                                name="jenis_reject" 
-                                className="col-md-9"
-                                value={values.jenis_reject}
-                                onChange={handleChange('jenis_reject')}
-                                onBlur={handleBlur('jenis_reject')}
-                                >
-                                    <option value="revisi">Perbaikan </option>
-                                    <option value="batal">Pembatalan </option>
-                                </Input>
+                            <div className='colred'>Anda yakin untuk reject</div>
+                            <div className='mb-2 mt-2'>
+                                {listMut.map(item => {
+                                    return (
+                                        <div className="blue">- {detailData.find(({id}) => id === item).nama_asset}</div>
+                                    )
+                                })}
                             </div>
-                            {errors.jenis_reject ? (
-                                <text className={style.txtError}>{errors.jenis_reject}</text>
-                            ) : null}
-                            <div className={style.alasan}>
-                                <text className="col-md-3">
-                                    Alasan
-                                </text>
-                                <Input 
-                                type="name" 
-                                name="alasan" 
-                                className="col-md-9"
-                                value={values.alasan}
-                                onChange={handleChange('alasan')}
-                                onBlur={handleBlur('alasan')}
-                                />
+                            <div className='mb-2 mt-4'>Pilih tipe reject :</div>
+                            <Input 
+                            type="select" 
+                            name="jenis_reject" 
+                            className="ml-2"
+                            value={values.jenis_reject}
+                            onChange={handleChange('jenis_reject')}
+                            onBlur={handleBlur('jenis_reject')}
+                            >
+                                <option value="revisi">Perbaikan </option>
+                                <option value="batal">Pembatalan </option>
+                            </Input>
+                            <div className='ml-2'>
+                                {errors.jenis_reject ? (
+                                    <text className={style.txtError}>{errors.jenis_reject}</text>
+                                ) : null}
                             </div>
-                            {errors.alasan ? (
-                                <text className={style.txtError}>{errors.alasan}</text>
-                            ) : null}
+                            <div className='mb-2 mt-4'>Pilih alasan :</div>
+                            <div className="ml-2">
+                                <Input
+                                addon
+                                type="checkbox"
+                                checked= {listStat.find(element => element === 'Nilai jual tidak sesuai') !== undefined ? true : false}
+                                onClick={listStat.find(element => element === 'Nilai jual tidak sesuai') === undefined ? () => this.statusApp('Nilai jual tidak sesuai') : () => this.statusRej('Nilai jual tidak sesuai')}
+                                />  Nilai jual tidak sesuai
+                            </div>
+                            <div className={style.alasan}>
+                                <text className="ml-2">
+                                    Lainnya
+                                </text>
+                            </div>
+                            <Input 
+                            type="name" 
+                            name="alasan" 
+                            className="ml-2"
+                            value={values.alasan}
+                            onChange={handleChange('alasan')}
+                            onBlur={handleBlur('alasan')}
+                            />
+                            <div className='ml-2'>
+                                {errors.alasan && listStat.length === 0 ? (
+                                    <text className={style.txtError}>{errors.alasan}</text>
+                                ) : null}
+                            </div>
                             <div className={style.btnApprove}>
-                                <Button color="primary" onClick={handleSubmit}>Ya</Button>
-                                <Button color="secondary" onClick={this.openModalReject}>Tidak</Button>
+                                <Button color="primary" disabled={(values.alasan === '.' || values.alasan === '') && listStat.length === 0 ? true : false} onClick={handleSubmit}>Reject</Button>
+                                <Button color="secondary" onClick={this.openModalReject}>Close</Button>
                             </div>
                         </div>
                         )}
@@ -1601,12 +1690,20 @@ class Disposal extends Component {
                                 <div className="errApprove mt-2">{this.props.disposal.alertM === undefined ? '' : this.props.disposal.alertM}</div>
                             </div>
                             </div>
-                        ) : this.state.confirm === 'rejReject' ?(
+                        ) : this.state.confirm === 'rejReject' ? (
                             <div>
                                 <div className={style.cekUpdate}>
                                 <AiOutlineClose size={80} className={style.red} />
                                 <div className={[style.sucUpdate, style.green]}>Gagal Reject</div>
                                 <div className="errApprove mt-2">{this.props.disposal.alertM === undefined ? '' : this.props.disposal.alertM}</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'rejbatal' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Reject</div>
+                                <div className="errApprove mt-2">Pilih semua item untuk reject pembatalan</div>
                             </div>
                             </div>
                         ) : (
