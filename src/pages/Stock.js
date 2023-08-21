@@ -2,7 +2,7 @@
 /* eslint-disable jsx-a11y/no-distracting-elements */
 import React, { Component } from 'react'
 import {VscAccount} from 'react-icons/vsc'
-import { Container, Collapse, Nav, Navbar,
+import { Container, Collapse, Nav, 
     NavbarToggler, NavbarBrand, NavItem, NavLink,
     UncontrolledDropdown, DropdownToggle, DropdownMenu, Dropdown,
     DropdownItem, Table, ButtonDropdown, Input, Button, Col,
@@ -795,7 +795,7 @@ class Stock extends Component {
                             <div className={style.headMaster}>
                                 <div className={style.titleDashboard}>Stock Opname Asset</div>
                             </div>
-                            <div className={style.secEmail}>
+                            <div className={style.secEmail3}>
                                 {level === '5' || level === '9' ? (
                                     <div className={style.headEmail}>
                                         <Button onClick={this.prosesSubmitPre} color="info" size="lg">Submit</Button>
@@ -832,7 +832,7 @@ class Stock extends Component {
                                     </div>
                                 )}
                             </div>
-                            <div className={style.secEmail}>
+                            <div className={style.secEmail3}>
                                 {level !== '5' && level !== '9' ? (
                                     <div className='mt-4 ml-3'>
                                         <text>Periode: </text>
@@ -1217,7 +1217,7 @@ class Stock extends Component {
                                     )
                                 )}
                                 <div>
-                                    <div className={style.infoPageEmail}>
+                                    <div className={style.infoPageEmail1}>
                                         <text>Showing {page.currentPage} of {page.pages} pages</text>
                                         <div className={style.pageButton}>
                                             <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>

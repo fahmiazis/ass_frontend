@@ -440,7 +440,6 @@ class EksekusiDisposal extends Component {
                     const data = Object.values(baseData[i])
                     const cek = []
                     for (let j = 0; j < data.length; j++) {
-                        console.log(data[j])
                         if (typeof data[j] !== 'object' && data[j] !== null && data[j] !== undefined) {
                             const senten = data[j].toString()
                             if (senten.includes(str)) {

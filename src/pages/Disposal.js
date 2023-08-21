@@ -105,7 +105,8 @@ class Disposal extends Component {
             app: [],
             find: null,
             listMut: [],
-            listStat: []
+            listStat: [],
+            baseData: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -459,11 +460,33 @@ class Disposal extends Component {
     }
 
     onSearch = async (e) => {
+        const str = e.target.value
         this.setState({search: e.target.value})
-        const token = localStorage.getItem("token")
+        const {baseData} = this.state 
+        const newData = []
         if(e.key === 'Enter'){
-            await this.props.getAsset(token, 10, e.target.value, 1)
-            // this.getDataAsset({limit: 10, search: this.state.search})
+            if (str === '') {
+                this.setState({newDis: baseData})
+            } else {
+                for (let i = 0; i < baseData.length; i++) {
+                    const data = Object.values(baseData[i])
+                    const cek = []
+                    for (let j = 0; j < data.length; j++) {
+                        if (typeof data[j] !== 'object' && data[j] !== null && data[j] !== undefined) {
+                            const senten = data[j].toString()
+                            if (senten.includes(str)) {
+                                cek.push(1)
+                            }
+                        }
+                    }
+                    if (cek.length) {
+                        newData.push(baseData[i])
+                    }
+                }
+                this.setState({newDis: newData})
+            }
+        } else if (str === '') {
+            this.setState({newDis: baseData})
         }
     }
 
@@ -604,7 +627,7 @@ class Disposal extends Component {
                     }
                 }
             }
-            this.setState({view: val, newDis: newDis})
+            this.setState({view: val, newDis: newDis, baseData: newDis})
         } else if (val === 'revisi') {
             const newDis = []
             for (let i = 0; i < noDis.length; i++) {
@@ -619,7 +642,7 @@ class Disposal extends Component {
                     }
                 }
             }
-            this.setState({view: val, newDis: newDis})
+            this.setState({view: val, newDis: newDis, baseData: newDis})
         } else if (val === 'reject') {
             const newDis = []
             for (let i = 0; i < noDis.length; i++) {
@@ -629,7 +652,7 @@ class Disposal extends Component {
                     newDis.push(resdis)
                 }
             }
-            this.setState({view: val, newDis: newDis})
+            this.setState({view: val, newDis: newDis, baseData: newDis})
         } else if (val === 'full') {
             const newDis = []
             for (let i = 0; i < noDis.length; i++) {
@@ -640,7 +663,7 @@ class Disposal extends Component {
                     newDis.push(resdis)
                 }
             }
-            this.setState({view: val, newDis: newDis})
+            this.setState({view: val, newDis: newDis, baseData: newDis})
         } else {
             const newDis = []
             for (let i = 0; i < noDis.length; i++) {
@@ -649,7 +672,7 @@ class Disposal extends Component {
                     newDis.push(dataDis[index])
                 }
             }
-            this.setState({view: val, newDis: newDis})
+            this.setState({view: val, newDis: newDis, baseData: newDis})
         }
     }
 

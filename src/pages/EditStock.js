@@ -583,7 +583,7 @@ class EditStock extends Component {
                             <div className={style.headMaster}>
                                 <div className={style.titleDashboard}>Revisi Stock Opname Asset</div>
                             </div>
-                            <div className={style.secEmail}>
+                            <div className={style.secEmail3}>
                                     {level === '5' ? (
                                         <div className={style.headEmail}>
                                             {/* <Button onClick={this.prosesSubmitPre} color="info" size="lg" className="btnGoCart">Submit</Button> */}
@@ -641,10 +641,6 @@ class EditStock extends Component {
                                             <Col md={3} xl={3} sm={3}>opname per tanggal</Col>
                                             <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={stockArea.length > 0 ? moment(stockArea[0].tanggalStock).format('LL') : '-'} className="ml-3"  /></Col>
                                         </Row>
-                                        <Row className="ptStock inputStock">
-                                            <Col md={3} xl={3} sm={3}>Alasan Reject</Col>
-                                            <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={stockArea.length === 0 ? '-' : stockArea[0].appForm === undefined ? '-' : stockArea[0].appForm.find(({status}) => status === 0) === undefined ? '-' : stockArea[0].appForm.find(({status}) => status === 0).path} className="ml-3"  /></Col>
-                                        </Row>
                                     </div>
                                 ) : (
                                     <div></div>
@@ -664,8 +660,10 @@ class EditStock extends Component {
                                                         <th>LOKASI</th>
                                                         <th>STATUS FISIK</th>
                                                         <th>KONDISI</th>
-                                                        <th>GROUPING</th>
+                                                        <th>STATUS ASET</th>
                                                         <th>KETERANGAN</th>
+                                                        <th>Picture</th>
+                                                        <th>Action</th>
                                                     </tr>
                                                 </thead>
                                             </Table>
@@ -696,6 +694,7 @@ class EditStock extends Component {
                                                     <th>KETERANGAN</th>
                                                     <th>Picture</th>
                                                     <th>Action</th>
+                                                    <th>Alasan Reject</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -830,6 +829,9 @@ class EditStock extends Component {
                                                             <Button color="primary" onClick={() => this.getRincian(item)}>Rincian</Button>
                                                             <Button className='mt-2' color="success" onClick={() => this.submitRev(item)}>Submit</Button>
                                                         </td>
+                                                        <td>
+                                                            {item.reason}
+                                                        </td>
                                                     </tr>
                                                     )})}
                                             </tbody>
@@ -929,7 +931,7 @@ class EditStock extends Component {
                                     )
                                 )}
                                 <div>
-                                    <div className={style.infoPageEmail}>
+                                    <div className={style.infoPageEmail1}>
                                         <text>Showing {page.currentPage} of {page.pages} pages</text>
                                         <div className={style.pageButton}>
                                             <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>

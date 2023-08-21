@@ -20,7 +20,7 @@ import style from '../assets/css/input.module.css'
 import moment from 'moment'
 import {BsFillCircleFill, BsBell} from 'react-icons/bs'
 import { FaFileSignature } from 'react-icons/fa'
-import { FiLogOut } from 'react-icons/fi'
+import { FiLogOut, FiSettings, FiTruck } from 'react-icons/fi'
 import Bell from '../components/Bell'
 import Account from '../components/Account'
 
