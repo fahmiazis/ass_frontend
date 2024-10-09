@@ -1,8 +1,8 @@
 html,body{
     height: 100%;
     background-color: #F2F5F8 !important;
-    overflow-y: scroll;
-    overflow-y: auto;
+    overflow: scroll !important;
+    overflow: auto !important;
 }
 .img-back {
     width: 50%;
