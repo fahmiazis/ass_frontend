@@ -61,72 +61,79 @@ function Sidebar(props) {
                 </div>
                 <button className="menuSides" onClick={() => goHome('')}>
                     <AiFillHome size={20} className="iconSide" />
-                    <text className="txtMenu">Home</text>
+                    {props.isMobile !== true && (
+                        <text className="txtMenu">Home</text>
+                    )}
                 </button>
                 {(level === '1' || level === '2' || level === '5') && (
                     <button className="menuSides" onClick={goAsset}>
                         <RiMoneyDollarCircleFill size={20} className="iconSide" />
-                        <text className="txtMenu">My Asset</text>
+                        {props.isMobile !== true && (
+                            <text className="txtMenu">My Asset</text>
+                        )}
                     </button>
                 )}
                 <button className="menuSides" onClick={goPengadaan}>
                     <FaCartPlus size={20} className="iconSide" />
-                    <text className="txtMenu">Pengadaan Asset</text>
+                    {props.isMobile !== true && (
+                        <text className="txtMenu">Pengadaan Asset</text>
+                    )}
                 </button>
                 <button className="menuSides" onClick={goDisposal}>
                     <FaRecycle size={20} className="iconSide" />
-                    <text className="txtMenu">Disposal Asset</text>
+                    {props.isMobile !== true && (
+                        <text className="txtMenu">Disposal Asset</text>
+                    )}
                 </button>
                 <button className="menuSides" onClick={goMutasi}>
                     <RiArrowLeftRightFill size={20} className="iconSide" />
-                    <text className="txtMenu">Mutasi Asset</text>
+                    {props.isMobile !== true && (
+                        <text className="txtMenu">Mutasi Asset</text>
+                    )}
                 </button>
                 <button className="menuSides" onClick={goStock}>
                     <FaTasks size={20} className="iconSide" />
-                    <text className="txtMenu">Stock Opname Asset</text>
-                </button>
-                {level === '1' ? (
-                <button className={stile.btnSide2} onClick={toggle}>
-                    <div>
-                    <FaDatabase size={20} className="mr-3"/> Masterdata
-                    </div>
-                    {isOpen === true ? (
-                    <MdKeyboardArrowDown size={20} />
-                    ) : (
-                    <MdKeyboardArrowLeft size={20} />
+                    {props.isMobile !== true && (
+                        <text className="txtMenu">Stock Opname Asset</text>
                     )}
                 </button>
+                {level === '1' ? (
+                    <button className={stile.btnSide2} onClick={toggle}>
+                        <div>
+                            <FaDatabase size={20} className="mr-3"/> {props.isMobile !== true && 'Master'}
+                        </div>
+                    </button>
                 ) : (
-                <div></div>
+                    <div></div>
                 )}
                 <Collapse isOpen={isOpen} className="ml-5 mt-3">
                 {/* <button onClick={() => goHome('alasan')} className={stile.btnSide}>
                     <RiFileUnknowLine size={20} className="mr-2"/>
-                    Masterdata Alasan
+                    Master Alasan
                 </button> */}
                 <button onClick={() => goHome('depo')} className={stile.btnSide}>
                     <BsHouseDoor size={20} className="mr-2"/>
-                    Masterdata Depo
+                    {props.isMobile !== true && 'Master Depo'}
                 </button>
                 <button onClick={() => goHome('email')} className={stile.btnSide}>
                     <FiMail size={20} className="mr-2"/>
-                    Masterdata Email
+                    {props.isMobile !== true && 'Master Email'}
                 </button>
                 <button onClick={() => goHome('user')} className={stile.btnSide}>
                     <FiUser size={20} className="mr-2"/>
-                    Masterdata User
+                    {props.isMobile !== true && 'Master User'}
                 </button>
                 {/* <button onClick={() => goHome('divisi')} className={stile.btnSide}>
                     <GiFamilyTree size={20} className="mr-2"/>
-                    Masterdata Divisi
+                    Master Divisi
                 </button> */}
                 <button onClick={() => goHome('dokumen')} className={stile.btnSide}>
                     <BsClipboardData size={20} className="mr-2"/>
-                    Masterdata Document
+                    {props.isMobile !== true && 'Master Document'}
                 </button>
                 {/* <button onClick={() => goHome('pic')} className={stile.btnSide}>
                     <FiUsers size={20} className="mr-2"/>
-                    Masterdata PIC
+                    Master PIC
                 </button> */}
                 </Collapse>
                 {/* <button className="menuSides" onClick={goReport}>
@@ -135,10 +142,10 @@ function Sidebar(props) {
                 </button> */}
             </div>
             <div>
-                <button onClick={() => logout()} className="menuSides foot">
+                {/* <button onClick={() => logout()} className="menuSides foot">
                     <FiLogOut size={20} className="iconSide" />
                     <text className="txtMenu">Logout</text>
-                </button>
+                </button> */}
             </div>
         </div>
     )

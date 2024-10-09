@@ -48,7 +48,8 @@ const pengState = {
     isGetTrack: false,
     trackIo: [],
     podssend: null,
-    submitNotAset: null
+    submitNotAset: null,
+    dataErr: []
 }
 
 export default (state=pengState, action) => {
@@ -362,6 +363,7 @@ export default (state=pengState, action) => {
                 ...state,
                 isLoading: false,
                 errUpload: true,
+                dataErr: action.payload.response === undefined ? [{mess: 'internal server error'}] : action.payload.response.data.result,
                 alertMsg: "Unable connect to server"
             };
         }

@@ -93,7 +93,7 @@ html,body{
     width: auto;
 }
 .navbar {
-  background-color: #9A1353;
+  background-color: #c0392b;
   color: white;
   display: flex;
   position: fixed !important;
@@ -240,8 +240,8 @@ html,body{
 }
 .search {
   border: 1px solid #9b9b9b;
-  width: 100%;
-  margin-left: 10px;
+  width: 100% !important;
+  margin-left: 5%;
 }
 .secSearch {
   display: flex;
@@ -327,6 +327,7 @@ html,body{
   border: 1px solid #9b9b9b;
   background-color: #76923B;
   color: black;
+  white-space: nowrap;
 }
 .btnProses {
   margin-right: 20px;
@@ -416,12 +417,13 @@ html,body{
   display: flex;
   flex-direction: row;
   align-items: center;
+  margin-bottom: 3%;
 }
 .headEmail {
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-top: 50px;
+  /* margin-top: 50px; */
   width: 20%;
   justify-content: space-between;
 }
@@ -451,13 +453,22 @@ html,body{
   margin-top: 50px;
   margin-right: 5%;
 }
+.searchEmail3 {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.filter {
+  border: 1px solid #9b9b9b;
+  width: 100% !important;
+  margin-left: 5%;
+}
 .secEmail {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding-right: 7%;
-  padding-left: 6%;
+  margin-bottom: 2%;
 }
 .secEmail3 {
   display: flex;
@@ -470,16 +481,12 @@ html,body{
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding-right: 5%;
-  padding-left: 5%;
 }
 .secEmail1 {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
   justify-content: space-between;
-  padding-right: 5%;
-  padding-left: 5%;
 }
 .infoPageEmail {
   display: flex;
@@ -585,6 +592,15 @@ html,body{
   margin-top: 5%;
   margin-bottom: 5%;
 }
+.spinCol {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  align-items: center;
+  margin-top: 5%;
+  margin-bottom: 5%;
+}
 .cekUpdate {
   display: flex;
   flex-direction: column;
@@ -684,7 +700,7 @@ html,body{
 }
 .content {
   height: "auto";
-  background-color: "#9A1353";
+  background-color: "#c0392b";
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;

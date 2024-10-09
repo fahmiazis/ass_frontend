@@ -2,7 +2,7 @@
 import React, { Component } from 'react'
 import Sidebar from '../components/Sidebar'
 import auth from '../redux/actions/auth'
-import { Input, Button, Modal, ModalHeader, ModalBody, Alert, 
+import { Input, Button, Modal, ModalHeader, ModalBody, Alert, Collapse,
     UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem, Dropdown, Row } from 'reactstrap'
 import {connect} from 'react-redux'
 import addPicture from '../assets/img/add.png'
@@ -18,11 +18,20 @@ import {VscAccount} from 'react-icons/vsc'
 import '../assets/css/style.css'
 import style from '../assets/css/input.module.css'
 import moment from 'moment'
-import {BsFillCircleFill, BsBell} from 'react-icons/bs'
-import { FaFileSignature } from 'react-icons/fa'
-import { FiLogOut, FiSettings, FiTruck } from 'react-icons/fi'
 import Bell from '../components/Bell'
 import Account from '../components/Account'
+import { FaBell, FaUser, FaBars, FaTimes } from 'react-icons/fa';
+import styleHome from '../assets/css/Home.module.css'
+import pengadaanIm from '../assets/img/io.png'
+import disposalIm from '../assets/img/dis.png'
+import mutasiIm from '../assets/img/mutasis.png'
+import opnameIm from '../assets/img/opname.png'
+import logo from '../assets/img/logo.png'
+import {AiFillHome} from 'react-icons/ai'
+import {FiLogOut, FiUser, FiUsers, FiMail} from 'react-icons/fi'
+import { BsClipboardData, BsHouseDoor, BsFileCheck } from 'react-icons/bs'
+import { FaDatabase, FaHome, FaFileArchive, FaCartPlus, FaRecycle, FaTasks, } from 'react-icons/fa'
+import { RiArrowLeftRightFill, RiMoneyDollarCircleFill } from 'react-icons/ri'
 
 const userEditSchema = Yup.object().shape({
     fullname: Yup.string().required('must be filled'),
@@ -43,7 +52,13 @@ class Home extends Component {
         alert: false,
         setting: false,
         modalChange: false,
-        dataNull: []
+        sidebarVisible: false,
+        dataNull: [],
+        isOpen: false
+    }
+
+    toggle = () => {
+        this.setState({isOpen: !this.state.isOpen})
     }
 
     openModalEdit = () => {
@@ -150,6 +165,7 @@ class Home extends Component {
         const fullname = localStorage.getItem('fullname')
         const id = localStorage.getItem('id')
         const level = localStorage.getItem('level')
+        document.addEventListener('mousedown', this.closeSidebar)
         this.getNotif()
         if (email === 'null' || email === '' || fullname === 'null' || fullname === '') {
             if (id !== null && level !== '5') {
@@ -163,6 +179,23 @@ class Home extends Component {
             this.relogin()
         }
     }
+
+    componentWillUnmount() {
+        document.removeEventListener('mousedown', this.closeSidebar);
+    }
+
+    toggleSidebar = () => {
+        this.setState((prevState) => ({
+          sidebarVisible: !prevState.sidebarVisible,
+        }))
+      }
+    
+      closeSidebar = (event) => {
+        if (this.sidebarRef && this.sidebarRef.contains(event.target)) {
+          return // Jika klik di dalam sidebar, tidak melakukan apa-apa
+        }
+        this.setState({ sidebarVisible: false })
+      }
 
     openModalChange = () => {
         this.setState({modalChange: !this.state.modalChange})
@@ -184,7 +217,7 @@ class Home extends Component {
         const dataNotif = this.props.notif.data
         return (
             <>
-            <div className="bodyHome">
+            {/* <div className="bodyHome">
                 <div className="leftHome">
                     <Sidebar />
                 </div>
@@ -226,6 +259,132 @@ class Home extends Component {
                             </button>
                         </div>
                     </div>
+                </div>
+            </div> */}
+            <div className={styleHome.homeContainer}>
+                <header className={styleHome.header}>
+                    <FaBars className={styleHome.burgerMenu} onClick={this.toggleSidebar} />
+                    <div className={styleHome.icons}>
+                        <Bell dataNotif={[]} color={"black"}/>
+                        <Account color={"black"}/>
+                    </div>
+                </header>
+        
+                <aside
+                    className={`${styleHome.sidebar} ${this.state.sidebarVisible ? styleHome.show : styleHome.hide}`}
+                    ref={(ref) => (this.sidebarRef = ref)} // Mengaitkan referensi sidebar
+                >
+                    <div className={styleHome.logo}>
+                    <img src={logo} alt="Logo"  className={styleHome.imgLogo}/>
+                    </div>
+                    <nav className={styleHome.nav}>
+                    <ul>
+                        <li className={styleHome.alignCenter} onClick={() => this.goRoute('')}>
+                            <AiFillHome className='mr-2' />
+                            Home
+                        </li>
+                        {(level === '1' || level === '2' || level === '5') && (
+                            <li className={styleHome.alignCenter} onClick={() => this.goRoute('asset')}>
+                                <RiMoneyDollarCircleFill className='mr-2' />
+                                My Asset
+                            </li>
+                        )}
+                        <li className={styleHome.alignCenter} onClick={() => this.goRoute('navtick')}>
+                            <FaCartPlus className='mr-2' />
+                            Pengadaan Aset
+                        </li>
+                        <li className={styleHome.alignCenter} onClick={() => this.goRoute('navdis')} >
+                            <FaRecycle className='mr-2' />
+                            Disposal Aset
+                        </li>
+                        <li className={styleHome.alignCenter} onClick={() => this.goRoute('navmut')} >
+                            <RiArrowLeftRightFill className='mr-2' />
+                            Mutasi Aset
+                        </li>
+                        <li className={styleHome.alignCenter} onClick={() => this.goRoute('navstock')} >
+                            <FaTasks className='mr-2' />
+                            Stock Opname Aset
+                        </li>
+                        {level === '1' ? (
+                            <li className={styleHome.alignCenter} onClick={this.toggle}>
+                                <FaDatabase className="mr-2"/> Master
+                            </li>
+                        ) : (
+                            <div></div>
+                        )}
+                        <Collapse isOpen={this.state.isOpen} className="ml-3 mt-3">
+                        {/* <button onClick={() => this.goRoute('alasan')} className={styleHome.alignCenter}>
+                            <RiFileUnknowLine className="mr-2"/>
+                            Master Alasan
+                        </button> */}
+                        <li onClick={() => this.goRoute('depo')} className={styleHome.alignCenter}>
+                            <BsHouseDoor className="mr-2"/>
+                            Master Depo
+                        </li>
+                        <li onClick={() => this.goRoute('email')} className={styleHome.alignCenter}>
+                            <FiMail className="mr-2"/>
+                            Master Email
+                        </li>
+                        <li onClick={() => this.goRoute('user')} className={styleHome.alignCenter}>
+                            <FiUser className="mr-2"/>
+                            Master User
+                        </li>
+                        {/* <li onClick={() => this.goRoute('divisi')} className={styleHome.alignCenter}>
+                            <GiFamilyTree className="mr-2"/>
+                            Master Divisi
+                        </li> */}
+                        <li onClick={() => this.goRoute('dokumen')} className={styleHome.alignCenter}>
+                            <BsClipboardData className="mr-2"/>
+                            Master Document
+                        </li>
+                        {/* <li onClick={() => this.goRoute('pic')} className={styleHome.alignCenter}>
+                            <FiUsers className="mr-2"/>
+                            Master PIC
+                        </li> */}
+                        </Collapse>
+                    </ul>
+                    </nav>
+                </aside>
+        
+                <div className={styleHome.mainContent}>
+                    <main className={styleHome.mainSection}>
+                    <h1 className={styleHome.title}>Welcome to web asset</h1>
+                    <h4 className={styleHome.subtitle}>Please select an option</h4>
+
+                    <div className={`${styleHome.assetContainer} row`}>
+                        {/* Pengadaan Aset */}
+                        <div onClick={() => this.goRoute('navtick')} className="col-12 col-md-6 col-lg-3 mb-4">
+                            <div className={styleHome.assetCard}>
+                                <img className='mt-4' src={pengadaanIm} alt="Pengadaan Aset"  />
+                                <p className='mt-4'>Pengadaan Aset</p>
+                            </div>
+                        </div>
+
+                        {/* Disposal Aset */}
+                        <div onClick={() => this.goRoute('navdis')} className="col-12 col-md-6 col-lg-3 mb-4">
+                            <div className={styleHome.assetCard}>
+                                <img className='mt-4' src={disposalIm} alt="Disposal Aset"  />
+                                <p className='mt-4'>Disposal Aset</p>
+                            </div>
+                        </div>
+
+                        {/* Stock Opname Aset */}
+                        <div onClick={() => this.goRoute('navstock')} className="col-12 col-md-6 col-lg-3 mb-4">
+                            <div className={styleHome.assetCard}>
+                                <img className='mt-4' src={opnameIm}alt="Stock Opname Aset"  />
+                                <p className='mt-4'>Stock Opname Aset</p>
+                            </div>
+                        </div>
+
+                        {/* Mutasi Aset */}
+                        <div onClick={() => this.goRoute('navmut')} className="col-12 col-md-6 col-lg-3 mb-4">
+                            <div className={styleHome.assetCard}>
+                                <img className='mt-4' src={mutasiIm} alt="Mutasi Aset"  />
+                                <p className='mt-4'>Mutasi Aset</p>
+                            </div>
+                        </div>
+                    </div>
+                    </main>
                 </div>
             </div>
             <Modal isOpen={this.state.modalEdit}>

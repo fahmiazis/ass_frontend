@@ -19,7 +19,7 @@ const styles = {
   sidebar: {
     width: 350,
     height: "100%",
-    backgroundColor: "#9A1353"
+    backgroundColor: "#c0392b"
   },
   sidebarLink: {
     display: "block",
@@ -31,13 +31,13 @@ const styles = {
   divider: {
     margin: "8px 0",
     height: 1,
-    backgroundColor: "#9A1353"
+    backgroundColor: "#c0392b"
   },
   content: {
     // padding: "16px",
     // height: "60%",
     height: "auto",
-    backgroundColor: "#9A1353"
+    backgroundColor: "#c0392b"
   }
 };
 

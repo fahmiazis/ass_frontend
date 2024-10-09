@@ -49,6 +49,15 @@ class Account extends Component {
         this.props.logout()
     }
 
+    componentDidMount() {
+        this.getData()
+    }
+
+    getData = async () => {
+        const token = localStorage.getItem("token")
+        await this.props.getNotif(token)
+    }
+
   render() {
     const level = localStorage.getItem('level')
     const names = localStorage.getItem('name')
@@ -57,8 +66,19 @@ class Account extends Component {
         <>
             <UncontrolledDropdown>
                 <DropdownToggle nav>
-                    <VscAccount size={30} className={color === undefined ? 'mr-2 white' : `mr-2 ${color}`} />
-                    <text className={color === undefined ? 'mr-2 white' : `mr-2 ${color}`}>{level === '1' ? 'Super Admin' : names.slice(0, 15)}</text>
+                    <FaUserCircle size={25} className={color === undefined ? 'mr-2 white' : `mr-2 ${color}`} />
+                    <text className={color === undefined ? 'white' : `${color}`}>
+                        {/* {level === '1' ? 'Super Admin' : names !== null && names.slice(0, 15)} */}
+                        {level === '1' ? 'Super Admin' 
+                            : names === undefined ? '' 
+                            : names.length <= 17 ? names.split(" ").map((word) => { 
+                                return word[0] === undefined ? '' : word[0].toUpperCase() + word.substring(1)
+                            }).join(" ")
+                            : names.slice(0, 16).split(" ").map((word) => { 
+                                return word[0] === undefined ? '' : word[0].toUpperCase() + word.substring(1)
+                            }).join(" ") + '.'
+                        }
+                    </text>
                 </DropdownToggle>
                 <DropdownMenu right>
                     <DropdownItem onClick={this.openModalEdit}>

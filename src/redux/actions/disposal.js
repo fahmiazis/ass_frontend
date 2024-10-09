@@ -19,13 +19,13 @@ export default {
         type: 'GET_SUBMIT_DISPOSAL',
         payload: http(token).get(`/disposal/get?limit=${limit === undefined ? 10 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&status=${status === undefined ? 1 : status}&tipe=${tipe === undefined ? 'disposal' : tipe}`)
     }),
-    getDetailDisposal: (token, nomor, tipe) => ({
+    getDetailDisposal: (token, no, tipe) => ({
         type: 'DETAIL_DISPOSAL',
-        payload: http(token).get(`/disposal/detail/${nomor}?tipe=${tipe === undefined ? 'pengajuan' : tipe}`)
+        payload: http(token).patch(`/disposal/detail?tipe=${tipe === undefined ? 'pengajuan' : tipe}`, qs.stringify({nomor: no}))
     }),
-    getNewDetailDisposal: (token, nomor, tipe) => ({
+    getNewDetailDisposal: (token, no, tipe) => ({
         type: 'DETAIL_DISPOSAL',
-        payload: http(token).get(`/disposal/detail/${nomor}?tipe=${tipe === undefined ? 'pengajuan' : tipe}`)
+        payload: http(token).get(`/disposal/detail?tipe=${tipe === undefined ? 'pengajuan' : tipe}`, qs.stringify({nomor: no}))
     }),
     addDisposal: (token, no) => ({
         type: 'ADD_DISPOSAL',

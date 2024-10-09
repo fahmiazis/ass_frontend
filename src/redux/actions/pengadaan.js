@@ -85,7 +85,7 @@ export default {
     }),
     uploadMasterTemp: (token, data, no) => ({
         type: 'UPLOAD_TEMP',
-        payload: http(token).post(`/ticket/master/${no}`, data)
+        payload: http(token).post(`/ticket/master`, data)
     }),
     addCart: (token, data) => ({
         type: 'ADDCART_IO',

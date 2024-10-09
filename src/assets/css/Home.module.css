@@ -1,0 +1,223 @@
+
+.imgLogo {
+    width: auto;
+    height: 240px;
+}
+
+.imgMenu {
+    width: auto;
+    height: 200px;
+}
+
+.title {
+    /* color: white; */
+    /* margin-bottom: 100px; */
+}
+
+.subtitle {
+    /* color: white; */
+    margin-bottom: 100px;
+}
+
+.titleMenu {
+    font-weight: 600;
+    font-size: larger;
+}
+  
+/* Container utama untuk halaman */
+.homeContainer {
+    background: url('../img/bckHome.jpg') no-repeat center center fixed;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; /* Membuat gambar background tetap */
+    min-height: 100vh; /* Agar background memenuhi layar */
+    padding: 2rem;
+    overflow: hidden;
+  }
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    position: relative;
+  }
+  
+  .burgerMenu {
+    font-size: 24px;
+    cursor: pointer;
+    margin-left: 20px; /* Mengatur jarak dari kiri */
+  }
+  
+  .icons {
+    display: flex;
+    align-items: center;
+    margin-right: 20px; /* Mengatur jarak dari kanan */
+  }
+  
+  .icon {
+    font-size: 24px;
+    margin-left: 20px; /* Jarak antar icon */
+    cursor: pointer;
+    /* color: white; */
+  }
+  
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 250px;
+    background: rgba(235, 87, 87, 0.9);
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 1000; /* Menyimpan di atas konten lain */
+    overflow-y: auto;
+  }
+  
+  .show {
+    transform: translateX(0);
+  }
+  
+  .hide {
+    transform: translateX(-100%);
+  }
+  
+  .logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    background-color: white;
+  }
+  
+  .closeIcon {
+    font-size: 24px;
+    cursor: pointer;
+  }
+  
+  .nav {
+    margin-top: 20px;
+  }
+  
+  .nav ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .nav li {
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background 0.3s;
+    color: white;
+  }
+  
+  .nav li:hover {
+    background: rgba(200, 200, 200, 0.3); /* Mengatur background saat hover */
+  }
+  
+  .mainContent {
+    flex: 1;
+    padding: 20px;
+  }
+  
+  .mainSection {
+    text-align: center;
+  }
+  
+  .menuGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 2 kolom */
+    gap: 20px;
+    margin-top: 20px;
+  }
+  
+  .menuItem {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    /* background: rgba(235, 87, 87, 0.85); */
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 8px;
+    padding: 20px;
+    transition: transform 0.3s;
+    cursor: pointer;
+    height: 500px;
+    /* width: 90%; */
+  }
+  
+  .menuItem:hover {
+    transform: scale(1.05); /* Animasi saat hover */
+    background: rgba(235, 87, 87, 0.85);
+    color: white;
+  }
+
+  .alignCenter {
+    display: flex;
+    align-items: center;
+  }
+
+/* New css */
+.assetContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 2rem 0;
+  /* overflow-y: auto;  */
+}
+
+.assetCard {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  text-align: center;
+  transition: transform 0.3s;
+  cursor: pointer;
+  height: 400px;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.assetCard:hover {
+  transform: translateY(-5px);
+  background: rgba(235, 87, 87, 0.85);
+  color: white;
+}
+
+.assetCard img {
+  max-width: 100%;
+  height: 200px;
+  margin-bottom: 0.5rem;
+}
+
+/* Navigation card */
+.navCard {
+  background: rgba(255, 255, 255, 0.85);
+  color: #c0392b;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  text-align: center;
+  transition: transform 0.3s;
+  cursor: pointer;
+  height: 400px;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.navCard:hover {
+  transform: translateY(-5px);
+  background: #c0392b;
+  color: white;
+}
+
+.navCard img {
+  max-width: 100%;
+  height: 200px;
+  margin-bottom: 0.5rem;
+}
+  

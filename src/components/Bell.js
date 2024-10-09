@@ -3,7 +3,7 @@ import {BsBell, BsFillCircleFill} from 'react-icons/bs'
 import { Input, Button, UncontrolledDropdown, DropdownToggle,
     DropdownMenu, DropdownItem, Modal, ModalHeader, ModalBody } from 'reactstrap'
 import style from '../assets/css/input.module.css'
-import {FaBars, FaFileSignature, FaUserCircle} from 'react-icons/fa'
+import {FaBars, FaFileSignature, FaUserCircle, FaBell} from 'react-icons/fa'
 import moment from 'moment'
 import { useHistory } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
@@ -32,7 +32,7 @@ export default function Bell({dataNotif, color}) {
     <UncontrolledDropdown>
         <DropdownToggle nav>
             <div className={style.optionType}>
-                <BsBell size={30} className={color === undefined ? 'white' : color} />
+                <FaBell size={25} className={color === undefined ? 'white' : color} />
                 {dataNotif.find(({status}) => status === null) !== undefined ? (
                     <BsFillCircleFill className="red ball" size={10} />
                 ) : (

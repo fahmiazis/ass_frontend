@@ -1,45 +1,54 @@
-/* eslint-disable no-useless-constructor */
-import React, {Component} from 'react';
-import ReactHTMLTableToExcel from 'react-html-table-to-excel';
+import styles from './tes.module.css'; // Import module CSS
+import logo from '../assets/img/logo.png'
+// App.js
+import React, { Component } from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-class Test extends Component {
+class App extends Component {
+  render() {
+    return (
+      <div className="container">
+        <header className="text-center mt-4">
+          <h1>Welcome to web asset</h1>
+          <p>Please select an option</p>
+        </header>
 
-    constructor(props) {
-        super(props);
-    }
-
-    render() {
-
-        return (
-            <div>
-                <ReactHTMLTableToExcel
-                    id="test-table-xls-button"
-                    className="download-table-xls-button"
-                    table="table-to-xls"
-                    filename="tablexls"
-                    sheet="tablexls"
-                    buttonText="Download as XLS"/>
-                <table id="table-to-xls">
-                    <tr>
-                        <th>Firstname</th>
-                        <th>Lastname</th>
-                        <th>Age</th>
-                    </tr>
-                    <tr>
-                        <td>Jill</td>
-                        <td>Smith</td>
-                        <td>50</td>
-                    </tr>
-                    <tr>
-                        <td>Eve</td>
-                        <td>Jackson</td>
-                        <td>94</td>
-                    </tr>
-                </table>
-
+        <div className={`${styles.assetContainer} row`}>
+          {/* Pengadaan Aset */}
+          <div className="col-12 col-md-6 col-lg-3 mb-4">
+            <div className={styles.assetCard}>
+              <img src="pengadaan.png" alt="Pengadaan Aset" />
+              <p>Pengadaan Aset</p>
             </div>
-        );
-    }
+          </div>
+
+          {/* Disposal Aset */}
+          <div className="col-12 col-md-6 col-lg-3 mb-4">
+            <div className={styles.assetCard}>
+              <img src="disposal.png" alt="Disposal Aset" />
+              <p>Disposal Aset</p>
+            </div>
+          </div>
+
+          {/* Stock Opname Aset */}
+          <div className="col-12 col-md-6 col-lg-3 mb-4">
+            <div className={styles.assetCard}>
+              <img src="stock.png" alt="Stock Opname Aset" />
+              <p>Stock Opname Aset</p>
+            </div>
+          </div>
+
+          {/* Mutasi Aset */}
+          <div className="col-12 col-md-6 col-lg-3 mb-4">
+            <div className={styles.assetCard}>
+              <img src="mutasi.png" alt="Mutasi Aset" />
+              <p>Mutasi Aset</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 }
 
-export default Test
+export default App;

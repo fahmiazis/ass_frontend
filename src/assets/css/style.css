@@ -150,7 +150,7 @@ html,body{
     width: 15%;
     height: 100%;
     position: fixed;
-    background-color: #9A1353;
+    background-color: #c0392b;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -176,7 +176,7 @@ html,body{
 }
 .menuSides {
     margin-left: 5%;
-    background-color: #9A1353;
+    background-color: #c0392b;
     border: 0;
     display: flex;
     flex-direction: row;
@@ -197,10 +197,10 @@ html,body{
     justify-content: space-between;
 }
 .menuSides:hover {
-    background-color: #9E1F64;
+    background-color: #a93226;
 }
 .menuSides1:hover {
-    background-color: #9E1F64;
+    background-color: #a93226;
 }
 .iconSide {
     color: white;
@@ -256,6 +256,7 @@ html,body{
     width: 100%;
     height: 100%;
     background-color: transparent;
+    overflow-y: auto;
 }
 .mainPeng {
     margin-top: 5%;
@@ -296,7 +297,7 @@ html,body{
     color: white;
 }
 .picHome {
-    width: 100%;
+    width: 60%;
     margin-top: 10%;
     margin-bottom: 10%;
 }
@@ -456,9 +457,9 @@ html,body{
     border: 1px solid black;
 }
 .modalFoot {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
     margin-bottom: 2%;
 }
 .btnFoot {
@@ -483,6 +484,13 @@ html,body{
     color: blue;
     /* margin-bottom: 3%; */
     text-align: start;
+}
+.btnDocIo1 {
+    background-color: transparent;
+    border: 0px;
+    /* margin-bottom: 3%; */
+    text-align: start;
+    font-size: 100%;
 }
 .blue {
     color: blue;
@@ -737,9 +745,19 @@ html,body{
 .imgSmallRinci {
     width: 100%;
     height: 100px;
-    object-fit: cover;
+    object-fit: contain;
     object-position: center;
     border-radius: 10%;
+}
+.imgSmallRinci1 {
+    border: 1px solid #9b9b9b;
+    width: 100%;
+    height: 100px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 50%;
+    object-fit: contain;
+    background-color: white;
 }
 .leftRinci {
     width: 45%;
@@ -1024,6 +1042,7 @@ html,body{
     margin-left: 2%;
     font-size: 125%;
     margin-bottom: 3%;
+    color: #c0392b;
 }
 .cardNav:hover {
     background-color: #47C1C4;
@@ -1249,4 +1268,84 @@ html,body{
 .colTable {
     display: flex;
     flex-direction: column;
+}
+.rowCenter {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.rowCenter1 {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+}
+.pagu {
+    margin-bottom: 5%;
+}
+.textInfo {
+    font-size: large;
+}
+.rowGeneral {
+    display: flex;
+    flex-direction: row;
+}
+.checkSize {
+    transform: scale(1.5);
+}
+.fzDoc {
+    font-weight: bold;
+    font-size: 130%;
+}
+.borderGen {
+    border: 1px solid black;
+}
+.colCenter {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    justify-items: center !important;
+    align-items: center !important;
+}
+.selfStart {
+    align-self: flex-start !important;
+}
+
+#wrap {
+    width: 750px;
+    height: 1500px;
+    padding: 0;
+    overflow: hidden;
+}
+
+#scaled-frame {
+    width: 1000px;
+    height: 2000px;
+    border: 0px;
+}
+
+#scaled-frame {
+    zoom: 0.75;
+    -moz-transform: scale(0.75);
+    -moz-transform-origin: 0 0;
+    -o-transform: scale(0.75);
+    -o-transform-origin: 0 0;
+    -webkit-transform: scale(0.75);
+    -webkit-transform-origin: 0 0;
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+    #scaled-frame {
+        zoom: 1;
+    }
+}
+
+.imgPdf {
+    width: 100%; 
+    height: auto;
+    transform: (0.5);
+    transform-style: (0.5);
+}
+.backWhite {
+    background-color: white !important;
+    border: 1px solid black;
 }

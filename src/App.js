@@ -7,53 +7,67 @@ import PrivateRoute from './components/PrivateRoute'
 
 import Login from './pages/Login'
 import Home from './pages/Home'
-import Pengadaan from './pages/Pengadaan'
-import Tespeng from './pages/Pengadaan2'
-import Asset from './pages/Asset'
-import Approve from './pages/Approve'
-import Disposal from './pages/Disposal'
-import FormPersetujuanDis from './pages/FormPersetujuanDis'
-import PersetujuanDis from './pages/PersetujuanDis'
-import Report from './pages/ReportDis'
-import Stock from './pages/Stock'
-import MasterDepo from './pages/MasterDepo'
-import MasterUser from './pages/MasterUser'
-import MasterEmail from './pages/MasterEmail'
-import MasterDokumen from './pages/MasterDokumen'
-import CartDisposal from './pages/CartDisposal'
-import EditDisposal from './pages/EditDisposal'
-import EksekusiDis from './pages/EksekusiDis'
 import Sidebar from './components/Sidebar'
-import TaxFinDisposal from './pages/TaxFinDisposal'
-import MonitoringDisposal from './pages/MonitoringDisposal'
-import PurchDisposal from './pages/PurchDisposal'
-import Mutasi from './pages/Mutasi'
-import CartMutasi from './pages/CartMutasi'
-import NavStock from './pages/NavStock'
-import NavDisposal from './pages/NavDisposal'
-import ReportStock from './pages/ReportStock'
 import Tes from './pages/Tes'
-import EditEksekusi from './pages/EditEksekusi'
-import TrackingDisposal from './pages/TrackingDisposal'
-import EditTaxFin from './pages/EditTaxFin'
+import Transaksi from './pages/Transaksi'
 import TablePdf from './components/Table'
-import TerimaMutasi from './pages/TerimaMutasi'
-import TrackingMutasi from './pages/TrackingMutasi'
-import NavMut from './pages/NavMut'
-import EksekusiMut from './pages/EksekusiMut'
-import BudgetMutasi from './pages/BudgetMutasi'
-import ReportMut from './pages/ReportMut'
-import EditMutasi from './pages/EditMutasi'
-import EditStock from './pages/EditStock'
 import NavBar from './components/NavBar'
-import EditPurch from './pages/EditPurch'
-import TrackingStock from './pages/TrackingStock'
-import EksekusiTicket from './pages/EksekusiTicket'
-import NavTicket from './pages/NavTicket'
-import CartTicket from './pages/CartTicket'
-import TrackingTicket  from './pages/TrackingTicket'
-import EditTicket from './pages/EditTicket'
 import Notif from './pages/Notif'
+
+// Pengadaan Asset
+import Pengadaan from './pages/Pengadaan/Pengadaan'
+import Tespeng from './pages/Pengadaan/Pengadaan2'
+import EksekusiTicket from './pages/Pengadaan/EksekusiTicket'
+import NavTicket from './pages/Pengadaan/NavTicket'
+import CartTicket from './pages/Pengadaan/CartTicket'
+import TrackingTicket  from './pages/Pengadaan/TrackingTicket'
+import EditTicket from './pages/Pengadaan/EditTicket'
+import EditPurch from './pages/Pengadaan/EditPurch'
+import FormIo from './components/Pengadaan/FormIo'
+
+// Disposal Asset
+import Disposal from './pages/Disposal/Disposal'
+import FormPersetujuanDis from './pages/Disposal/FormPersetujuanDis'
+import PersetujuanDis from './pages/Disposal/PersetujuanDis'
+import Report from './pages/Disposal/ReportDis'
+import CartDisposal from './pages/Disposal/CartDisposal'
+import EditDisposal from './pages/Disposal/EditDisposal'
+import EksekusiDis from './pages/Disposal/EksekusiDis'
+import TaxFinDisposal from './pages/Disposal/TaxFinDisposal'
+import MonitoringDisposal from './pages/Disposal/MonitoringDisposal'
+import PurchDisposal from './pages/Disposal/PurchDisposal'
+import NavDisposal from './pages/Disposal/NavDisposal'
+import EditEksekusi from './pages/Disposal/EditEksekusi'
+import TrackingDisposal from './pages/Disposal/TrackingDisposal'
+import EditTaxFin from './pages/Disposal/EditTaxFin'
+
+// Mutasi Asset
+import Mutasi from './pages/Mutasi/Mutasi'
+import CartMutasi from './pages/Mutasi/CartMutasi'
+import TerimaMutasi from './pages/Mutasi/TerimaMutasi'
+import TrackingMutasi from './pages/Mutasi/TrackingMutasi'
+import NavMut from './pages/Mutasi/NavMut'
+import EksekusiMut from './pages/Mutasi/EksekusiMut'
+import BudgetMutasi from './pages/Mutasi/BudgetMutasi'
+import ReportMut from './pages/Mutasi/ReportMut'
+import EditMutasi from './pages/Mutasi/EditMutasi'
+
+// Stock Opname Asset
+import Stock from './pages/Stock/Stock'
+import NavStock from './pages/Stock/NavStock'
+import ReportStock from './pages/Stock/ReportStock'
+import EditStock from './pages/Stock/EditStock'
+import TrackingStock from './pages/Stock/TrackingStock'
+
+
+// Master
+import Asset from './pages/Master/Asset'
+import Approve from './pages/Master/Approve'
+import MasterDepo from './pages/Master/MasterDepo'
+import MasterUser from './pages/Master/MasterUser'
+import MasterEmail from './pages/Master/MasterEmail'
+import MasterDokumen from './pages/Master/MasterDokumen'
+
 
 class App extends Component {
 
@@ -70,12 +84,16 @@ class App extends Component {
                 <Route path='/login' exact component={Login} />
                 <Route path='/side' exact component={Sidebar} />
                 <Route path='/tes' exact component={Tes} />
+                <Route path='/transaksi' exact component={Transaksi} />
                 <Route path='/tablepdf' component={TablePdf} />
                 <PrivateRoute path='/' exact>
                     <Home />
                 </PrivateRoute>
                 <PrivateRoute path='/pengadaan'>
-                    <Tespeng />
+                    <Pengadaan />
+                </PrivateRoute>
+                <PrivateRoute path='/formio'>
+                    <FormIo />
                 </PrivateRoute>
                 <PrivateRoute path='/depo'>
                     <MasterDepo />

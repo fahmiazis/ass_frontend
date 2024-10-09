@@ -35,6 +35,18 @@ export default {
         type: 'NEXT_DATA_DOKUMEN',
         payload: http(token).get(`${link}`)
     }),
+    getDokumen: (token, data) => ({
+        type: 'GET_DOKUMEN',
+        payload: http(token).patch(`/dokumen/docuser`, qs.stringify(data)),
+    }),
+    approveDokumen: (token, id, data) => ({
+        type: 'APPROVE_DOKUMEN',
+        payload: http(token).patch(`/dokumen/approve/${id === undefined ? 0 : id}`, data === undefined ? { list: [] } : data),
+    }),
+    rejectDokumen: (token, id, data) => ({
+        type: 'REJECT_DOKUMEN',
+        payload: http(token).patch(`/dokumen/reject/${id === undefined ? 0 : id}`, data === undefined ? { list: [] } : data),
+    }),
     resetError: () => ({
         type: 'RESET'
     })

@@ -16,7 +16,10 @@ const dokumenState = {
     alertUpload: [],
     page: {},
     isExport: false,
-    link: ''
+    link: '',
+    dataDoc: [],
+    appdoc: null,
+    rejdoc: null
 };
 
 export default (state=dokumenState, action) => {
@@ -207,6 +210,79 @@ export default (state=dokumenState, action) => {
                     isError: true,
                     alertMsg: action.payload.response.data.message,
                     alertUpload: action.payload.response.data.result
+                };
+            }
+            case 'APPROVE_DOKUMEN_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'APPROVE_DOKUMEN_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    appdoc: true,
+                    alertMsg: 'upload document succesfully',
+                };
+            }
+            case 'APPROVE_DOKUMEN_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    appdoc: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'REJECT_DOKUMEN_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'REJECT_DOKUMEN_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    rejdoc: true,
+                    alertMsg: 'upload document succesfully',
+                };
+            }
+            case 'REJECT_DOKUMEN_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    rejdoc: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'GET_USER_DOKUMEN_PENDING': {
+                return {
+                    ...state,
+                    isGet: false,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'GET_USER_DOKUMEN_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: false,
+                    isGet: true,
+                    dataDoc: action.payload.data.result,
+                    alertMsg: 'get document io Succesfully',
+                };
+            }
+            case 'GET_USER_DOKUMEN_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isGet: false,
+                    isError: true,
+                    alertMsg: "Unable connect to server"
                 };
             }
             case 'RESET': {
