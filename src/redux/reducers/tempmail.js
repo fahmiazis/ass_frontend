@@ -1,54 +1,220 @@
 /* eslint-disable import/no-anonymous-default-export */
-const assetState = {
+const tempmailState = {
     isAdd: false,
-    isUpload: null,
+    isAddDetail: false,
     isUpdate: false,
-    isSubmit: false,
     isGet: false,
-    getStock: false,
-    stockDetail: false,
-    isDetail: false,
     isDelete: false,
     isLoading: false,
     isError: false,
     alertMsg: '',
-    dataAsset: [],
-    assetAll: [],
-    dataStock: [],
-    detailStock: [],
+    dataEmail: [],
+    dataName: [],
     alertM: '',
     alertUpload: [],
     page: {},
     isExport: false,
+    detEmail: {},
     link: '',
-    isGetAll: false,
-    detailAsset: {},
-    getDetail: false,
-    isUpdateNew: false
+    dataAll: [],
+    isAll: false,
+    isUpload: false,
+    draftEmail: {},
+    isDraft: null,
+    isSend: null,
+    draftAjuan: null,
+    isResmail: null,
+    dataResmail: {}
 };
 
-export default (state=assetState, action) => {
+export default (state=tempmailState, action) => {
         switch(action.type){
-            case 'GET_ASSET_PENDING': {
+            case 'GET_ALL_TEMPMAIL_PENDING': {
                 return {
                     ...state,
-                    isGet: false,
                     isLoading: true,
                     alertMsg: 'Waiting ...'
                 };
             }
-            case 'GET_ASSET_FULFILLED': {
+            case 'GET_ALL_TEMPMAIL_FULFILLED': {
                 return {
                     ...state,
                     isLoading: false,
-                    isError: false,
+                    isAll: true,
+                    dataAll: action.payload.data.result,
+                    alertMsg: 'get email Succesfully'
+                };
+            }
+            case 'GET_ALL_TEMPMAIL_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: true,
+                    alertMsg: "Failed get data email"
+                };
+            }
+            case 'GET_RESMAIL_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'GET_RESMAIL_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isResmail: true,
+                    dataResmail: action.payload.data.result,
+                    alertMsg: 'get email Succesfully'
+                };
+            }
+            case 'GET_RESMAIL_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isResmail: false,
+                    alertMsg: "Failed get data email"
+                };
+            }
+            case 'GET_TEMPMAIL_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'GET_TEMPMAIL_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
                     isGet: true,
-                    dataAsset: action.payload.data.result.rows,
-                    alertMsg: 'get asset Succesfully',
+                    dataEmail: action.payload.data.result.rows,
+                    page: action.payload.data.pageInfo,
+                    alertMsg: 'get email Succesfully'
+                };
+            }
+            case 'GET_TEMPMAIL_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'DRAFT_TEMPMAIL_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'DRAFT_TEMPMAIL_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    draftEmail: action.payload.data,
+                    isDraft: true,
+                    alertMsg: 'get email Succesfully'
+                };
+            }
+            case 'DRAFT_TEMPMAIL_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isDraft: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'AJUAN_TEMPMAIL_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'AJUAN_TEMPMAIL_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    draftEmail: action.payload.data,
+                    draftAjuan: true,
+                    alertMsg: 'get email Succesfully'
+                };
+            }
+            case 'AJUAN_TEMPMAIL_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    draftAjuan: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'SEND_TEMPMAIL_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'SEND_TEMPMAIL_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isSend: true,
+                    alertMsg: 'send email Succesfully'
+                };
+            }
+            case 'SEND_TEMPMAIL_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isSend: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'DETAIL_TEMPMAIL_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'DETAIL_TEMPMAIL_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isGet: true,
+                    detEmail: action.payload.data.result,
+                    alertMsg: 'get detail email Succesfully',
+                };
+            }
+            case 'DETAIL_TEMPMAIL_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'NEXT_DATA_TEMPMAIL_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'NEXT_DATA_TEMPMAIL_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isGet: true,
+                    dataEmail: action.payload.data.result.rows,
+                    alertMsg: 'next data Succesfully',
                     page: action.payload.data.pageInfo
                 };
             }
-            case 'GET_ASSET_REJECTED': {
+            case 'NEXT_DATA_TEMPMAIL_REJECTED': {
                 return {
                     ...state,
                     isLoading: false,
@@ -57,256 +223,70 @@ export default (state=assetState, action) => {
                     alertMsg: "Unable connect to server"
                 };
             }
-            case 'GET_ASSETALL_PENDING': {
+            case 'UPDATE_TEMPMAIL_PENDING': {
                 return {
                     ...state,
                     isLoading: true,
-                    alertMsg: 'Waiting ...'
+                    alertMsg: 'Waiting'
                 };
             }
-            case 'GET_ASSETALL_FULFILLED': {
+            case 'UPDATE_TEMPMAIL_FULFILLED': {
                 return {
                     ...state,
                     isLoading: false,
-                    isGetAll: true,
-                    assetAll: action.payload.data.result.rows,
-                    alertMsg: 'get asset Succesfully',
-                    page: action.payload.data.pageInfo
-                };
-            }
-            case 'GET_ASSETALL_REJECTED': {
-                return {
-                    ...state,
-                    isLoading: false,
-                    isGetAll: false,
-                    isError: true,
-                    alertMsg: "Unable connect to server"
-                };
-            }
-            case 'GET_DETAIL_PENDING': {
-                return {
-                    ...state,
-                    stockDetail: false,
-                    isLoading: true,
-                    alertMsg: 'Waiting ...'
-                };
-            }
-            case 'GET_DETAIL_FULFILLED': {
-                return {
-                    ...state,
-                    isLoading: false,
-                    getDetail: true,
-                    detailAsset: action.payload.data.result,
-                    alertMsg: 'get stock Succesfully',
-                };
-            }
-            case 'GET_DETAIL_REJECTED': {
-                return {
-                    ...state,
-                    isLoading: false,
-                    isError: true,
-                    alertMsg: "Unable connect to server"
-                };
-            }
-            case 'GET_STOCK_PENDING': {
-                return {
-                    ...state,
-                    getStock: false,
-                    isLoading: true,
-                    alertMsg: 'Waiting ...'
-                };
-            }
-            case 'GET_STOCK_FULFILLED': {
-                return {
-                    ...state,
-                    isLoading: false,
-                    isError: false,
-                    getStock: true,
-                    dataStock: action.payload.data.result.rows,
-                    alertMsg: 'get stock Succesfully',
-                    page: action.payload.data.pageInfo
-                };
-            }
-            case 'GET_STOCK_REJECTED': {
-                return {
-                    ...state,
-                    isLoading: false,
-                    getStock: false,
-                    isError: true,
-                    alertMsg: "Unable connect to server"
-                };
-            }
-            case 'DETAIL_STOCK_PENDING': {
-                return {
-                    ...state,
-                    stockDetail: false,
-                    isLoading: true,
-                    alertMsg: 'Waiting ...'
-                };
-            }
-            case 'DETAIL_STOCK_FULFILLED': {
-                return {
-                    ...state,
-                    isLoading: false,
-                    isError: false,
-                    stockDetail: true,
-                    detailStock: action.payload.data.result,
-                    alertMsg: 'get stock Succesfully',
-                };
-            }
-            case 'DETAIL_STOCK_REJECTED': {
-                return {
-                    ...state,
-                    isLoading: false,
-                    stockDetail: false,
-                    isError: true,
-                    alertMsg: "Unable connect to server"
-                };
-            }
-            case 'UPDATE_ASSET_PENDING': {
-                return {
-                    ...state,
-                    isUpdate: false,
-                    isLoading: true,
-                    alertMsg: 'Waiting ...'
-                };
-            }
-            case 'UPDATE_ASSET_FULFILLED': {
-                return {
-                    ...state,
-                    isLoading: false,
-                    isError: false,
                     isUpdate: true,
+                    alertMsg: 'update user Succesfully'
                 };
             }
-            case 'UPDATE_ASSET_REJECTED': {
+            case 'UPDATE_TEMPMAIL_REJECTED': {
                 return {
                     ...state,
                     isLoading: false,
+                    isError: true,
+                    alertMsg: action.payload.response.data.message,
+                    alertM: action.payload.response.data.error
+                };
+            }
+            case 'ADD_TEMPMAIL_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'ADD_TEMPMAIL_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isAdd: true,
+                    isError: false,
+                    alertMsg: 'add user Succesfully'
+                };
+            }
+            case 'ADD_TEMPMAIL_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: true,
+                    alertMsg: action.payload.response.data.message,
+                    alertM: action.payload.response.data.error
+                };
+            }
+            case 'RESET_TEMPMAIL': {
+                return {
+                    ...state,
+                    isError: false,
                     isUpdate: false,
-                    isError: true,
-                    alertMsg: "Unable connect to server"
-                };
-            }
-            case 'UPDATE_ASSETNEW_PENDING': {
-                return {
-                    ...state,
-                    isLoading: true,
-                    alertMsg: 'Waiting ...'
-                };
-            }
-            case 'UPDATE_ASSETNEW_FULFILLED': {
-                return {
-                    ...state,
-                    isLoading: false,
-                    isError: false,
-                    isUpdateNew: true,
-                };
-            }
-            case 'UPDATE_ASSETNEW_REJECTED': {
-                return {
-                    ...state,
-                    isLoading: false,
-                    isError: true,
-                    alertMsg: "Unable connect to server"
-                };
-            }
-            case 'UPLOAD_ASSET_PENDING': {
-                return {
-                    ...state,
-                    isLoading: true,
-                    alertMsg: 'Waiting....'
-                };
-            }
-            case 'UPLOAD_ASSET_FULFILLED': {
-                return {
-                    ...state,
-                    isLoading: false,
-                    isUpload: true,
-                    isError: false,
-                    alertMsg: 'upload master Succesfully'
-                };
-            }
-            case 'UPLOAD_ASSET_REJECTED': {
-                return {
-                    ...state,
-                    isLoading: false,
-                    isUpload: false,
-                    isError: true,
-                    alertMsg: action.payload.response !== null && action.payload.response !== undefined &&action.payload.response.data.message,
-                    alertUpload: action.payload.response !== null && action.payload.response !== undefined &&action.payload.response.data.result
-                };
-            }
-            case 'SUBMIT_STOCK_PENDING': {
-                return {
-                    ...state,
-                    isSubmit: false,
-                    isLoading: true,
-                    alertMsg: 'Waiting ...'
-                };
-            }
-            case 'SUBMIT_STOCK_FULFILLED': {
-                return {
-                    ...state,
-                    isLoading: false,
-                    isError: false,
-                    isSubmit: true,
-                };
-            }
-            case 'SUBMIT_STOCK_REJECTED': {
-                return {
-                    ...state,
-                    isLoading: false,
-                    isSubmit: false,
-                    isError: true,
-                    alertMsg: "Unable connect to server"
-                };
-            }
-            case 'NEXT_DATA_ASSET_PENDING': {
-                return {
-                    ...state,
-                    isGet: false,
-                    isLoading: true,
-                    alertMsg: 'Waiting ...'
-                };
-            }
-            case 'NEXT_DATA_ASSET_FULFILLED': {
-                return {
-                    ...state,
-                    isLoading: false,
-                    isError: false,
-                    isGet: true,
-                    isGetAll: true,
-                    dataAsset: action.payload.data.result.rows,
-                    assetAll: action.payload.data.result.rows,
-                    alertMsg: 'add depo Succesfully',
-                    page: action.payload.data.pageInfo
-                };
-            }
-            case 'NEXT_DATA_ASSET_REJECTED': {
-                return {
-                    ...state,
-                    isLoading: false,
                     isAdd: false,
-                    isError: true,
-                    alertMsg: "Unable connect to server"
-                };
-            }
-            case 'RESET_ASSET': {
-                return {
-                    ...state,
-                    isError: false,
-                    isUpload: null,
+                    isDelete: false,
                     isGet: false,
                     isExport: false,
-                    isUpdate: false,
-                    isUpdateNew: false
-                }
-            }
-            case 'RESET_DATA': {
-                return {
-                    ...state,
-                    dataAsset: []
+                    isLoading: false,
+                    isUpload: false,
+                    isDraft: null,
+                    isSend: null,
+                    draftAjuan: null,
+                    isResmail: null,
                 }
             }
             default: {

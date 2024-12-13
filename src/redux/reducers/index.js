@@ -8,6 +8,7 @@ import user from './user'
 import asset from './asset'
 import approve from './approve'
 import email from './email'
+import tempmail from './tempmail'
 import setuju from './setuju'
 import dokumen from './dokumen'
 import disposal from './disposal'
@@ -16,6 +17,8 @@ import mutasi from './mutasi'
 import notif from './notif'
 import tracking from './tracking'
 import report from './report'
+import menu from './menu'
+import newnotif from './newnotif'
 
 export default combineReducers({
   pengadaan,
@@ -24,6 +27,7 @@ export default combineReducers({
   user,
   asset,
   email,
+  tempmail,
   dokumen,
   disposal,
   approve,
@@ -32,5 +36,7 @@ export default combineReducers({
   mutasi,
   notif,
   tracking,
-  report
+  report,
+  menu,
+  newnotif
 })

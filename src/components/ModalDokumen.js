@@ -6,7 +6,7 @@ import { Container, Collapse, Nav, Navbar,
 import Pdf from "./Pdf"
 import moment from 'moment'
 import { MdKeyboardArrowRight, MdKeyboardArrowDown } from 'react-icons/md'
-import { AiOutlineCheck, AiOutlineClose, AiFillCheckCircle} from 'react-icons/ai'
+import { AiOutlineCheck, AiOutlineClose, AiFillCheckCircle, AiOutlineFileExcel} from 'react-icons/ai'
 import {BsCircle} from 'react-icons/bs'
 import pengadaan from '../redux/actions/pengadaan'
 import dokumen from '../redux/actions/dokumen'
@@ -14,6 +14,7 @@ import {connect} from 'react-redux'
 import style from '../assets/css/input.module.css'
 import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
+import axios from "axios";
 const {REACT_APP_BACKEND_URL} = process.env
 
 class ModalDokumen extends Component {
@@ -107,7 +108,8 @@ class ModalDokumen extends Component {
             tipe: '',
             noDoc: '',
             noTrans: '',
-            openRejDocZip: false
+            openRejDocZip: false,
+            isLoading: false
         }
     }
 
@@ -119,23 +121,43 @@ class ModalDokumen extends Component {
     }
 
 
-    downloadDataZip = () => {
+    downloadDataZip = async () => {
         const {dataZip} = this.state
+        const {noDoc, tipe, noTrans, filter} = this.props.parDoc
         const dataRedux = this.props.dokumen.dataDoc
         const dataProps = this.props.dataDoc
         const dataDoc = dataRedux.length > 0 ? dataRedux : dataProps
-
+        this.setState({isLoading: true})
+        
         let zip = new JSZip();
-    
-        const remoteZips = dataDoc.map(async (item) => {
-            const cekData = dataZip.find(e => e === item.id)
-            if (cekData !== undefined) {
-                const response = await fetch(`${REACT_APP_BACKEND_URL}/show/doc/${item.id}`);
-                const data = await response.blob();
-                zip.file(`${item.nama_dokumen} ~ ${item.desc}`, data);
-                return data;
+        
+        const remoteZips = await Promise.all (dataDoc.map(async (item) => {
+            try {
+                const cekData = dataZip.find(e => e === item.id)
+                if (cekData !== undefined) {
+                    if (noDoc === noTrans) {
+                        const genData = item === undefined ? ['file.pdf'] : item.path.split('/')
+                        const cekPr = genData.find(item => item === 'printPR')
+                        const response = await fetch(`${REACT_APP_BACKEND_URL}/show/tes/${item.id}`)
+
+                        // const response = await fetch(item.path);
+                        const data = await response.blob();
+                        await zip.file(`${item.nama_dokumen}${'.pdf'}`, data);
+                        return data;
+                    } else {
+                        const response = await fetch(`${REACT_APP_BACKEND_URL}/show/doc/${item.id}`);
+                        const data = await response.blob();
+                        zip.file(`${item.nama_dokumen} ~ ${item.desc}`, data);
+                        return data;
+                    }
+                }
+            } catch (error) {
+                console.log(error)
             }
         })
+        )
+
+        this.setState({isLoading: false})
 
         Promise.all(remoteZips).then(() => {
             zip.generateAsync({ type: "blob" }).then((content) => {
@@ -198,8 +220,8 @@ class ModalDokumen extends Component {
             }
         }
         
-        this.setState({confirm: 'isAppDoc'})
-        this.openConfirm()
+        // this.setState({confirm: 'isAppDoc'})
+        // this.openConfirm()
         // this.openModalAppDoc()
         
     }
@@ -235,8 +257,9 @@ class ModalDokumen extends Component {
             // }
         }
         
-        this.setState({confirm: 'isAppDoc'})
-        this.openConfirm()
+        // this.setState({confirm: 'isAppDoc'})
+        // this.openConfirm()
+
         // this.openModalAppDoc()
         
     }
@@ -349,13 +372,65 @@ class ModalDokumen extends Component {
         }
     }
 
+    prosesUpload = (val) => {
+        this.setState({detail: val})
+        this.openUpload()
+    }
+
+    openUpload = () => {
+        this.setState({modalUpload: !this.state.modalUpload})
+    }
+
+    onChangeUpload = async e => {
+        const {size, type} = e.target.files[0]
+        const {noDoc, tipe, noTrans, filter} = this.props.parDoc
+        this.setState({fileUpload: e.target.files[0]})
+        if (size >= this.state.limImage) {
+            this.setState({errMsg: "Maximum upload size 20 MB"})
+            this.uploadAlert()
+        } else if (type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && type !== 'application/vnd.ms-excel' && type !== 'application/pdf' && type !== 'application/x-7z-compressed' && type !== 'application/vnd.rar' && type !== 'application/zip' && type !== 'application/x-zip-compressed' && type !== 'application/octet-stream' && type !== 'multipart/x-zip' && type !== 'application/x-rar-compressed') {
+            this.setState({errMsg: 'Invalid file type. Only excel, pdf, zip, and rar files are allowed.'})
+            this.uploadAlert()
+        } else {
+            const {detail, dataRinci} = this.state
+            const token = localStorage.getItem('token')
+            const data = new FormData()
+            data.append('document', e.target.files[0])
+            const tempno = {
+                no: noDoc,
+                jenis: tipe
+            }
+            await this.props.uploadDocument(token, detail.id, data)
+            await this.props.getDokumen(token, tempno)
+            this.collDoc(detail.id)
+            if (noDoc === noTrans) {
+                await this.props.getDocumentIo(token, noDoc)
+                this.openUpload()
+                this.setState({confirm: 'sucUpload'})
+                this.openConfirm()
+            } else {
+                await this.props.getDocCart(token, noDoc)
+                this.openUpload()
+                this.setState({confirm: 'sucUpload'})
+                this.openConfirm()
+            }
+        }
+    }
+
+    async componentDidUpdate() {
+        const {isUpload} = this.props.pengadaan
+        const {noDoc, tipe, noTrans, filter} = this.props.parDoc
+        const token = localStorage.getItem('token')
+        const {dataRinci} = this.state
+    }
+
   render() {
     const dataRedux = this.props.dokumen.dataDoc
     const dataProps = this.props.dataDoc
     const dataDoc = dataRedux.length > 0 ? dataRedux : dataProps
     const { dataZip, dataColl, detailDoc } = this.state
     const level = localStorage.getItem('level')
-    const {noDoc, tipe, noTrans, filter} = this.props.parDoc
+    const {noDoc, tipe, noTrans, filter, detailForm} = this.props.parDoc
     return (
       <>
         <ModalHeader>
@@ -510,11 +585,16 @@ class ModalDokumen extends Component {
                                                 >
                                                     Reject
                                                 </Button>
-                                                <Button className='ml-1' color='warning' onClick={() => this.docHistory(x)}>history</Button>
+                                                <Button className='ml-1' color='warning' onClick={() => this.docHistory(x)}>History</Button>
+                                            </div>
+                                        ) : filter === 'revisi' ? (
+                                            <div>
+                                                <Button color='primary' onClick={() => this.prosesUpload(x)}>Upload</Button>
+                                                <Button className='ml-1' color='warning' onClick={() => this.docHistory(x)}>History</Button>
                                             </div>
                                         ) : (
                                             <div>
-                                                <Button color='warning' onClick={() => this.docHistory(x)}>history</Button>
+                                                <Button color='warning' onClick={() => this.docHistory(x)}>History</Button>
                                             </div>
                                         )}
                                     </div>
@@ -544,7 +624,7 @@ class ModalDokumen extends Component {
 
                                     <div className='colCenter borderGen'>
                                         {dataColl.find(e => e === x.id) === undefined ? (
-                                            <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${x.id}`} dataFile={x} />
+                                            <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${x.id}`} noTrans={noTrans} noDoc={noDoc} dataFile={x} detailForm={detailForm} />
                                         ) : (
                                             <div></div>
                                         )}
@@ -557,7 +637,7 @@ class ModalDokumen extends Component {
             </Container>
         </ModalBody>
         <ModalFooter className='modalFoot'>
-            {filter === 'available' && level === '2' ? (
+            {filter === 'available' && (level === '2' || level === '8') ? (
                 <div className='rowCenter'>
                     <Button 
                     color="success"
@@ -590,10 +670,10 @@ class ModalDokumen extends Component {
             <ModalBody>
                 <div className='mb-4'>History Dokumen</div>
                 <div className='history'>
-                    {detailDoc.status_dokumen !== undefined && detailDoc.status_dokumen !== null && detailDoc.status_dokumen.split(',').map(item => {
+                    {detailDoc.status_dokumen !== undefined && detailDoc.status_dokumen !== null && detailDoc.status_dokumen.split(',').map((item, index) => {
                         return (
                             item !== null && item !== 'null' && 
-                            <Button className='mb-2' color='info'>{item}</Button>
+                            <Button className='mb-2' color='info'>{index === 1 ? item : item.split(';').map((x,y) => {return ( y === 0 ? '' : x )}).toString().replace(',', '')}</Button>
                         )
                     })}
                 </div>
@@ -635,6 +715,31 @@ class ModalDokumen extends Component {
                 </div>
             </ModalBody>
         </Modal>
+        <Modal toggle={this.openUpload} isOpen={this.state.modalUpload} >
+                <ModalHeader>Upload File</ModalHeader>
+                <ModalBody className={style.modalUpload}>
+                    <div className={style.titleModalUpload}>
+                        <text>Upload File: </text>
+                        <div className={style.uploadFileInput}>
+                            <AiOutlineFileExcel size={35} />
+                            <div className="ml-3">
+                                <Input
+                                type="file"
+                                name="file"
+                                onChange={this.onChangeUpload}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div className={style.btnUpload}>
+                        <div></div>
+                        
+                    </div>
+                </ModalBody>
+                <ModalFooter>
+                    <Button onClick={this.openUpload}>Cancel</Button>
+                </ModalFooter>
+            </Modal>
         <Modal isOpen={this.state.modalConfirm} toggle={() => this.openConfirm(false)}>
             <ModalBody>
             {/* <Countdown renderer={this.rendererTime} date={Date.now() + 3000} /> */}
@@ -643,6 +748,13 @@ class ModalDokumen extends Component {
                         <div className={style.cekUpdate}>
                             <AiFillCheckCircle size={80} className={style.green} />
                             <div className={[style.sucUpdate, style.green]}>Berhasil Update</div>
+                        </div>
+                    </div>
+                ) : this.state.confirm === 'sucUpload' ?(
+                    <div>
+                        <div className={style.cekUpdate}>
+                            <AiFillCheckCircle size={80} className={style.green} />
+                            <div className={[style.sucUpdate, style.green]}>Berhasil Upload</div>
                         </div>
                     </div>
                 ) : this.state.confirm === 'reject' ?(
@@ -753,7 +865,7 @@ class ModalDokumen extends Component {
                 <Button size='lg' onClick={() => this.openConfirm(false)} color='primary'>OK</Button>
             </div>
         </Modal>
-        <Modal isOpen={this.props.pengadaan.isLoading || this.props.dokumen.isLoading ? true: false} size="sm">
+        <Modal isOpen={this.props.pengadaan.isLoading || this.props.dokumen.isLoading || this.state.isLoading ? true: false} size="sm">
             <ModalBody>
                 <div>
                     <div className={style.cekUpdate}>
@@ -778,7 +890,9 @@ const mapDispatchToProps = {
     rejectDokumen: dokumen.rejectDokumen,
     getDokumen: dokumen.getDokumen,
     getDocCart: pengadaan.getDocCart,
-    getDocumentIo: pengadaan.getDocumentIo
+    getDocumentIo: pengadaan.getDocumentIo,
+    uploadDocument: pengadaan.uploadDocument,
+    resetError: pengadaan.resetError
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(ModalDokumen)

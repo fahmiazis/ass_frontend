@@ -12,7 +12,7 @@ import Tes from './pages/Tes'
 import Transaksi from './pages/Transaksi'
 import TablePdf from './components/Table'
 import NavBar from './components/NavBar'
-import Notif from './pages/Notif'
+// import Notif from './pages/Notif'
 
 // Pengadaan Asset
 import Pengadaan from './pages/Pengadaan/Pengadaan'
@@ -23,6 +23,7 @@ import CartTicket from './pages/Pengadaan/CartTicket'
 import TrackingTicket  from './pages/Pengadaan/TrackingTicket'
 import EditTicket from './pages/Pengadaan/EditTicket'
 import EditPurch from './pages/Pengadaan/EditPurch'
+import ReportTicket from './pages/Pengadaan/ReportTicket'
 import FormIo from './components/Pengadaan/FormIo'
 
 // Disposal Asset
@@ -54,19 +55,24 @@ import EditMutasi from './pages/Mutasi/EditMutasi'
 
 // Stock Opname Asset
 import Stock from './pages/Stock/Stock'
+import CartStock from './pages/Stock/CartStock'
 import NavStock from './pages/Stock/NavStock'
 import ReportStock from './pages/Stock/ReportStock'
 import EditStock from './pages/Stock/EditStock'
-import TrackingStock from './pages/Stock/TrackingStock'
+import MonitoringStock from './pages/Stock/Monitoring'
 
 
 // Master
 import Asset from './pages/Master/Asset'
 import Approve from './pages/Master/Approve'
 import MasterDepo from './pages/Master/MasterDepo'
+import MasterMenu from './pages/Master/MasterMenu'
+import MasterTempmail from './pages/Master/MasterTempmail'
 import MasterUser from './pages/Master/MasterUser'
+import MasterRole from './pages/Master/MasterRole'
 import MasterEmail from './pages/Master/MasterEmail'
 import MasterDokumen from './pages/Master/MasterDokumen'
+import Notif from './pages/Master/Notif'
 
 
 class App extends Component {
@@ -101,8 +107,17 @@ class App extends Component {
                 <PrivateRoute path='/user'>
                     <MasterUser />
                 </PrivateRoute>
+                <PrivateRoute path='/role'>
+                    <MasterRole />
+                </PrivateRoute>
                 <PrivateRoute path='/email'>
                     <MasterEmail />
+                </PrivateRoute>
+                <PrivateRoute path='/menu'>
+                    <MasterMenu />
+                </PrivateRoute>
+                <PrivateRoute path='/tempmail'>
+                    <MasterTempmail />
                 </PrivateRoute>
                 <PrivateRoute path='/dokumen'>
                     <MasterDokumen />
@@ -115,6 +130,9 @@ class App extends Component {
                 </PrivateRoute>
                 <PrivateRoute path='/stock'>
                     <Stock />
+                </PrivateRoute>
+                <PrivateRoute path='/cartstock'>
+                    <CartStock />
                 </PrivateRoute>
                 <PrivateRoute path='/report'>
                     <Report />
@@ -200,8 +218,8 @@ class App extends Component {
                 <PrivateRoute path='/editpurch'>
                     <EditPurch />
                 </PrivateRoute>
-                <PrivateRoute path='/trackstock'>
-                    <TrackingStock />
+                <PrivateRoute path='/monstock'>
+                    <MonitoringStock />
                 </PrivateRoute>
                 <PrivateRoute path='/tespeng'>
                     <Tespeng />
@@ -220,6 +238,9 @@ class App extends Component {
                 </PrivateRoute>
                 <PrivateRoute path='/revtick'>
                     <EditTicket />
+                </PrivateRoute>
+                <PrivateRoute path='/reportio'>
+                    <ReportTicket />
                 </PrivateRoute>
                 <PrivateRoute path='/notif'>
                     <Notif />

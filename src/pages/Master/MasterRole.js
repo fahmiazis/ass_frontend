@@ -23,13 +23,11 @@ import styleTrans from '../../assets/css/transaksi.module.css'
 import NewNavbar from '../../components/NewNavbar'
 const {REACT_APP_BACKEND_URL} = process.env
 
-const userSchema = Yup.object().shape({
-    username: Yup.string().required(),
+const roleSchema = Yup.object().shape({
+    name: Yup.string().required(),
     fullname: Yup.string().required(),
-    password: Yup.string().required(),
-    depo: Yup.string(),
-    user_level: Yup.string().required(),
-    status: Yup.string().required()
+    type: Yup.string().required(),
+    nomor: Yup.number('must be filled').required('must be filled')
 });
 
 const userEditSchema = Yup.object().shape({
@@ -132,7 +130,7 @@ class MasterUser extends Component {
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', "master user.xlsx"); //or any other extension
+            link.setAttribute('download', "master Role.xlsx"); //or any other extension
             document.body.appendChild(link);
             link.click();
         });
@@ -168,26 +166,16 @@ class MasterUser extends Component {
         this.setState({modalUpload: !this.state.modalUpload})
     }
 
-    addUser = async (values) => {
+    addRole = async (values) => {
         const token = localStorage.getItem("token")
-        const destruct = values.depo === "-Pilih Depo-" ? ["", ""] : values.depo.split('-') 
         const data = {
-            username: values.username,
-            fullname: values.fullname,
-            password: values.password,
-            user_level: values.user_level,
-            kode_plant: destruct[0],
-            email: values.email,
-            status: values.status
+            ...values
         }
-        await this.props.addUser(token, data)
-        const {isAdd} = this.props.user
-        if (isAdd) {
-            this.setState({confirm: 'add'})
-            this.openConfirm()
-            await this.getDataUser()
-            this.openModalAdd()
-        }
+        await this.props.addRole(token, data)
+        this.setState({confirm: 'add'})
+        this.openConfirm()
+        await this.getDataRole()
+        this.openModalAdd()
     }
 
     next = async () => {
@@ -205,7 +193,7 @@ class MasterUser extends Component {
     onSearch = (e) => {
         this.setState({search: e.target.value})
         if(e.key === 'Enter'){
-            this.getDataUser({limit: 10, search: this.state.search})
+            this.getDataRole({search: this.state.search})
         }
     }
 
@@ -229,26 +217,16 @@ class MasterUser extends Component {
         await this.props.uploadMaster(token, data)
     }
 
-    editUser = async (values,id) => {
+    editRole = async (values,id) => {
         const token = localStorage.getItem("token")
-        const destruct = values.depo === "" ? ["", ""] : values.depo.split('-')
         const data = {
-            username: values.username,
-            fullname: values.fullname,
-            password: values.password,
-            user_level: values.user_level,
-            email: values.email,
-            kode_plant: destruct[0],
-            status: values.status
+            ...values
         }
-        await this.props.updateUser(token, id, data)
-        const {isUpdate} = this.props.user
-        if (isUpdate) {
-            this.setState({confirm: 'edit'})
-            this.openConfirm()
-            this.getDataUser()
-            this.openModalEdit()
-        }
+        await this.props.updateRole(token, id, data)
+        this.setState({confirm: 'edit'})
+        this.openConfirm()
+        this.getDataRole()
+        this.openModalEdit()
     }
 
     ExportMaster = () => {
@@ -271,7 +249,7 @@ class MasterUser extends Component {
             this.setState({modalUpload: false})
             this.setState({confirm: 'upload'})
             this.openConfirm()
-            this.getDataUser()
+            this.getDataRole()
         } else if (isExport) {
             this.DownloadMaster()
             this.props.resetError()
@@ -280,25 +258,20 @@ class MasterUser extends Component {
 
     async componentDidMount() {
         const token = localStorage.getItem("token")
-        await this.props.getRole(token)
-        this.getDataUser()
-        this.getDataDepo()
+        this.getDataRole()
     }
 
-    getDataUser = async (value) => {
+    getDataRole = async (value) => {
         const { page } = this.props.user
         const token = localStorage.getItem("token")
         const search = value === undefined ? '' : this.state.search
-        const limit = value === undefined ? this.state.limit : value.limit
-        const filter = value === undefined || value.filter === undefined ? this.state.filter : value.filter
-        console.log(this.state.filter)
-        await this.props.getUser(token, limit, search, page.currentPage, filter)
-        this.setState({limit: value === undefined ? 10 : value.limit, search: search, filter: filter})
+        await this.props.getRole(token, search)
+        this.setState({search: search})
     }
 
     changeFilter = async (val) => {
         this.setState({filter: val.nomor, filterName: val.name})
-        this.getDataUser({limit: this.state.limit, search: this.state.search, filter: val.nomor})
+        this.getDataRole({limit: this.state.limit, search: this.state.search, filter: val.nomor})
     }
 
     getDataDepo = async () => {
@@ -322,11 +295,11 @@ class MasterUser extends Component {
 
     chekApp = (val) => {
         const { listUser } = this.state
-        const {dataUser} = this.props.user
+        const {dataRole} = this.props.user
         if (val === 'all') {
             const data = []
-            for (let i = 0; i < dataUser.length; i++) {
-                data.push(dataUser[i].id)
+            for (let i = 0; i < dataRole.length; i++) {
+                data.push(dataRole[i].id)
             }
             this.setState({listUser: data})
         } else {
@@ -355,7 +328,7 @@ class MasterUser extends Component {
 
     downloadTemplate = () => {
         const {listUser} = this.state
-        const {dataUser} = this.props.user
+        const {dataRole} = this.props.user
         const dataDownload = []
 
         const workbook = new ExcelJS.Workbook();
@@ -394,19 +367,19 @@ class MasterUser extends Component {
         workbook.xlsx.writeBuffer().then(function(buffer) {
             fs.saveAs(
               new Blob([buffer], { type: "application/octet-stream" }),
-              `Template Master User.xlsx`
+              `Template Master Role.xlsx`
             );
           });
     }
 
     downloadData = () => {
         const {listUser} = this.state
-        const {dataUser} = this.props.user
+        const {dataRole} = this.props.user
         const dataDownload = []
         for (let i = 0; i < listUser.length; i++) {
-            for (let j = 0; j < dataUser.length; j++) {
-                if (dataUser[j].id === listUser[i]) {
-                    dataDownload.push(dataUser[j])
+            for (let j = 0; j < dataRole.length; j++) {
+                if (dataRole[j].id === listUser[i]) {
+                    dataDownload.push(dataRole[j])
                 }
             }
         }
@@ -458,14 +431,14 @@ class MasterUser extends Component {
         workbook.xlsx.writeBuffer().then(function(buffer) {
             fs.saveAs(
               new Blob([buffer], { type: "application/octet-stream" }),
-              `Master User ${moment().format('DD MMMM YYYY')}.xlsx`
+              `Master Role ${moment().format('DD MMMM YYYY')}.xlsx`
             );
           });
     }
 
     render() {
         const {isOpen, dropOpen, dropOpenNum, detail, level, upload, errMsg, listUser} = this.state
-        const {dataUser, isGet, alertM, alertMsg, alertUpload, page, dataRole} = this.props.user
+        const {dataRole, isGet, alertM, alertMsg, alertUpload, page} = this.props.user
         const { dataDepo } = this.props.depo
         const levels = localStorage.getItem('level')
         const names = localStorage.getItem('name')
@@ -516,7 +489,7 @@ class MasterUser extends Component {
                             </Alert>
                             <div className={style.bodyDashboard}>
                                 <div className={style.headMaster}>
-                                    <div className={style.titleDashboard}>Master User</div>
+                                    <div className={style.titleDashboard}>Master Role</div>
                                 </div>
                                 <div className={style.secHeadDashboard} >
                                     <div>
@@ -526,9 +499,9 @@ class MasterUser extends Component {
                                             {this.state.limit}
                                         </DropdownToggle>
                                         <DropdownMenu>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataUser({limit: 10, search: ''})}>10</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataUser({limit: 20, search: ''})}>20</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataUser({limit: 50, search: ''})}>50</DropdownItem>
+                                            <DropdownItem className={style.item} onClick={() => this.getDataRole({limit: 10, search: ''})}>10</DropdownItem>
+                                            <DropdownItem className={style.item} onClick={() => this.getDataRole({limit: 20, search: ''})}>20</DropdownItem>
+                                            <DropdownItem className={style.item} onClick={() => this.getDataRole({limit: 50, search: ''})}>50</DropdownItem>
                                         </DropdownMenu>
                                         </ButtonDropdown>
                                         <text className={style.textEntries}>entries</text>
@@ -622,10 +595,10 @@ class MasterUser extends Component {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                        {dataUser.length !== 0 && dataUser.map(item => {
+                                        {dataRole.length !== 0 && dataRole.map(item => {
                                                 return (
                                                 <tr onClick={()=>this.openModalEdit(this.setState({detail: item}))}>
-                                                    <th scope="row">{(dataUser.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</th>
+                                                    <th scope="row">{(dataRole.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</th>
                                                     <td>{item.username}</td>
                                                     <td>{item.fullname}</td>
                                                     <td>{item.kode_plant === 0 ? "" : item.kode_plant}</td>
@@ -654,64 +627,9 @@ class MasterUser extends Component {
                     <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
 
                     <div className={`${styleTrans.mainContent} ${this.state.sidebarOpen ? styleTrans.collapsedContent : ''}`}>
-                        <h2 className={styleTrans.pageTitle}>Master User</h2>
+                        <h2 className={styleTrans.pageTitle}>Master Role</h2>
                         
                         <div className={styleTrans.searchContainer}>
-                            <div>
-                                <text>Show: </text>
-                                <ButtonDropdown className={style.drop} isOpen={dropOpen} toggle={this.dropDown}>
-                                <DropdownToggle caret color="light">
-                                    {this.state.limit}
-                                </DropdownToggle>
-                                <DropdownMenu>
-                                    <DropdownItem className={style.item} onClick={() => this.getDataUser({limit: 10, search: ''})}>10</DropdownItem>
-                                    <DropdownItem className={style.item} onClick={() => this.getDataUser({limit: 20, search: ''})}>20</DropdownItem>
-                                    <DropdownItem className={style.item} onClick={() => this.getDataUser({limit: 50, search: ''})}>50</DropdownItem>
-                                    <DropdownItem className={style.item} onClick={() => this.getDataUser({limit: 'all', search: ''})}>All</DropdownItem>
-                                </DropdownMenu>
-                                </ButtonDropdown>
-                                <text className={style.textEntries}>entries</text>
-                            </div>
-                            <div className='filterUser'>
-                                <text className='mr-2'>Filter:</text>
-                                <UncontrolledDropdown className={style.drop}>
-                                    <DropdownToggle caret color="light">
-                                        {this.state.filterName}
-                                    </DropdownToggle>
-                                    <DropdownMenu 
-                                        right
-                                        modifiers={{
-                                        setMaxHeight: {
-                                            enabled: true,
-                                            order: 890,
-                                            fn: (data) => {
-                                            return {
-                                                ...data,
-                                                styles: {
-                                                ...data.styles,
-                                                overflow: 'auto',
-                                                maxHeight: '400px',
-                                                },
-                                            };
-                                            },
-                                        },
-                                    }}
-                                    >
-                                        {dataRole !== undefined && dataRole.map(item => {
-                                            return (
-                                                <DropdownItem onClick={() => {this.setState({filter: item.id, filterName: item.name}); this.changeFilter({name: item.name, nomor: item.id})}}>{item.name}</DropdownItem>
-                                            )
-                                        })}
-                                    </DropdownMenu>
-                                </UncontrolledDropdown>
-                            </div>
-                        </div>
-                        <div className={styleTrans.searchContainer}>
-                            <div className='rowGeneral'>
-                                <Button onClick={this.openModalAdd} color="primary" size="lg">Add</Button>
-                                <Button onClick={this.openModalUpload} className='ml-2' color="warning" size="lg">Upload</Button>
-                                <Button onClick={this.downloadData} className='ml-2' color="success" size="lg">Download</Button>
-                            </div>
                             <div className={style.searchEmail2}>
                                 <text>Search: </text>
                                 <Input 
@@ -725,44 +643,26 @@ class MasterUser extends Component {
                             </div>
                         </div>
 
-                        <table className={`${styleTrans.table} ${dataUser.length > 0 ? styleTrans.tableFull : ''}`}>
+                        <table className={`${styleTrans.table} ${dataRole.length > 0 ? styleTrans.tableFull : ''}`}>
                             <thead>
                                 <tr>
-                                    <th>
-                                        <input  
-                                        className='mr-2'
-                                        type='checkbox'
-                                        checked={listUser.length === 0 ? false : listUser.length === dataUser.length ? true : false}
-                                        onChange={() => listUser.length === dataUser.length ? this.chekRej('all') : this.chekApp('all')}
-                                        />
-                                        {/* Select */}
-                                    </th>
                                     <th>No</th>
-                                    <th>User Name</th>
+                                    <th>Name</th>
                                     <th>Full Name</th>
-                                    <th>Kode Plant</th>
-                                    <th>Email</th>
-                                    <th>User Level</th>
+                                    <th>Type</th>
+                                    <th>Level</th>
                                     <th>Opsi</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {dataUser.length !== 0 && dataUser.map((item, index) => {
+                                {dataRole.length !== 0 && dataRole.map((item, index) => {
                                     return (
                                         <tr>
-                                             <td>
-                                                <input 
-                                                type='checkbox'
-                                                checked={listUser.find(element => element === item.id) !== undefined ? true : false}
-                                                onChange={listUser.find(element => element === item.id) === undefined ? () => this.chekApp(item.id) : () => this.chekRej(item.id)}
-                                                />
-                                            </td>
-                                            <td scope="row">{(dataUser.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</td>
-                                            <td>{item.username}</td>
+                                            <td scope="row">{index + 1}</td>
+                                            <td>{item.name}</td>
                                             <td>{item.fullname}</td>
-                                            <td>{item.kode_plant === 0 ? "" : item.kode_plant}</td>
-                                            <td>{item.email}</td>
-                                            <td>{dataRole.find(({nomor}) => nomor == item.user_level).name}</td>
+                                            <td>{item.type === null ? 'nasional' : item.type}</td>
+                                            <td>{item.nomor}</td>
                                             <td>
                                                 <Button onClick={()=>this.openModalEdit(this.setState({detail: item}))} color='success'>Detail</Button>
                                             </td>
@@ -771,53 +671,51 @@ class MasterUser extends Component {
                                 })}
                             </tbody>
                         </table>
-                        {dataUser.length === 0 && (
+                        {dataRole.length === 0 && (
                             <div className={style.spinCol}>
                                 <AiOutlineInbox size={50} className='mb-4' />
-                                <div className='textInfo'>Data user tidak ditemukan</div>
+                                <div className='textInfo'>Data role tidak ditemukan</div>
                             </div>
                         )}
                         <div>
                             <div className={style.infoPageEmail1}>
-                                <text>Showing {page.currentPage} of {page.pages} pages</text>
+                                <text>Showing 1 of 1 pages</text>
                                 <div className={style.pageButton}>
-                                    <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
-                                    <button className={style.btnPrev} color="info" disabled={page.nextLink === null ? true : false} onClick={this.next}>Next</button>
+                                    <button className={style.btnPrev} color="info" disabled onClick={this.prev}>Prev</button>
+                                    <button className={style.btnPrev} color="info" disabled onClick={this.next}>Next</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <Modal toggle={this.openModalAdd} isOpen={this.state.modalAdd}>
-                    <ModalHeader toggle={this.openModalAdd}>Add Master User</ModalHeader>
+                    <ModalHeader toggle={this.openModalAdd}>Add Master Role</ModalHeader>
                     <Formik
                     initialValues={{
-                    username: "",
-                    fullname: "",
-                    password: "",
-                    depo: "",
-                    user_level: "", 
-                    status: ""
+                        name: "",
+                        fullname: "",
+                        type: "",
+                        nomor: null
                     }}
-                    validationSchema={userSchema}
-                    onSubmit={(values) => {this.addUser(values)}}
+                    validationSchema={roleSchema}
+                    onSubmit={(values) => {this.addRole(values)}}
                     >
                         {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
                     <ModalBody>
                         <div className={style.addModalDepo}>
                             <text className="col-md-3">
-                                User Name
+                                Name
                             </text>
                             <div className="col-md-9">
                                 <Input 
                                 type="name" 
-                                name="username"
-                                value={values.username}
-                                onBlur={handleBlur("username")}
-                                onChange={handleChange("username")}
+                                name="name"
+                                value={values.name}
+                                onBlur={handleBlur("name")}
+                                onChange={handleChange("name")}
                                 />
-                                {errors.username ? (
-                                    <text className={style.txtError}>{errors.username}</text>
+                                {errors.name ? (
+                                    <text className={style.txtError}>{errors.name}</text>
                                 ) : null}
                             </div>
                         </div>
@@ -840,90 +738,38 @@ class MasterUser extends Component {
                         </div>
                         <div className={style.addModalDepo}>
                             <text className="col-md-3">
-                                Password
-                            </text>
-                            <div className="col-md-9">
-                            <Input 
-                            type="password" 
-                            name="nama_spv" 
-                            value={values.password}
-                            onChange={handleChange("password")}
-                            onBlur={handleBlur("password")}
-                            />
-                            {errors.password ? (
-                                <text className={style.txtError}>{errors.password}</text>
-                            ) : null}
-                            </div>
-                        </div>
-                        <div className={style.addModalDepo}>
-                            <text className="col-md-3">
-                                User Level
+                                Type
                             </text>
                             <div className="col-md-9">
                             <Input 
                                 type="select" 
-                                name="select"
-                                value={values.user_level}
-                                onChange={handleChange("user_level")}
-                                onBlur={handleBlur("user_level")}
+                                value={values.type}
+                                onChange={handleChange("type")}
+                                onBlur={handleBlur("type")}
                                 >
                                     <option>-Pilih Level-</option>
-                                    {dataRole.length !== 0 && dataRole.map(item => {
-                                        return (
-                                            <option value={item.nomor}>{item.name}</option>
-                                        )
-                                    })}
+                                    <option value='nasional'>Nasional</option>
+                                    <option value='area'>Area</option>
                                 </Input>
-                                {errors.user_level ? (
-                                    <text className={style.txtError}>{errors.user_level}</text>
+                                {errors.type ? (
+                                    <text className={style.txtError}>{errors.type}</text>
                                 ) : null}
                             </div>
                         </div>
                         <div className={style.addModalDepo}>
                             <text className="col-md-3">
-                                Depo
+                                Level
                             </text>
                             <div className="col-md-9">
-                            <Input 
-                                type="select"
-                                name="select"
-                                disabled={values.user_level === "5" ? false : true}
-                                value={values.depo}
-                                onChange={handleChange("depo")}
-                                onBlur={handleBlur("depo")}
-                                >
-                                    <option>-Pilih Depo-</option>
-                                    {dataDepo.length !== 0 && dataDepo.map(item => {
-                                        return (
-                                            item.kode_plant.length === 4 && (
-                                                <option value={item.kode_plant + '-' + item.nama_area}>{item.kode_plant + '-' + item.nama_area}</option>
-                                            ) 
-                                        )
-                                    })}
-                                </Input>
-                                {errors.depo ? (
-                                    <text className={style.txtError}>{errors.depo}</text>
-                                ) : null}
-                            </div>
-                        </div>
-                        <div className={style.addModalDepo}>
-                            <text className="col-md-3">
-                                Status
-                            </text>
-                            <div className="col-md-9">
-                            <Input 
-                                type="select"
-                                name="select"
-                                value={values.status}
-                                onChange={handleChange("status")}
-                                onBlur={handleBlur("status")}
-                                >   
-                                    <option>-Pilih Status-</option>
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                </Input>
-                                {errors.status ? (
-                                    <text className={style.txtError}>{errors.status}</text>
+                                <Input 
+                                type='text'
+                                name="nomor"
+                                value={values.nomor}
+                                onBlur={handleBlur("nomor")}
+                                onChange={handleChange("nomor")}
+                                />
+                                {errors.nomor ? (
+                                    <text className={style.txtError}>{errors.nomor}</text>
                                 ) : null}
                             </div>
                         </div>
@@ -940,35 +786,33 @@ class MasterUser extends Component {
                     </Formik>
                 </Modal>
                 <Modal toggle={this.openModalEdit} isOpen={this.state.modalEdit}>
-                    <ModalHeader toggle={this.openModalEdit}>Edit Master User</ModalHeader>
+                    <ModalHeader toggle={this.openModalEdit}>Edit Master Role</ModalHeader>
                     <Formik
                     initialValues={{
-                    username: detail.username === null ? '' : detail.username,
-                    depo: level === '5' ? detail.kode_plant + "-" + detail.nama_depo : '',
-                    user_level: detail.user_level === null ? '' : detail.user_level, 
-                    status: 'active',
-                    email: detail.email === null ? '' : detail.email,
-                    fullname: detail.fullname === null ? '' : detail.fullname
+                        name: detail.name,
+                        fullname: detail.fullname,
+                        type: detail.type,
+                        nomor: detail.nomor
                     }}
-                    validationSchema={userEditSchema}
-                    onSubmit={(values) => {this.editUser(values, detail.id)}}
+                    validationSchema={roleSchema}
+                    onSubmit={(values) => {this.editRole(values, detail.id)}}
                     >
                         {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
                     <ModalBody>
                         <div className={style.addModalDepo}>
                             <text className="col-md-3">
-                                User Name
+                                Name
                             </text>
                             <div className="col-md-9">
                                 <Input 
                                 type="name" 
-                                name="username"
-                                value={values.username}
-                                onBlur={handleBlur("username")}
-                                onChange={handleChange("username")}
+                                name="name"
+                                value={values.name}
+                                onBlur={handleBlur("name")}
+                                onChange={handleChange("name")}
                                 />
-                                {errors.username ? (
-                                    <text className={style.txtError}>{errors.username}</text>
+                                {errors.name ? (
+                                    <text className={style.txtError}>{errors.name}</text>
                                 ) : null}
                             </div>
                         </div>
@@ -989,76 +833,41 @@ class MasterUser extends Component {
                                 ) : null}
                             </div>
                         </div>
-                        {detail.user_level === '5' || detail.user_level === 5 ? (
-                            <div className={style.addModalDepo}>
-                                <text className="col-md-3">
-                                    Depo
-                                </text>
-                                <div className="col-md-9">
-                                <Input 
-                                    type="select" 
-                                    name="select"
-                                    value={values.depo}
-                                    onChange={handleChange("depo")}
-                                    onBlur={handleBlur("depo")}
-                                    >
-                                        <option>-Pilih Depo-</option>
-                                        {dataDepo.length !== 0 && dataDepo.map(item => {
-                                            return (
-                                                item.kode_plant.length === 4 && (
-                                                    <option value={item.kode_plant + '-' + item.nama_area}>{item.kode_plant + '-' + item.nama_area}</option>
-                                                ) 
-                                            )
-                                        })}
-                                        {/* <option value="50-MEDAN TIMUR">50-MEDAN TIMUR</option>
-                                        <option value="53-MEDAN BARAT">53-MEDAN BARAT</option> */}
-                                    </Input>
-                                    {errors.depo ? (
-                                        <text className={style.txtError}>{errors.depo}</text>
-                                    ) : null}
-                                </div>
-                            </div>
-                        ) : (
-                            <div></div>
-                        )}
                         <div className={style.addModalDepo}>
                             <text className="col-md-3">
-                                User Level
+                                Type
                             </text>
                             <div className="col-md-9">
                             <Input 
                                 type="select" 
-                                name="select"
-                                value={values.user_level}
-                                onChange={handleChange("user_level")}
-                                onBlur={handleBlur("user_level")}
+                                value={values.type}
+                                onChange={handleChange("type")}
+                                onBlur={handleBlur("type")}
                                 >
                                     <option>-Pilih Level-</option>
-                                    {dataRole.length !== 0 && dataRole.map(item => {
-                                        return (
-                                            <option value={item.nomor}>{item.name}</option>
-                                        )
-                                    })}
+                                    <option value='nasional'>Nasional</option>
+                                    <option value='area'>Area</option>
                                 </Input>
-                                {errors.user_level ? (
-                                    <text className={style.txtError}>{errors.user_level}</text>
+                                {errors.type ? (
+                                    <text className={style.txtError}>{errors.type}</text>
                                 ) : null}
                             </div>
                         </div>
                         <div className={style.addModalDepo}>
                             <text className="col-md-3">
-                                Email
+                                Level
                             </text>
                             <div className="col-md-9">
                                 <Input 
-                                type="name" 
-                                name="email"
-                                value={values.email}
-                                onBlur={handleBlur("email")}
-                                onChange={handleChange("email")}
+                                type='text'
+                                name="nomor"
+                                disabled
+                                value={values.nomor}
+                                onBlur={handleBlur("nomor")}
+                                onChange={handleChange("nomor")}
                                 />
-                                {errors.email ? (
-                                    <text className={style.txtError}>{errors.email}</text>
+                                {errors.nomor ? (
+                                    <text className={style.txtError}>{errors.nomor}</text>
                                 ) : null}
                             </div>
                         </div>
@@ -1086,7 +895,7 @@ class MasterUser extends Component {
                         <hr/>
                         <div className={style.foot}>
                             <div>
-                                <Button onClick={this.openModalReset} color='warning'>Reset Password</Button>
+                                {/* <Button onClick={this.openModalReset} color='warning'>Reset Password</Button> */}
                             </div>
                             <div>
                                 <Button className="mr-2" onClick={handleSubmit} color="primary">Save</Button>
@@ -1098,7 +907,7 @@ class MasterUser extends Component {
                     </Formik>
                 </Modal>
                 <Modal toggle={this.openModalUpload} isOpen={this.state.modalUpload} >
-                    <ModalHeader>Upload Master User</ModalHeader>
+                    <ModalHeader>Upload Master Role</ModalHeader>
                     <ModalBody className={style.modalUpload}>
                         <div className={style.titleModalUpload}>
                             <text>Upload File: </text>
@@ -1126,18 +935,18 @@ class MasterUser extends Component {
                         {this.state.confirm === 'edit' ? (
                         <div className={style.cekUpdate}>
                             <AiFillCheckCircle size={80} className={style.green} />
-                            <div className={style.sucUpdate}>Berhasil Memperbarui User</div>
+                            <div className={style.sucUpdate}>Berhasil Memperbarui Role</div>
                         </div>
                         ) : this.state.confirm === 'add' ? (
                             <div className={style.cekUpdate}>
                                     <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={style.sucUpdate}>Berhasil Menambahkan User</div>
+                                <div className={style.sucUpdate}>Berhasil Menambahkan Role</div>
                             </div>
                         ) : this.state.confirm === 'upload' ?(
                             <div>
                                 <div className={style.cekUpdate}>
                                     <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={style.sucUpdate}>Berhasil Mengupload Master User</div>
+                                <div className={style.sucUpdate}>Berhasil Mengupload Master Role</div>
                             </div>
                             </div>
                         ) : this.state.confirm === 'reset' ? (
@@ -1236,15 +1045,14 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = {
     logout: auth.logout,
-    addUser: user.addUser,
-    updateUser: user.updateUser,
-    getUser: user.getUser,
+    addRole: user.addRole,
+    updateRole: user.updateRole,
+    getRole: user.getRole,
     resetError: user.resetError,
     getDepo: depo.getDepo,
     uploadMaster: user.uploadMaster,
     nextPage: user.nextPage,
     exportMaster: user.exportMaster,
-    getRole: user.getRole,
     resetPassword: user.resetPassword
 }
 

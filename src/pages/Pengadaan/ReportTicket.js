@@ -4,7 +4,7 @@ import {  NavbarBrand, DropdownToggle, DropdownMenu,
     Modal, ModalHeader, ModalBody, Alert, Spinner} from 'reactstrap'
 import style from '../../assets/css/input.module.css'
 import {FaSearch, FaUserCircle, FaBars} from 'react-icons/fa'
-import {AiFillCheckCircle, AiOutlineFileExcel} from 'react-icons/ai'
+import {AiFillCheckCircle, AiOutlineFileExcel, AiOutlineInbox, AiOutlineClose} from 'react-icons/ai'
 import depo from '../../redux/actions/depo'
 import report from '../../redux/actions/report'
 import disposal from '../../redux/actions/disposal'
@@ -20,6 +20,11 @@ import MaterialTitlePanel from "../../components/material_title_panel";
 import SidebarContent from "../../components/sidebar_content";
 import ReactHtmlToExcel from "react-html-table-to-excel"
 import NavBar from '../../components/NavBar'
+import styleTrans from '../../assets/css/transaksi.module.css'
+import NewNavbar from '../../components/NewNavbar'
+import Email from '../../components/Pengadaan/Email'
+import ExcelJS from "exceljs"
+import fs from "file-saver"
 const {REACT_APP_BACKEND_URL} = process.env
 
 const userSchema = Yup.object().shape({
@@ -40,7 +45,7 @@ const userEditSchema = Yup.object().shape({
     status: Yup.string().required()
 });
 
-class MasterUser extends Component {
+class ReportTicket extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -71,7 +76,10 @@ class MasterUser extends Component {
             errMsg: '',
             fileUpload: '',
             limit: 10,
-            search: ''
+            search: '',
+            newIo: [],
+            listIo: [],
+            dataDownload: [],
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -217,15 +225,278 @@ class MasterUser extends Component {
     }
 
     componentDidMount() {
-        this.getDataReportMutasi()
+        this.changeFilter('selesai')
     }
 
-    getDataReportMutasi = async (val) => {
+    getDataReportIo = async (val) => {
         const limit = val === undefined || val.limit === undefined ? 10 : val.limit
         const token = localStorage.getItem("token")
         const search = this.props.location.state === undefined ? '' : this.props.location.state
         this.setState({limit: limit === null ? 'All' : limit})
-        await this.props.getReportMut(token, limit, search, 1)
+        await this.props.getReportIo(token, limit, search, 1)
+    }
+
+    changeFilter = async (val) => {
+        const role = localStorage.getItem('role')
+        const level = localStorage.getItem('level')
+
+        const status = val === 'selesai' ? '8' : val === 'available' && level === '2' ? '1' : val === 'available' && level === '8' ? '3' : 'all'
+        const token = localStorage.getItem("token")
+        await this.props.getReportIo(token, 100, '', 1, status)
+
+        if (level === '2' || level === '8') {
+            const {dataIo} = this.props.report
+            const newIo = []
+            console.log(val)
+            for (let i = 0; i < dataIo.length; i++) {
+                if (val === 'available') {
+                    if (dataIo[i].status_reject !== 1) {
+                        newIo.push(dataIo[i])
+                    }
+                } else if (val === 'reject') {
+                    if (dataIo[i].status_reject === 1) {
+                        newIo.push(dataIo[i])
+                    }
+                } else if (val === 'selesai') {
+                    if (dataIo[i].status_form === '8') {
+                        newIo.push(dataIo[i])
+                    }
+                } else {
+                    const cek = level === '8' ? '3' : '1'
+                    if (dataIo[i].status_form !== cek || (dataIo[i].status_form === cek && dataIo[i].status_reject === 1)) {
+                        newIo.push(dataIo[i])
+                    }
+                }
+            }
+            this.setState({filter: val, newIo: newIo})
+        } else {
+            const {dataIo} = this.props.report
+            if (val === 'available' && dataIo.length > 0) {
+                console.log('at available')
+                const newIo = []
+                for (let i = 0; i < dataIo.length; i++) {
+                    const app = dataIo[i].appForm ===  undefined ? [] : dataIo[i].appForm
+                    const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
+                    if (level === '5' || level === '9') {
+                        console.log('at available 2')
+                        if (dataIo[i].status_reject !== 1 && dataIo[i].status_form === '2' && (app[find] === undefined || app.length === 0)) {
+                            console.log('at available 3')
+                            newIo.push(dataIo[i])
+                        } else if (dataIo[i].status_reject !== 1 && dataIo[i].status_form === '2' && app[find].status === null ) {
+                            console.log('at available 4')
+                            newIo.push(dataIo[i])
+                        }
+                    } else if (find === 0 || find === '0') {
+                        console.log('at available 8')
+                        if (dataIo[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
+                            newIo.push(dataIo[i])
+                        }
+                    } else {
+                        console.log('at available 5')
+                        if (dataIo[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
+                            newIo.push(dataIo[i])
+                        }
+                    }
+                }
+                this.setState({filter: val, newIo: newIo})
+            } else if (val === 'reject' && dataIo.length > 0) {
+                const newIo = []
+                for (let i = 0; i < dataIo.length; i++) {
+                    if (dataIo[i].status_reject === 1) {
+                        newIo.push(dataIo[i])
+                    }
+                }
+                this.setState({filter: val, newIo: newIo})
+            } else if (val === 'selesai' && dataIo.length > 0) {
+                const newIo = []
+                for (let i = 0; i < dataIo.length; i++) {
+                    if (dataIo[i].status_form === '8') {
+                        newIo.push(dataIo[i])
+                    }
+                }
+                this.setState({filter: val, newIo: newIo})
+            } else {
+                const newIo = []
+                for (let i = 0; i < dataIo.length; i++) {
+                    const app = dataIo[i].appForm ===  undefined ? [] : dataIo[i].appForm
+                    const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
+                    if (level === '5' || level === '9') {
+                        if (dataIo[i].status_form === '2' && (app[find] === undefined || app.length === 0)) {
+                            console.log('at all 3')
+                            newIo.push()
+                        } else if (dataIo[i].status_form === '2' && app[find].status === null ) {
+                            console.log('at all 4')
+                            newIo.push()
+                        } else {
+                            newIo.push(dataIo[i])
+                        }
+                    } else if (find === 0 || find === '0') {
+                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
+                            newIo.push()
+                        } else {
+                            newIo.push(dataIo[i])
+                        }
+                    } else {
+                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
+                            newIo.push()
+                        } else {
+                            newIo.push(dataIo[i])
+                        }
+                    }
+                }
+                this.setState({filter: val, newIo: newIo})
+            }
+        }
+    }
+
+    prosesDownload = (val) => {
+        const {listIo, newIo} = this.state
+        if (listIo.length === 0) {
+            this.setState({confirm: 'rejDownload'})
+            this.openConfirm()
+        } else {
+            const data = []
+            for (let i = 0; i < listIo.length; i++) {
+                for (let j = 0; j < newIo.length; j++) {
+                    if (`${newIo[j].no_asset_temp === undefined ? '-' : newIo[j].no_asset_temp}${newIo[j].id}` === listIo[i]) {
+                        data.push(newIo[j])
+                    }
+                }
+            }
+            this.setState({dataDownload: data})
+            this.downloadReport(data)
+        }
+    }
+
+    openConfirm = () => {
+        this.setState({modalConfirm: !this.state.modalConfirm})
+    }
+
+    downloadReport = async (val) => {
+        const dataDownload = val
+
+        const workbook = new ExcelJS.Workbook();
+        const ws = workbook.addWorksheet('report pengadaan asset')
+
+        // await ws.protect('F1n4NcePm4')
+
+        const borderStyles = {
+            top: {style:'thin'},
+            left: {style:'thin'},
+            bottom: {style:'thin'},
+            right: {style:'thin'}
+        }
+
+
+        ws.columns = [
+            {header: 'NO', key: 'c1'},
+            {header: 'Area PMA', key: 'c2'},
+            {header: 'Unit', key: 'c3'},
+            {header: 'Deskripsi', key: 'c4'},
+            {header: 'Kategori', key: 'c5'},
+            {header: 'Harga', key: 'c6'},
+            {header: 'Total Harga', key: 'c7'},
+            {header: 'Terima Io', key: 'c8'},
+            {header: 'Waktu', key: 'c9'},
+            {header: 'Kekurangan', key: 'c10'},
+            {header: 'tgl Rev', key: 'c11'},
+            {header: 'cek sudah pengajuan', key: 'c12'},
+            {header: 'Fu', key: 'c13'},
+            {header: 'Ket', key: 'c14'},
+            {header: 'Selesai Rev', key: 'c15'},
+            {header: 'Kirim Io ke budget', key: 'c16'},
+            {header: 'ket rev', key: 'c17'},
+            {header: 'tgl rev', key: 'c18'},
+            {header: 'Terima Io dari budget', key: 'c19'},
+            {header: 'No IO', key: 'c20'},
+            {header: 'No Asset', key: 'c21'},
+            {header: 'No.Doc', key: 'c22'},
+            {header: 'Kirim Ke IO yang APP', key: 'c23'},
+            {header: 'Keterangan', key: 'c24'},
+            {header: 'PIC', key: 'c25'},
+            {header: 'LPB', key: 'c26'},
+            {header: 'INVOICE', key: 'c27'},
+            {header: 'Jenis Ajuan', key: 'c28'}
+        ]
+
+        dataDownload.map((item, index) => { return ( ws.addRow(
+            {
+                c1: index + 1,
+                c2: item.depo === null ? '-' : item.area === null ? item.depo.nama_area : item.area,
+                c3: 1,
+                c4: item.nama,
+                c5: item.tipe,
+                c6: item.price,
+                c7: parseInt(item.price),
+                c8: moment(item.tglIo).format('DD/MM/YYYY'),
+                c9: moment(item.tglIo).format('h:mm a'),
+                c10: '-',
+                c11: '-',
+                c12: '-',
+                c13: '-',
+                c14: '-',
+                c15: '-',
+                c16: parseInt(item.status_form) > 2 && item.date_fullapp !== null ? moment(item.date_fullapp).format('DD/MM/YYYY') : parseInt(item.status_form) > 2 ? moment(item.appForm[0].updatedAt).format('DD/MM/YYYY') : '-',
+                c17: '-',
+                c18: '-',
+                c19: parseInt(item.status_form) > 2 && item.date_budget !== null ? moment(item.date_budget).format('DD/MM/YYYY') : parseInt(item.status_form) > 2 ? moment(item.appForm[0].updatedAt).format('DD/MM/YYYY') : '-',
+                c20: item.no_io,
+                c21: item.no_asset_temp === undefined ? '-' : item.no_asset_temp,
+                c22: item.no_pengadaan,
+                c23: item.date_eksekusi !== null ? moment(item.date_eksekusi).format('DD/MM/YYYY') : moment(item.updatedAt).format('DD/MM/YYYY'),
+                c24: '-',
+                c25: item.depo === null ? item.depo.nama_pic_1 : '-',
+                c26: '-',
+                c27: '-',
+                c28: item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS',
+            }
+        )
+        ) })
+        
+
+        // ws.addRow(
+        //     {
+        //         c13: 'TOTAL :',
+        //         c14: dataDownload.reduce((accumulator, object) => {
+        //             return accumulator + parseInt(object.nilai_ajuan);
+        //         }, 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+        //         c15: '',
+        //         c16: '',
+        //         c17: '',
+        //         c18: '',
+        //         c19: '',
+        //         c20: '',
+        //         c21: '',
+        //         c22: '',
+        //         c23: '',
+        //         c24: '',
+        //         c25: '',
+        //         c26: '',
+        //         c27: '',
+        //         c28: '',
+        //         c29: '',
+        //         c30: ''
+        //     }
+        // )
+
+        ws.eachRow({ includeEmpty: true }, function(row, rowNumber) {
+            row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
+              cell.border = borderStyles;
+            })
+          })
+
+        ws.columns.forEach(column => {
+            const lengths = column.values.map(v => v.toString().length)
+            const maxLength = Math.max(...lengths.filter(v => typeof v === 'number'))
+            column.width = maxLength + 5
+        })
+
+        workbook.xlsx.writeBuffer().then(function(buffer) {
+            fs.saveAs(
+              new Blob([buffer], { type: "application/octet-stream" }),
+              `Report Pengadaan Asset ${moment().format('DD MMMM YYYY')}.xlsx`
+            );
+          });
     }
 
     menuButtonClick(ev) {
@@ -237,10 +508,51 @@ class MasterUser extends Component {
         this.setState({ open });
     }
 
+    prosesSidebar = (val) => {
+        this.setState({sidebarOpen: val})
+    }
+    
+    goRoute = (val) => {
+        this.props.history.push(`/${val}`)
+    }
+
+    chekApp = (val) => {
+        const { listIo, newIo } = this.state
+        if (val === 'all') {
+            const data = []
+            for (let i = 0; i < newIo.length; i++) {
+                data.push(`${newIo[i].no_asset_temp === undefined ? '-' : newIo[i].no_asset_temp}${newIo[i].id}`)
+            }
+            this.setState({listIo: data})
+        } else {
+            listIo.push(val)
+            this.setState({listIo: listIo})
+        }
+    }
+
+    chekRej = (val) => {
+        const {listIo} = this.state
+        if (val === 'all') {
+            const data = []
+            this.setState({listIo: data})
+        } else {
+            const data = []
+            for (let i = 0; i < listIo.length; i++) {
+                if (listIo[i] === val) {
+                    data.push()
+                } else {
+                    data.push(listIo[i])
+                }
+            }
+            this.setState({listIo: data})
+        }
+    }
+    
+
     render() {
-        const {isOpen, dropOpen, dropOpenNum, detail, level, upload, errMsg} = this.state
+        const {isOpen, dropOpen, dropOpenNum, detail, level, upload, errMsg, newIo, listIo} = this.state
         const {dataUser, isGet, alertM, alertMsg, alertUpload, page, dataRole} = this.props.user
-        const { dataMut } = this.props.report
+        const { dataIo } = this.props.report
         const { dataDepo } = this.props.depo
         const levels = localStorage.getItem('level')
         const names = localStorage.getItem('name')
@@ -274,7 +586,7 @@ class MasterUser extends Component {
           };
         return (
             <>
-                <Sidebar {...sidebarProps}>
+                {/* <Sidebar {...sidebarProps}>
                     <MaterialTitlePanel title={contentHeader}>
                         <div className={style.backgroundLogo}>
                             <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
@@ -301,11 +613,11 @@ class MasterUser extends Component {
                                             {this.state.limit}
                                         </DropdownToggle>
                                         <DropdownMenu>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataReportMutasi({limit: 10, search: ''})}>10</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataReportMutasi({limit: 20, search: ''})}>20</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataReportMutasi({limit: 50, search: ''})}>50</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataReportMutasi({limit: 100, search: ''})}>100</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataReportMutasi({limit: 'All', search: ''})}>All</DropdownItem>
+                                            <DropdownItem className={style.item} onClick={() => this.getDataReportIo({limit: 10, search: ''})}>10</DropdownItem>
+                                            <DropdownItem className={style.item} onClick={() => this.getDataReportIo({limit: 20, search: ''})}>20</DropdownItem>
+                                            <DropdownItem className={style.item} onClick={() => this.getDataReportIo({limit: 50, search: ''})}>50</DropdownItem>
+                                            <DropdownItem className={style.item} onClick={() => this.getDataReportIo({limit: 100, search: ''})}>100</DropdownItem>
+                                            <DropdownItem className={style.item} onClick={() => this.getDataReportIo({limit: 'All', search: ''})}>All</DropdownItem>
                                         </DropdownMenu>
                                         </ButtonDropdown>
                                         <text className={style.textEntries}>entries</text>
@@ -321,12 +633,12 @@ class MasterUser extends Component {
                                             sheet="Report"
                                             buttonText="Download Report"
                                         />
-                                        {/* <Button onClick={this.ExportMaster} disabled color="success" size="lg">Download</Button> */}
+                                        <Button onClick={this.ExportMaster} disabled color="success" size="lg">Download</Button>
                                     </div>
                                     <div>
                                     </div>
                                 </div>
-                                {dataMut.length === 0 ? (
+                                {dataIo.length === 0 ? (
                                     <div className={style.tableDashboard}>
                                     <Table bordered responsive hover className={style.tab}>
                                         <thead>
@@ -380,10 +692,10 @@ class MasterUser extends Component {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                        {dataMut.length !== 0 && dataMut.map(item => {
+                                        {dataIo.length !== 0 && dataIo.map(item => {
                                                 return (
                                                 <tr>
-                                                    <th scope="row">{dataMut.indexOf(item) + 1}</th>
+                                                    <th scope="row">{dataIo.indexOf(item) + 1}</th>
                                                     <td>{item.no_mutasi}</td>
                                                     <td>{item.no_asset}</td>
                                                     <td>{item.nama_asset}</td>
@@ -405,18 +717,148 @@ class MasterUser extends Component {
                                 </div>  
                                 )}
                                 <div>
-                                    {/* <div className={style.infoPageEmail}>
+                                    <div className={style.infoPageEmail}>
                                         <text>Showing {page.currentPage} of {page.pages} pages</text>
                                         <div className={style.pageButton}>
                                             <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
                                             <button className={style.btnPrev} color="info" disabled={page.nextLink === null ? true : false} onClick={this.next}>Next</button>
                                         </div>
-                                    </div> */}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </MaterialTitlePanel>
-                </Sidebar>
+                </Sidebar> */}
+                <div className={styleTrans.app}>
+                    <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
+
+                    <div className={`${styleTrans.mainContent} ${this.state.sidebarOpen ? styleTrans.collapsedContent : ''}`}>
+                        <h2 className={styleTrans.pageTitle}>Report Pengadaan Asset</h2>
+                        <div className={styleTrans.searchContainer}>
+                            <Button color='success' size='lg' onClick={this.prosesDownload}>Download</Button>
+                        </div>
+                        <div className={styleTrans.searchContainer}>
+                            <input
+                                type="text"
+                                placeholder="Search..."
+                                onChange={this.onSearch}
+                                value={this.state.search}
+                                onKeyPress={this.onSearch}
+                                className={styleTrans.searchInput}
+                            />
+                            <select value={this.state.filter} onChange={e => this.changeFilter(e.target.value)} className={styleTrans.searchInput}>
+                                <option value="all">All</option>
+                                <option value="reject">Reject</option>
+                                <option value="selesai">Selesai</option>
+                            </select>
+                        </div>
+
+                        <table className={`${styleTrans.table} ${newIo.length > 0 ? styleTrans.tableFull : ''}`}>
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <Input 
+                                        addon
+                                        type="checkbox"
+                                        className='mr-3'
+                                        // disabled
+                                        checked={listIo.length === newIo.length ? true : false}
+                                        onClick={listIo.length === newIo.length ? () => this.chekRej('all') : () => this.chekApp('all')}
+                                        />
+                                        Select All
+                                    </th>
+                                    <th>NO</th>
+                                    <th>Area PMA</th>
+                                    <th>Unit</th>
+                                    <th>Deskripsi</th>
+                                    <th>Kategori</th>
+                                    <th>Harga</th>
+                                    <th>Total Harga</th>
+                                    <th>Terima Io</th>
+                                    <th>Waktu</th>
+                                    <th>Kekurangan</th>
+                                    <th>tgl Rev</th>
+                                    <th>cek sudah pengajuan</th>
+                                    <th>Fu</th>
+                                    <th>Ket</th>
+                                    <th>Selesai Rev</th>
+                                    <th>Kirim Io ke budget</th>
+                                    <th>ket rev</th>
+                                    <th>tgl rev</th>
+                                    <th>Terima Io dari budget</th>
+                                    <th>No IO</th>
+                                    <th>No Asset</th>
+                                    <th>No.Doc</th>
+                                    <th>Kirim Ke IO yang APP</th>
+                                    <th>Keterangan</th>
+                                    <th>PIC</th>
+                                    <th>LPB</th>
+                                    <th>INVOICE</th>
+                                    <th>Jenis Ajuan</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {newIo.length > 0 && newIo.map(item => {
+                                    return (
+                                        <tr className={item.status_form === '0' ? 'fail' : item.status_reject === 0 ? 'note' : item.status_reject === 1 && 'bad'}>
+                                            <td>
+                                                <Input 
+                                                addon
+                                                type="checkbox"
+                                                className=''
+                                                // disabled
+                                                // disabled={this.state.filter === 'not available' ? true : false}
+                                                checked={listIo.find(element => element === `${item.no_asset_temp === undefined ? '-' : item.no_asset_temp}${item.id}`) !== undefined ? true : false}
+                                                onClick={listIo.find(element => element === `${item.no_asset_temp === undefined ? '-' : item.no_asset_temp}${item.id}`) === undefined ? 
+                                                    () => this.chekApp(`${item.no_asset_temp === undefined ? '-' : item.no_asset_temp}${item.id}`) : 
+                                                    () => this.chekRej(`${item.no_asset_temp === undefined ? '-' : item.no_asset_temp}${item.id}`)
+                                                }
+                                                />
+                                            </td>
+                                            <td>{newIo.indexOf(item) + 1}</td>
+                                            <td>{item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}</td>
+                                            <td>1</td>
+                                            <td>{item.nama}</td>
+                                            <td>{item.tipe}</td>
+                                            <td>{item.price}</td>
+                                            <td>{item.price}</td>
+                                            {/* <td>{parseInt(item.price) * parseInt(item.qty)}</td> */}
+                                            <td>{moment(item.tglIo).format('DD/MM/YYYY')}</td>
+                                            <td>{moment(item.tglIo).format('h:mm a')}</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>{parseInt(item.status_form) > 2 && item.date_fullapp !== null ? moment(item.date_fullapp).format('DD/MM/YYYY') : parseInt(item.status_form) > 2 ? moment(item.appForm[0].updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>{parseInt(item.status_form) > 2 && item.date_budget !== null ? moment(item.date_budget).format('DD/MM/YYYY') : parseInt(item.status_form) > 2 ? moment(item.appForm[0].updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                            <td>{item.no_io}</td>
+                                            <td>{item.no_asset_temp === undefined ? '' : item.no_asset_temp}</td>
+                                            <td>{item.no_pengadaan}</td>
+                                            <td>{item.date_eksekusi !== null ? moment(item.date_eksekusi).format('DD/MM/YYYY') : moment(item.updatedAt).format('DD/MM/YYYY')}</td>
+                                            <td></td>
+                                            <td>{item.depo === null ? item.depo.nama_pic_1 : ''}</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>{item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
+                                            <td>{item.history !== null && item.history.split(',').reverse()[0]}</td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </table>
+                        {newIo.length === 0 && (
+                            <div className={style.spinCol}>
+                                <AiOutlineInbox size={50} className='secondary mb-4' />
+                                <div className='textInfo'>Data ajuan tidak ditemukan</div>
+                            </div>
+                        )}
+                    </div>
+                </div>
                 <Modal toggle={this.openModalAdd} isOpen={this.state.modalAdd}>
                     <ModalHeader toggle={this.openModalAdd}>Add Master User</ModalHeader>
                     <Formik
@@ -774,6 +1216,120 @@ class MasterUser extends Component {
                         </div>
                         </ModalBody>
                 </Modal>
+                <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="md">
+                    <ModalBody>
+                        {this.state.confirm === 'submit' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Submit</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'isupdate' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Update Nomor IO</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'approve' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Approve</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'reject' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Reject</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'update' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Update</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'rejApprove' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Approve</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'rejReject' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Reject</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'rejSubmit' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                                <div className="errApprove mt-2">Mohon isi Nomor IO terlebih dahulu</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'revdata' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                                <div className="errApprove mt-2">Mohon perbaiki data ajuan terlebih dahulu</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'falseSubmit' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                                <div className="errApprove mt-2">Mohon identifikasi asset terlebih dahulu</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'recent' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Permintaan gagal</div>
+                                <div className="errApprove mt-2">Mohon isi alasan terlebih dahulu</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'falseAdd' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Menambahkan Item</div>
+                                <div className="errApprove mt-2">Pastikan kategori dan tipe sama di setiap item</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'upreason' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Update Alasan</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'rejDownload' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Download</div>
+                                <div className="errApprove mt-2">Pilih data report terlebih dahulu</div>
+                            </div>
+                            </div>
+                        ) : (
+                            <div></div>
+                        )}
+                    </ModalBody>
+                    <div className='row justify-content-md-center mb-4'>
+                        <Button size='lg' onClick={this.openConfirm} color='primary'>OK</Button>
+                    </div>
+                </Modal>
             </>
         )
     }
@@ -799,8 +1355,8 @@ const mapDispatchToProps = {
     getRole: user.getRole,
     getDisposal: disposal.getDisposal,
     getReportDis: report.getReportDisposal,
-    getReportMut: report.getReportMutasi
+    getReportIo: report.getReportIo
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(MasterUser)
+export default connect(mapStateToProps, mapDispatchToProps)(ReportTicket)
 	

@@ -26,6 +26,10 @@ export default {
         type: 'UPDATE_ASSET',
         payload: http(token).patch(`/asset/update/${id}`, qs.stringify(data))
     }),
+    uploadMasterAsset: (token, data) => ({
+        type: 'UPLOAD_ASSET',
+        payload: http(token).post(`/asset/master`, data)
+    }),
     updateAssetNew: (token, id, data) => ({
         type: 'UPDATE_ASSETNEW',
         payload: http(token).patch(`/asset/update/${id}`, qs.stringify(data))

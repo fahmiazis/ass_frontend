@@ -2,9 +2,9 @@
 const stockState = {
     isAdd: false,
     isUpload: false,
-    isUpdate: false,
+    isUpdateStock: false,
     isUpdateNew: false,
-    isSubmit: false,
+    isSubmit: null,
     isGet: false,
     getReport: false,
     isApprove: false,
@@ -41,10 +41,14 @@ const stockState = {
     stockArea: [],
     detailAsset: {},
     getDetail: false,
-    isSubrev: false,
+    isSubrev: null,
     dataAdd: {},
     isImage: false,
-    isSubaset: false
+    isSubaset: false,
+    isFinStock: null,
+    noStock: '',
+    isApprev: null,
+    dataDepo: []
 };
 
 export default (state=stockState, action) => {
@@ -64,6 +68,7 @@ export default (state=stockState, action) => {
                 isError: false,
                 getStock: true,
                 dataStock: action.payload.data.result.rows,
+                dataDepo: action.payload.data.dataDepo,
                 alertMsg: 'get stock Succesfully',
                 page: action.payload.data.pageInfo
             };
@@ -113,14 +118,13 @@ export default (state=stockState, action) => {
                 ...state,
                 isLoading: false,
                 isError: false,
-                isUpdate: true,
+                isUpdateStock: true,
             };
         }
         case 'UPDATE_STOCK_REJECTED': {
             return {
                 ...state,
                 isLoading: false,
-                isUpdate: false,
                 isError: true,
                 alertMsg: "Unable connect to server"
             };
@@ -265,17 +269,40 @@ export default (state=stockState, action) => {
             return {
                 ...state,
                 isLoading: false,
-                isError: false,
                 isSubmit: true,
+                noStock: action.payload.data.noStock,
             };
         }
         case 'SUBMIT_STOCK_REJECTED': {
             return {
                 ...state,
                 isLoading: false,
-                isError: true,
+                isSubmit: false,
                 alertMsg: "Unable connect to server",
-                alertM: action.payload.response.data.message
+                alertM: action.payload.response !== undefined ? action.payload.response.data.message : ''
+            };
+        }
+        case 'SUBFINAL_STOCK_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'SUBFINAL_STOCK_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isFinStock: true,
+                alertMsg: 'success submet final Succesfully',
+            };
+        }
+        case 'SUBFINAL_STOCK_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isFinStock: false,
+                alertMsg: "Unable connect to server"
             };
         }
         case 'SUBMIT_REVISI_PENDING': {
@@ -297,7 +324,30 @@ export default (state=stockState, action) => {
             return {
                 ...state,
                 isLoading: false,
-                isError: true,
+                isSubrev: false,
+                alertMsg: "Unable connect to server",
+            };
+        }
+        case 'APP_REVISI_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'APP_REVISI_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: false,
+                isApprev: true,
+            };
+        }
+        case 'APP_REVISI_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isApprev: false,
                 alertMsg: "Unable connect to server",
             };
         }
@@ -569,7 +619,7 @@ export default (state=stockState, action) => {
                 isLoading: false,
                 isError: true,
                 alertMsg: "Unable connect to server",
-                alertM: action.payload.response.data.message
+                alertM: action.payload.response !== undefined ? action.payload.response.data.message : ''
             };
         }
         case 'RESET_STOCK': {
@@ -585,11 +635,12 @@ export default (state=stockState, action) => {
                 rejReject: false,
                 rejApprove: false,
                 isUpdateNew: false,
-                isUpdate: false,
-                isSubrev: false,
+                isUpdateStock: false,
+                isSubrev: null,
+                isApprev: null,
                 isAdd: false,
                 isImage: false,
-                isSubmit: false,
+                isSubmit: null,
                 isSubaset: false
             }
         }

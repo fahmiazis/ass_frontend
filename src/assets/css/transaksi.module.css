@@ -5,7 +5,7 @@
 }
 
 .sidebar {
-  width: 250px;
+  width: 320px;
   background-color: #c0392b;
   color: white;
   height: 100vh;
@@ -15,6 +15,8 @@
   left: 0;
   z-index: 1000;
   transform: translateX(0);
+  overflow-y: auto;
+  /* overflow: scroll;  */
   /* display: flex;
   flex-direction: column;
   align-items: center; */
@@ -85,7 +87,17 @@
 } */
 
 .mainContent {
-  margin-left: 250px;
+  margin-left: 320px;
+  padding: 80px 30px; /* Sesuaikan jarak padding */
+  transition: margin-left 0.3s ease;
+  width: 100%;
+  max-width: 100% !important;
+  display: block;
+  overflow-x: auto;
+}
+
+.mainContentStock {
+  margin-left: 320px;
   padding: 80px 30px; /* Sesuaikan jarak padding */
   transition: margin-left 0.3s ease;
   width: 100%;
@@ -109,7 +121,17 @@
   border-radius: 4px;
   width: 100%;
   max-width: 300px;
-  margin-right: 10px;
+  /* margin-right: 10px; */
+}
+
+.searchInput2 {
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 100%;
+  max-width: 280px;
+  margin-right: 80px !important;
 }
 
 /* .navbar {
@@ -141,6 +163,7 @@
   text-align: center;
   letter-spacing: 10px;
   font-weight: 600;
+  font-size: large;
 }
 
 .navIcons {
@@ -175,10 +198,22 @@
   text-align: center;
 }
 
+.tableFull {
+  display: block;
+  height: 500px !important;
+}
+
+.tableFull th {
+  position: sticky;
+  top: 0;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
+  overflow: auto;
 }
+
 
 .table th,
 .table td {
@@ -187,10 +222,19 @@
   border: 1px solid #ddd;
 }
 
+.table td {
+  width: 15%;
+}
+
 .table th {
   background-color: #2c3e50;
   color: white;
   white-space: nowrap;
+}
+
+.table td:nth-child(1) {
+  width: 2%;
+  text-align: center;
 }
 
 .table tbody {
@@ -199,6 +243,50 @@
 
 /* Efek hover pada baris tabel */
 .table tbody tr:hover {
+  background-color: #e6f4ea; /* Warna saat hover */
+  cursor: pointer; /* Ubah cursor saat hover */
+}
+
+.table1 {
+  width: 100%;
+  height: 500px;
+  border-collapse: collapse;
+  display: block;
+  overflow: auto;
+}
+.table1 th {
+  position: sticky;
+  top: 0;
+}
+
+.table1 th,
+.table1 td {
+  padding: 12px;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+.table1 td {
+  width: 15%;
+}
+
+.table1 th {
+  background-color: #2c3e50;
+  color: white;
+  white-space: nowrap;
+}
+
+.table1 td:nth-child(1) {
+  width: 2%;
+  text-align: center;
+}
+
+.table1 tbody {
+  background-color: white; /* Warna untuk baris genap */
+}
+
+/* Efek hover pada baris tabel */
+.table1 tbody tr:hover {
   background-color: #e6f4ea; /* Warna saat hover */
   cursor: pointer; /* Ubah cursor saat hover */
 }
@@ -233,6 +321,10 @@
     margin-left: 0;
   }
 
+  .mainContentStock {
+    margin-left: 0;
+  }
+
   .burgerIcon {
     display: block;
   }
@@ -240,4 +332,52 @@
   .sidebar.open {
     transform: translateX(-100%);
   }
+}
+
+.tableStock {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: auto;
+}
+
+.tableStock th,
+.tableStock td {
+  padding: 12px;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+.tableStock td {
+  width: 15%;
+}
+
+.tableStock th {
+  background-color: #2c3e50;
+  color: white;
+  white-space: nowrap;
+}
+
+.tableStock td:nth-child(1), td:nth-child(6) {
+  width: 2%;
+  text-align: center;
+}
+
+.tableStock td:nth-child(2) {
+  width: 2%;
+  text-align: center;
+}
+
+.tableStock td:nth-child(12) {
+  width: 20%;
+  text-align: center;
+}
+
+.tableStock tbody {
+  background-color: white; /* Warna untuk baris genap */
+}
+
+/* Efek hover pada baris tabel */
+.tableStock tbody tr:hover {
+  background-color: #e6f4ea; /* Warna saat hover */
+  cursor: pointer; /* Ubah cursor saat hover */
 }

@@ -8,25 +8,23 @@ import logo from "../assets/img/logo.png"
 import Pdf from "../components/Pdf"
 import style from '../assets/css/input.module.css'
 import {FaSearch, FaUserCircle, FaBars, FaTrash, FaFileSignature} from 'react-icons/fa'
-import {AiOutlineFileExcel, AiFillCheckCircle,  AiOutlineCheck, AiOutlineClose} from 'react-icons/ai'
+import {AiOutlineFileExcel, AiFillCheckCircle,  AiOutlineCheck, AiOutlineClose, AiOutlineInbox} from 'react-icons/ai'
 import {BsCircle, BsDashCircleFill, BsFillCircleFill} from 'react-icons/bs'
 import {MdAssignment} from 'react-icons/md'
 import {FiSend, FiTruck, FiSettings, FiUpload} from 'react-icons/fi'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
-import pengadaan from '../redux/actions/pengadaan'
-import disposal from '../redux/actions/disposal'
-import notif from '../redux/actions/notif'
-import tracking from '../redux/actions/tracking'
-import setuju from '../redux/actions/setuju'
 import {connect} from 'react-redux'
 import moment from 'moment'
 import auth from '../redux/actions/auth'
+import newnotif from '../redux/actions/newnotif'
 import Sidebar from "../components/Header";
 import MaterialTitlePanel from "../components/material_title_panel";
 import SidebarContent from "../components/sidebar_content";
 import NavBar from '../components/NavBar'
 import placeholder from  "../assets/img/placeholder.png"
+import styleTrans from '../assets/css/transaksi.module.css'
+import NewNavbar from '../components/NewNavbar'
 const {REACT_APP_BACKEND_URL} = process.env
 
 class TrackingMutasi extends Component {
@@ -75,6 +73,14 @@ class TrackingMutasi extends Component {
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+    }
+
+    prosesSidebar = (val) => {
+        this.setState({sidebarOpen: val})
+    }
+    
+    goRoute = (val) => {
+        this.props.history.push(`/${val}`)
     }
 
     showAlert = () => {
@@ -242,21 +248,21 @@ class TrackingMutasi extends Component {
 
     getDataNotif = async () => {
         const token = localStorage.getItem('token')
-        await this.props.getNotif(token, 'null')
+        await this.props.getAllNewNotif(token, '')
         this.filterData()
     }
     
     filterData = () => {
-        const { data } = this.props.notif
+        const { dataAllNotif } = this.props.newnotif
         const newData = []
         const dataNull = []
         const dataRead = []
-        for (let i = 0; i < data.length; i++) {
-            newData.push(data[i])
-            if (data[i].status === null) {
-                dataNull.push(data[i])
+        for (let i = 0; i < dataAllNotif.length; i++) {
+            newData.push(dataAllNotif[i])
+            if (dataAllNotif[i].status === null) {
+                dataNull.push(dataAllNotif[i])
             } else {
-                dataRead.push(data[i])
+                dataRead.push(dataAllNotif[i])
             }
         }
         this.setState({ newData: newData, dataNull: dataNull })
@@ -298,7 +304,7 @@ class TrackingMutasi extends Component {
 
     render() {
         const {isOpen, dropOpen, dropOpenNum, detail, alert, newData, dataNull} = this.state
-        const {} = this.props.notif
+        const {} = this.props.newnotif
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
 
@@ -331,7 +337,7 @@ class TrackingMutasi extends Component {
           };
         return (
             <>
-                <Sidebar {...sidebarProps}>
+                {/* <Sidebar {...sidebarProps}>
                     <MaterialTitlePanel title={contentHeader}>
                         <div className={style.backgroundLogo}>
                             <div className={style.bodyDashboard}>
@@ -399,7 +405,77 @@ class TrackingMutasi extends Component {
                             </div>
                         </div>
                     </MaterialTitlePanel>
-                </Sidebar>
+                </Sidebar> */}
+                <div className={styleTrans.app}>
+                    <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
+
+                    <div className={`${styleTrans.mainContent} ${this.state.sidebarOpen ? styleTrans.collapsedContent : ''}`}>
+                        <h2 className={styleTrans.pageTitle}>Notifikasi</h2>
+
+                        <Row className="cartDisposal">
+                            {newData.length === 0 ? (
+                                <Col md={8} xl={8} sm={12}>
+                                    <div className="txtDisposEmpty"></div>
+                                </Col>
+                            ) : (
+                                <Col md={8} xl={8} sm={12} className="mb-5 mt-5">
+                                {newData.length !== 0 && newData.map(item => {
+                                    return (
+                                        <div className="cart">
+                                            <div className="navCart">
+                                                <FaFileSignature className="cartImg" />
+                                                <Button className="labelBut" color={item.status === null ? "danger" : "success"} size="sm">{item.status === null ? 'unread' : 'read'}</Button>
+                                                <div className="txtCart">
+                                                    <button className='openReq' size='sm' onClick={() => this.openReq(item)}>Open request</button>
+                                                    <div>
+                                                        <div className="textNotif mb-3">{item.keterangan} {(item.jenis === '' || item.jenis === null) && item.no_proses.split('')[0] === 'O' ? 'Stock Opname' : item.jenis}</div>
+                                                        <div className="textNotif mb-3">No {item.jenis}: {item.no_proses}</div>
+                                                        <div>{moment(item.createdAt).format('LLL')}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="footCart">
+                                                <div><FaTrash size={20} onClick={() => this.deleteNotif(item.id)} className="txtError"/></div>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </Col>
+                            )}
+                            {newData.length === 0 || newData === undefined ? (
+                                null
+                            ) : (
+                                <Col md={4} xl={4} sm={12} className="mt-5">
+                                    <div className="sideSum">
+                                        <div className="titSum">Notification data</div>
+                                        <div className="txtSum">
+                                            <div className="totalSum">Total Notification</div>
+                                            <div className="angkaSum">{newData.length}</div>
+                                        </div>
+                                        <div className="txtSum">
+                                            <div className="totalSum">Notification unread</div>
+                                            <div className="angkaSum">{dataNull.length}</div>
+                                        </div>
+                                        <Row>
+                                            <Col lg={6} md={6} xl={6}>
+                                                <button className="btnSum" disabled={newData.length === 0 ? true : false } onClick={() => this.deleteAll()}>Delete all</button>
+                                            </Col>
+                                            <Col lg={6} md={6} xl={6}>
+                                                <button className="btnSum1" disabled={newData.length === 0 ? true : false } onClick={() => this.updateAll()}>Mark all read</button>
+                                            </Col>
+                                        </Row>
+                                    </div>
+                                </Col>
+                            )}
+                        </Row>
+                        {newData.length === 0 && (
+                            <div className={style.spinCol}>
+                                <AiOutlineInbox size={50} className='secondary mb-4' />
+                                <div className='textInfo'>Data notifikasi tidak ditemukan</div>
+                            </div>
+                        )}
+                    </div>
+                </div>
                 <Modal isOpen={this.props.disposal.isLoading ? true: false} size="sm">
                         <ModalBody>
                         <div>
@@ -442,27 +518,12 @@ const mapStateToProps = state => ({
     setuju: state.setuju,
     pengadaan: state.pengadaan,
     tracking: state.tracking,
-    notif: state.notif
+    newnotif: state.newnotif
 })
 
 const mapDispatchToProps = {
     logout: auth.logout,
-    getDisposal: disposal.getDisposal,
-    submitDisposal: disposal.submitDisposal,
-    resetError: disposal.reset,
-    deleteDisposal: disposal.deleteDisposal,
-    updateDisposal: disposal.updateDisposal,
-    getDocumentDis: disposal.getDocumentDis,
-    uploadDocumentDis: disposal.uploadDocumentDis,
-    submitEksDisposal: setuju.submitEksDisposal,
-    showDokumen: pengadaan.showDokumen,
-    getTrack: tracking.getTrack,
-    trackMutasi: tracking.trackMutasi,
-    getNotif: notif.getNotif,
-    upNotif: notif.upNotif,
-    upAllNotif: notif.upAllNotif,
-    delNotif: notif.delNotif,
-    delAllNotif: notif.delAllNotif
+    getAllNewNotif: newnotif.getAllNewNotif
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(TrackingMutasi)

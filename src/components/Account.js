@@ -8,7 +8,7 @@ import user from '../redux/actions/user'
 import {connect} from 'react-redux'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
-import notif from '../redux/actions/notif'
+import newnotif from '../redux/actions/newnotif'
 import {VscAccount} from 'react-icons/vsc'
 import style from '../assets/css/input.module.css'
 
@@ -55,7 +55,7 @@ class Account extends Component {
 
     getData = async () => {
         const token = localStorage.getItem("token")
-        await this.props.getNotif(token)
+        await this.props.getAllNewNotif(token)
     }
 
   render() {
@@ -197,10 +197,9 @@ const mapDispatchToProps = {
     updateUser: user.updateUser,
     reset: user.resetError,
     logout: auth.logout,
-    getNotif: notif.getNotif,
+    getAllNewNotif: newnotif.getAllNewNotif,
     changePassword: user.changePassword,
     goRoute: auth.goRoute,
-    upNotif: notif.upNotif
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Account)

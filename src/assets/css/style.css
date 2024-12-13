@@ -4,6 +4,9 @@ html,body{
     overflow: scroll !important;
     overflow: auto !important;
 }
+.xl {
+    max-width: 90% !important;
+}
 .img-back {
     width: 50%;
     height: "auto";
@@ -22,6 +25,9 @@ html,body{
     display: flex;
     flex-direction: row;
     align-items: center;
+}
+.fillAset {
+    width: 300px !important;
 }
 .filterUser {
     display: flex;
@@ -296,6 +302,18 @@ html,body{
     background-color: #47C1C4;
     color: white;
 }
+.secEmail {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+.infoPageEmail {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 5%;
+}
 .picHome {
     width: 60%;
     margin-top: 10%;
@@ -310,7 +328,7 @@ html,body{
     margin-bottom: 20%;
 }
 .imgModal {
-    width: 30%;
+    width: 50px;
     height: auto;
 }
 .titModal {
@@ -557,7 +575,7 @@ html,body{
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    width: 75%;
+    width: 100%;
     background-color: white;
     box-shadow: 0px 6px 40px rgba(173, 173, 173, 0.8);
     margin-top: 3%;
@@ -584,7 +602,7 @@ html,body{
     object-fit: contain;
 }
 .navCart {
-    width: 60%;
+    width: 80%;
     display: flex;
     flex-direction: row;
 }
@@ -600,7 +618,8 @@ html,body{
     background-color: #0da9ef !important;
     color: white !important;
     align-items: center;
-    width: 80% !important;
+    width: 40% !important;
+    height: 15%;
     display: flex;
     flex-direction: column;
     border-radius: 10px !important;
@@ -742,6 +761,17 @@ html,body{
     object-fit: cover;
     border: 1px solid #9b9b9b;
 }
+.imgPop {
+    width: 100%;
+    height: auto;
+    border-radius: 5%;
+    object-fit: cover;
+    border: 1px solid #9b9b9b;
+}
+.popImg {
+    /* width: 500px !important;
+    height: auto; */
+}
 .imgSmallRinci {
     width: 100%;
     height: 100px;
@@ -879,6 +909,13 @@ html,body{
     padding: 2%;
     border-radius: 5px;
     margin-left: 2%;
+}
+.inputRinci2 {
+    border: 1px solid rgba(169, 169, 169, 0.6);
+    width: 100%;
+    padding: 1.5% 10px 1.5% 15px;
+    border-radius: 5px;
+    /* margin-left: 5px; */
 }
 .btnGoCart {
     border: 0;
@@ -1102,6 +1139,51 @@ html,body{
 .white {
     color: white;
 }
+.divNotif {
+    position: absolute;
+    margin-left: 15px;
+    margin-bottom: 10px;
+    background-color: red;
+    border-radius: 60%;
+    text-align: center;
+    justify-content: center;
+}
+.sizeNotif {
+    width: 40%;
+}
+
+.sizeNotif2 {
+    width: 60%;
+}
+.notifNav {
+    display: flex;
+    flex-direction: row;
+    align-items: center !important;
+    justify-content: space-between;
+    margin-top: 2%;
+    width: 100%;
+}
+.bodyNotif {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 5%;
+    background-color: white;
+    box-shadow: 0px 6px 40px rgba(173, 173, 173, 0.8);
+    width: 70%;
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, 0%);
+    padding-left: 2%;
+    padding-right: 2%;
+    padding-bottom: 5%;
+}
+.heightAuto {
+    height: auto;
+}
+.heightNotif {
+    height: 100%;
+}
 @import url("https://cdn.jsdelivr.net/npm/pixeden-stroke-7-icon@1.2.3/pe-icon-7-stroke/dist/pe-icon-7-stroke.min.css");
 /* body{margin-top:20px;} */
 
@@ -1268,6 +1350,8 @@ html,body{
 .colTable {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
+    width: 100% !important;
 }
 .rowCenter {
     display: flex;
@@ -1306,10 +1390,20 @@ html,body{
     justify-items: center !important;
     align-items: center !important;
 }
+.docForm {
+    max-width: 40% !important;
+    align-self: center;
+}
+.colGeneral {
+    display: flex !important;
+    flex-direction: column !important;
+}
+.indexStat {
+    z-index: 1 !important;
+}
 .selfStart {
     align-self: flex-start !important;
 }
-
 #wrap {
     width: 750px;
     height: 1500px;
@@ -1348,4 +1442,63 @@ html,body{
 .backWhite {
     background-color: white !important;
     border: 1px solid black;
+    height: 100vh;
+    width: 100vw;
+}
+.addModalMenu {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 10px;
+    align-items: stretch;
+}
+.listcek {
+    display: flex;
+    flex-direction: row;
+    flex-flow: row wrap !important;
+}
+.history {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.note {
+    background-color: #ffffcc;
+}
+.bad {
+    background-color: #ffccd0;
+}
+.fail {
+    background-color: #686a74;
+}
+.otp1 {
+    width: 60px !important;
+    height: 60px;
+    background: #FFFFFF;
+    border: 1px solid rgba(169, 169, 169, 0.6);
+    box-sizing: border-box;
+    box-shadow: 0px 10px 75px rgba(147, 147, 147, 0.1);
+    /* border-radius: 5px; */
+    font-style: normal;
+    font-weight: 400;
+    font-size: 20px;
+    line-height: 41px;
+    color: #3A3D42;
+  }
+.tdIt {
+    width: 6% !important;
+}
+.tdPlant {
+    width: 6% !important;
+}
+.tdArea {
+    width: 10% !important;
+}
+.tdOpsi {
+    width: 11% !important;
+}
+.tdTime {
+    width: 5% !important;
+}
+.tdDesc {
+    width: 23% !important;
 }

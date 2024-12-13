@@ -177,13 +177,13 @@ class NavTicket extends Component {
                                 <>
                                     <div onClick={() => this.goRoute('pengadaan')} className="col-12 col-md-6 col-lg-3 mb-4">
                                         <div className={styleHome.navCard}>
-                                            <FiSend size={220} className='mt-4' />
+                                            <FiSend size={150} className='mt-4 mb-4' />
                                             <p className='mt-4'>Pengajuan Pengadaan Asset</p>
                                         </div>
                                     </div>
                                     <div onClick={() => this.goRoute('revtick')} className="col-12 col-md-6 col-lg-3 mb-4">
                                         <div className={styleHome.navCard}>
-                                            <BiRevision size={220} className='mt-4' />
+                                            <BiRevision size={150} className='mt-4 mb-4' />
                                             <p className='mt-4'>Revisi Pengadaan Asset</p>
                                         </div>
                                     </div>
@@ -192,25 +192,25 @@ class NavTicket extends Component {
                                 <>
                                     <div onClick={() => this.goRoute('pengadaan')} className="col-12 col-md-6 col-lg-3 mb-4">
                                         <div className={styleHome.navCard}>
-                                            <FiSend size={220} className='mt-4' />
+                                            <FiSend size={150} className='mt-4 mb-4' />
                                             <p className='mt-4'>Pengajuan Pengadaan Asset</p>
                                         </div>
                                     </div>
                                     <div onClick={() => this.goRoute('ekstick')} className="col-12 col-md-6 col-lg-3 mb-4">
                                         <div className={styleHome.navCard}>
-                                            <FiTruck size={220} className='mt-4' />
+                                            <FiTruck size={150} className='mt-4 mb-4' />
                                             <p className='mt-4'>Eksekusi pengadaan asset</p>
                                         </div>
                                     </div>
                                     <div onClick={() => this.goRoute('revtick')} className="col-12 col-md-6 col-lg-3 mb-4">
                                         <div className={styleHome.navCard}>
-                                            <BiRevision size={220} className='mt-4' />
+                                            <BiRevision size={150} className='mt-4 mb-4' />
                                             <p className='mt-4'>Revisi Pengadaan Asset</p>
                                         </div>
                                     </div>
                                     <div onClick={() => this.goRoute('navtick')} className="col-12 col-md-6 col-lg-3 mb-4">
                                         <div className={styleHome.navCard}>
-                                            <HiOutlineDocumentReport size={220} className='mt-4' />
+                                            <HiOutlineDocumentReport size={150} className='mt-4 mb-4' />
                                             <p className='mt-4'>Report pengadaan asset</p>
                                         </div>
                                     </div>
@@ -219,13 +219,13 @@ class NavTicket extends Component {
                                 <>
                                     <div onClick={() => this.goRoute('pengadaan')} className="col-12 col-md-6 col-lg-3 mb-4">
                                         <div className={styleHome.navCard}>
-                                            <FiSend size={220} className='mt-4' />
+                                            <FiSend size={150} className='mt-4 mb-4' />
                                             <p className='mt-4'>Pengajuan Pengadaan Asset</p>
                                         </div>
                                     </div>
                                     <div onClick={() => this.goRoute('revtick')} className="col-12 col-md-6 col-lg-3 mb-4">
                                         <div className={styleHome.navCard}>
-                                            <BiRevision size={220} className='mt-4' />
+                                            <BiRevision size={150} className='mt-4 mb-4' />
                                             <p className='mt-4'>Revisi Pengadaan Asset</p>
                                         </div>
                                     </div>
@@ -234,7 +234,7 @@ class NavTicket extends Component {
                                 <>
                                     <div onClick={() => this.goRoute('pengadaan')} className="col-12 col-md-6 col-lg-3 mb-4">
                                         <div className={styleHome.navCard}>
-                                            <FiSend size={220} className='mt-4' />
+                                            <FiSend size={150} className='mt-4 mb-4' />
                                             <p className='mt-4'>Pengajuan Pengadaan Asset</p>
                                         </div>
                                     </div>
@@ -247,13 +247,13 @@ class NavTicket extends Component {
                         {level === '5' ? (
                             <div className="mainBody">
                                 <button className="cardNav1" onClick={() => this.goRoute('pengadaan')}>
-                                    <FiSend size={220} className="picHome" />
+                                    <FiSend size={150} className="picHome" />
                                     <div className="titCard">
                                         Pengajuan Pengadaan Asset
                                     </div>
                                 </button>
                                 <button className="cardNav1" onClick={() => this.goRoute('revtick')}>
-                                    <BiRevision size={220} className="picHome" />
+                                    <BiRevision size={150} className="picHome" />
                                     <div className="titCard">
                                         Revisi Pengadaan Asset
                                     </div>
@@ -262,25 +262,25 @@ class NavTicket extends Component {
                         ) : level === '2' ? (
                             <div className="mainBody">
                                 <button className="cardNav1" onClick={() => this.goRoute('pengadaan')}>
-                                    <FiSend size={220} className="picHome" />
+                                    <FiSend size={150} className="picHome" />
                                     <div className="titCard">
                                         Pengajuan Pengadaan Asset
                                     </div>
                                 </button>
                                 <button className="cardNav1" onClick={() => this.goRoute('ekstick')}>
-                                    <FiTruck size={220} className="picHome" />
+                                    <FiTruck size={150} className="picHome" />
                                     <div className="titCard">
                                         Eksekusi pengadaan asset
                                     </div>
                                 </button>
                                 <button className="cardNav1" onClick={() => this.goRoute('revtick')}>
-                                    <BiRevision size={220} className="picHome" />
+                                    <BiRevision size={150} className="picHome" />
                                     <div className="titCard">
                                         Revisi Pengadaan Asset
                                     </div>
                                 </button>
                                 <button className="cardNav1">
-                                    <HiOutlineDocumentReport size={220} className="picHome" />
+                                    <HiOutlineDocumentReport size={150} className="picHome" />
                                     <div className="titCard">
                                         Report pengadaan asset
                                     </div>
@@ -289,13 +289,13 @@ class NavTicket extends Component {
                         ) : level === '8' ? (
                             <div className="mainBody">
                                 <button className="cardNav1" onClick={() => this.goRoute('pengadaan')}>
-                                    <FiSend size={220} className="picHome" />
+                                    <FiSend size={150} className="picHome" />
                                     <div className="titCard">
                                         Pengajuan Pengadaan Asset
                                     </div>
                                 </button>
                                 <button className="cardNav1" onClick={() => this.goRoute('revtick')}>
-                                    <BiRevision size={220} className="picHome" />
+                                    <BiRevision size={150} className="picHome" />
                                     <div className="titCard">
                                         Revisi Pengadaan Asset
                                     </div>
@@ -304,7 +304,7 @@ class NavTicket extends Component {
                         ) : (
                             <div className="mainBody">
                                 <button className="cardNav1" onClick={() => this.goRoute('pengadaan')}>
-                                    <FiSend size={220} className="picHome" />
+                                    <FiSend size={150} className="picHome" />
                                     <div className="titCard">
                                         Pengajuan Pengadaan Asset
                                     </div>

@@ -86,9 +86,9 @@ class Stock extends Component {
             dragToggleDistance: 30,
             limit: 10,
             search: '',
-            time1: moment().subtract(1, 'month').startOf('month').format('YYYY-MM-DD'),
+            time1: moment().subtract(1, 'month').startOf('month').format('YYYY-MM-26'),
             // time1: moment().startOf('month').format('YYYY-MM-DD'),
-            time2: moment().endOf('month').format('YYYY-MM-DD'),
+            time2: moment().endOf('month').format('YYYY-MM-25'),
             time: 'pilih',
             dataRinci: {},
             dataItem: {},
@@ -125,7 +125,7 @@ class Stock extends Component {
             month: moment().format('M'),
             dropOp: false,
             noAsset: null,
-            filter: 'available',
+            filter: 'all',
             newStock: [],
             formDis: false,
             openDraft: false,
@@ -137,7 +137,8 @@ class Stock extends Component {
             dataRej: {},
             listStat: [],
             history: false,
-            isLoading: false
+            isLoading: false,
+            listMon: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -1208,7 +1209,7 @@ class Stock extends Component {
         // const limit = value === undefined ? this.state.limit : value.limit
         await this.props.getRole(token)
         this.setState({limit: value === undefined ? 10 : value.limit})
-        const filter = (level === '5' || level === '9' ) ? 'all' : 'available'
+        const filter = this.state.filter
         this.changeFilter(filter)
     }
 
@@ -1296,6 +1297,7 @@ class Stock extends Component {
     }
 
     changeFilter = async (val) => {
+        this.setState({isLoading: true, listMon: []})
         const token = localStorage.getItem("token")
         const {time1, time2, search, limit} = this.state
         const cekTime1 = time1 === '' ? 'undefined' : time1
@@ -1303,7 +1305,7 @@ class Stock extends Component {
 
         await this.props.getStockAll(token, search, 100, 1, '', val, cekTime1, cekTime2)
 
-        const {dataStock} = this.props.stock
+        const {dataStock, dataDepo} = this.props.stock
         const {dataRole} = this.props.user
         const level = localStorage.getItem('level')
         const role = level === '16' || level === '13' ? dataRole.find(({nomor}) => nomor === '27').name : localStorage.getItem('role')
@@ -1318,29 +1320,46 @@ class Stock extends Component {
                     }
                 }
                 this.setState({filter: val, newStock: newStock})
+            } else if (val === 'sent') {
+                const newStock = []
+                for (let i = 0; i < dataDepo.length; i++) {
+                    const cek = dataStock.find(item => item.kode_plant === dataDepo[i].kode_plant)
+                    if (cek !== undefined) {
+                        newStock.push(cek)
+                    }
+                }
+                this.setState({filter: val, newStock: newStock})
             } else if (val === 'selesai') {
                 const newStock = []
-                for (let i = 0; i < dataStock.length; i++) {
-                    if (dataStock[i].status_form === 8) {
-                        newStock.push(dataStock[i])
+                for (let i = 0; i < dataDepo.length; i++) {
+                    const cek = dataStock.find(item => item.kode_plant === dataDepo[i].kode_plant)
+                    if (cek !== undefined && cek.status_form === 8) {
+                        newStock.push(cek)
                     }
                 }
                 this.setState({filter: val, newStock: newStock})
             } else if (val === 'reject') {
                 const newStock = []
-                for (let i = 0; i < dataStock.length; i++) {
-                    if (dataStock[i].status_reject === 1) {
-                        newStock.push(dataStock[i])
+                for (let i = 0; i < dataDepo.length; i++) {
+                    const cek = dataStock.find(item => item.kode_plant === dataDepo[i].kode_plant)
+                    if (cek !== undefined && cek.status_reject === 1) {
+                        newStock.push(cek)
                     }
                 }
                 this.setState({filter: val, newStock: newStock})
             } else {
+                console.log('masuk else king')
                 const newStock = []
-                for (let i = 0; i < dataStock.length; i++) {
-                    if (dataStock[i].status_reject !== 1 && dataStock[i].status_form === 9) {
-                        console.log()
+                for (let i = 0; i < dataDepo.length; i++) {
+                    const cek = dataStock.find(item => item.kode_plant === dataDepo[i].kode_plant)
+                    if (cek !== undefined) {
+                        newStock.push(cek)
                     } else {
-                        newStock.push(dataStock[i])
+                        const data = {
+                            status_form: 'false',
+                            ...dataDepo[i]
+                        }
+                        newStock.push(data)
                     }
                 }
                 this.setState({filter: val, newStock: newStock})
@@ -1371,56 +1390,51 @@ class Stock extends Component {
                     }
                 }
                 this.setState({filter: val, newStock: newStock})
-            } else if (val === 'reject') {
+            } else if (val === 'sent') {
                 const newStock = []
-                for (let i = 0; i < dataStock.length; i++) {
-                    if (dataStock[i].status_reject === 1) {
-                        newStock.push(dataStock[i])
+                for (let i = 0; i < dataDepo.length; i++) {
+                    const cek = dataStock.find(item => item.kode_plant === dataDepo[i].kode_plant)
+                    if (cek !== undefined) {
+                        newStock.push(cek)
                     }
                 }
                 this.setState({filter: val, newStock: newStock})
             } else if (val === 'selesai') {
                 const newStock = []
-                for (let i = 0; i < dataStock.length; i++) {
-                    if (dataStock[i].status_form === 8) {
-                        newStock.push(dataStock[i])
+                for (let i = 0; i < dataDepo.length; i++) {
+                    const cek = dataStock.find(item => item.kode_plant === dataDepo[i].kode_plant)
+                    if (cek !== undefined && cek.status_form === 8) {
+                        newStock.push(cek)
+                    }
+                }
+                this.setState({filter: val, newStock: newStock})
+            } else if (val === 'reject') {
+                const newStock = []
+                for (let i = 0; i < dataDepo.length; i++) {
+                    const cek = dataStock.find(item => item.kode_plant === dataDepo[i].kode_plant)
+                    if (cek !== undefined && cek.status_reject === 1) {
+                        newStock.push(cek)
                     }
                 }
                 this.setState({filter: val, newStock: newStock})
             } else {
                 const newStock = []
-                for (let i = 0; i < dataStock.length; i++) {
-                    const app = dataStock[i].appForm
-                    const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
-                    console.log(app[find])
-                    console.log(find)
-                    if (app[find] === undefined) {
-                        newStock.push(dataStock[i])
-                    } else if (level === '7' || level === 7) {
-                        if ((dataStock[i].status_reject !== 1) && ((app.length === 0 || app[app.length - 1].status === null) || (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (app[find].status === null || app[find].status === 0)))) {
-                            console.log()
-                        } else {
-                            newStock.push(dataStock[i])
-                        }
-                    } else if (find === 0 || find === '0') {
-                        if ((dataStock[i].status_reject !== 1) && app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
-                            console.log()
-                        } else {
-                            newStock.push(dataStock[i])
-                        }
+                for (let i = 0; i < dataDepo.length; i++) {
+                    const cek = dataStock.find(item => item.kode_plant === dataDepo[i].kode_plant)
+                    if (cek !== undefined) {
+                        newStock.push(cek)
                     } else {
-                        if (app[find] !== undefined || app[find + 1].status === undefined) {
-                            newStock.push(dataStock[i])
-                        } else if ((dataStock[i].status_reject !== 1) && app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
-                            console.log()
-                        } else {
-                            newStock.push(dataStock[i])
+                        const data = {
+                            status_form: 'false',
+                            ...dataDepo[i]
                         }
+                        newStock.push(data)
                     }
                 }
                 this.setState({filter: val, newStock: newStock})
             }
         }
+        this.setState({isLoading: false})
     }
 
     prosesSubmitPre = async () => {
@@ -1780,6 +1794,485 @@ class Stock extends Component {
         this.setState({isLoading: false})
     }
 
+    downloadMonitoring = async () => {
+        this.setState({isLoading: true})
+        const { newStock, listMon } = this.state
+        const dataDownload = []
+        for (let i = 0; i < listMon.length; i++) {
+            const cek = newStock.find(item => item.kode_plant === listMon[i])
+            if (cek !== undefined) {
+                dataDownload.push(cek)
+            }
+        }
+
+        const borderStyles = {
+            top: {style:'thin'},
+            left: {style:'thin'},
+            bottom: {style:'thin'},
+            right: {style:'thin'}
+        }
+
+        const titleStyle = {
+            bold: true,
+            size: 12,
+            underline: true
+        }
+
+        const alignStyle = {
+            horizontal:'left',
+            // wrapText: true,
+            vertical: 'middle'
+        }
+
+        const boldStyle = {
+            bold: true
+        }
+
+        const tbStyle = {
+            // horizontal:'center',
+            wrapText: true,
+            vertical: 'middle',
+            shrinkToFit: true
+        }
+
+        const imgStyle = {
+            wrapText: true,
+            vertical: 'middle',
+            shrinkToFit: true,
+            horizontal: 'center'
+        }
+
+        const workbook = new ExcelJS.Workbook();
+        const ws = workbook.addWorksheet('monitoring', {
+            pageSetup: { orientation:'landscape', paperSize: 8 }
+        })
+
+        ws.mergeCells(`B2`, `B2`)
+        ws.getCell(`B2`).value = `MONITORING STOCK OPNAME ASSET`
+        ws.getCell(`B2`).alignment = { 
+            ...alignStyle
+        }
+        ws.getCell(`B2`).font = { 
+            ...titleStyle
+        }
+
+        //table
+        ws.mergeCells(`B4`, `B4`)
+        ws.getCell(`B4`).value = 'NO'
+        ws.getCell(`B4`).alignment = { 
+            ...tbStyle
+        }
+        ws.getCell(`B4`).border = { 
+            ...borderStyles
+        }
+        ws.getCell(`B4`).font = { 
+            ...boldStyle
+        }
+
+        ws.mergeCells(`C4`, `C4`)
+        ws.getCell(`C4`).value = 'No Stock Opname'
+        ws.getCell(`C4`).alignment = { 
+            ...tbStyle
+        }
+        ws.getCell(`C4`).border = { 
+            ...borderStyles
+        }
+        ws.getCell(`C4`).font = { 
+            ...boldStyle
+        }
+
+        ws.mergeCells(`D4`, `D4`)
+        ws.getCell(`D4`).value = 'Kode Area'
+        ws.getCell(`D4`).alignment = { 
+            ...tbStyle
+        }
+        ws.getCell(`D4`).border = { 
+            ...borderStyles
+        }
+        ws.getCell(`D4`).font = { 
+            ...boldStyle
+        }
+
+        ws.mergeCells(`E4`, `E4`)
+        ws.getCell(`E4`).value = 'Area'
+        ws.getCell(`E4`).alignment = { 
+            ...tbStyle
+        }
+        ws.getCell(`E4`).border = { 
+            ...borderStyles
+        }
+        ws.getCell(`E4`).font = { 
+            ...boldStyle
+        }
+
+        ws.mergeCells(`F4`, `F4`)
+        ws.getCell(`F4`).value = 'Tanggal Stock Opname'
+        ws.getCell(`F4`).alignment = { 
+            ...tbStyle
+        }
+        ws.getCell(`F4`).border = { 
+            ...borderStyles
+        }
+        ws.getCell(`F4`).font = { 
+            ...boldStyle
+        }
+
+        ws.mergeCells(`G4`, `G4`)
+        ws.getCell(`G4`).value = 'Dokumentasi Aset'
+        ws.getCell(`G4`).alignment = { 
+            ...tbStyle
+        }
+        ws.getCell(`G4`).border = { 
+            ...borderStyles
+        }
+        ws.getCell(`G4`).font = { 
+            ...boldStyle
+        }
+
+        ws.mergeCells(`H4`, `H4`)
+        ws.getCell(`H4`).value = 'Nama ROM'
+        ws.getCell(`H4`).alignment = { 
+            ...tbStyle
+        }
+        ws.getCell(`H4`).border = { 
+            ...borderStyles
+        }
+        ws.getCell(`H4`).font = { 
+            ...boldStyle
+        }
+
+        ws.mergeCells(`I4`, `I4`)
+        ws.getCell(`I4`).value = 'Nama BM'
+        ws.getCell(`I4`).alignment = { 
+            ...tbStyle
+        }
+        ws.getCell(`I4`).border = { 
+            ...borderStyles
+        }
+        ws.getCell(`I4`).font = { 
+            ...boldStyle
+        }
+
+        ws.mergeCells(`J4`, `J4`)
+        ws.getCell(`J4`).value = 'APPROVED BY'
+        ws.getCell(`J4`).alignment = { 
+            ...tbStyle
+        }
+        ws.getCell(`J4`).border = { 
+            ...borderStyles
+        }
+        ws.getCell(`J4`).font = { 
+            ...boldStyle
+        }
+
+        ws.mergeCells(`K4`, `K4`)
+        ws.getCell(`K4`).value = 'TGL APPROVED'
+        ws.getCell(`K4`).alignment = { 
+            ...tbStyle
+        }
+        ws.getCell(`K4`).border = { 
+            ...borderStyles
+        }
+        ws.getCell(`K4`).font = { 
+            ...boldStyle
+        }
+
+        ws.mergeCells(`L4`, `L4`)
+        ws.getCell(`L4`).value = 'STATUS WAKTU'
+        ws.getCell(`L4`).alignment = { 
+            ...tbStyle
+        }
+        ws.getCell(`L4`).border = { 
+            ...borderStyles
+        }
+        ws.getCell(`L4`).font = { 
+            ...boldStyle
+        }
+
+        for (let i = 0; i < dataDownload.length; i++) {
+            const item = dataDownload[i]
+            if (item.status_form === 'false') {
+                ws.mergeCells(`B${i + 5}`, `B${i + 5}`)
+                ws.getCell(`B${i + 5}`).value = `${i + 1}`
+                ws.getCell(`B${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`B${i + 5}`).border = { 
+                    ...borderStyles
+                }
+
+                ws.mergeCells(`C${i + 5}`, `C${i + 5}`)
+                ws.getCell(`C${i + 5}`).value = '-'
+                ws.getCell(`C${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`C${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`C${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`D${i + 5}`, `D${i + 5}`)
+                ws.getCell(`D${i + 5}`).value = item.kode_plant
+                ws.getCell(`D${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`D${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`D${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`E${i + 5}`, `E${i + 5}`)
+                ws.getCell(`E${i + 5}`).value = item.nama_area
+                ws.getCell(`E${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`E${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`E${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`F${i + 5}`, `F${i + 5}`)
+                ws.getCell(`F${i + 5}`).value = '-'
+                ws.getCell(`F${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`F${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`F${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`G${i + 5}`, `G${i + 5}`)
+                ws.getCell(`G${i + 5}`).value = '-'
+                ws.getCell(`G${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`G${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`G${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`H${i + 5}`, `H${i + 5}`)
+                ws.getCell(`H${i + 5}`).value = item.nama_om
+                ws.getCell(`H${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`H${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`H${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`I${i + 5}`, `I${i + 5}`)
+                ws.getCell(`I${i + 5}`).value = item.nama_bm
+                ws.getCell(`I${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`I${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`I${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`J${i + 5}`, `J${i + 5}`)
+                ws.getCell(`J${i + 5}`).value = '-'
+                ws.getCell(`J${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`J${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`J${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`K${i + 5}`, `K${i + 5}`)
+                ws.getCell(`K${i + 5}`).value = '-'
+                ws.getCell(`K${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`K${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`K${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`L${i + 5}`, `L${i + 5}`)
+                ws.getCell(`L${i + 5}`).value = 'Belum Mengajukan Stock Opname'
+                ws.getCell(`L${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`L${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`L${i + 5}`).font = { 
+                    ...boldStyle
+                }
+            } else {
+                ws.mergeCells(`B${i + 5}`, `B${i + 5}`)
+                ws.getCell(`B${i + 5}`).value = `${i + 1}`
+                ws.getCell(`B${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`B${i + 5}`).border = { 
+                    ...borderStyles
+                }
+
+                ws.mergeCells(`C${i + 5}`, `C${i + 5}`)
+                ws.getCell(`C${i + 5}`).value = item.no_stock
+                ws.getCell(`C${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`C${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`C${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`D${i + 5}`, `D${i + 5}`)
+                ws.getCell(`D${i + 5}`).value = item.kode_plant
+                ws.getCell(`D${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`D${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`D${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`E${i + 5}`, `E${i + 5}`)
+                ws.getCell(`E${i + 5}`).value = item.depo === null ? '' : item.area === null ? `${item.depo.nama_area} ${item.depo.channel}` : item.area
+                ws.getCell(`E${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`E${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`E${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`F${i + 5}`, `F${i + 5}`)
+                ws.getCell(`F${i + 5}`).value = moment(item.tanggalStock).format('DD MMMM YYYY')
+                ws.getCell(`F${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`F${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`F${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`G${i + 5}`, `G${i + 5}`)
+                ws.getCell(`G${i + 5}`).value = 'V'
+                ws.getCell(`G${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`G${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`G${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`H${i + 5}`, `H${i + 5}`)
+                ws.getCell(`H${i + 5}`).value = item.depo === null ? '-' :  `${item.depo.nama_om}`
+                ws.getCell(`H${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`H${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`H${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`I${i + 5}`, `I${i + 5}`)
+                ws.getCell(`I${i + 5}`).value = item.depo === null ? '-' :  `${item.depo.nama_bm}`
+                ws.getCell(`I${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`I${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`I${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`J${i + 5}`, `J${i + 5}`)
+                ws.getCell(`J${i + 5}`).value = item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? item.appForm.find(item => item.status === 1).nama + ` (${item.appForm.find(item => item.status === 1).jabatan === 'area' ? 'AOS' : item.appForm.find(item => item.status === 1).jabatan})` : '-' 
+                ws.getCell(`J${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`J${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`J${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`K${i + 5}`, `K${i + 5}`)
+                ws.getCell(`K${i + 5}`).value = item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? moment(item.appForm.find(item => item.status === 1).updatedAt).format('DD/MM/YYYY HH:mm:ss') : '-'
+                ws.getCell(`K${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`K${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`K${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`L${i + 5}`, `L${i + 5}`)
+                ws.getCell(`L${i + 5}`).value = moment(item.tanggalStock).format('DD') > 5 && moment(item.tanggalStock).format('DD') < 26 ? 'TELAT' : 'Tepat Waktu'
+                ws.getCell(`L${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`L${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`L${i + 5}`).font = { 
+                    ...boldStyle
+                }
+            }
+        }
+
+        for (let i = 0; i < 10; i++) {
+            console.log(i)
+            if (i === 1) {
+                ws.columns[2+i].width = 10
+            } else {
+                ws.columns[2+i].width = 25
+            }
+        }
+
+        await ws.protect('As5etPm4')
+
+        workbook.xlsx.writeBuffer().then(function(buffer) {
+            fs.saveAs(
+              new Blob([buffer], { type: "application/octet-stream" }),
+              `Monitoring Stock Opname Asset ${moment().format('DD MMMM YYYY')}.xlsx`
+            )
+        })
+
+        this.setState({isLoading: false})
+    }
+
     updateStatus = async (val) => {
         const token = localStorage.getItem('token')
         const { detailAsset } = this.props.asset
@@ -1908,6 +2401,38 @@ class Stock extends Component {
         }
     }
 
+    monApp = (val) => {
+        const { listMon, newStock } = this.state
+        if (val === 'all') {
+            const data = []
+            for (let i = 0; i < newStock.length; i++) {
+                data.push(newStock[i].kode_plant)
+            }
+            this.setState({listMon: data})
+        } else {
+            listMon.push(val)
+            this.setState({listMon: listMon})
+        }
+    }
+
+    monRej = (val) => {
+        const { listMon } = this.state
+        if (val === 'all') {
+            const data = []
+            this.setState({listMon: data})
+        } else {
+            const data = []
+            for (let i = 0; i < listMon.length; i++) {
+                if (listMon[i] === val) {
+                    data.push()
+                } else {
+                    data.push(listMon[i])
+                }
+            }
+            this.setState({listMon: data})
+        }
+    }
+
     getRinciStock = async (val) => {
         const token = localStorage.getItem("token")
         this.setState({dataRinci: val, dataId: val.id})
@@ -1935,7 +2460,7 @@ class Stock extends Component {
     render() {
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
-        const {dataRinci, dropApp, dataItem, listMut, drop, newStock, tipeEmail, listStat} = this.state
+        const {dataRinci, dropApp, dataItem, listMut, drop, newStock, tipeEmail, listStat, listMon} = this.state
         const { detailDepo } = this.props.depo
         const { alertUpload, page, detailAsset} = this.props.asset
         const dataAsset = this.props.asset.assetAll
@@ -2113,16 +2638,13 @@ class Stock extends Component {
                     <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
 
                     <div className={`${styleTrans.mainContent} ${this.state.sidebarOpen ? styleTrans.collapsedContent : ''}`}>
-                        <h2 className={styleTrans.pageTitle}>{level === '2' ? 'Terima' : 'Pengajuan'} Stock Opname Asset</h2>
+                        <h2 className={styleTrans.pageTitle}>Monitoring Stock Opname Asset</h2>
                         <div className={styleTrans.searchContainer}>
-                            {(level === '5' || level === '9' ) ? (
-                                <Button size="lg" color='primary' onClick={this.goCartStock}>Create</Button>
-                            ) : (
-                                <div></div>
-                            )}
+                            <Button size="lg" color='primary' disabled={listMon.length === 0 ? true : false} onClick={this.downloadMonitoring}>Download</Button>
                             <select value={this.state.filter} onChange={e => this.changeFilter(e.target.value)} className={styleTrans.searchInput}>
                                 <option value="all">All</option>
-                                <option value="available">Available To Approve</option>
+                                <option value="sent">Sent</option>
+                                {/* <option value="available">Available To Approve</option> */}
                                 <option value="reject">Rejected</option>
                                 <option value="selesai">Finished</option>
                             </select>
@@ -2176,6 +2698,15 @@ class Stock extends Component {
                         <table className={`${styleTrans.table} ${newStock.length > 0 ? styleTrans.tableFull : ''}`}>
                             <thead>
                                 <tr>
+                                    <th>
+                                        <Input 
+                                            addon
+                                            type="checkbox"
+                                            className='mr-3'
+                                            checked={listMon.length === newStock.length ? true : false}
+                                            onClick={listMon.length === newStock.length ? () => this.monRej('all') : () => this.monApp('all')}
+                                        />
+                                    </th>
                                     <th>No</th>
                                     <th>No Stock Opname</th>
                                     <th>Kode Area</th>
@@ -2197,10 +2728,50 @@ class Stock extends Component {
                                 </tr>
                             </thead>
                             <tbody>
-                                {newStock.length > 0 && newStock.map(item => {
+                                {newStock.length > 0 && newStock.map((item, index) => {
                                     return (
+                                        item.status_form === 'false' ? (
                                         <tr className={item.status_form === 0 ? 'fail' : item.status_reject === 0 ? 'note' : item.status_reject === 1 && 'bad'}>
-                                            <td>{newStock.indexOf(item) + 1}</td>
+                                            <td> 
+                                                <Input
+                                                    addon
+                                                    checked={listMon.find(element => element === item.kode_plant) ? true : false}
+                                                    type="checkbox"
+                                                    onClick={listMon.find(element => element === item.kode_plant) === undefined ? () => this.monApp(item.kode_plant) : () => this.monRej(item.kode_plant)}
+                                                />
+                                            </td>
+                                            <td>{index + 1}</td>
+                                            <td>-</td>
+                                            <td className='tdPlant'>{item.kode_plant}</td>
+                                            <td className='tdArea'>{item.nama_area}</td>
+                                            <td className='tdTime'>-</td>
+                                            {level === '2' && (
+                                                <>
+                                                    {/* <td>{parseInt(item.status_form) > 1 ? 'Full Approve' : item.history !== null && item.history.split(',').reverse()[0]}</td> */}
+                                                    <td>{'-'}</td>
+                                                </>
+                                            )}
+                                            <td className='tdPlant'>{item.nama_om}</td>
+                                            <td className='tdPlant'>{item.nama_bm}</td>
+                                            <td>-</td>
+                                            <td>-</td>
+                                            <td>Belum Mengajukan Stock Opname</td>
+                                            {/* <td>{item.history !== null && item.history.split(',').reverse()[0]}</td> */}
+                                            <td className='tdOpsi'>
+                                                -
+                                            </td>
+                                        </tr>
+                                        ) : (
+                                        <tr className={item.status_form === 0 ? 'fail' : item.status_reject === 0 ? 'note' : item.status_reject === 1 && 'bad'}>
+                                            <td> 
+                                                <Input
+                                                    addon
+                                                    checked={listMon.find(element => element === item.kode_plant) ? true : false}
+                                                    type="checkbox"
+                                                    onClick={listMon.find(element => element === item.kode_plant) === undefined ? () => this.monApp(item.kode_plant) : () => this.monRej(item.kode_plant)}
+                                                />
+                                            </td>
+                                            <td>{index + 1}</td>
                                             <td>{item.no_stock}</td>
                                             <td className='tdPlant'>{item.kode_plant}</td>
                                             <td className='tdArea'>{item.depo === null ? '' : item.area === null ? `${item.depo.nama_area} ${item.depo.channel}` : item.area}</td>
@@ -2208,7 +2779,7 @@ class Stock extends Component {
                                             {level === '2' && (
                                                 <>
                                                     {/* <td>{parseInt(item.status_form) > 1 ? 'Full Approve' : item.history !== null && item.history.split(',').reverse()[0]}</td> */}
-                                                    <td>{'-'}</td>
+                                                    <td>{<AiOutlineCheck color="primary" size={20} />}</td>
                                                 </>
                                             )}
                                             <td className='tdPlant'>{item.depo === null ? '-' :  `${item.depo.nama_om}`}</td>
@@ -2218,21 +2789,16 @@ class Stock extends Component {
                                             <td>{moment(item.tanggalStock).format('DD') > 5 && moment(item.tanggalStock).format('DD') < 26 ? 'TELAT' : 'Tepat Waktu'}</td>
                                             {/* <td>{item.history !== null && item.history.split(',').reverse()[0]}</td> */}
                                             <td className='tdOpsi'>
-                                                {/* <Button 
-                                                color='primary' 
-                                                className='mr-1 mb-1' 
-                                                onClick={item.status_reject === 1 && item.status_form !== 0 && level === '5' ? this.goRevisi : () => this.openForm(item)}>
-                                                    {this.state.filter === 'available' ? 'Proses' : item.status_reject === 1 && item.status_form !== 0 && level === '5' ? 'Revisi' : 'Detail'}
-                                                </Button> */}
                                                 <Button 
                                                 color='primary' 
                                                 className='mr-1 mt-1'
-                                                onClick={item.status_reject === 1 && item.status_form !== 0 && level === '5' ? this.goRevisi : () => this.getDetailStock(item)}>
-                                                    {this.state.filter === 'available' ? 'Proses' : item.status_reject === 1 && item.status_form !== 0 && level === '5' ? 'Revisi' : 'Detail'}
+                                                onClick={() => this.getDetailStock(item)}>
+                                                    Detail
                                                 </Button>
                                                 <Button className='mt-1' color='warning' onClick={() => this.getDetailTrack(item)}>Tracking</Button>
                                             </td>
                                         </tr>
+                                        )
                                     )
                                 })}
                             </tbody>
@@ -3054,20 +3620,6 @@ class Stock extends Component {
                         </div>
                         
                         <div className="btnFoot">
-                            {this.state.filter === 'available' && (
-                            <Button className="mr-2" disabled={this.state.filter !== 'available' ? true : listMut.length === 0 ? true : false} color="danger" onClick={this.openModalReject}>
-                                Reject
-                            </Button>
-                            )}
-                            {level === '2' && this.state.filter === 'available' ? (
-                                <Button color="success" disabled={this.state.filter !== 'available' ? true : detailStock.find(({status_app}) => status_app === 0) !== undefined ? true : listMut.length === 0 ? false : true} onClick={this.openModalSub}>
-                                    Submit
-                                </Button>
-                            ) : this.state.filter === 'available' && (
-                                <Button color="success" disabled={this.state.filter !== 'available' ? true : detailStock.find(({status_app}) => status_app === 0) !== undefined ? true : listMut.length === 0 ? false : true} onClick={this.openModalApprove}>
-                                    Approve
-                                </Button>
-                            )}
                         </div>
                     </div>
                 </Modal>

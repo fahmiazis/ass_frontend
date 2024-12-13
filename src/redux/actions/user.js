@@ -35,10 +35,6 @@ export default {
         type: 'DELETE_USER',
         payload: http(token).delete(`/user/delete/${id}`)
     }),
-    getRole: (token) => ({
-        type: 'GET_ROLE',
-        payload: http(token).get(`/user/role/get`)
-    }),
     changePassword: (token, data) => ({
         type: 'CHANGE_PW',
         payload: http(token).patch('/user/password', qs.stringify(data))
@@ -46,6 +42,22 @@ export default {
     resetPassword: (token, id, data) => ({
         type: 'RESET_PW',
         payload: http(token).patch(`/user/reset/${id}`, qs.stringify(data))
+    }),
+    getRole: (token, search) => ({
+        type: 'GET_ROLE',
+        payload: http(token).get(`/user/role/get?search=${search === undefined ? '' : search}`)
+    }),
+    addRole: (token, data) => ({
+        type: 'ADD_ROLE',
+        payload: http(token).post(`/user/role/add`, qs.stringify(data))
+    }),
+    updateRole: (token, id, data) => ({
+        type: 'UPDATE_ROLE',
+        payload: http(token).patch(`/user/role/update/${id}`, qs.stringify(data)),
+    }),
+    getDetailRole: (token, id) => ({
+        type: 'GET_DETAIL_ROLE',
+        payload: http(token).get(`/user/role/detail/${id}`)
     }),
     resetError: () => ({
         type: 'RESET'

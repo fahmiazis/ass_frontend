@@ -104,13 +104,13 @@ class NavDisposal extends Component {
                                 <>
                                     <div onClick={() => this.goRoute('purchdis')} className="col-12 col-md-6 col-lg-3 mb-4">
                                         <div className={styleHome.navCard}>
-                                            <MdMonetizationOn size={220} className='mt-4' />
+                                            <MdMonetizationOn size={150} className='mt-4 mb-4' />
                                             <p className='mt-4'>Purchasing disposal</p>
                                         </div>
                                     </div>
                                     <div onClick={() => this.goRoute('editpurch')} className="col-12 col-md-6 col-lg-3 mb-4">
                                         <div className={styleHome.navCard}>
-                                            <BiRevision size={220} className='mt-4' />
+                                            <BiRevision size={150} className='mt-4 mb-4' />
                                             <p className='mt-4'>Revisi Purchasing disposal</p>
                                         </div>
                                     </div>
@@ -119,25 +119,25 @@ class NavDisposal extends Component {
                             <>
                                 <div onClick={() => this.goRoute('disposal')} className="col-12 col-md-6 col-lg-3 mb-4">
                                     <div className={styleHome.navCard}>
-                                        <FiSend size={220} className='mt-4' />
+                                        <FiSend size={150} className='mt-4 mb-4' />
                                         <p className='mt-4'>Pengajuan disposal</p>
                                     </div>
                                 </div>
                                 <div onClick={() => this.goRoute('eksdis')} className="col-12 col-md-6 col-lg-3 mb-4">
                                     <div className={styleHome.navCard}>
-                                        <FiTruck size={220} className='mt-4' />
+                                        <FiTruck size={150} className='mt-4 mb-4' />
                                         <p className='mt-4'>Eksekusi disposal</p>
                                     </div>
                                 </div>
                                 <div onClick={() => this.goRoute('eksdis')} className="col-12 col-md-6 col-lg-3 mb-4">
                                     <div className={styleHome.navCard}>
-                                        <BiRevision size={220} className='mt-4' />
+                                        <BiRevision size={150} className='mt-4 mb-4' />
                                         <p className='mt-4'>Revisi Disposal</p>
                                     </div>
                                 </div>
                                 <div onClick={() => this.goRoute('trackdis')} className="col-12 col-md-6 col-lg-3 mb-4">
                                     <div className={styleHome.navCard}>
-                                        <MdOutlineTrackChanges size={220} className='mt-4' />
+                                        <MdOutlineTrackChanges size={150} className='mt-4 mb-4' />
                                         <p className='mt-4'>Tracking Disposal</p>
                                     </div>
                                 </div>
@@ -146,13 +146,13 @@ class NavDisposal extends Component {
                             <>
                                 <div onClick={() => this.goRoute('disposal')} className="col-12 col-md-6 col-lg-3 mb-4">
                                     <div className={styleHome.navCard}>
-                                        <MdVerifiedUser size={220} className='mt-4' />
+                                        <MdVerifiedUser size={150} className='mt-4 mb-4' />
                                         <p className='mt-4'>Tax & Finance disposal</p>
                                     </div>
                                 </div>
                                 <div onClick={() => this.goRoute('disposal')} className="col-12 col-md-6 col-lg-3 mb-4">
                                     <div className={styleHome.navCard}>
-                                        <BiRevision size={220} className='mt-4' />
+                                        <BiRevision size={150} className='mt-4 mb-4' />
                                         <p className='mt-4'>Edit Tax & Finance disposal</p>
                                     </div>
                                 </div>
@@ -161,31 +161,31 @@ class NavDisposal extends Component {
                             <>
                                 <div onClick={() => this.goRoute('disposal')} className="col-12 col-md-6 col-lg-3 mb-4">
                                     <div className={styleHome.navCard}>
-                                        <FiSend size={220} className='mt-4' />
+                                        <FiSend size={150} className='mt-4 mb-4' />
                                         <p className='mt-4'>Pengajuan disposal</p>
                                     </div>
                                 </div>
                                 <div onClick={() => this.goRoute('setdis')} className="col-12 col-md-6 col-lg-3 mb-4">
                                     <div className={styleHome.navCard}>
-                                        <FaFileSignature size={220} className='mt-4' />
+                                        <FaFileSignature size={150} className='mt-4 mb-4' />
                                         <p className='mt-4'>Persetujuan disposal</p>
                                     </div>
                                 </div>
                                 <div onClick={() => this.goRoute('eksdis')} className="col-12 col-md-6 col-lg-3 mb-4">
                                     <div className={styleHome.navCard}>
-                                        <FiTruck size={220} className='mt-4' />
+                                        <FiTruck size={150} className='mt-4 mb-4' />
                                         <p className='mt-4'>Eksekusi disposal</p>
                                     </div>
                                 </div>
                                 <div onClick={() => this.goRoute('taxfin')} className="col-12 col-md-6 col-lg-3 mb-4">
                                     <div className={styleHome.navCard}>
-                                        <MdVerifiedUser size={220} className='mt-4' />
+                                        <MdVerifiedUser size={150} className='mt-4 mb-4' />
                                         <p className='mt-4'>Tax & Finance disposal</p>
                                     </div>
                                 </div>
                                 <div onClick={() => this.goRoute('trackdis')} className="col-12 col-md-6 col-lg-3 mb-4">
                                     <div className={styleHome.navCard}>
-                                        <MdOutlineTrackChanges size={220} className='mt-4' />
+                                        <MdOutlineTrackChanges size={150} className='mt-4 mb-4' />
                                         <p className='mt-4'>Tracking Disposal</p>
                                     </div>
                                 </div>
@@ -193,13 +193,13 @@ class NavDisposal extends Component {
                                     <>
                                         <div onClick={() => this.goRoute('report')} className="col-12 col-md-6 col-lg-3 mb-4">
                                             <div className={styleHome.navCard}>
-                                                <HiOutlineDocumentReport size={220} className='mt-4' />
+                                                <HiOutlineDocumentReport size={150} className='mt-4 mb-4' />
                                                 <p className='mt-4'>Report disposal</p>
                                             </div>
                                         </div>
                                         <div onClick={() => this.goRoute('mondis')} className="col-12 col-md-6 col-lg-3 mb-4">
                                             <div className={styleHome.navCard}>
-                                                <FiEye size={220} className='mt-4' />
+                                                <FiEye size={150} className='mt-4 mb-4' />
                                                 <p className='mt-4'>Monitoring disposal</p>
                                             </div>
                                         </div>

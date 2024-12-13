@@ -15,14 +15,22 @@ import {AiFillHome} from 'react-icons/ai'
 import { FaDatabase, FaHome, FaFileArchive, FaCartPlus, FaRecycle, FaTasks, } from 'react-icons/fa'
 import { RiArrowLeftRightFill, RiMoneyDollarCircleFill } from 'react-icons/ri'
 import { HiDocumentReport } from 'react-icons/hi'
-import {FiLogOut, FiUser, FiUsers, FiMail} from 'react-icons/fi'
+import {FiLogOut, FiUser, FiUsers, FiMail, FiEye} from 'react-icons/fi'
 import { BsClipboardData, BsHouseDoor, BsFileCheck } from 'react-icons/bs'
 import { GiFamilyTree } from 'react-icons/gi'
 import { MdKeyboardArrowLeft, MdKeyboardArrowDown } from 'react-icons/md'
-import { AiFillSetting, AiOutlineClockCircle, AiOutlineUnlock } from 'react-icons/ai'
+import { AiFillSetting, AiOutlineClockCircle, AiOutlineUnlock, AiOutlineMenu } from 'react-icons/ai'
 import { GrDocumentVerified } from 'react-icons/gr'
 import Bell from './Bell'
 import Account from './Account'
+
+import {FiSend, FiTruck} from 'react-icons/fi'
+import {BiRevision} from 'react-icons/bi'
+import {MdAssignment, MdVerifiedUser} from 'react-icons/md'
+import {HiOutlineDocumentReport} from 'react-icons/hi'
+import {RiDraftFill} from 'react-icons/ri'
+import {FaFileSignature} from 'react-icons/fa'
+import {BsBell, BsFillCircleFill} from 'react-icons/bs'
 
 class NewNavbar extends Component {
   constructor(props) {
@@ -31,9 +39,14 @@ class NewNavbar extends Component {
       isOpen: false,
       searchQuery: '',
       filterStatus: 'Semua Status',
+      isLogo: false,
       sidebarOpen: true, // Untuk expand/collapse di mode web
       mobileSidebarVisible: false, // Untuk hidden/show di mode mobile
       isMobile: window.innerWidth <= 768, // Mendeteksi apakah di mode mobile
+      openTicket: false,
+      openDis: false,
+      openStock: false,
+      openMut: false,
     };
   }
 
@@ -45,6 +58,10 @@ class NewNavbar extends Component {
     }, 100)
   }
 
+  getProfile = async () => {
+    
+  }
+
   componentWillUnmount() {
     window.removeEventListener("resize", this.handleResize); // Bersihkan event listener saat komponen di-unmount
   }
@@ -54,14 +71,33 @@ class NewNavbar extends Component {
   };
 
   // Toggle sidebar untuk mode web (expand/collapse)
-  toggleSidebar = () => {
-    this.setState((prevState) => ({
-      sidebarOpen: !prevState.sidebarOpen,
+  toggleSidebar = (val) => {
+    console.log('section 1')
+    console.log(this.state.isLogo)
+    this.setState(() => ({
+      isLogo: val === 'logo' ? !this.state.isLogo : this.state.isLogo
     }))
+
     setTimeout(() => {
-      const {sidebarOpen} = this.state
-      this.props.handleSidebar(sidebarOpen)
+      console.log('section 2')
+      console.log(this.state.isLogo)
+      const valState = val === 'open' ? false : val === 'close' ? true : !this.state.sidebarOpen
+      this.setState((prevState) => ({
+        sidebarOpen: this.state.isLogo === true ? false : val === 'logo' && this.state.isLogo === false ? true : valState,
+      }))
     }, 100)
+
+    setTimeout(() => {
+      console.log('section 3')
+      console.log(this.state.isLogo)
+      const {sidebarOpen} = this.state
+      if (sidebarOpen === true) {
+        this.setState({isOpen: false, openTicket: false, openDis: false, openMut: false, openStock: false})
+        this.props.handleSidebar(sidebarOpen)
+      } else {
+        this.props.handleSidebar(sidebarOpen)
+      }
+    }, 200)
   }
 
   // Toggle sidebar untuk mode mobile (hidden/show)
@@ -70,13 +106,30 @@ class NewNavbar extends Component {
       mobileSidebarVisible: !prevState.mobileSidebarVisible,
     }));
   };
+  
 
   goRoute = (val) => {
     this.props.handleRoute(val)
   }
 
-  toggleCollapse = () => {
+  toggleMaster = () => {
     this.setState({isOpen: !this.state.isOpen})
+  }
+
+  toggleTicket = () => {
+    this.setState({openTicket: !this.state.openTicket})
+  }
+
+  toggleDis = () => {
+      this.setState({openDis: !this.state.openDis})
+  }
+
+  toggleStock = () => {
+      this.setState({openStock: !this.state.openStock})
+  }
+
+  toggleMut = () => {
+      this.setState({openMut: !this.state.openMut})
   }
 
   render() {
@@ -89,11 +142,13 @@ class NewNavbar extends Component {
           className={`${styleTrans.sidebar} ${sidebarOpen && !isMobile ? styleTrans.collapsed : ""} ${
             mobileSidebarVisible && isMobile ? styleTrans.mobileVisible : ""
           }`}
+          onMouseEnter={() => this.toggleSidebar('open')}
+          onMouseLeave={() => this.toggleSidebar('close')}
         >
           {/* Bagian Logo Perusahaan */}
           <div
             className={styleTrans.logoContainer}
-            onClick={isMobile ? this.toggleMobileSidebar : this.toggleSidebar}
+            onClick={isMobile ? this.toggleMobileSidebar : () => this.toggleSidebar('logo')}
           >
             <img
               src={logo} // Ganti dengan path logo yang sesuai
@@ -108,42 +163,157 @@ class NewNavbar extends Component {
               <BsFillHouseDoorFill className={styleTrans.icon} size={sidebarOpen && 20} /> 
               {(!sidebarOpen || isMobile) &&  <span>Home</span>}
             </div>
-            {(level === '1' || level === '2' || level === '5') && (
+            {(level === '1' || level === '2' || level === '5' || level === '9') && (
               <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('asset')} >
                 <BsTable className={styleTrans.icon} size={sidebarOpen && 20} /> 
                 {(!sidebarOpen || isMobile) &&  <span>My Asset</span>}
               </div>
             )}
-            <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('navtick')} >
+            <div href="#" className={styleTrans.menuLink} 
+            // onClick={() => this.goRoute('navtick')} 
+            onClick={this.toggleTicket}
+            >
               <FaCartPlus className={styleTrans.icon} size={sidebarOpen && 20} /> 
               {(!sidebarOpen || isMobile) &&  <span>Pengadaan Aset</span>}
             </div>
-            <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('navdis')} >
+            <Collapse isOpen={this.state.openTicket} className="ml-3 mt-2">
+              <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('pengadaan')} >
+                  <FiSend className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Pengajuan Pengadaan Asset</span>}
+              </div>
+              {(level === '5' || level === '9' || level === '2' || level === '8') && (
+                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('revtick')} >
+                    <BiRevision className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                    {(!sidebarOpen || isMobile) &&  <span>Revisi Pengadaan Asset</span>}
+                </div>
+              )}
+              {level === '2' && (
+                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('ekstick')} >
+                  <FiTruck className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Eksekusi Pengadaan Asset</span>}
+                </div>
+              )}
+              {(level === '2' || level === '1') && (
+                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('reportio')} >
+                  <HiOutlineDocumentReport className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Report Pengadaan Asset</span>}
+                </div>
+              )}
+              <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('pengadaan')} >
+                  <AiOutlineMenu className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Navigasi Pengadaan Asset</span>}
+              </div>
+              
+            </Collapse>
+
+            <div href="#" className={styleTrans.menuLink} 
+            // onClick={() => this.goRoute('navdis')} 
+            onClick={this.toggleDis}
+            >
               <FaRecycle className={styleTrans.icon} size={sidebarOpen && 20} /> 
               {(!sidebarOpen || isMobile) &&  <span>Disposal Asset</span>}
             </div>
-            <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('navmut')} >
+            <Collapse isOpen={this.state.openDis} className="ml-3 mt-2">
+              <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('disposal')} >
+                  <FiSend className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Pengajuan Disposal Asset</span>}
+              </div>
+              <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('navdis')} >
+                  <AiOutlineMenu className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Navigasi Disposal Asset</span>}
+              </div>
+            </Collapse>
+
+
+            <div href="#" className={styleTrans.menuLink} 
+            // onClick={() => this.goRoute('navmut')} 
+            onClick={this.toggleMut}
+            >
               <RiArrowLeftRightFill className={styleTrans.icon} size={sidebarOpen && 20} /> 
               {(!sidebarOpen || isMobile) &&  <span>Mutasi Asset</span>}
             </div>
-            <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('navstock')} >
+            <Collapse isOpen={this.state.openMut} className="ml-3 mt-2">
+              <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('mutasi')} >
+                  <FiSend className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Pengajuan Mutasi Asset</span>}
+              </div>
+              <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('navmut')} >
+                  <AiOutlineMenu className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Navigasi Mutasi Asset</span>}
+              </div>
+            </Collapse>
+          
+            <div href="#" className={styleTrans.menuLink} 
+            // onClick={() => this.goRoute('navstock')} 
+            onClick={this.toggleStock}
+            >
               <FaTasks className={styleTrans.icon} size={sidebarOpen && 20} /> 
               {(!sidebarOpen || isMobile) &&  <span>Stock Opname Asset</span>}
             </div>
+            <Collapse isOpen={this.state.openStock} className="ml-3 mt-2">
+              {level !== '2' && (
+                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('stock')} >
+                    <FiSend className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                    {(!sidebarOpen || isMobile) &&  <span>Pengajuan Stock Opname</span>}
+                </div>
+              )}
+              {level === '2' && (
+                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('stock')} >
+                  <FiTruck className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Terima Stock Opname</span>}
+                </div>
+              )}
+              {level === '2' && (
+                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('monstock')} >
+                  <FiEye className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Monitoring Stock Opname</span>}
+                </div>
+              )}
+              {(level === '5' || level === '9') && (
+                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('editstock')} >
+                  <BiRevision className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Revisi Stock Opname</span>}
+                </div>
+              )}
+              {(level === '2' || level === '1') && (
+                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('repstock')} >
+                  <HiOutlineDocumentReport className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Report Stock Opname</span>}
+                </div>
+              )}
+              <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('navstock')} >
+                  <AiOutlineMenu className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Navigasi Stock Opname</span>}
+              </div>
+            </Collapse>
+
+
             {level === '1' && (
-                <div href="#" className={styleTrans.menuLink}  onClick={this.toggleCollapse}>
+                <div href="#" className={styleTrans.menuLink}  onClick={this.toggleMaster}>
                   <FaDatabase className={styleTrans.icon} size={sidebarOpen && 20} /> 
                   {(!sidebarOpen || isMobile) &&  <span>Master</span>}
                 </div>
               )}
-              <Collapse isOpen={isOpen} className="ml-5 mt-3">
+              <Collapse isOpen={isOpen} className="ml-3 mt-2">
                 <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('depo')} >
                   <BsHouseDoor className={styleTrans.icon} size={sidebarOpen && 20} /> 
                   {(!sidebarOpen || isMobile) &&  <span>Master Depo</span>}
                 </div>
-                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('email')} >
+                {/* <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('email')} >
                   <FiMail className={styleTrans.icon} size={sidebarOpen && 20} /> 
                   {(!sidebarOpen || isMobile) &&  <span>Master Email</span>}
+                </div> */}
+                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('menu')} >
+                  <AiOutlineMenu className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Master Menu</span>}
+                </div>
+                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('tempmail')} >
+                  <FiMail className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Master Template Email</span>}
+                </div>
+                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('role')} >
+                  <FiUser className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Master Role</span>}
                 </div>
                 <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('user')} >
                   <FiUser className={styleTrans.icon} size={sidebarOpen && 20} /> 

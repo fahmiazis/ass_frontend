@@ -164,21 +164,21 @@ class NavStock extends Component {
                             <div className={`${styleHome.assetContainer} row`}>
                                 <div onClick={() => this.goRoute('stock')} className="col-12 col-md-6 col-lg-3 mb-4">
                                     <div className={styleHome.navCard}>
-                                        <FiSend size={220} className='mt-4' />
+                                        <FiSend size={150} className='mt-4 mb-4' />
                                         <p className='mt-4'>Pengajuan stock opname</p>
                                     </div>
                                 </div>
-                                <div onClick={() => this.goRoute('trackstock')} className="col-12 col-md-6 col-lg-3 mb-4">
+                                {/* <div onClick={() => this.goRoute('trackstock')} className="col-12 col-md-6 col-lg-3 mb-4">
                                     <div className={styleHome.navCard}>
-                                        <MdOutlineTrackChanges size={220} className='mt-4' />
+                                        <MdOutlineTrackChanges size={150} className='mt-4 mb-4' />
                                         <p className='mt-4'>Tracking stock opname</p>
                                     </div>
-                                </div>
+                                </div> */}
                             {level === '5' ? (
                                 <>
                                     <div onClick={() => this.goRoute('editstock')} className="col-12 col-md-6 col-lg-3 mb-4">
                                         <div className={styleHome.navCard}>
-                                            <BiRevision size={220} className='mt-4' />
+                                            <BiRevision size={150} className='mt-4 mb-4' />
                                             <p className='mt-4'>Revisi stock opname</p>
                                         </div>
                                     </div>
@@ -189,7 +189,7 @@ class NavStock extends Component {
                             {level === '2' ? (
                                 <div onClick={() => this.goRoute('repstock')} className="col-12 col-md-6 col-lg-3 mb-4">
                                     <div className={styleHome.navCard}>
-                                        <HiOutlineDocumentReport size={220} className='mt-4' />
+                                        <HiOutlineDocumentReport size={150} className='mt-4 mb-4' />
                                         <p className='mt-4'>Report stock opname</p>
                                     </div>
                                 </div>

@@ -15,6 +15,8 @@ import {Form} from 'react-bootstrap'
 import logo from '../../assets/img/logo.png'
 import {connect} from 'react-redux'
 import pengadaan from '../../redux/actions/pengadaan'
+import dokumen from '../../redux/actions/dokumen'
+import tempmail from '../../redux/actions/tempmail'
 import OtpInput from "react-otp-input";
 import moment from 'moment'
 import auth from '../../redux/actions/auth'
@@ -28,6 +30,8 @@ import notif from '../../redux/actions/notif'
 import NavBar from '../../components/NavBar'
 import styleTrans from '../../assets/css/transaksi.module.css'
 import NewNavbar from '../../components/NewNavbar'
+import Email from '../../components/Pengadaan/Email'
+import ModalDokumen from '../../components/ModalDokumen'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -38,12 +42,24 @@ const disposalSchema = Yup.object().shape({
 
 const alasanSchema = Yup.object().shape({
     alasan: Yup.string().required()
-});
+})
 
 const alasanDisSchema = Yup.object().shape({
     alasan: Yup.string().required(),
     jenis_reject: Yup.string().required()
-});
+})
+
+const cartSchema = Yup.object().shape({
+    nama: Yup.string().required(),
+    qty: Yup.string().required(),
+    price: Yup.string().required(),
+    kategori: Yup.string().required(),
+    tipe: Yup.string().required(),
+    jenis: Yup.string().required(),
+    akta: Yup.string().nullable(true),
+    start: Yup.date().nullable(true),
+    end: Yup.date().nullable(true)
+})
 
 class EditTicket extends Component {
     constructor(props) {
@@ -111,12 +127,24 @@ class EditTicket extends Component {
             rinciIo: {},
             total: 0,
             listMut: [],
+            noDoc: '',
+            noTrans: '',
             newIo: [],
             filter: 'available',
-            isAppall: false
+            isAppall: false,
+            openDraft: false,
+            openSubmit: false,
+            tipeEmail: '',
+            subject: '',
+            message: '',
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+    }
+
+    getMessage = (val) => {
+        this.setState({ message: val.message, subject: val.subject })
+        console.log(val)
     }
 
     prosesSidebar = (val) => {
@@ -240,11 +268,25 @@ class EditTicket extends Component {
     prosesModalDoc = async (val) => {
         const data = this.props.pengadaan.detailIo
         const token = localStorage.getItem('token')
+        this.setState({valdoc: val})
+        
         if (val.asset_token === null || val.asset_token === '') {
-            this.props.getDocCart(token, val.id)
+            const tempno = {
+                no: val.id,
+                jenis: 'pengadaan'
+            }
+            await this.props.getDokumen(token, tempno)
+            await this.props.getDocCart(token, val.id)
+            this.setState({noDoc: val.id, noTrans: data[0].no_pengadaan})
             this.closeProsesModalDoc()
         } else {
+            const tempno = {
+                no: data[0].no_pengadaan,
+                jenis: 'pengadaan'
+            }
+            await this.props.getDokumen(token, tempno)
             await this.props.getDocumentIo(token, data[0].no_pengadaan)
+            this.setState({noDoc: data[0].no_pengadaan, noTrans: data[0].no_pengadaan})
             this.closeProsesModalDoc()
         }
     }
@@ -400,6 +442,8 @@ class EditTicket extends Component {
         const {detailIo} = this.props.pengadaan
         await this.props.updateRecent(token, detailIo[0].no_pengadaan, val)
         await this.props.getDetail(token, detailIo[0].no_pengadaan)
+        this.setState({confirm: 'upreason'})
+        this.openConfirm()
     }
 
     openConfirm = () => {
@@ -479,6 +523,15 @@ class EditTicket extends Component {
         }
     }
 
+    goDownload = (val) => {
+        const {detailIo} = this.props.pengadaan
+        localStorage.setItem('printData', detailIo[0].no_pengadaan)
+        const newWindow = window.open(`/${val}`, '_blank', 'noopener,noreferrer')
+        if (newWindow) {
+            newWindow.opener = null
+        }
+    }
+
     downloadData = () => {
         const { fileName } = this.state
         const download = fileName.path.split('/')
@@ -533,13 +586,6 @@ class EditTicket extends Component {
         if (isError) {
             this.props.resetError()
             this.showAlert()
-        } else if (isUpload) {
-            setTimeout(() => {
-                this.props.resetError()
-             }, 2000)
-             setTimeout(() => {
-                this.props.getDocumentIo(token, rinciIo.no_pengadaan)
-             }, 2100)
         } else if (isUpdate) {
             setTimeout(() => {
                 this.props.resetError()
@@ -735,8 +781,124 @@ class EditTicket extends Component {
         }
     }
 
+    prosesModalRinci = (val) => {
+        console.log(val)
+        this.setState({dataRinci: val})
+        this.prosesRinci()
+    }
+
+    prosesRinci = () => {
+        this.setState({rinci: !this.state.rinci})
+    }
+
+    editCart = async (val) => {
+        const token = localStorage.getItem('token')
+        const {detailIo} = this.props.pengadaan
+        const {dataRinci} = this.state
+        const cek = []
+        for (let i = 0; i < detailIo.length; i++) {
+            if ((detailIo[i].kategori !== val.kategori || detailIo[i].tipe !== val.tipe) && detailIo.length > 1) {
+                cek.push(1)
+            }
+        }
+        if (cek.length > 0) {
+            this.setState({confirm: 'falseAdd'})
+            this.openConfirm()
+        } else {
+            await this.props.updateCart(token, dataRinci.id, val)
+            await this.props.appRevisi(token, dataRinci.id)
+            await this.props.getDetail(token, detailIo[0].no_pengadaan)
+            this.prosesRinci()
+            this.setState({confirm: 'update'})
+            this.openConfirm()
+        }
+    }
+
+    prepSendEmail = async (val) => {
+        const {detailIo} = this.props.pengadaan
+        const token = localStorage.getItem("token")
+        const level = localStorage.getItem('level')
+        const menu = 'Revisi Area (Pengadaan asset)'
+        const tipe = 'revisi'
+        const tempno = {
+            no: detailIo[0].no_pengadaan,
+            kode: detailIo[0].kode_plant,
+            jenis: 'pengadaan',
+            tipe: tipe,
+            menu: menu
+        }
+        this.setState({tipeEmail: val})
+        await this.props.getDetail(token, detailIo[0].no_pengadaan)
+        await this.props.getDraftEmail(token, tempno)
+        this.openDraftEmail()
+    }
+
+    openDraftEmail = () => {
+        this.setState({openDraft: !this.state.openDraft}) 
+    }
+
+    submitRevisi = async (val) => {
+        const token = localStorage.getItem("token")
+        const {detailIo} = this.props.pengadaan
+        const data = {
+            no: detailIo[0].no_pengadaan
+        }
+        this.prosesSendEmail('budget')
+        await this.props.submitRevisi(token, data)
+        this.prosesModalIo()
+        this.openModalSubmit()
+        this.getDataAsset()
+        this.setState({confirm: 'submit'})
+        this.openConfirm()
+        this.openDraftEmail()
+    }
+
+    prosesSendEmail = async (val) => {
+        const token = localStorage.getItem('token')
+        const { draftEmail } = this.props.tempmail
+        const { detailIo } = this.props.pengadaan
+        const { message, subject } = this.state
+        const cc = draftEmail.cc
+        const tempcc = []
+        for (let i = 0; i < cc.length; i++) {
+            tempcc.push(cc[i].email)
+        }
+        const sendMail = {
+            draft: draftEmail,
+            nameTo: draftEmail.to.fullname,
+            to: draftEmail.to.email,
+            cc: tempcc.toString(),
+            message: message,
+            subject: subject,
+            no: detailIo[0].no_pengadaan,
+            tipe: 'pengadaan',
+            menu: `pengadaan asset`,
+            proses: val === 'asset' || val === 'budget' ? 'submit' : val,
+            route: val === 'reject pembatalan' ? 'revtick' : val === 'budget' ? 'ekstick' : 'ticket'
+        }
+        await this.props.sendEmail(token, sendMail)
+    }
+
+    cekSubmit = () => {
+        const {detailIo} = this.props.pengadaan
+        const cek = []
+        detailIo.map(item => {
+            return (item.isreject !== 1 && cek.push(item))
+        })
+        if (cek.length === detailIo.length) {
+            this.openModalSubmit()
+        } else {
+            this.setState({confirm: 'revdata'})
+            this.openConfirm()
+        }
+    }
+
+    openModalSubmit = () => {
+        this.setState({openSubmit: !this.state.openSubmit})
+    }
+
     render() {
-        const {alert, upload, errMsg, rinciIo, total, listMut, newIo} = this.state
+        const {alert, upload, errMsg, rinciIo, total, listMut, newIo, dataRinci} = this.state
         const {dataAsset, alertM, alertMsg, alertUpload, page} = this.props.asset
         const pages = this.props.disposal.page 
         const {revPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataDocCart} = this.props.pengadaan
@@ -858,6 +1020,7 @@ class EditTicket extends Component {
                                     <th>KODE AREA</th>
                                     <th>NAMA AREA</th>
                                     <th>TANGGAL AJUAN</th>
+                                    <th>JENIS AJUAN</th>
                                     <th>STATUS</th>
                                     <th>OPSI</th>
                                 </tr>
@@ -873,6 +1036,7 @@ class EditTicket extends Component {
                                                 <td>{item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}</td>
                                                 <td>{moment(item.tglIo).format('DD MMMM YYYY')}</td>
                                                 <td>{item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
+                                                <td>{item.history !== null && item.history.split(',').reverse()[0]}</td>
                                                 <td><Button color='primary' onClick={() => this.openForm(item)}>Proses</Button></td>
                                             </tr>
                                         )
@@ -889,849 +1053,1107 @@ class EditTicket extends Component {
                     </div>
                 </div>
                 <Modal size="xl" isOpen={this.state.openModalIo} toggle={this.prosesModalIo}>
-                <ModalBody className="mb-5">
-                    <Container>
-                        <Row className="rowModal">
-                            <Col md={3} lg={3}>
-                                <img src={logo} className="imgModal" />
-                            </Col>
-                            <Col md={9} lg={9}>
-                                <text className="titModal">FORM INTERNAL ORDER ASSET</text>
-                            </Col>
-                        </Row>
-                        <div className="mt-4 mb-3">Io type:</div>
-                        <div className="mb-4">
-                            <Form.Check 
-                                type="checkbox"
-                                label="CB-20 IO Capex"
-                            />
-                        </div>
-                        <Row className="rowModal">
-                            <Col md={2} lg={2}>
-                                Nomor IO
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                            <OtpInput
-                                value={this.state.value}
-                                onChange={this.onChange}
-                                numInputs={11}
-                                inputStyle={style.otp}
-                                containerStyle={style.containerOtp}
-                            />
-                            {level === '8' && (
-                                <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo(detailIo[0].no_pengadaan)}>Save</Button>
-                            )}
-                            </Col>
-                        </Row>
-                        <Row className="mt-4">
-                            <Col md={2} lg={2}>
-                                Deskripsi
-                            </Col>
-                            <Col md={10} lg={10} className="colModalTab">
+                    <ModalBody className="mb-5">
+                        <Container>
+                            <Row className="rowModal">
+                                <Col md={3} lg={3}>
+                                    <img src={logo} className="imgModal" />
+                                </Col>
+                                <Col md={9} lg={9}>
+                                    <text className="titModal">FORM INTERNAL ORDER ASSET</text>
+                                </Col>
+                            </Row>
+                            <div className="mt-4 mb-3">Io type:</div>
+                            <div className="mb-4">
+                                <Form.Check 
+                                    type="checkbox"
+                                    label="CB-20 IO Capex"
+                                />
+                            </div>
+                            <Row className="rowModal">
+                                <Col md={2} lg={2}>
+                                    Nomor IO
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
                                 <text className="mr-3">:</text>
-                                <Table bordered stripped responsive>
-                                    <thead>
-                                        <tr>
-                                            <th>Qty</th>
-                                            <th>Description</th>
-                                            <th>Price/unit</th>
-                                            <th>Total Amount</th>
-                                            {level === '2' && (
-                                                <>
-                                                    <th>Asset</th>
-                                                    {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
-                                                        <th>Dokumen</th>
+                                <OtpInput
+                                    value={this.state.value}
+                                    onChange={this.onChange}
+                                    numInputs={11}
+                                    inputStyle={style.otp}
+                                    containerStyle={style.containerOtp}
+                                />
+                                {level === '8' && (
+                                    <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo(detailIo[0].no_pengadaan)}>Save</Button>
+                                )}
+                                </Col>
+                            </Row>
+                            <Row className="mt-4">
+                                <Col md={2} lg={2}>
+                                    Deskripsi
+                                </Col>
+                                <Col md={10} lg={10} className="colModalTab">
+                                    <text className="mr-3">:</text>
+                                    <Table bordered stripped responsive>
+                                        <thead>
+                                            <tr>
+                                                <th>Opsi</th>
+                                                <th>Qty</th>
+                                                <th>Description</th>
+                                                <th>Price/unit</th>
+                                                <th>Total Amount</th>
+                                                {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
+                                                    <th>Dokumen</th>
+                                                ) : (
+                                                    null
+                                                )}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {detailIo !== undefined && detailIo.length > 0 && detailIo.map(item => {
+                                                return (
+                                                    item.isAsset === 'false' && level !== '2' ? (
+                                                        null
+                                                    ) : (
+                                                        <tr onClick={() => this.openModalRinci()}>
+                                                            <th className='colGeneral'>
+                                                                {item.isreject === 1 || item.isreject === 0 ? 
+                                                                <>
+                                                                    {item.isreject === 1 ? 'Perlu Diperbaiki' : 'Telah diperbaiki'}
+                                                                    <Button className='mt-2' color="info" size='sm' onClick={() => this.prosesModalRinci(item)}>Update</Button>
+                                                                </>
+                                                                :'-'}
+                                                            </th>
+                                                            <td>{item.qty}</td>
+                                                            <td>{item.nama}</td>
+                                                            <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                            <td>Rp {(parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                            {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
+                                                                <td>
+                                                                    <Button color='success' size='sm' onClick={() => this.prosesModalDoc(item)}>Show Dokumen</Button>
+                                                                </td>
+                                                            ) : (
+                                                                null
+                                                            )}
+                                                        </tr>
+                                                    )
+                                                )
+                                            })}
+                                        </tbody>
+                                    </Table>
+                                </Col>
+                            </Row>
+                            <Row className="rowModal mt-4">
+                                <Col md={2} lg={2}>
+                                    Cost Center
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                <text className="mr-3">:</text>
+                                <OtpInput
+                                    value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.cost_center}
+                                    isDisabled
+                                    numInputs={10}
+                                    inputStyle={style.otp}
+                                    containerStyle={style.containerOtp}
+                                />
+                                </Col>
+                            </Row>
+                            <Row className="rowModal mt-2">
+                                <Col md={2} lg={2}>
+                                    Profit Center
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                <text className="mr-3">:</text>
+                                <OtpInput
+                                    value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.profit_center}
+                                    isDisabled
+                                    numInputs={10}
+                                    inputStyle={style.otp}
+                                    containerStyle={style.containerOtp}
+                                />
+                                </Col>
+                            </Row>
+                            <Row className="rowModal mt-4">
+                                <Col md={2} lg={2}>
+                                    Kategori
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                <text className="mr-3">:</text>
+                                    <Col md={4} lg={4}>
+                                        <Form.Check 
+                                            type="checkbox"
+                                            label="Budget"
+                                            checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'budget' ? true : false}
+                                        />
+                                    </Col>
+                                    <Col md={4} lg={4}>
+                                        <Form.Check 
+                                            type="checkbox"
+                                            label="Non Budgeted"
+                                            checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'non-budget' ? true : false}
+                                        />
+                                    </Col>
+                                    <Col md={4} lg={4}>
+                                        <Form.Check 
+                                            type="checkbox"
+                                            label="Return"
+                                            checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'return' ? true : false}
+                                        />
+                                    </Col>
+                                </Col>
+                            </Row>
+                            <Row className="rowModal mt-4">
+                                <Col md={2} lg={2}>
+                                    Amount
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                <text className="mr-3">:</text>
+                                <text>Rp {total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</text>
+                                </Col>
+                            </Row>
+                            <Formik
+                                initialValues={{
+                                alasan: detailIo[0] === undefined ? '' : detailIo[0].alasan === null || detailIo[0].alasan === '' || detailIo[0].alasan === '-' ? '' : detailIo[0].alasan,
+                                }}
+                                validationSchema={alasanSchema}
+                                onSubmit={(values) => {this.updateAlasan(values)}}
+                                >
+                                    {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                                        <div>
+                                            <Row className="rowModal mt-4">
+                                                <Col md={2} lg={2}>
+                                                    Alasan
+                                                </Col>
+                                                <Col md={10} lg={10} className="colModal">
+                                                <text className="mr-3">:</text>
+                                                {level === '5' || level === '9' ? (
+                                                    <>
+                                                        <Input 
+                                                            type='textarea'
+                                                            name='alasan'
+                                                            className='inputRecent'
+                                                            value={values.alasan}
+                                                            disabled={detailIo[0].status_form === '1' ? true : false}
+                                                            onChange={handleChange('alasan')}
+                                                            onBlur={handleBlur('alasan')} 
+                                                        />
+                                                    </>
+                                                ) : (
+                                                    <text>{detailIo[0] === undefined ? '-' : detailIo[0].alasan}</text>
+                                                )}
+                                                </Col>
+                                            </Row>
+                                            <Row>
+                                                <Col md={2} lg={2}></Col>
+                                                <Col md={10} lg={10} >
+                                                    <text className="mr-3"></text>
+                                                    {errors.alasan ? (
+                                                        <text className={style.txtError}>Must be filled</text>
+                                                    ) : null}
+                                                </Col>
+                                            </Row>
+                                            {this.state.filter === 'available' && detailIo[0].status_form !== '1' ? (
+                                                <Row className="rowModal mt-1">
+                                                    <Col md={2} lg={2}>
+                                                    </Col>
+                                                    <Col md={10} lg={10} className="colModal1">
+                                                    <text className="mr-3"></text>
+                                                    {level === '5' || level === '9' ? (
+                                                        <Button 
+                                                        onClick={handleSubmit} 
+                                                        disabled={detailIo[0].status_form === '1' ? true : false}
+                                                        color='success'>
+                                                            Update
+                                                        </Button>
                                                     ) : (
                                                         null
                                                     )}
-                                                </>
-                                            )}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {detailIo !== undefined && detailIo.length > 0 && detailIo.map(item => {
-                                            return (
-                                                item.isAsset === 'false' && level !== '2' ? (
-                                                    null
+                                                    </Col>
+                                                </Row>
                                                 ) : (
+                                                <Row></Row>
+                                            )}
+                                        </div>
+                                    )}
+                            </Formik>
+                        </Container>
+                    </ModalBody>
+                    <hr />
+                    <div className="modalFoot">
+                        <div className="btnFoot">
+                            {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
+                                null
+                            ) : (
+                                <Button className="ml-4" color="info" onClick={this.prosesModalDoc}>
+                                    Dokumen 
+                                </Button>
+                            )}
+                            <Button className="ml-2" color="warning" onClick={() => this.openModPreview(detailIo[0])}>
+                                Download Form
+                            </Button>
+                        </div>
+                        <div className="btnFoot">
+                            <div></div>
+                            <Button color="success" onClick={this.cekSubmit}>
+                                Submit
+                            </Button>
+                        </div>
+                    </div>
+                </Modal>
+                <Modal size="xl" isOpen={this.state.preview} toggle={this.openPreview}>
+                    <ModalBody className="mb-5">
+                        <Container>
+                            <Row className="rowModal">
+                                <Col md={3} lg={3}>
+                                    <img src={logo} className="imgModal" />
+                                </Col>
+                                <Col md={9} lg={9}>
+                                    <text className="titModal">FORM INTERNAL ORDER ASSET</text>
+                                </Col>
+                            </Row>
+                            <div className="mt-4 mb-3">Io type:</div>
+                            <div className="mb-4">
+                                <Form.Check 
+                                    type="checkbox"
+                                    label="CB-20 IO Capex"
+                                />
+                            </div>
+                            <Row className="rowModal">
+                                <Col md={2} lg={2}>
+                                    Nomor IO
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                <text className="mr-3">:</text>
+                                <OtpInput
+                                    value={this.state.value}
+                                    onChange={this.onChange}
+                                    numInputs={11}
+                                    inputStyle={style.otp}
+                                    containerStyle={style.containerOtp}
+                                    isDisabled
+                                />
+                                </Col>
+                            </Row>
+                            <Row className="mt-4">
+                                <Col md={2} lg={2}>
+                                    Deskripsi
+                                </Col>
+                                <Col md={10} lg={10} className="colModalTab">
+                                    <text className="mr-3">:</text>
+                                    <Table bordered stripped responsive>
+                                        <thead>
+                                            <tr>
+                                                <th>Qty</th>
+                                                <th>Description</th>
+                                                <th>Price/unit</th>
+                                                <th>Total Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {detailIo !== undefined && detailIo.length > 0 && detailIo.map(item => {
+                                                return (
+                                                    item.isAsset === 'false' && level !== '2' ? (
+                                                        null
+                                                    ) : (
                                                     <tr onClick={() => this.openModalRinci()}>
                                                         <td>{item.qty}</td>
                                                         <td>{item.nama}</td>
                                                         <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                        <td>Rp {(parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                        {level === '2' && (
-                                                            <>
-                                                                <td className='colTable'>
-                                                                    <div>
-                                                                        <Input
-                                                                        addon
-                                                                        disabled={item.status_app === null ? false : true}
-                                                                        checked={item.isAsset === 'true' ? true : false}
-                                                                        type="checkbox"
-                                                                        onClick={() => this.updateIo({item: item, value: 'true'})}
-                                                                        value={item.no_asset} />
-                                                                        <text className='ml-2'>Ya</text>
-                                                                    </div>
-                                                                    <div>
-                                                                        <Input
-                                                                        addon
-                                                                        disabled={item.status_app === null ? false : true}
-                                                                        checked={item.isAsset === 'false' ? true : false}
-                                                                        type="checkbox"
-                                                                        onClick={() => this.updateIo({item: item, value: 'false'})}
-                                                                        value={item.no_asset} />
-                                                                        <text className='ml-2'>Tidak</text>
-                                                                    </div>
-                                                                </td>
-                                                                {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
-                                                                    <td>
-                                                                        <Button color='success' size='sm' onClick={() => this.prosesModalDoc(item)}>Show Dokumen</Button>
-                                                                    </td>
-                                                                ) : (
-                                                                    null
-                                                                )}
-                                                            </>
-                                                        )}
+                                                        <td>Rp {(parseInt(item.price) * parseInt(item.qty).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."))}</td>
                                                     </tr>
-                                                )
-                                            )
-                                        })}
-                                    </tbody>
-                                </Table>
-                            </Col>
-                        </Row>
-                        <Row className="rowModal mt-4">
-                            <Col md={2} lg={2}>
-                                Cost Center
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                            <OtpInput
-                                value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.cost_center}
-                                isDisabled
-                                numInputs={10}
-                                inputStyle={style.otp}
-                                containerStyle={style.containerOtp}
-                            />
-                            </Col>
-                        </Row>
-                        <Row className="rowModal mt-2">
-                            <Col md={2} lg={2}>
-                                Profit Center
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                            <OtpInput
-                                value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.profit_center}
-                                isDisabled
-                                numInputs={10}
-                                inputStyle={style.otp}
-                                containerStyle={style.containerOtp}
-                            />
-                            </Col>
-                        </Row>
-                        <Row className="rowModal mt-4">
-                            <Col md={2} lg={2}>
-                                Kategori
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                                <Col md={4} lg={4}>
-                                    <Form.Check 
-                                        type="checkbox"
-                                        label="Budget"
-                                        checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'budget' ? true : false}
-                                    />
-                                </Col>
-                                <Col md={4} lg={4}>
-                                    <Form.Check 
-                                        type="checkbox"
-                                        label="Non Budgeted"
-                                        checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'non-budget' ? true : false}
-                                    />
-                                </Col>
-                                <Col md={4} lg={4}>
-                                    <Form.Check 
-                                        type="checkbox"
-                                        label="Return"
-                                        checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'return' ? true : false}
-                                    />
-                                </Col>
-                            </Col>
-                        </Row>
-                        <Row className="rowModal mt-4">
-                            <Col md={2} lg={2}>
-                                Amount
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                            <text>Rp {total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</text>
-                            </Col>
-                        </Row>
-                        <Formik
-                            initialValues={{
-                            alasan: detailIo[0] === undefined ? '' : detailIo[0].alasan === null || detailIo[0].alasan === '' || detailIo[0].alasan === '-' ? '' : detailIo[0].alasan,
-                            }}
-                            validationSchema={alasanSchema}
-                            onSubmit={(values) => {this.updateAlasan(values)}}
-                            >
-                                {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
-                                    <div>
-                                        <Row className="rowModal mt-4">
-                                            <Col md={2} lg={2}>
-                                                Alasan
-                                            </Col>
-                                            <Col md={10} lg={10} className="colModal">
-                                            <text className="mr-3">:</text>
-                                            {level === '5' || level === '9' ? (
-                                                <>
-                                                    <Input 
-                                                        type='textarea'
-                                                        name='alasan'
-                                                        className='inputRecent'
-                                                        value={values.alasan}
-                                                        onChange={handleChange('alasan')}
-                                                        onBlur={handleBlur('alasan')} 
-                                                    />
-                                                </>
-                                            ) : (
-                                                <text>{detailIo[0] === undefined ? '-' : detailIo[0].alasan}</text>
-                                            )}
-                                            </Col>
-                                        </Row>
-                                        <Row>
-                                            <Col md={2} lg={2}></Col>
-                                            <Col md={10} lg={10} >
-                                                <text className="mr-3"></text>
-                                                {errors.alasan ? (
-                                                    <text className={style.txtError}>Must be filled</text>
-                                                ) : null}
-                                            </Col>
-                                        </Row>
-                                        <Row className="rowModal mt-1">
-                                            <Col md={2} lg={2}>
-                                            </Col>
-                                            <Col md={10} lg={10} className="colModal1">
-                                            <text className="mr-3"></text>
-                                            {level === '5' || level === '9' ? (
-                                                <Button onClick={handleSubmit} color='success'>Update</Button>
-                                            ) : (
-                                                null
-                                            )}
-                                            </Col>
-                                        </Row>
-                                    </div>
-                                )}
-                        </Formik>
-                    </Container>
-                </ModalBody>
-                <hr />
-                <div className="modalFoot">
-                    <div className="btnFoot">
-                        {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
-                            null
-                        ) : (
-                            <Button className="ml-4" color="info" onClick={this.prosesModalDoc}>
-                                Dokumen 
-                            </Button>
-                        )}
-                        <Button className="ml-2" color="warning" onClick={() => this.openModPreview(detailIo[0])}>
-                            Preview
-                        </Button>
-                    </div>
-                    <div className="btnFoot">
-                        <div></div>
-                        <Button color="success" onClick={level === '2' ? () => this.submitAsset(detailIo[0].no_pengadaan) : this.submitBudget}>
-                            Submit
-                        </Button>
-                    </div>
-                </div>
-            </Modal>
-            <Modal size="xl" isOpen={this.state.preview} toggle={this.openPreview}>
-                <ModalBody className="mb-5">
-                    <Container>
-                        <Row className="rowModal">
-                            <Col md={3} lg={3}>
-                                <img src={logo} className="imgModal" />
-                            </Col>
-                            <Col md={9} lg={9}>
-                                <text className="titModal">FORM INTERNAL ORDER ASSET</text>
-                            </Col>
-                        </Row>
-                        <div className="mt-4 mb-3">Io type:</div>
-                        <div className="mb-4">
-                            <Form.Check 
-                                type="checkbox"
-                                label="CB-20 IO Capex"
-                            />
-                        </div>
-                        <Row className="rowModal">
-                            <Col md={2} lg={2}>
-                                Nomor IO
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                            <OtpInput
-                                value={this.state.value}
-                                onChange={this.onChange}
-                                numInputs={11}
-                                inputStyle={style.otp}
-                                containerStyle={style.containerOtp}
-                                isDisabled
-                            />
-                            </Col>
-                        </Row>
-                        <Row className="mt-4">
-                            <Col md={2} lg={2}>
-                                Deskripsi
-                            </Col>
-                            <Col md={10} lg={10} className="colModalTab">
-                                <text className="mr-3">:</text>
-                                <Table bordered stripped responsive>
-                                    <thead>
-                                        <tr>
-                                            <th>Qty</th>
-                                            <th>Description</th>
-                                            <th>Price/unit</th>
-                                            <th>Total Amount</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {detailIo !== undefined && detailIo.length > 0 && detailIo.map(item => {
-                                            return (
-                                                item.isAsset === 'false' && level !== '2' ? (
-                                                    null
-                                                ) : (
-                                                <tr onClick={() => this.openModalRinci()}>
-                                                    <td>{item.qty}</td>
-                                                    <td>{item.nama}</td>
-                                                    <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                    <td>Rp {(parseInt(item.price) * parseInt(item.qty).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."))}</td>
-                                                </tr>
-                                                )
-                                            )
-                                        })}
-                                    </tbody>
-                                </Table>
-                            </Col>
-                        </Row>
-                        <Row className="rowModal mt-4">
-                            <Col md={2} lg={2}>
-                                Cost Center
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                            <OtpInput
-                                value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.cost_center}
-                                isDisabled
-                                numInputs={10}
-                                inputStyle={style.otp}
-                                containerStyle={style.containerOtp}
-                            />
-                            </Col>
-                        </Row>
-                        <Row className="rowModal mt-2">
-                            <Col md={2} lg={2}>
-                                Profit Center
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                            <OtpInput
-                                value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.profit_center}
-                                isDisabled
-                                numInputs={10}
-                                inputStyle={style.otp}
-                                containerStyle={style.containerOtp}
-                            />
-                            </Col>
-                        </Row>
-                        <Row className="rowModal mt-4">
-                            <Col md={2} lg={2}>
-                                Kategori
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                                <Col md={4} lg={4}>
-                                    <Form.Check 
-                                        type="checkbox"
-                                        label="Budget"
-                                        checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'budget' ? true : false}
-                                    />
-                                </Col>
-                                <Col md={4} lg={4}>
-                                    <Form.Check 
-                                        type="checkbox"
-                                        label="Non Budgeted"
-                                        checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'non-budget' ? true : false}
-                                    />
-                                </Col>
-                                <Col md={4} lg={4}>
-                                    <Form.Check 
-                                        type="checkbox"
-                                        label="Return"
-                                        checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'return' ? true : false}
-                                    />
-                                </Col>
-                            </Col>
-                        </Row>
-                        <Row className="rowModal mt-4">
-                            <Col md={2} lg={2}>
-                                Amount
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                            <text>Rp {total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</text>
-                            </Col>
-                        </Row>
-                        <Row className="rowModal mt-4">
-                            <Col md={2} lg={2}>
-                                Alasan
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                            <text>-</text>
-                            </Col>
-                        </Row>
-                    </Container>
-                    <Table borderless responsive className="tabPreview">
-                        <thead>
-                            <tr>
-                                <th className="buatPre">Dibuat oleh,</th>
-                                <th className="buatPre">Diperiksa oleh,</th>
-                                <th className="buatPre">Disetujui oleh,</th>
-                            </tr>
-                        </thead>
-                        <tbody className="tbodyPre">
-                            <tr>
-                                <td className="restTable">
-                                    <Table bordered responsive className="divPre">
-                                        <thead>
-                                            <tr>
-                                                {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
-                                                    return (
-                                                        <th className="headPre">
-                                                            <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                            <div>{item.nama === null ? "-" : item.nama}</div>
-                                                        </th>
                                                     )
-                                                })}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                            {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
-                                                return (
-                                                    <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'area' ? 'AOS' : item.jabatan}</td>
                                                 )
                                             })}
-                                            </tr>
                                         </tbody>
                                     </Table>
-                                </td>
-                                <td className="restTable">
-                                    <Table bordered responsive className="divPre">
-                                        <thead>
-                                            <tr>
-                                                {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
-                                                    return (
-                                                        <th className="headPre">
-                                                            <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                            <div>{item.nama === null ? "-" : item.nama}</div>
-                                                        </th>
-                                                    )
-                                                })}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
-                                                    return (
-                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'ROM' ? 'OM' : item.jabatan}</td>
-                                                    )
-                                                })}
-                                            </tr>
-                                        </tbody>
-                                    </Table>
-                                </td>
-                                <td className="restTable">
-                                    <Table bordered responsive className="divPre">
-                                        <thead>
-                                            <tr>
-                                                {dataApp.penyetuju !== undefined && dataApp.penyetuju.map(item => {
-                                                    return (
-                                                        <th className="headPre">
-                                                            <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                            <div>{item.nama === null ? "-" : item.nama}</div>
-                                                        </th>
-                                                    )
-                                                })}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                {dataApp.penyetuju !== undefined && dataApp.penyetuju.map(item => {
-                                                    return (
-                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                    )
-                                                })}
-                                            </tr>
-                                        </tbody>
-                                    </Table>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </Table>
-                </ModalBody>
-                <hr />
-                <div className="modalFoot">
-                    <div className="btnFoot">
-                    </div>
-                    <div className="btnFoot">
-                        <Button className="mr-2" color="warning" onClick={this.openPreview}>
-                            Download
-                        </Button>
-                        <Button color="secondary" onClick={this.openPreview}>
-                            Close 
-                        </Button>
-                    </div>
-                </div>
-            </Modal>
-            <Modal>
-                <ModalBody>
-                    
-                </ModalBody>
-            </Modal>
-            <Modal size="md" isOpen={this.state.openModalTtd} toggle={this.prosesModalTtd}>
-                <ModalHeader>
-                    Proses Tanda Tangan
-                </ModalHeader>
-                <ModalBody>
-                    <Row>
-                        <Col md={3} lg={3}>
-                            Nama
-                        </Col>
-                        <Col md={9} lg={9}>
-                            : <input />
-                        </Col>
-                    </Row>
-                </ModalBody>
-                <ModalFooter>
-                    <Button color="secondary" onClick={this.prosesModalTtd}>
-                        Close
-                    </Button>
-                    <Button color="primary" onClick={this.prosesModalTtd}>
-                        Save 
-                    </Button>
-                </ModalFooter>
-            </Modal>
-            <Modal size="xl" isOpen={this.state.openModalDoc} toggle={this.closeProsesModalDoc}>
-                <ModalHeader>
-                   Kelengkapan Dokumen
-                </ModalHeader>
-                <ModalBody>
-                    <Container>
-                        <Alert color="danger" className="alertWrong" isOpen={this.state.upload}>
-                            <div>{this.state.errMsg}</div>
-                        </Alert>
-                        {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
-                            dataDocCart !== undefined && dataDocCart.map(x => {
-                                return (
-                                    <Row className="mt-3 mb-4">
-                                        <Col md={12} lg={12} >
-                                            <text>{dataDocCart.indexOf(x) + 1}. {x.nama_dokumen}</text>
-                                        </Col>
-                                        {x.path !== null ? (
-                                            <Col md={12} lg={12} >
-                                                {x.status === 0 ? (
-                                                    <AiOutlineClose size={20} />
-                                                ) : x.status === 3 ? (
-                                                    <AiOutlineCheck size={20} />
-                                                ) : (
-                                                    <BsCircle size={20} />
-                                                )}
-                                                <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
-                                                {/* <div>
-                                                    <input
-                                                    // className="ml-4"
-                                                    type="file"
-                                                    onClick={() => this.setState({detail: x})}
-                                                    onChange={this.onChangeUpload}
-                                                    />
-                                                </div> */}
-                                            </Col>
-                                        ) : (
-                                            <Col md={12} lg={12} >
-                                                -
-                                            </Col>
-                                        )}
-                                    </Row>
-                                )
-                            })
-                        ) : (
-                            dataDoc !== undefined && dataDoc.map(x => {
-                                return (
-                                    <Row className="mt-3 mb-4">
-                                        <Col md={12} lg={12} >
-                                            <text>{dataDoc.indexOf(x) + 1}. {x.nama_dokumen}</text>
-                                        </Col>
-                                        {x.path !== null ? (
-                                            <Col md={12} lg={12} >
-                                                {x.status === 0 ? (
-                                                    <AiOutlineClose size={20} />
-                                                ) : x.status === 3 ? (
-                                                    <AiOutlineCheck size={20} />
-                                                ) : (
-                                                    <BsCircle size={20} />
-                                                )}
-                                                <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
-                                                {/* <div>
-                                                    <input
-                                                    // className="ml-4"
-                                                    type="file"
-                                                    onClick={() => this.setState({detail: x})}
-                                                    onChange={this.onChangeUpload}
-                                                    />
-                                                </div> */}
-                                            </Col>
-                                        ) : (
-                                            <Col md={12} lg={12} >
-                                                -
-                                            </Col>
-                                        )}
-                                    </Row>
-                                )
-                            })
-                        )}
-                    </Container>
-                </ModalBody>
-                <ModalFooter>
-                    <Button className="mr-2" color="secondary" onClick={this.closeProsesModalDoc}>
-                            Close
-                        </Button>
-                        <Button color="primary" onClick={this.closeProsesModalDoc}>
-                            Save 
-                    </Button>
-                </ModalFooter>
-            </Modal>
-            <Modal isOpen={this.props.pengadaan.isLoading ? true: false} size="sm">
-                <ModalBody>
-                    <div>
-                        <div className={style.cekUpdate}>
-                            <Spinner />
-                            <div sucUpdate>Waiting....</div>
-                        </div>
-                    </div>
-                </ModalBody>
-            </Modal>
-            <Modal isOpen={this.props.pengadaan.isUpload ? true: false} size="sm">
-                <ModalBody>
-                    <div>
-                        <div className={style.cekUpdate}>
-                            <AiFillCheckCircle size={80} className={style.green} />
-                            <div className={[style.sucUpdate, style.green]}>Success</div>
-                        </div>
-                    </div>
-                </ModalBody>
-            </Modal>
-            <Modal isOpen={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
-                <ModalHeader>Dokumen</ModalHeader>
-                    <ModalBody>
-                        <div className={style.readPdf}>
-                            <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
-                        </div>
-                        <hr/>
-                        <div className={style.foot}>
-                            <div>
-                                {/* <div>{moment(this.state.date).format('LLL')}</div> */}
-                                <Button color="success">Download</Button>
-                            </div>
-                        {level === '1' || level === '2' || level === '3' ? (
-                            <div>
-                                <Button color="danger" className="mr-3" onClick={this.openModalReject}>Reject</Button>
-                                <Button color="primary" onClick={this.openModalApprove}>Approve</Button>
-                            </div>
-                            ) : (
-                                <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
-                            )}
-                        </div>
-                    </ModalBody>
-                    {/* {level === '1' || level === '2' || level === '3' ? (
-                    
-                    <ModalFooter>
-                        <div>{moment(this.state.date).format('LL')}</div>
-                        <Button color="danger" onClick={this.openModalReject}>Reject</Button>
-                        <Button color="primary" onClick={this.openModalApprove}>Approve</Button>
-                    </ModalFooter>
-                    ) : (
-                    <ModalFooter>
-                        <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
-                    </ModalFooter>)} */}
-                </Modal>
-                <Modal isOpen={this.state.openApprove} toggle={this.openModalApprove} centered={true}>
-                    <ModalBody>
-                        <div className={style.modalApprove}>
-                            <div>
-                                <text>
-                                    Anda yakin untuk approve 
-                                    <text className={style.verif}> {this.state.fileName.nama_dokumen} </text>
-                                    pada tanggal
-                                    <text className={style.verif}> {moment().format('LL')}</text> ?
-                                </text>
-                            </div>
-                            <div className={style.btnApprove}>
-                                <Button color="primary" onClick={this.approveDokumen}>Ya</Button>
-                                <Button color="secondary" onClick={this.openModalApprove}>Tidak</Button>
-                            </div>
-                        </div>
-                    </ModalBody>
-                </Modal>
-                <Modal isOpen={this.state.isAppall} toggle={this.openAppall} centered={true}>
-                    <ModalBody>
-                        <div className={style.modalApprove}>
-                            <div>
-                                <text>
-                                    Anda yakin untuk approve 
-                                    <text className={style.verif}> Pengadaan {newIo.map(item => { return (listMut.find(element => element === item.id) !== undefined ? `${item.no_pengadaan},` : null)})} </text>
-                                    pada tanggal
-                                    <text className={style.verif}> {moment().format('LL')}</text> ?
-                                </text>
-                            </div>
-                            <div className={style.btnApprove}>
-                                <Button color="primary" onClick={this.approveAll}>Ya</Button>
-                                <Button color="secondary" onClick={this.openAppall}>Tidak</Button>
-                            </div>
-                        </div>
-                    </ModalBody>
-                </Modal>
-                <Modal isOpen={this.state.openReject} toggle={this.openModalReject} centered={true}>
-                    <ModalBody>
-                    <Formik
-                    initialValues={{
-                    alasan: "",
-                    }}
-                    validationSchema={alasanSchema}
-                    onSubmit={(values) => {this.rejectIo(values)}}
-                    >
-                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
-                            <div className={style.modalApprove}>
-                            <div className={style.quest}>Anda yakin untuk reject ?</div>
-                            <div className={style.alasan}>
-                                <text className="col-md-3">
-                                    Alasan
-                                </text>
-                                <Input 
-                                type="name" 
-                                name="select" 
-                                className="col-md-9"
-                                value={values.alasan}
-                                onChange={handleChange('alasan')}
-                                onBlur={handleBlur('alasan')}
+                                </Col>
+                            </Row>
+                            <Row className="rowModal mt-4">
+                                <Col md={2} lg={2}>
+                                    Cost Center
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                <text className="mr-3">:</text>
+                                <OtpInput
+                                    value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.cost_center}
+                                    isDisabled
+                                    numInputs={10}
+                                    inputStyle={style.otp}
+                                    containerStyle={style.containerOtp}
                                 />
-                            </div>
-                            {errors.alasan ? (
-                                    <text className={style.txtError}>{errors.alasan}</text>
-                                ) : null}
-                            <div className={style.btnApprove}>
-                                <Button color="primary" onClick={handleSubmit}>Ya</Button>
-                                <Button color="secondary" onClick={this.openModalReject}>Tidak</Button>
-                            </div>
-                        </div>
-                        )}
-                        </Formik>
+                                </Col>
+                            </Row>
+                            <Row className="rowModal mt-2">
+                                <Col md={2} lg={2}>
+                                    Profit Center
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                <text className="mr-3">:</text>
+                                <OtpInput
+                                    value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.profit_center}
+                                    isDisabled
+                                    numInputs={10}
+                                    inputStyle={style.otp}
+                                    containerStyle={style.containerOtp}
+                                />
+                                </Col>
+                            </Row>
+                            <Row className="rowModal mt-4">
+                                <Col md={2} lg={2}>
+                                    Kategori
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                <text className="mr-3">:</text>
+                                    <Col md={4} lg={4}>
+                                        <Form.Check 
+                                            type="checkbox"
+                                            label="Budget"
+                                            checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'budget' ? true : false}
+                                        />
+                                    </Col>
+                                    <Col md={4} lg={4}>
+                                        <Form.Check 
+                                            type="checkbox"
+                                            label="Non Budgeted"
+                                            checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'non-budget' ? true : false}
+                                        />
+                                    </Col>
+                                    <Col md={4} lg={4}>
+                                        <Form.Check 
+                                            type="checkbox"
+                                            label="Return"
+                                            checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'return' ? true : false}
+                                        />
+                                    </Col>
+                                </Col>
+                            </Row>
+                            <Row className="rowModal mt-4">
+                                <Col md={2} lg={2}>
+                                    Amount
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                <text className="mr-3">:</text>
+                                <text>Rp {total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</text>
+                                </Col>
+                            </Row>
+                            <Row className="rowModal mt-4">
+                                <Col md={2} lg={2}>
+                                    Alasan
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                <text className="mr-3">:</text>
+                                <text>-</text>
+                                </Col>
+                            </Row>
+                        </Container>
+                        <Table borderless responsive className="tabPreview">
+                            <thead>
+                                <tr>
+                                    <th className="buatPre">Dibuat oleh,</th>
+                                    <th className="buatPre">Diperiksa oleh,</th>
+                                    <th className="buatPre">Disetujui oleh,</th>
+                                </tr>
+                            </thead>
+                            <tbody className="tbodyPre">
+                                <tr>
+                                    <td className="restTable">
+                                        <Table bordered responsive className="divPre">
+                                            <thead>
+                                                <tr>
+                                                    {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
+                                                        return (
+                                                            <th className="headPre">
+                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
+                                                                <div>{item.nama === null ? "-" : item.nama}</div>
+                                                            </th>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
+                                                    return (
+                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'area' ? 'AOS' : item.jabatan}</td>
+                                                    )
+                                                })}
+                                                </tr>
+                                            </tbody>
+                                        </Table>
+                                    </td>
+                                    <td className="restTable">
+                                        <Table bordered responsive className="divPre">
+                                            <thead>
+                                                <tr>
+                                                    {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
+                                                        return (
+                                                            <th className="headPre">
+                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
+                                                                <div>{item.nama === null ? "-" : item.nama}</div>
+                                                            </th>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
+                                                        return (
+                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'ROM' ? 'OM' : item.jabatan}</td>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </tbody>
+                                        </Table>
+                                    </td>
+                                    <td className="restTable">
+                                        <Table bordered responsive className="divPre">
+                                            <thead>
+                                                <tr>
+                                                    {dataApp.penyetuju !== undefined && dataApp.penyetuju.map(item => {
+                                                        return (
+                                                            <th className="headPre">
+                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
+                                                                <div>{item.nama === null ? "-" : item.nama}</div>
+                                                            </th>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    {dataApp.penyetuju !== undefined && dataApp.penyetuju.map(item => {
+                                                        return (
+                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </tbody>
+                                        </Table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </Table>
                     </ModalBody>
+                    <hr />
+                    <div className="modalFoot">
+                        <div className="btnFoot">
+                        </div>
+                        <div className="btnFoot">
+                            <Button className="mr-2" color="warning" onClick={() => this.goDownload('formio')}>
+                                Download
+                            </Button>
+                            <Button color="secondary" onClick={this.openPreview}>
+                                Close 
+                            </Button>
+                        </div>
+                    </div>
                 </Modal>
-                <Modal isOpen={this.state.openApproveIo} toggle={this.openModalApproveIo} centered={true}>
+                <Modal isOpen={this.state.openSubmit} centered={true}>
                     <ModalBody>
                         <div className={style.modalApprove}>
                             <div>
                                 <text>
-                                    Anda yakin untuk approve 
+                                    Anda yakin untuk submit revisi
                                     <text className={style.verif}>  </text>
                                     pada tanggal
                                     <text className={style.verif}> {moment().format('LL')}</text> ?
                                 </text>
                             </div>
                             <div className={style.btnApprove}>
-                                <Button color="primary" onClick={this.approveIo}>Ya</Button>
-                                <Button color="secondary" onClick={this.openModalApproveIo}>Tidak</Button>
+                                {/* <Button color="primary" onClick={level === '2' ? () => this.submitAsset(detailIo[0].no_pengadaan) : this.submitBudget}>Ya</Button> */}
+                                <Button color="primary" onClick={this.prepSendEmail}>Ya</Button>
+                                <Button color="secondary" onClick={this.openModalSubmit}>Tidak</Button>
                             </div>
                         </div>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="sm">
-                <ModalBody>
-                    {this.state.confirm === 'submit' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                            <AiFillCheckCircle size={80} className={style.green} />
-                            <div className={[style.sucUpdate, style.green]}>Berhasil Submit</div>
-                        </div>
-                        </div>
-                    ) : this.state.confirm === 'isupdate' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                                <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={[style.sucUpdate, style.green]}>Berhasil Update Nomor IO</div>
+                <Modal isOpen={this.state.rinci} toggle={this.prosesRinci} size='lg'>
+                    <ModalHeader toggle={this.openModalAdd}>Rincian item</ModalHeader>
+                    <Formik
+                    initialValues={{
+                        nama: dataRinci.nama,
+                        price: dataRinci.price,
+                        qty: dataRinci.qty,
+                        kategori: dataRinci.kategori,
+                        tipe: dataRinci.tipe,
+                        jenis: dataRinci.jenis,
+                        akta: dataRinci.akta,
+                        start: dataRinci.start === null || dataRinci.start === undefined ? '' : dataRinci.start.slice(0, 10),
+                        end: dataRinci.end === null || dataRinci.end === undefined ? '' : dataRinci.end.slice(0, 10)
+                    }}
+                    validationSchema={cartSchema}
+                    onSubmit={(values) => {this.editCart(values)}}
+                    >
+                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                        <ModalBody>
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Deskripsi
+                                </text>
+                                <div className="col-md-9">
+                                    <Input 
+                                    type="name" 
+                                    name="nama"
+                                    value={values.nama}
+                                    onBlur={handleBlur("nama")}
+                                    onChange={handleChange("nama")}
+                                    />
+                                    {errors.nama ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                            </div>
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Tipe
+                                </text>
+                                <div className="col-md-9">
+                                <Input 
+                                    type="select"
+                                    name="select"
+                                    value={values.tipe}
+                                    onChange={handleChange("tipe")}
+                                    onBlur={handleBlur("tipe")}
+                                    >   
+                                        <option value="">-Pilih Tipe-</option>
+                                        <option value="gudang">Sewa Gudang</option>
+                                        <option value="barang">Barang</option>
+                                    </Input>
+                                    {errors.tipe ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                            </div>
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Jenis IT / NON IT
+                                </text>
+                                <div className="col-md-9">
+                                <Input 
+                                    type="select"
+                                    name="select"
+                                    value={values.jenis}
+                                    onChange={handleChange("jenis")}
+                                    onBlur={handleBlur("jenis")}
+                                    >   
+                                        <option value="">---Pilih---</option>
+                                        <option value="it">IT</option>
+                                        <option value="non-it">NON IT</option>
+                                    </Input>
+                                    {errors.jenis ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                            </div>
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Price
+                                </text>
+                                <div className="col-md-9">
+                                    <Input 
+                                    type="name" 
+                                    name="price"
+                                    value={values.price}
+                                    onBlur={handleBlur("price")}
+                                    onChange={handleChange("price")}
+                                    />
+                                    {errors.price ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                            </div>
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Qty
+                                </text>
+                                <div className="col-md-9">
+                                    <Input 
+                                    type="name" 
+                                    name="qty"
+                                    value={values.qty}
+                                    onBlur={handleBlur("qty")}
+                                    onChange={handleChange("qty")}
+                                    />
+                                    {errors.qty ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                            </div>
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Kategori
+                                </text>
+                                <div className="col-md-9">
+                                <Input 
+                                    type="select"
+                                    name="select"
+                                    value={values.kategori}
+                                    onChange={handleChange("kategori")}
+                                    onBlur={handleBlur("kategori")}
+                                    >   
+                                        <option value="">-Pilih Kategori-</option>
+                                        <option value="budget">Budget</option>
+                                        <option value="non-budget">Non Budget</option>
+                                        <option value="return">Return</option>
+                                    </Input>
+                                    {errors.kategori ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                            </div>
+                            {values.tipe === 'gudang' && (
+                                <>
+                                    <div className="headReport">
+                                        <text className="col-md-3">Periode</text>
+                                        <div className="optionType col-md-9">
+                                            <Input 
+                                            type="date" 
+                                            name="start" 
+                                            onChange={handleChange("start")}
+                                            onBlur={handleBlur("start")}
+                                            value={values.start}
+                                            ></Input>
+                                            <text className="toColon">To</text>
+                                            <Input 
+                                            type="date" 
+                                            name="end" 
+                                            value={values.end}
+                                            onChange={handleChange("end")}
+                                            onBlur={handleBlur("end")} 
+                                            ></Input>
+                                        </div>
+                                    </div>
+                                    <div className={style.addModalDepo}>
+                                        <div className="col-md-3"></div>
+                                        <div className="col-md-9">
+                                            {values.tipe === 'gudang' && (values.start === 'null' || values.end === 'null' || values.start === null || values.end === null) ? (
+                                                <text className={style.txtError}>Must be filled</text>
+                                            ) : null}
+                                        </div>
+                                    </div>
+                                    <div className={style.addModalDepo}>
+                                        <text className="col-md-3">
+                                            Dokumen Akta
+                                        </text>
+                                        <div className="col-md-9">
+                                            <Input 
+                                            type="select"
+                                            name="select"
+                                            value={values.akta}
+                                            onChange={handleChange("akta")}
+                                            onBlur={handleBlur("akta")}
+                                            >   
+                                                <option value="null">-Pilih-</option>
+                                                <option value="ada">Ada</option>
+                                                <option value="tidak">Tidak ada</option>
+                                            </Input>
+                                            {values.tipe === 'gudang' && (values.akta === null || values.akta === "null") ? (
+                                                <text className={style.txtError}>Must be filled</text>
+                                            ) : null}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                            <hr/>
+                            <div className={style.foot}>
+                                <div>
+                                    {/* <Button color="success" className="mr-3" onClick={() => this.prosesModalDoc(dataRinci)}>Dokumen</Button> */}
+                                </div>
+                                <div>
+                                    <Button 
+                                        className="mr-2" 
+                                        disabled={values.tipe === 'gudang' && (values.akta === null || values.akta === "null" || values.start === null || values.end === null)  ? true : false} 
+                                        onClick={handleSubmit} color="primary"
+                                    >
+                                        Save
+                                    </Button>
+                                    <Button className="mr-3" onClick={this.prosesRinci}>Cancel</Button>
+                                </div>
+                            </div>
+                        </ModalBody>
+                        )}
+                    </Formik>
+                </Modal>
+                <Modal size="md" isOpen={this.state.openModalTtd} toggle={this.prosesModalTtd}>
+                    <ModalHeader>
+                        Proses Tanda Tangan
+                    </ModalHeader>
+                    <ModalBody>
+                        <Row>
+                            <Col md={3} lg={3}>
+                                Nama
+                            </Col>
+                            <Col md={9} lg={9}>
+                                : <input />
+                            </Col>
+                        </Row>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button color="secondary" onClick={this.prosesModalTtd}>
+                            Close
+                        </Button>
+                        <Button color="primary" onClick={this.prosesModalTtd}>
+                            Save 
+                        </Button>
+                    </ModalFooter>
+                </Modal>
+                <Modal isOpen={this.state.openDraft} size='xl'>
+                    <ModalHeader>Email Pemberitahuan</ModalHeader>
+                    <ModalBody>
+                        <Email handleData={this.getMessage}/>
+                        <div className={style.foot}>
+                            <div></div>
+                            <div>
+                                <Button
+                                    disabled={this.state.message === '' ? true : false} 
+                                    className="mr-2"
+                                    onClick={this.submitRevisi} 
+                                    color="primary"
+                                >
+                                    Submit & Send Email
+                                </Button>
+                                <Button className="mr-3" onClick={this.openDraftEmail}>Cancel</Button>
                             </div>
                         </div>
-                    ) : this.state.confirm === 'approve' ?(
+                    </ModalBody>
+                </Modal>
+                <Modal size="xl" isOpen={this.state.openModalDoc} toggle={this.closeProsesModalDoc}>
+                    <ModalDokumen  
+                        parDoc={{noDoc: this.state.noDoc, noTrans: this.state.noTrans, tipe: 'pengadaan', filter: 'revisi'}} 
+                        dataDoc={detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? dataDocCart : dataDoc } 
+                    />
+                </Modal>
+                <Modal size="xl">
+                    <ModalHeader>
+                    Kelengkapan Dokumen
+                    </ModalHeader>
+                    <ModalBody>
+                        <Container>
+                            <Alert color="danger" className="alertWrong" isOpen={this.state.upload}>
+                                <div>{this.state.errMsg}</div>
+                            </Alert>
+                            {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
+                                dataDocCart !== undefined && dataDocCart.map(x => {
+                                    return (
+                                        <Row className="mt-3 mb-4">
+                                            <Col md={12} lg={12} >
+                                                <text>{dataDocCart.indexOf(x) + 1}. {x.nama_dokumen}</text>
+                                            </Col>
+                                            {x.path !== null ? (
+                                                <Col md={12} lg={12} >
+                                                    {x.status === 0 ? (
+                                                        <AiOutlineClose size={20} />
+                                                    ) : x.status === 3 ? (
+                                                        <AiOutlineCheck size={20} />
+                                                    ) : (
+                                                        <BsCircle size={20} />
+                                                    )}
+                                                    <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
+                                                    {/* <div>
+                                                        <input
+                                                        // className="ml-4"
+                                                        type="file"
+                                                        onClick={() => this.setState({detail: x})}
+                                                        onChange={this.onChangeUpload}
+                                                        />
+                                                    </div> */}
+                                                </Col>
+                                            ) : (
+                                                <Col md={12} lg={12} >
+                                                    -
+                                                </Col>
+                                            )}
+                                        </Row>
+                                    )
+                                })
+                            ) : (
+                                dataDoc !== undefined && dataDoc.map(x => {
+                                    return (
+                                        <Row className="mt-3 mb-4">
+                                            <Col md={12} lg={12} >
+                                                <text>{dataDoc.indexOf(x) + 1}. {x.nama_dokumen}</text>
+                                            </Col>
+                                            {x.path !== null ? (
+                                                <Col md={12} lg={12} >
+                                                    {x.status === 0 ? (
+                                                        <AiOutlineClose size={20} />
+                                                    ) : x.status === 3 ? (
+                                                        <AiOutlineCheck size={20} />
+                                                    ) : (
+                                                        <BsCircle size={20} />
+                                                    )}
+                                                    <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
+                                                    {/* <div>
+                                                        <input
+                                                        // className="ml-4"
+                                                        type="file"
+                                                        onClick={() => this.setState({detail: x})}
+                                                        onChange={this.onChangeUpload}
+                                                        />
+                                                    </div> */}
+                                                </Col>
+                                            ) : (
+                                                <Col md={12} lg={12} >
+                                                    -
+                                                </Col>
+                                            )}
+                                        </Row>
+                                    )
+                                })
+                            )}
+                        </Container>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button className="mr-2" color="secondary" onClick={this.closeProsesModalDoc}>
+                                Close
+                            </Button>
+                            <Button color="primary" onClick={this.closeProsesModalDoc}>
+                                Save 
+                        </Button>
+                    </ModalFooter>
+                </Modal>
+                <Modal isOpen={this.props.pengadaan.isLoading || this.props.dokumen.isLoading || this.props.tempmail.isLoading ? true: false} size="sm">
+                    <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>
-                                <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={[style.sucUpdate, style.green]}>Berhasil Approve</div>
+                                <Spinner />
+                                <div sucUpdate>Waiting....</div>
                             </div>
                         </div>
-                    ) : this.state.confirm === 'reject' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                                <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={[style.sucUpdate, style.green]}>Berhasil Reject</div>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
+                    <ModalHeader>Dokumen</ModalHeader>
+                        <ModalBody>
+                            <div className={style.readPdf}>
+                                <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
                             </div>
-                        </div>
-                    ) : this.state.confirm === 'rejApprove' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Gagal Approve</div>
-                        </div>
-                        </div>
-                    ) : this.state.confirm === 'rejReject' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Gagal Reject</div>
-                        </div>
-                        </div>
-                    ) : this.state.confirm === 'rejSubmit' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
-                            <div className="errApprove mt-2">Mohon isi Nomor IO terlebih dahulu</div>
-                        </div>
-                        </div>
-                    ) : this.state.confirm === 'falseSubmit' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
-                            <div className="errApprove mt-2">Mohon identifikasi asset terlebih dahulu</div>
-                        </div>
-                        </div>
-                    ) : this.state.confirm === 'recent' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Permintaan gagal</div>
-                            <div className="errApprove mt-2">Mohon isi alasan terlebih dahulu</div>
-                        </div>
-                        </div>
-                    ) : (
-                        <div></div>
-                    )}
-                </ModalBody>
-            </Modal>
+                            <hr/>
+                            <div className={style.foot}>
+                                <div>
+                                    {/* <div>{moment(this.state.date).format('LLL')}</div> */}
+                                    <Button color="success">Download</Button>
+                                </div>
+                            {level === '1' || level === '2' || level === '3' ? (
+                                <div>
+                                    <Button color="danger" className="mr-3" onClick={this.openModalReject}>Reject</Button>
+                                    <Button color="primary" onClick={this.openModalApprove}>Approve</Button>
+                                </div>
+                                ) : (
+                                    <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                                )}
+                            </div>
+                        </ModalBody>
+                        {/* {level === '1' || level === '2' || level === '3' ? (
+                        
+                        <ModalFooter>
+                            <div>{moment(this.state.date).format('LL')}</div>
+                            <Button color="danger" onClick={this.openModalReject}>Reject</Button>
+                            <Button color="primary" onClick={this.openModalApprove}>Approve</Button>
+                        </ModalFooter>
+                        ) : (
+                        <ModalFooter>
+                            <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                        </ModalFooter>)} */}
+                    </Modal>
+                    <Modal isOpen={this.state.openApprove} toggle={this.openModalApprove} centered={true}>
+                        <ModalBody>
+                            <div className={style.modalApprove}>
+                                <div>
+                                    <text>
+                                        Anda yakin untuk approve 
+                                        <text className={style.verif}> {this.state.fileName.nama_dokumen} </text>
+                                        pada tanggal
+                                        <text className={style.verif}> {moment().format('LL')}</text> ?
+                                    </text>
+                                </div>
+                                <div className={style.btnApprove}>
+                                    <Button color="primary" onClick={this.approveDokumen}>Ya</Button>
+                                    <Button color="secondary" onClick={this.openModalApprove}>Tidak</Button>
+                                </div>
+                            </div>
+                        </ModalBody>
+                    </Modal>
+                    <Modal isOpen={this.state.isAppall} toggle={this.openAppall} centered={true}>
+                        <ModalBody>
+                            <div className={style.modalApprove}>
+                                <div>
+                                    <text>
+                                        Anda yakin untuk approve 
+                                        <text className={style.verif}> Pengadaan {newIo.map(item => { return (listMut.find(element => element === item.id) !== undefined ? `${item.no_pengadaan},` : null)})} </text>
+                                        pada tanggal
+                                        <text className={style.verif}> {moment().format('LL')}</text> ?
+                                    </text>
+                                </div>
+                                <div className={style.btnApprove}>
+                                    <Button color="primary" onClick={this.approveAll}>Ya</Button>
+                                    <Button color="secondary" onClick={this.openAppall}>Tidak</Button>
+                                </div>
+                            </div>
+                        </ModalBody>
+                    </Modal>
+                    <Modal isOpen={this.state.openReject} toggle={this.openModalReject} centered={true}>
+                        <ModalBody>
+                        <Formik
+                        initialValues={{
+                        alasan: "",
+                        }}
+                        validationSchema={alasanSchema}
+                        onSubmit={(values) => {this.rejectIo(values)}}
+                        >
+                            {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                                <div className={style.modalApprove}>
+                                <div className={style.quest}>Anda yakin untuk reject ?</div>
+                                <div className={style.alasan}>
+                                    <text className="col-md-3">
+                                        Alasan
+                                    </text>
+                                    <Input 
+                                    type="name" 
+                                    name="select" 
+                                    className="col-md-9"
+                                    value={values.alasan}
+                                    onChange={handleChange('alasan')}
+                                    onBlur={handleBlur('alasan')}
+                                    />
+                                </div>
+                                {errors.alasan ? (
+                                        <text className={style.txtError}>{errors.alasan}</text>
+                                    ) : null}
+                                <div className={style.btnApprove}>
+                                    <Button color="primary" onClick={handleSubmit}>Ya</Button>
+                                    <Button color="secondary" onClick={this.openModalReject}>Tidak</Button>
+                                </div>
+                            </div>
+                            )}
+                            </Formik>
+                        </ModalBody>
+                    </Modal>
+                    <Modal isOpen={this.state.openApproveIo} toggle={this.openModalApproveIo} centered={true}>
+                        <ModalBody>
+                            <div className={style.modalApprove}>
+                                <div>
+                                    <text>
+                                        Anda yakin untuk approve 
+                                        <text className={style.verif}>  </text>
+                                        pada tanggal
+                                        <text className={style.verif}> {moment().format('LL')}</text> ?
+                                    </text>
+                                </div>
+                                <div className={style.btnApprove}>
+                                    <Button color="primary" onClick={this.approveIo}>Ya</Button>
+                                    <Button color="secondary" onClick={this.openModalApproveIo}>Tidak</Button>
+                                </div>
+                            </div>
+                        </ModalBody>
+                    </Modal>
+                    <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="md">
+                    <ModalBody>
+                        {this.state.confirm === 'submit' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Submit</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'isupdate' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Update Nomor IO</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'approve' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Approve</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'reject' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Reject</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'update' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Update</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'rejApprove' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Approve</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'rejReject' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Reject</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'rejSubmit' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                                <div className="errApprove mt-2">Mohon isi Nomor IO terlebih dahulu</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'revdata' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                                <div className="errApprove mt-2">Mohon perbaiki data ajuan terlebih dahulu</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'falseSubmit' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                                <div className="errApprove mt-2">Mohon identifikasi asset terlebih dahulu</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'recent' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Permintaan gagal</div>
+                                <div className="errApprove mt-2">Mohon isi alasan terlebih dahulu</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'falseAdd' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Menambahkan Item</div>
+                                <div className="errApprove mt-2">Pastikan kategori dan tipe sama di setiap item</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'upreason' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Update Alasan</div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div></div>
+                        )}
+                    </ModalBody>
+                    <div className='row justify-content-md-center mb-4'>
+                        <Button size='lg' onClick={this.openConfirm} color='primary'>OK</Button>
+                    </div>
+                </Modal>
             </>
         )
     }
@@ -1744,7 +2166,9 @@ const mapStateToProps = state => ({
     pengadaan: state.pengadaan,
     setuju: state.setuju,
     notif: state.notif,
-    auth: state.auth
+    auth: state.auth,
+    dokumen: dokumen,
+    tempmail: state.tempmail
 })
 
 const mapDispatchToProps = {
@@ -1769,7 +2193,13 @@ const mapDispatchToProps = {
     resetApp: pengadaan.resetApp,
     getDocCart: pengadaan.getDocCart,
     approveAll: pengadaan.approveAll,
-    updateRecent: pengadaan.updateRecent
+    updateRecent: pengadaan.updateRecent,
+    submitRevisi: pengadaan.submitRevisi,
+    appRevisi: pengadaan.appRevisi,
+    updateCart: pengadaan.updateCart,
+    getDokumen: dokumen.getDokumen,
+    getDraftEmail: tempmail.getDraftEmail,
+    sendEmail: tempmail.sendEmail,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EditTicket)

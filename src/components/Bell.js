@@ -6,25 +6,35 @@ import style from '../assets/css/input.module.css'
 import {FaBars, FaFileSignature, FaUserCircle, FaBell} from 'react-icons/fa'
 import moment from 'moment'
 import { useHistory } from 'react-router-dom'
-import { useDispatch } from 'react-redux'
-import notif from '../redux/actions/notif'
+import { useDispatch, useSelector } from 'react-redux'
+import notifAct from '../redux/actions/newnotif'
 
-export default function Bell({dataNotif, color}) {
+export default function Bell({dataPass, color}) {
     const dispatch = useDispatch()
+
+    const notifDucer = useSelector((state) => state.newnotif)
+    const dataAllNotif = notifDucer.dataAllNotif
+
     const history = useHistory()
 
-    async function goRoute(val) {
+    const goRoute = async (val) => {
         const token = localStorage.getItem('token')
         if (val === 'notif') {
             history.push(`/${val}`)
         } else {
-            dispatch(notif.upNotif(token, val.id))
-            dispatch(notif.getNotif(token))
-            const ket = val.keterangan === null
-            const jenis = (val.jenis === '' || val.jenis === null) && val.no_proses.split('')[0] === 'O' ? 'Stock Opname' : val.jenis
-            console.log(val.route)
-            const route = val.route !== undefined && val.route !== null && val.route !== 'null' ? val.route : ket === 'tax' || ket === 'finance' || ket === 'tax and finance' ? 'taxfin' : ket === 'eksekusi' && jenis === 'disposal' ? 'eksdis' : jenis === 'disposal' && ket === 'pengajuan' ? 'disposal' : jenis === 'mutasi' && ket === 'pengajuan' ? 'mutasi' : jenis === 'Stock Opname' && ket === 'pengajuan' ? 'stock' : jenis === 'disposal' ? 'navdis' : jenis === 'mutasi' ? 'navmut' : jenis === 'Stock Opname' && 'navstock' 
-            history.push(`/${route}`)
+            const typeNotif = val.tipe === 'pengajuan area' && val.transaksi === 'vendor' ? 'approve' : val.tipe
+            const data = {
+                route: val.routes, 
+                type: typeNotif, 
+                item: val
+            }
+            await localStorage.setItem('typeNotif', typeNotif)
+            const route = val.routes
+            await dispatch(notifAct.readNewNotif(token, val.id))
+            history.push({
+                pathname: `/${route}`,
+                state: data
+            })
         }
     }
 
@@ -33,8 +43,9 @@ export default function Bell({dataNotif, color}) {
         <DropdownToggle nav>
             <div className={style.optionType}>
                 <FaBell size={25} className={color === undefined ? 'white' : color} />
-                {dataNotif.find(({status}) => status === null) !== undefined ? (
-                    <BsFillCircleFill className="red ball" size={10} />
+                {dataAllNotif.find(({status}) => status === null) !== undefined ? (
+                    // <BsFillCircleFill className="red ball" size={10} />
+                    <div className={`white divNotif ${dataAllNotif.filter(e => e.status === null).length >= 100 ? 'sizeNotif2' : 'sizeNotif'}`}>{dataAllNotif.filter(e => e.status === null).length}</div>
                 ) : (
                     <div></div>
                 ) }
@@ -62,8 +73,8 @@ export default function Bell({dataNotif, color}) {
                     See all notifications
                 </div>        
             </DropdownItem>
-            {dataNotif.length > 0 ? (
-                dataNotif.map(item => {
+            {dataAllNotif.length > 0 && dataAllNotif.find(({status}) => status === null) !== undefined ? (
+                dataAllNotif.filter(e => e.status === null).map(item => {
                     return (
                         <DropdownItem 
                             onClick={() => goRoute(item)}
@@ -72,9 +83,8 @@ export default function Bell({dataNotif, color}) {
                                 <FaFileSignature size={90} className="mr-4"/>
                                 <Button className="labelBut" color={item.status === null ? "danger" : "success"} size="sm">{item.status === null ? 'unread' : 'read'}</Button>
                                 <div>
-                                    <div>Request</div>
-                                    <div className="textNotif">{item.keterangan} {item.jenis}</div>
-                                    <div className="textNotif">No transaksi: {item.no_proses}</div>
+                                    <div className="textNotif">{item.proses} ({item.tipe})</div>
+                                    <div className="textNotif">No transaksi: {item.no_transaksi}</div>
                                     <div>{moment(item.createdAt).format('LLL')}</div>
                                 </div>
                             </div>

@@ -100,25 +100,25 @@ class NavMut extends Component {
                                     <>
                                         <div onClick={() => this.goRoute('mutasi')} className="col-12 col-md-6 col-lg-3 mb-4">
                                             <div className={styleHome.navCard}>
-                                                <FiSend size={220} className='mt-4' />
+                                                <FiSend size={150} className='mt-4 mb-4' />
                                                 <p className='mt-4'>Pengajuan mutasi</p>
                                             </div>
                                         </div>
                                         <div onClick={() => this.goRoute('termut')} className="col-12 col-md-6 col-lg-3 mb-4">
                                             <div className={styleHome.navCard}>
-                                                <FaExchangeAlt size={220} className='mt-4' />
+                                                <FaExchangeAlt size={150} className='mt-4 mb-4' />
                                                 <p className='mt-4'>Terima mutasi</p>
                                             </div>
                                         </div>
                                         <div onClick={() => this.goRoute('trackmut')} className="col-12 col-md-6 col-lg-3 mb-4">
                                             <div className={styleHome.navCard}>
-                                                <MdOutlineTrackChanges size={220} className='mt-4' />
+                                                <MdOutlineTrackChanges size={150} className='mt-4 mb-4' />
                                                 <p className='mt-4'>Tracking mutasi</p>
                                             </div>
                                         </div>
                                         <div onClick={() => this.goRoute('revmut')} className="col-12 col-md-6 col-lg-3 mb-4">
                                             <div className={styleHome.navCard}>
-                                                <BiRevision size={220} className='mt-4' />
+                                                <BiRevision size={150} className='mt-4 mb-4' />
                                                 <p className='mt-4'>Revisi dokumen mutasi</p>
                                             </div>
                                         </div>
@@ -127,31 +127,31 @@ class NavMut extends Component {
                                     <>
                                         <div onClick={() => this.goRoute('mutasi')} className="col-12 col-md-6 col-lg-3 mb-4">
                                             <div className={styleHome.navCard}>
-                                                <FiSend size={220} className='mt-4' />
+                                                <FiSend size={150} className='mt-4 mb-4' />
                                                 <p className='mt-4'>Pengajuan mutasi</p>
                                             </div>
                                         </div>
                                         <div onClick={() => this.goRoute('eksmut')} className="col-12 col-md-6 col-lg-3 mb-4">
                                             <div className={styleHome.navCard}>
-                                                <FiTruck size={220} className='mt-4' />
+                                                <FiTruck size={150} className='mt-4 mb-4' />
                                                 <p className='mt-4'>Eksekusi mutasi</p>
                                             </div>
                                         </div>
                                         <div onClick={() => this.goRoute('budmut')} className="col-12 col-md-6 col-lg-3 mb-4">
                                             <div className={styleHome.navCard}>
-                                                <MdVerifiedUser size={220} className='mt-4' />
+                                                <MdVerifiedUser size={150} className='mt-4 mb-4' />
                                                 <p className='mt-4'>Budget mutasi</p>
                                             </div>
                                         </div>
                                         <div onClick={() => this.goRoute('repmut')} className="col-12 col-md-6 col-lg-3 mb-4">
                                             <div className={styleHome.navCard}>
-                                                <HiOutlineDocumentReport size={220} className='mt-4' />
+                                                <HiOutlineDocumentReport size={150} className='mt-4 mb-4' />
                                                 <p className='mt-4'>Report mutasi</p>
                                             </div>
                                         </div>
                                         <div onClick={() => this.goRoute('trackmut')} className="col-12 col-md-6 col-lg-3 mb-4">
                                             <div className={styleHome.navCard}>
-                                                <MdOutlineTrackChanges size={220} className='mt-4' />
+                                                <MdOutlineTrackChanges size={150} className='mt-4 mb-4' />
                                                 <p className='mt-4'>Tracking mutasi</p>
                                             </div>
                                         </div>
@@ -159,7 +159,7 @@ class NavMut extends Component {
                                 ) : level === '8' ? (
                                     <div onClick={() => this.goRoute('budmut')} className="col-12 col-md-6 col-lg-3 mb-4">
                                         <div className={styleHome.navCard}>
-                                            <MdVerifiedUser size={220} className='mt-4' />
+                                            <MdVerifiedUser size={150} className='mt-4 mb-4' />
                                             <p className='mt-4'>Budget mutasi</p>
                                         </div>
                                     </div>
@@ -167,19 +167,19 @@ class NavMut extends Component {
                                     <>
                                         <div onClick={() => this.goRoute('mutasi')} className="col-12 col-md-6 col-lg-3 mb-4">
                                             <div className={styleHome.navCard}>
-                                                <FiSend size={220} className='mt-4' />
+                                                <FiSend size={150} className='mt-4 mb-4' />
                                                 <p className='mt-4'>Pengajuan mutasi</p>
                                             </div>
                                         </div>
                                         <div onClick={() => this.goRoute('termut')} className="col-12 col-md-6 col-lg-3 mb-4">
                                             <div className={styleHome.navCard}>
-                                                <FaExchangeAlt size={220} className='mt-4' />
+                                                <FaExchangeAlt size={150} className='mt-4 mb-4' />
                                                 <p className='mt-4'>Terima mutasi</p>
                                             </div>
                                         </div>
                                         <div onClick={() => this.goRoute('trackmut')} className="col-12 col-md-6 col-lg-3 mb-4">
                                             <div className={styleHome.navCard}>
-                                                <MdOutlineTrackChanges size={220} className='mt-4' />
+                                                <MdOutlineTrackChanges size={150} className='mt-4 mb-4' />
                                                 <p className='mt-4'>Tracking mutasi</p>
                                             </div>
                                         </div>
@@ -188,13 +188,13 @@ class NavMut extends Component {
                                     <>
                                         <div onClick={() => this.goRoute('mutasi')} className="col-12 col-md-6 col-lg-3 mb-4">
                                             <div className={styleHome.navCard}>
-                                                <FiSend size={220} className='mt-4' />
+                                                <FiSend size={150} className='mt-4 mb-4' />
                                                 <p className='mt-4'>Pengajuan mutasi</p>
                                             </div>
                                         </div>
                                         <div onClick={() => this.goRoute('trackmut')} className="col-12 col-md-6 col-lg-3 mb-4">
                                             <div className={styleHome.navCard}>
-                                                <MdOutlineTrackChanges size={220} className='mt-4' />
+                                                <MdOutlineTrackChanges size={150} className='mt-4 mb-4' />
                                                 <p className='mt-4'>Tracking mutasi</p>
                                             </div>
                                         </div>

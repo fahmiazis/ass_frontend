@@ -8,7 +8,7 @@ import { Container, Collapse, Nav, Navbar,
 import logo from "../../assets/img/logo.png"
 import style from '../../assets/css/input.module.css'
 import {FaSearch, FaUserCircle, FaBars} from 'react-icons/fa'
-import {AiOutlineFileExcel, AiFillCheckCircle} from 'react-icons/ai'
+import {AiOutlineFileExcel, AiFillCheckCircle, AiOutlineInbox} from 'react-icons/ai'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
 import depo from '../../redux/actions/depo'
@@ -19,6 +19,11 @@ import Sidebar from "../../components/Header";
 import MaterialTitlePanel from "../../components/material_title_panel";
 import SidebarContent from "../../components/sidebar_content";
 import NavBar from '../../components/NavBar'
+import ExcelJS from "exceljs"
+import fs from "file-saver"
+import moment from 'moment'
+import styleTrans from '../../assets/css/transaksi.module.css'
+import NewNavbar from '../../components/NewNavbar'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const depoSchema = Yup.object().shape({
@@ -71,10 +76,201 @@ class MasterDepo extends Component {
             errMsg: '',
             fileUpload: '',
             limit: 10,
-            search: ''
+            search: '',
+            listDepo: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+    }
+
+    prosesSidebar = (val) => {
+        this.setState({sidebarOpen: val})
+    }
+    
+    goRoute = (val) => {
+        this.props.history.push(`/${val}`)
+    }
+
+    chekApp = (val) => {
+        const { listDepo } = this.state
+        const {dataDepo} = this.props.depo
+        if (val === 'all') {
+            const data = []
+            for (let i = 0; i < dataDepo.length; i++) {
+                data.push(dataDepo[i].id)
+            }
+            this.setState({listDepo: data})
+        } else {
+            listDepo.push(val)
+            this.setState({listDepo: listDepo})
+        }
+    }
+
+    chekRej = (val) => {
+        const {listDepo} = this.state
+        if (val === 'all') {
+            const data = []
+            this.setState({listDepo: data})
+        } else {
+            const data = []
+            for (let i = 0; i < listDepo.length; i++) {
+                if (listDepo[i] === val) {
+                    data.push()
+                } else {
+                    data.push(listDepo[i])
+                }
+            }
+            this.setState({listDepo: data})
+        }
+    }
+
+    downloadTemplate = () => {
+        const {listDepo} = this.state
+        const {dataDepo} = this.props.depo
+        const dataDownload = []
+
+        const workbook = new ExcelJS.Workbook();
+        const ws = workbook.addWorksheet('data depo')
+
+        // await ws.protect('F1n4NcePm4')
+
+        const borderStyles = {
+            top: {style:'thin'},
+            left: {style:'thin'},
+            bottom: {style:'thin'},
+            right: {style:'thin'}
+        }
+        
+
+        ws.columns = [
+            {header: 'Kode Area', key: 'c2'},
+            {header: 'Home Town', key: 'c3'},
+            {header: 'Channel', key: 'c4'},
+            {header: 'Distribution', key: 'c5'},
+            {header: 'Status Depo', key: 'c6'},
+            {header: 'Profit Center', key: 'c7'},
+            {header: 'Cost Center', key: 'c8'},
+            {header: 'Kode SAP 1', key: 'c9'},
+            {header: 'Kode SAP 2', key: 'c10'},
+            {header: 'Nama NOM', key: 'c11'},
+            {header: 'Nama OM', key: 'c12'},
+            {header: 'Nama BM', key: 'c13'},
+            {header: 'Nama AOS', key: 'c14'},
+            {header: 'Nama PIC 1', key: 'c15'},
+            {header: 'Nama PIC 2', key: 'c16'},
+            {header: 'Nama PIC 3', key: 'c17'},
+            {header: 'Nama PIC 4', key: 'c18'},
+            {header: 'Nama Assistant Manager', key: 'c19'}
+        ]
+
+        ws.eachRow({ includeEmpty: true }, function(row, rowNumber) {
+            row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
+              cell.border = borderStyles;
+            })
+          })
+
+          ws.columns.forEach(column => {
+            const lengths = column.values.map(v => v.toString().length)
+            const maxLength = Math.max(...lengths.filter(v => typeof v === 'number'))
+            column.width = maxLength + 5
+        })
+
+        workbook.xlsx.writeBuffer().then(function(buffer) {
+            fs.saveAs(
+              new Blob([buffer], { type: "application/octet-stream" }),
+              `Template Master Depo.xlsx`
+            );
+          });
+    }
+
+    downloadData = () => {
+        const {listDepo} = this.state
+        const {dataDepo} = this.props.depo
+        const dataDownload = []
+        for (let i = 0; i < listDepo.length; i++) {
+            for (let j = 0; j < dataDepo.length; j++) {
+                if (dataDepo[j].id === listDepo[i]) {
+                    dataDownload.push(dataDepo[j])
+                }
+            }
+        }
+
+        const workbook = new ExcelJS.Workbook();
+        const ws = workbook.addWorksheet('data depo')
+
+        // await ws.protect('F1n4NcePm4')
+
+        const borderStyles = {
+            top: {style:'thin'},
+            left: {style:'thin'},
+            bottom: {style:'thin'},
+            right: {style:'thin'}
+        }
+        
+
+        ws.columns = [
+            {header: 'Kode Area', key: 'c2'},
+            {header: 'Home Town', key: 'c3'},
+            {header: 'Channel', key: 'c4'},
+            {header: 'Distribution', key: 'c5'},
+            {header: 'Status Depo', key: 'c6'},
+            {header: 'Profit Center', key: 'c7'},
+            {header: 'Cost Center', key: 'c8'},
+            {header: 'Kode SAP 1', key: 'c9'},
+            {header: 'Kode SAP 2', key: 'c10'},
+            {header: 'Nama NOM', key: 'c11'},
+            {header: 'Nama OM', key: 'c12'},
+            {header: 'Nama BM', key: 'c13'},
+            {header: 'Nama AOS', key: 'c14'},
+            {header: 'Nama PIC 1', key: 'c15'},
+            {header: 'Nama PIC 2', key: 'c16'},
+            {header: 'Nama PIC 3', key: 'c17'},
+            {header: 'Nama PIC 4', key: 'c18'},
+            {header: 'Nama Assistant Manager', key: 'c19'}
+        ]
+
+        dataDownload.map((item, index) => { return ( ws.addRow(
+            {
+                c2: item.kode_plant,
+                c3: item.nama_area,
+                c4: item.channel,
+                c5: item.distribution,
+                c6: item.status_area,
+                c7: item.profit_center,
+                c8: item.cost_center,
+                c9: item.kode_sap_1,
+                c10: item.kode_sap_2,
+                c11: item.nama_nom,
+                c12: item.nama_om,
+                c13: item.nama_bm,
+                c14: item.nama_aos,
+                c15: item.nama_pic_1,
+                c16: item.nama_pic_2,
+                c17: item.nama_pic_3,
+                c18: item.nama_pic_4,
+                c19: item.nama_asman
+            }
+        )
+        ) })
+
+        ws.eachRow({ includeEmpty: true }, function(row, rowNumber) {
+            row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
+              cell.border = borderStyles;
+            })
+          })
+
+          ws.columns.forEach(column => {
+            const lengths = column.values.map(v => v.toString().length)
+            const maxLength = Math.max(...lengths.filter(v => typeof v === 'number'))
+            column.width = maxLength + 5
+        })
+
+        workbook.xlsx.writeBuffer().then(function(buffer) {
+            fs.saveAs(
+              new Blob([buffer], { type: "application/octet-stream" }),
+              `Master Depo ${moment().format('DD MMMM YYYY')}.xlsx`
+            );
+          });
     }
 
     next = async () => {
@@ -97,21 +293,6 @@ class MasterDepo extends Component {
                 alert: false
             })
          }, 10000)
-    }
-
-    DownloadTemplate = () => {
-        axios({
-            url: `${REACT_APP_BACKEND_URL}/masters/depo.xlsx`,
-            method: 'GET',
-            responseType: 'blob',
-        }).then((response) => {
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', "depo.xlsx");
-            document.body.appendChild(link);
-            link.click();
-        });
     }
 
     uploadAlert = () => {
@@ -270,8 +451,8 @@ class MasterDepo extends Component {
     }
 
     render() {
-        const {dropOpen, detail, upload, errMsg} = this.state
-        const {dataDepo, isGet, alertM, alertMsg, alertUpload, page} = this.props.depo
+        const {dropOpen, detail, upload, errMsg, listDepo} = this.state
+        const {dataDepo, isGet, alertM, alertMsg, alertUpload, page } = this.props.depo
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
 
@@ -304,7 +485,7 @@ class MasterDepo extends Component {
           };
         return (
             <>
-                <Sidebar {...sidebarProps}>
+                {/* <Sidebar {...sidebarProps}>
                     <MaterialTitlePanel title={contentHeader}>
                         <div className={style.backgroundLogo}>
                             <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
@@ -339,13 +520,13 @@ class MasterDepo extends Component {
                                         <text className={style.textEntries}>entries</text>
                                     </div>
                                 </div>
-                                <div className={style.secEmail}>
-                                    <div className={style.headEmail}>
-                                        <Button onClick={this.openModalAdd} color="primary" size="lg">Add</Button>
-                                        <Button onClick={this.openModalUpload} color="warning" size="lg">Upload</Button>
+                                <div className='secEmail mt-4 mb-4'>
+                                    <div className='rowCenter'>
+                                        <Button onClick={this.openModalAdd} color="primary" size="lg" className='mr-1'>Add</Button>
+                                        <Button onClick={this.openModalUpload} color="warning" size="lg" className='mr-1'>Upload</Button>
                                         <Button color="success" size="lg" onClick={this.ExportMaster}>Download</Button>
                                     </div>
-                                    <div className={style.searchEmail}>
+                                    <div className={style.searchEmail2}>
                                         <text>Search: </text>
                                         <Input 
                                         className={style.search}
@@ -357,13 +538,13 @@ class MasterDepo extends Component {
                                         </Input>
                                     </div>
                                 </div>
-                                {isGet === false ? (
+                                {dataDepo.length === 0  ? (
                                     <div className={style.tableDashboard}>
                                     <Table bordered responsive hover className={style.tab}>
                                         <thead>
                                             <tr>
                                                 <th>No</th>
-                                                <th>Kode Plant</th>
+                                                <th>Kode Area</th>
                                                 <th>Nama Area</th>
                                                 <th>Channel</th>
                                                 <th>Distribution</th>
@@ -380,15 +561,13 @@ class MasterDepo extends Component {
                                                 <th>Nama PIC 2</th>
                                                 <th>Nama PIC 3</th>
                                                 <th>Nama PIC 4</th>
+                                                <th>Nama ASMAN</th>
                                             </tr>
                                         </thead>
                                     </Table>
-                                    <div className={style.spin}>
-                                            <Spinner type="grow" color="primary"/>
-                                            <Spinner type="grow" className="mr-3 ml-3" color="success"/>
-                                            <Spinner type="grow" color="warning"/>
-                                            <Spinner type="grow" className="mr-3 ml-3" color="danger"/>
-                                            <Spinner type="grow" color="info"/>
+                                    <div className={style.spinCol}>
+                                        <AiOutlineInbox size={50} className='secondary mb-4' />
+                                        <div className='textInfo'>Data depo tidak ditemukan</div>
                                     </div>
                                     </div>
                                 ) : (
@@ -396,8 +575,8 @@ class MasterDepo extends Component {
                                     <Table bordered responsive hover className={style.tab}>
                                         <thead>
                                             <tr>
-                                            <th>No</th>
-                                                <th>Kode Plant</th>
+                                                <th>No</th>
+                                                <th>Kode Area</th>
                                                 <th>Nama Area</th>
                                                 <th>Channel</th>
                                                 <th>Distribution</th>
@@ -414,6 +593,7 @@ class MasterDepo extends Component {
                                                 <th>Nama PIC 2</th>
                                                 <th>Nama PIC 3</th>
                                                 <th>Nama PIC 4</th>
+                                                <th>Nama ASMAN</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -438,6 +618,7 @@ class MasterDepo extends Component {
                                                     <td>{item.nama_pic_2}</td>
                                                     <td>{item.nama_pic_3}</td>
                                                     <td>{item.nama_pic_4}</td>
+                                                    <td>{item.nama_asman}</td>
                                                 </tr>
                                                 )})}
                                         </tbody>
@@ -456,7 +637,144 @@ class MasterDepo extends Component {
                             </div>
                         </div>
                     </MaterialTitlePanel>
-                </Sidebar>
+                </Sidebar> */}
+                <div className={styleTrans.app}>
+                    <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
+
+                    <div className={`${styleTrans.mainContent} ${this.state.sidebarOpen ? styleTrans.collapsedContent : ''}`}>
+                        <h2 className={styleTrans.pageTitle}>Master Depo</h2>
+                        
+                        <div className={styleTrans.searchContainer}>
+                            <div>
+                                <text>Show: </text>
+                                <ButtonDropdown className={style.drop} isOpen={dropOpen} toggle={this.dropDown}>
+                                <DropdownToggle caret color="light">
+                                    {this.state.limit}
+                                </DropdownToggle>
+                                <DropdownMenu>
+                                    <DropdownItem className={style.item} onClick={() => this.getDataDepo({limit: 10, search: ''})}>10</DropdownItem>
+                                    <DropdownItem className={style.item} onClick={() => this.getDataDepo({limit: 20, search: ''})}>20</DropdownItem>
+                                    <DropdownItem className={style.item} onClick={() => this.getDataDepo({limit: 50, search: ''})}>50</DropdownItem>
+                                    <DropdownItem className={style.item} onClick={() => this.getDataDepo({limit: 100, search: ''})}>100</DropdownItem>
+                                    <DropdownItem className={style.item} onClick={() => this.getDataDepo({limit: 200, search: ''})}>200</DropdownItem>
+                                    <DropdownItem className={style.item} onClick={() => this.getDataDepo({limit: 500, search: ''})}>500</DropdownItem>
+                                    <DropdownItem className={style.item} onClick={() => this.getDataDepo({limit: 1000, search: ''})}>1000</DropdownItem>
+                                    <DropdownItem className={style.item} onClick={() => this.getDataDepo({limit: 'all', search: ''})}>All</DropdownItem>
+                                </DropdownMenu>
+                                </ButtonDropdown>
+                                <text className={style.textEntries}>entries</text>
+                            </div>
+                        </div>
+                        <div className={styleTrans.searchContainer}>
+                            <div className='rowCenter'>
+                                <Button onClick={this.openModalAdd} color="primary" size="lg" className='mr-1'>Add</Button>
+                                <Button onClick={this.openModalUpload} color="warning" size="lg" className='mr-1'>Upload</Button>
+                                <Button color="success" size="lg" onClick={this.downloadData}>Download</Button>
+                            </div>
+                            <div className={style.searchEmail2}>
+                                <text>Search: </text>
+                                <Input 
+                                className={style.search}
+                                onChange={this.onSearch}
+                                value={this.state.search}
+                                onKeyPress={this.onSearch}
+                                >
+                                    <FaSearch size={20} />
+                                </Input>
+                            </div>
+                        </div>
+
+                        <table className={`${styleTrans.table} ${dataDepo.length > 0 ? styleTrans.tableFull : ''}`}>
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <input  
+                                        className='mr-2'
+                                        type='checkbox'
+                                        checked={listDepo.length === 0 ? false : listDepo.length === dataDepo.length ? true : false}
+                                        onChange={() => listDepo.length === dataDepo.length ? this.chekRej('all') : this.chekApp('all')}
+                                        />
+                                        {/* Select */}
+                                    </th>
+                                    <th>No</th>
+                                    <th>Kode Area</th>
+                                    <th>Home Town</th>
+                                    <th>Channel</th>
+                                    <th>Distribution</th>
+                                    <th>Status Depo</th>
+                                    <th>Profit Center</th>
+                                    <th>Cost Center</th>
+                                    <th>Kode SAP 1</th>
+                                    <th>Kode SAP 2</th>
+                                    <th>Nama NOM</th>
+                                    <th>Nama OM</th>
+                                    <th>Nama BM</th>
+                                    <th>Nama AOS</th>
+                                    <th>Nama PIC 1</th>
+                                    <th>Nama PIC 2</th>
+                                    <th>Nama PIC 3</th>
+                                    <th>Nama PIC 4</th>
+                                    <th>Nama Assistant Manager</th>
+                                    <th>Opsi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {dataDepo.length !== 0 && dataDepo.map((item, index) => {
+                                    return (
+                                        <tr>
+                                             <td>
+                                                <input 
+                                                type='checkbox'
+                                                checked={listDepo.find(element => element === item.id) !== undefined ? true : false}
+                                                onChange={listDepo.find(element => element === item.id) === undefined ? () => this.chekApp(item.id) : () => this.chekRej(item.id)}
+                                                />
+                                            </td>
+                                            <td scope="row">{(dataDepo.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</td>
+                                            <td>{item.kode_plant}</td>
+                                            <td>{item.nama_area}</td>
+                                            <td>{item.channel}</td>
+                                            <td>{item.distribution}</td>
+                                            <td>{item.status_area}</td>
+                                            <td>{item.profit_center}</td>
+                                            <td>{item.cost_center}</td>
+                                            <td>{item.kode_sap_1}</td>
+                                            <td>{item.kode_sap_2}</td>
+                                            <td>{item.nama_nom}</td>
+                                            <td>{item.nama_om}</td>
+                                            <td>{item.nama_bm}</td>
+                                            <td>{item.nama_aos}</td>
+                                            <td>{item.nama_pic_1}</td>
+                                            <td>{item.nama_pic_2}</td>
+                                            <td>{item.nama_pic_3}</td>
+                                            <td>{item.nama_pic_4}</td>
+                                            <td>{item.nama_asman}</td>
+                                            <td>
+                                                <Button onClick={() => this.openModalEdit(this.setState({detail: item}))} color='success'>
+                                                    Detail
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </table>
+                        {dataDepo.length === 0 && (
+                            <div className={style.spinCol}>
+                                <AiOutlineInbox size={50} className='mb-4' />
+                                <div className='textInfo'>Data area tidak ditemukan</div>
+                            </div>
+                        )}
+                        <div>
+                            <div className={style.infoPageEmail1}>
+                                <text>Showing {page.currentPage} of {page.pages} pages</text>
+                                <div className={style.pageButton}>
+                                    <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
+                                    <button className={style.btnPrev} color="info" disabled={page.nextLink === null ? true : false} onClick={this.next}>Next</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <Modal toggle={this.openModalAdd} isOpen={this.state.modalAdd} size="lg">
                     <ModalHeader toggle={this.openModalAdd}>Add Master Depo</ModalHeader>
                     <Formik
@@ -787,7 +1105,7 @@ class MasterDepo extends Component {
                     )}
                     </Formik>
                 </Modal>
-                <Modal toggle={this.openModalEdit} isOpen={this.state.modalEdit} size="lg">
+                <Modal toggle={this.openModalEdit} isOpen={this.state.modalEdit} size="xl">
                     <ModalHeader toggle={this.openModalEdit}>Edit Master Depo</ModalHeader>
                     <Formik
                     initialValues={{
@@ -1123,14 +1441,13 @@ class MasterDepo extends Component {
                             </div>
                         </div>
                     </ModalBody>
-                    <hr/>
-                        <div className={style.foot}>
-                            <div></div>
-                            <div>
-                                <Button className="mr-2" onClick={handleSubmit} color="primary">Save</Button>
-                                <Button className="mr-5" onClick={this.openModalEdit}>Cancel</Button>
-                            </div>
+                    <ModalFooter>
+                        <div></div>
+                        <div>
+                            <Button className="mr-2" onClick={handleSubmit} color="primary">Save</Button>
+                            <Button className="mr-5" onClick={this.openModalEdit}>Cancel</Button>
                         </div>
+                    </ModalFooter>
                     </div>
                     )}
                     </Formik>
@@ -1153,7 +1470,7 @@ class MasterDepo extends Component {
                             </div>
                         </div>
                         <div className={style.btnUpload}>
-                            <Button color="info" onClick={this.DownloadTemplate}>Download Template</Button>
+                            <Button color="info" onClick={this.downloadTemplate}>Download Template</Button>
                             <Button color="primary" disabled={this.state.fileUpload === "" ? true : false } onClick={this.uploadMaster}>Upload</Button>
                             <Button onClick={this.openModalUpload}>Cancel</Button>
                         </div>

@@ -7,7 +7,7 @@ import { Container, Collapse, Nav, Navbar,
 import logo from "../../assets/img/logo.png"
 import style from '../../assets/css/input.module.css'
 import {FaSearch, FaUserCircle, FaBars} from 'react-icons/fa'
-import {AiOutlineFileExcel, AiFillCheckCircle} from 'react-icons/ai'
+import {AiOutlineFileExcel, AiFillCheckCircle, AiOutlineInbox} from 'react-icons/ai'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
 import asset from '../../redux/actions/asset'
@@ -19,6 +19,10 @@ import Sidebar from "../../components/Header";
 import MaterialTitlePanel from "../../components/material_title_panel";
 import SidebarContent from "../../components/sidebar_content";
 import NavBar from '../../components/NavBar'
+import styleTrans from '../../assets/css/transaksi.module.css'
+import NewNavbar from '../../components/NewNavbar'
+import ExcelJS from "exceljs"
+import fs from "file-saver"
 const {REACT_APP_BACKEND_URL} = process.env
 
 const dokumenSchema = Yup.object().shape({
@@ -58,10 +62,136 @@ class Asset extends Component {
             errMsg: '',
             fileUpload: '',
             limit: 10,
-            search: ''
+            search: '',
+            listAsset: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+    }
+
+    prosesSidebar = (val) => {
+        this.setState({sidebarOpen: val})
+    }
+    
+    goRoute = (val) => {
+        this.props.history.push(`/${val}`)
+    }
+
+    chekApp = (val) => {
+        const { listAsset } = this.state
+        const {dataAsset} = this.props.asset
+        if (val === 'all') {
+            const data = []
+            for (let i = 0; i < dataAsset.length; i++) {
+                data.push(dataAsset[i].id)
+            }
+            this.setState({listAsset: data})
+        } else {
+            listAsset.push(val)
+            this.setState({listAsset: listAsset})
+        }
+    }
+
+    chekRej = (val) => {
+        const {listAsset} = this.state
+        if (val === 'all') {
+            const data = []
+            this.setState({listAsset: data})
+        } else {
+            const data = []
+            for (let i = 0; i < listAsset.length; i++) {
+                if (listAsset[i] === val) {
+                    data.push()
+                } else {
+                    data.push(listAsset[i])
+                }
+            }
+            this.setState({listAsset: data})
+        }
+    }
+
+    downloadData = () => {
+        const {listAsset} = this.state
+        const {dataAsset} = this.props.asset
+        const dataDownload = []
+        for (let i = 0; i < listAsset.length; i++) {
+            for (let j = 0; j < dataAsset.length; j++) {
+                if (dataAsset[j].id === listAsset[i]) {
+                    dataDownload.push(dataAsset[j])
+                }
+            }
+        }
+
+        const workbook = new ExcelJS.Workbook();
+        const ws = workbook.addWorksheet('data aset')
+
+        // await ws.protect('F1n4NcePm4')
+
+        const borderStyles = {
+            top: {style:'thin'},
+            left: {style:'thin'},
+            bottom: {style:'thin'},
+            right: {style:'thin'}
+        }
+        
+
+        ws.columns = [
+            {header: 'Asset', key: 'c2'},
+            {header: 'SNo.', key: 'c3'},
+            {header: 'Cap.Date', key: 'c4'},
+            {header: 'Asset Description', key: 'c5'},
+            {header: 'Acquis.val.', key: 'c6'},
+            {header: 'Accum.dep.', key: 'c7'},
+            {header: 'Book val.', key: 'c8'},
+            {header: 'Plant', key: 'c9'},
+            {header: 'Cost Ctr', key: 'c10'},
+            {header: 'Cost Ctr Name', key: 'c11'},
+            {header: 'MERK', key: 'c12'},
+            {header: 'SATUAN', key: 'c13'},
+            {header: 'JUMLAH', key: 'c14'},
+            {header: 'LOKASI', key: 'c15'},
+            {header: 'KATEGORI', key: 'c16'}
+        ]
+
+        dataDownload.map((item, index) => { return ( ws.addRow(
+            {
+                c2: item.no_asset,
+                c3: item.no_doc,
+                c4: moment(item.tanggal).format('DD/MM/YYYY'),
+                c5: item.nama_asset,
+                c6: item.nilai_acquis,
+                c7: item.accum_dep,
+                c8: item.nilai_buku,
+                c9: item.kode_plant,
+                c10: item.cost_center,
+                c11: item.area,
+                c12: item.merk,
+                c13: item.satuan,
+                c14: item.unit,
+                c15: item.lokasi,
+                c16: item.kategori
+            }
+        )
+        ) })
+
+        ws.eachRow({ includeEmpty: true }, function(row, rowNumber) {
+            row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
+              cell.border = borderStyles;
+            })
+          })
+
+          ws.columns.forEach(column => {
+            const lengths = column.values.map(v => v.toString().length)
+            const maxLength = Math.max(...lengths.filter(v => typeof v === 'number'))
+            column.width = maxLength + 5
+        })
+
+        workbook.xlsx.writeBuffer().then(function(buffer) {
+            fs.saveAs(
+              new Blob([buffer], { type: "application/octet-stream" }),
+              `Data Asset ${moment().format('DD MMMM YYYY')}.xlsx`
+            );
+          });
     }
 
     showAlert = () => {
@@ -104,19 +234,60 @@ class Asset extends Component {
         this.setState({modalConfirm: !this.state.modalConfirm})
     }
 
-    DownloadTemplate = () => {
-        axios({
-            url: `${REACT_APP_BACKEND_URL}/masters/dokumen.xlsx`,
-            method: 'GET',
-            responseType: 'blob',
-        }).then((response) => {
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', "dokumen.xlsx");
-            document.body.appendChild(link);
-            link.click();
-        });
+    downloadTemplate = () => {
+        const {listAsset} = this.state
+        const {dataAsset} = this.props.asset
+        const dataDownload = []
+
+        const workbook = new ExcelJS.Workbook();
+        const ws = workbook.addWorksheet('data aset')
+
+        // await ws.protect('F1n4NcePm4')
+
+        const borderStyles = {
+            top: {style:'thin'},
+            left: {style:'thin'},
+            bottom: {style:'thin'},
+            right: {style:'thin'}
+        }
+        
+
+        ws.columns = [
+            {header: 'Asset', key: 'c2'},
+            {header: 'SNo.', key: 'c3'},
+            {header: 'Cap.Date', key: 'c4'},
+            {header: 'Asset Description', key: 'c5'},
+            {header: 'Acquis.val.', key: 'c6'},
+            {header: 'Accum.dep.', key: 'c7'},
+            {header: 'Book val.', key: 'c8'},
+            {header: 'Plant', key: 'c9'},
+            {header: 'Cost Ctr', key: 'c10'},
+            {header: 'Cost Ctr Name', key: 'c11'},
+            {header: 'MERK', key: 'c12'},
+            {header: 'SATUAN', key: 'c13'},
+            {header: 'JUMLAH', key: 'c14'},
+            {header: 'LOKASI', key: 'c15'},
+            {header: 'KATEGORI', key: 'c16'}
+        ]
+
+        ws.eachRow({ includeEmpty: true }, function(row, rowNumber) {
+            row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
+              cell.border = borderStyles;
+            })
+          })
+
+          ws.columns.forEach(column => {
+            const lengths = column.values.map(v => v.toString().length)
+            const maxLength = Math.max(...lengths.filter(v => typeof v === 'number'))
+            column.width = maxLength + 5
+        })
+
+        workbook.xlsx.writeBuffer().then(function(buffer) {
+            fs.saveAs(
+              new Blob([buffer], { type: "application/octet-stream" }),
+              `Template Upload Asset.xlsx`
+            );
+          });
     }
 
     dropDown = () => {
@@ -193,7 +364,12 @@ class Asset extends Component {
         const token = localStorage.getItem('token')
         const data = new FormData()
         data.append('master', this.state.fileUpload)
-        await this.props.uploadMaster(token, data)
+        await this.props.uploadMasterAsset(token, data)
+        this.props.resetError()
+        this.setState({modalUpload: false})
+        this.setState({confirm: 'upload'})
+        this.openConfirm()
+        this.getDataAsset()
     }
 
     editDokumen = async (values, id) => {
@@ -215,15 +391,17 @@ class Asset extends Component {
         if (isError) {
             this.props.resetError()
             this.showAlert()
-        } else if (isUpload) {
-            setTimeout(() => {
-                this.props.resetError()
-                this.setState({modalUpload: false})
-             }, 2000)
-             setTimeout(() => {
-                this.getDataAsset()
-             }, 2100)
-        } else if (isExport) {
+        } 
+        // else if (isUpload) {
+        //     setTimeout(() => {
+        //         this.props.resetError()
+        //         this.setState({modalUpload: false})
+        //      }, 2000)
+        //      setTimeout(() => {
+        //         this.getDataAsset()
+        //      }, 2100)
+        // } 
+        else if (isExport) {
             this.props.resetError()
             this.DownloadMaster()
         }
@@ -259,7 +437,7 @@ class Asset extends Component {
     }
 
     render() {
-        const {isOpen, dropOpen, dropOpenNum, detail, alert, upload, errMsg} = this.state
+        const {isOpen, dropOpen, dropOpenNum, detail, alert, upload, errMsg, listAsset} = this.state
         const {dataAsset, isGet, alertM, alertMsg, alertUpload, page} = this.props.asset
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
@@ -293,7 +471,7 @@ class Asset extends Component {
           };
         return (
             <>
-                <Sidebar {...sidebarProps}>
+                {/* <Sidebar {...sidebarProps}>
                     <MaterialTitlePanel title={contentHeader}>
                         <div className={style.backgroundLogo}>
                             <Alert color="danger" className={style.alertWrong} isOpen={alert}>
@@ -404,7 +582,133 @@ class Asset extends Component {
                             </div>
                         </div>
                     </MaterialTitlePanel>
-                </Sidebar>
+                </Sidebar> */}
+                <div className={styleTrans.app}>
+                    <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
+
+                    <div className={`${styleTrans.mainContent} ${this.state.sidebarOpen ? styleTrans.collapsedContent : ''}`}>
+                        <h2 className={styleTrans.pageTitle}>My Asset</h2>
+                        
+                        <div className={styleTrans.searchContainer}>
+                            <div>
+                                <text>Show: </text>
+                                <ButtonDropdown className={style.drop} isOpen={dropOpen} toggle={this.dropDown}>
+                                <DropdownToggle caret color="light">
+                                    {this.state.limit}
+                                </DropdownToggle>
+                                <DropdownMenu>
+                                    <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 10, search: ''})}>10</DropdownItem>
+                                    <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 20, search: ''})}>20</DropdownItem>
+                                    <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 50, search: ''})}>50</DropdownItem>
+                                    <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 100, search: ''})}>100</DropdownItem>
+                                    <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 200, search: ''})}>200</DropdownItem>
+                                    <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 500, search: ''})}>500</DropdownItem>
+                                    <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 1000, search: ''})}>1000</DropdownItem>
+                                    <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 'all', search: ''})}>All</DropdownItem>
+                                </DropdownMenu>
+                                </ButtonDropdown>
+                            </div>
+                        </div>
+                        
+                        <div className={styleTrans.searchContainer}>
+                            <div className='rowGeneral'>
+                                <Button color="success" size="lg" onClick={this.downloadData}>Download</Button>
+                                {level === '1' && (
+                                    <Button className='ml-2' color="warning" size="lg" onClick={this.openModalUpload}>Upload</Button>
+                                )}
+                            </div>
+                            <div className={style.searchEmail2}>
+                                <text>Search: </text>
+                                <Input 
+                                className={style.search}
+                                onChange={this.onSearch}
+                                value={this.state.search}
+                                onKeyPress={this.onSearch}
+                                >
+                                    <FaSearch size={20} />
+                                </Input>
+                            </div>
+                        </div>
+
+                        <table className={`${styleTrans.table} ${dataAsset.length > 0 ? styleTrans.tableFull : ''}`}>
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <input  
+                                        className='mr-2'
+                                        type='checkbox'
+                                        checked={listAsset.length === 0 ? false : listAsset.length === dataAsset.length ? true : false}
+                                        onChange={() => listAsset.length === dataAsset.length ? this.chekRej('all') : this.chekApp('all')}
+                                        />
+                                        {/* Select */}
+                                    </th>
+                                    <th>No</th>
+                                    <th>Asset</th>
+                                    <th>SNo.</th>
+                                    <th>Cap.Date</th>
+                                    <th>Asset Description</th>
+                                    <th>Acquis.val.</th>
+                                    <th>Accum.dep.</th>
+                                    <th>Book val.</th>
+                                    <th>Plant</th>
+                                    <th>Cost Ctr</th>
+                                    <th>Cost Ctr Name</th>
+                                    <th>MERK</th>
+                                    <th>SATUAN</th>
+                                    <th>JUMLAH</th>
+                                    <th>LOKASI</th>
+                                    <th>KATEGORI</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {dataAsset.length !== 0 && dataAsset.map((item, index) => {
+                                    return (
+                                        <tr>
+                                            <td>
+                                                <input 
+                                                type='checkbox'
+                                                checked={listAsset.find(element => element === item.id) !== undefined ? true : false}
+                                                onChange={listAsset.find(element => element === item.id) === undefined ? () => this.chekApp(item.id) : () => this.chekRej(item.id)}
+                                                />
+                                            </td>
+                                            <td scope="row">{(dataAsset.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</td>
+                                            <td>{item.no_asset}</td>
+                                            <td>{item.no_doc}</td>
+                                            <td>{moment(item.tanggal).format('DD/MM/YYYY')}</td>
+                                            <td>{item.nama_asset}</td>
+                                            <td>{item.nilai_acquis}</td>
+                                            <td>{item.accum_dep}</td>
+                                            <td>{item.nilai_buku}</td>
+                                            <td>{item.kode_plant}</td>
+                                            <td>{item.cost_center}</td>
+                                            <td>{item.area}</td>
+                                            <td>{item.merk}</td>
+                                            <td>{item.satuan}</td>
+                                            <td>{item.unit}</td>
+                                            <td>{item.lokasi}</td>
+                                            <td>{item.kategori}</td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </table>
+                        {dataAsset.length === 0 && (
+                            <div className={style.spinCol}>
+                                <AiOutlineInbox size={50} className='mb-4' />
+                                <div className='textInfo'>Data asset tidak ditemukan</div>
+                            </div>
+                        )}
+                        <div>
+                            <div className={style.infoPageEmail1}>
+                                <text>Showing {page.currentPage} of {page.pages} pages</text>
+                                <div className={style.pageButton}>
+                                    <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
+                                    <button className={style.btnPrev} color="info" disabled={page.nextLink === null ? true : false} onClick={this.next}>Next</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <Modal toggle={this.openModalAdd} isOpen={this.state.modalAdd} size="lg">
                     <ModalHeader toggle={this.openModalAdd}>Add Master Dokumen</ModalHeader>
                     <Formik
@@ -487,6 +791,30 @@ class Asset extends Component {
                     </ModalBody>
                     )}
                     </Formik>
+                </Modal>
+                <Modal toggle={this.openModalUpload} isOpen={this.state.modalUpload} >
+                    <ModalHeader>Upload Master Asset</ModalHeader>
+                    <ModalBody className={style.modalUpload}>
+                        <div className={style.titleModalUpload}>
+                            <text>Upload File: </text>
+                            <div className={style.uploadFileInput}>
+                                <AiOutlineFileExcel size={35} />
+                                <div className="ml-3">
+                                    <Input
+                                    type="file"
+                                    name="file"
+                                    accept=".xls,.xlsx"
+                                    onChange={this.onChangeHandler}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className={style.btnUpload}>
+                            <Button color="info" onClick={this.downloadTemplate}>Download Template</Button>
+                            <Button color="primary" disabled={this.state.fileUpload === "" ? true : false } onClick={this.uploadMaster}>Upload</Button>
+                            <Button onClick={this.openModalUpload}>Cancel</Button>
+                        </div>
+                    </ModalBody>
                 </Modal>
                 <Modal toggle={this.openModalEdit} isOpen={this.state.modalEdit} size="lg">
                     <ModalHeader toggle={this.openModalEdit}>Edit Master Dokumen</ModalHeader>
@@ -581,6 +909,37 @@ class Asset extends Component {
                         </div>
                         </ModalBody>
                 </Modal>
+                <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="sm">
+                    <ModalBody>
+                        {this.state.confirm === 'edit' ? (
+                        <div className={style.cekUpdate}>
+                            <AiFillCheckCircle size={80} className={style.green} />
+                            <div className={style.sucUpdate}>Berhasil Memperbarui Asset</div>
+                        </div>
+                        ) : this.state.confirm === 'add' ? (
+                            <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={style.sucUpdate}>Berhasil Menambahkan Asset</div>
+                            </div>
+                        ) : this.state.confirm === 'upload' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={style.sucUpdate}>Berhasil Mengupload Master Asset</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'reset' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={style.sucUpdate}>Berhasil Mereset Password</div>
+                            </div>
+                            </div>
+                        ) : (
+                            <div></div>
+                        )}
+                    </ModalBody>
+                </Modal>
             </>
         )
     }
@@ -594,6 +953,7 @@ const mapDispatchToProps = {
     logout: auth.logout,
     getAsset: asset.getAsset,
     resetError: asset.resetError,
+    uploadMasterAsset: asset.uploadMasterAsset,
     nextPage: asset.nextPage
 }
 

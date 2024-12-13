@@ -1,5 +1,7 @@
 import React, { useState } from "react"
 import { Document, Page, pdfjs } from "react-pdf"
+import FormIo from './Pengadaan/FormIo'
+
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`
 const {REACT_APP_BACKEND_URL} = process.env
 const filePict = ['png', 'jpg', 'jpeg', 'bmp']
@@ -11,17 +13,18 @@ export default function AllPages(props) {
     setNumPages(numPages)
   }
 
-  const { pdf, dataFile } = props
-  const genData = dataFile === undefined ? 'file.pdf' : dataFile.path.split('/')
-  const cekDoc = genData[2].split('.')
+  const { pdf, dataFile, noDoc, noTrans, detailForm } = props
+  const genData = dataFile === undefined ? ['file.pdf'] : dataFile.path.split('/')
+  const cekDoc = genData[genData.length - 1].split('.')
+  const cekPr = genData.find(item => item === 'printPR')
   console.log(cekDoc)
   console.log(cekDoc[cekDoc.length - 1])
   return (
-    filePict.find(item => item === cekDoc[cekDoc.length - 1]) !== undefined ? 
+    cekDoc.length !== 0 && filePict.find(item => item === cekDoc[cekDoc.length - 1].toString().toLowerCase()) !== undefined ? 
     <div>
       <img className="imgPdf" src={`${REACT_APP_BACKEND_URL}/${dataFile.path}`} />
     </div>
-    : cekDoc[cekDoc.length - 1] === 'pdf' ? 
+    : cekDoc.length !== 0 && cekDoc[cekDoc.length - 1].toString().toLowerCase() === 'pdf' || cekPr !== undefined ? 
       // <Document
       //   file={pdf}
       //   options={{ workerSrc: "../../public/pdf.worker.js" }}
@@ -32,8 +35,16 @@ export default function AllPages(props) {
       //   ))}
       // </Document>
       <div id="wrap">
-        <iframe id="scaled-frame" src={pdf} className='pdfDiv' />
+        <iframe id="scaled-frame" 
+        src={noDoc === noTrans ? dataFile.path : pdf}
+        // src={pdf} 
+        className='pdfDiv' />
+        {/* <iframe id="scaled-frame" src={pdf} className='pdfDiv' /> */}
       </div>
-    : 'File cannot show, please download this file'
+    // : dataFile.path === (detailForm !== undefined ? detailForm.no_ref : null) ? 
+    // <div >
+    //   <FormIo className="docForm" detailForm={detailForm} tipe='access' /> 
+    // </div>
+    :'File cannot show, please download this file'
   )
 }

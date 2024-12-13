@@ -10,6 +10,7 @@ export default class NumberInput extends Component {
         return (
           <NumberFormat
             placeholder="Please fill with numbers"
+            prefix={'Rp'}
             isNumericString={true}
             thousandSeparator="."
             decimalSeparator=","

@@ -20,7 +20,11 @@ const userState = {
     isExport: false,
     link: '',
     isChange: false,
-    isReset: false
+    isReset: false,
+    addRole: null,
+    updateRole: null,
+    isDetailRole: null,
+    detailRole: {},
 };
 
 export default (state=userState, action) => {
@@ -128,6 +132,76 @@ export default (state=userState, action) => {
                     isLoading: false,
                     isError: true,
                     alertMsg: "Unable connect to server"
+                };
+            }
+            case 'GET_DETAIL_ROLE_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'GET_DETAIL_ROLE_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: false,
+                    isDetailRole: true,
+                    detailRole: action.payload.data.result,
+                    alertMsg: 'get detail user Succesfully'
+                };
+            }
+            case 'GET_DETAIL_ROLE_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isDetailRole: false
+                };
+            }
+            case 'ADD_ROLE_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'ADD_ROLE_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    addRole: true,
+                    alertMsg: 'add role Succesfully'
+                };
+            }
+            case 'ADD_ROLE_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    addRole: false,
+                    alertMsg: 'add role failed'
+
+                };
+            }
+            case 'UPDATE_ROLE_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting'
+                };
+            }
+            case 'UPDATE_ROLE_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    updateRole: true,
+                    alertMsg: 'update role Succesfully'
+                };
+            }
+            case 'UPDATE_ROLE_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    updateRole: false,
                 };
             }
             case 'NEXT_DATA_USER_PENDING': {
@@ -292,7 +366,10 @@ export default (state=userState, action) => {
                     isExport: false,
                     isUpdate: false,
                     isChange: false,
-                    isReset: false
+                    isReset: false,
+                    addRole: null,
+                    updateRole: null,
+                    isDetailRole: null,
                 }
             }
             // case 'USERS_LOADED': {

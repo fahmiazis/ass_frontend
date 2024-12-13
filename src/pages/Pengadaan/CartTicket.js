@@ -3,25 +3,33 @@
 import React, { Component } from 'react'
 import { FaUserCircle, FaBars, FaTrash, FaCartPlus } from 'react-icons/fa'
 import style from '../../assets/css/input.module.css'
-import {NavbarBrand, Row, Col, Button, Input, Modal, ModalBody, ModalHeader, Spinner, Alert, Container, ModalFooter, Table} from 'reactstrap'
+import {NavbarBrand, Row, Col, Button, Input, Modal, ModalBody, UncontrolledTooltip,
+    ModalHeader, Spinner, Alert, Container, ModalFooter, Table} from 'reactstrap'
 import SidebarContent from "../../components/sidebar_content"
 import Sidebar from "../../components/Header"
 import {AiOutlineCheck, AiOutlineClose, AiFillCheckCircle, AiOutlineInbox} from 'react-icons/ai'
+import { IoDocumentTextOutline } from "react-icons/io5";
 import {BsCircle} from 'react-icons/bs'
 import MaterialTitlePanel from "../../components/material_title_panel"
 import {Formik} from 'formik'
 import mutasi from '../../redux/actions/mutasi'
 import pengadaan from '../../redux/actions/pengadaan'
+import tempmail from '../../redux/actions/tempmail'
 import auth from '../../redux/actions/auth'
 import {default as axios} from 'axios'
 import {connect} from 'react-redux'
+import moment from 'moment'
 import Pdf from "../../components/Pdf"
+import newnotif from '../../redux/actions/newnotif'
+import Select from 'react-select'
 import * as Yup from 'yup'
 import placeholder from  "../../assets/img/placeholder.png"
 import NavBar from '../../components/NavBar'
 import { MdUpload, MdDownload, MdEditSquare, MdAddCircle, MdDelete } from "react-icons/md";
 import styleTrans from '../../assets/css/transaksi.module.css'
 import NewNavbar from '../../components/NewNavbar'
+import Email from '../../components/Pengadaan/Email'
+import NumberInput from '../../components/NumberInput'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const cartSchema = Yup.object().shape({
@@ -30,6 +38,7 @@ const cartSchema = Yup.object().shape({
     price: Yup.string().required(),
     kategori: Yup.string().required(),
     tipe: Yup.string().required(),
+    jenis: Yup.string().required(),
     akta: Yup.string().nullable(true),
     start: Yup.date().nullable(true),
     end: Yup.date().nullable(true)
@@ -61,7 +70,14 @@ class CartMutasi extends Component {
             openPdf: false,
             detail: {},
             modalConfirm: false,
-            confirm: ''
+            confirm: '',
+            modalSubmit: false,
+            openDraft: false,
+            subject: '',
+            message: '',
+            noAjuan: '',
+            showOptions: false,
+            listNoIo: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -88,7 +104,7 @@ class CartMutasi extends Component {
         this.setState({openModalDoc: !this.state.openModalDoc})
     }
 
-    onChangeUpload = e => {
+    onChangeUpload = async e => {
         const {size, type} = e.target.files[0]
         this.setState({fileUpload: e.target.files[0]})
         if (size >= this.state.limImage) {
@@ -102,7 +118,8 @@ class CartMutasi extends Component {
             const token = localStorage.getItem('token')
             const data = new FormData()
             data.append('document', e.target.files[0])
-            this.props.uploadDocument(token, detail.id, data)
+            await this.props.uploadDocument(token, detail.id, data)
+            await this.props.getDocCart(token, dataRinci.id)
         }
     }
 
@@ -149,10 +166,11 @@ class CartMutasi extends Component {
         this.openAgree()
     }
 
-    openDoc = async () => {
+    openDoc = async (val) => {
         const token = localStorage.getItem('token')
         const {dataRinci} = this.state
-        this.props.getDocCart(token, dataRinci.id)
+        this.setState({dataRinci: val})
+        await this.props.getDocCart(token, val.id)
         this.closeProsesModalDoc()
     }
 
@@ -160,18 +178,39 @@ class CartMutasi extends Component {
         this.getDataCart()
     }
 
-    componentDidUpdate() {
+    async componentDidUpdate() {
         const {isUpload} = this.props.pengadaan
         const token = localStorage.getItem('token')
         const {dataRinci} = this.state
-        if (isUpload) {
-            this.props.getDocCart(token, dataRinci.id)
-            this.props.resetError()
-        }
+        // if (isUpload) {
+        //     this.props.resetError()
+        //     this.props.getDocCart(token, dataRinci.id)
+        // }
     }
 
     inputAlasan = e => {
         this.setState({alasan: e.target.value})
+    }
+
+    prepSendEmail = async () => {
+        const {dataCart, noIo} = this.props.pengadaan
+        const token = localStorage.getItem("token")
+        const tipe = dataCart[0].kategori === 'return' ? 'approve' : 'submit'
+        const tempno = {
+            no: noIo,
+            kode: dataCart[0].kode_plant,
+            jenis: 'pengadaan',
+            tipe: tipe,
+            menu: 'Pengajuan Pengadaan Asset (Pengadaan asset)'
+        }
+        await this.props.getDetail(token, noIo)
+        await this.props.getApproveIo(token, noIo)
+        await this.props.getDraftEmail(token, tempno)
+        this.openDraftEmail()
+    }
+
+    openDraftEmail = () => {
+        this.setState({openDraft: !this.state.openDraft}) 
     }
 
     submitCart = async () => {
@@ -195,11 +234,45 @@ class CartMutasi extends Component {
             this.setState({confirm: 'rejSubmit'})
             this.openConfirm()
         } else {
-            await this.props.submitCart(token)
-            this.getDataCart()
-            this.setState({confirm: 'submit'})
-            this.openConfirm()
+            await this.props.submitIo(token)
+            this.prepSendEmail()
         }
+    }
+
+    submitFinal = async () => {
+        const token = localStorage.getItem('token')
+        const { noIo } = this.props.pengadaan
+        const { draftEmail } = this.props.tempmail
+        const { message, subject } = this.state
+        const data = { 
+            no: noIo
+        }
+        const cc = draftEmail.cc
+        const tempcc = []
+        for (let i = 0; i < cc.length; i++) {
+            tempcc.push(cc[i].email)
+        }
+        const sendMail = {
+            draft: draftEmail,
+            nameTo: draftEmail.to.fullname,
+            to: draftEmail.to.email,
+            cc: tempcc.toString(),
+            message: message,
+            subject: subject,
+            no: noIo,
+            tipe: 'pengadaan',
+            menu: `pengadaan asset`,
+            proses: 'submit',
+            route: 'pengadaan'
+        }
+        await this.props.submitIoFinal(token, data)
+        await this.props.sendEmail(token, sendMail)
+        await this.props.addNewNotif(token, sendMail)
+        this.getDataCart()
+        this.openModalSub()
+        this.setState({confirm: 'submit'})
+        this.openDraftEmail()
+        this.openConfirm()
     }
 
     openConfirm = () => {
@@ -207,7 +280,7 @@ class CartMutasi extends Component {
     }
 
     prosesAdd = () => {
-        this.setState({add: !this.state.add})
+        this.setState({add: !this.state.add, noAjuan: ''})
     }
 
     openAgree = () => {
@@ -233,12 +306,16 @@ class CartMutasi extends Component {
     
     proseModalRinci = (val) => {
         console.log(val)
-        this.setState({dataRinci: val})
+        this.setState({dataRinci: val, noAjuan: val.no_ref})
         this.prosesRinci()
     }
 
     prosesRinci = () => {
         this.setState({rinci: !this.state.rinci})
+    }
+
+    openModalSub = () => {
+        this.setState({ modalSubmit: !this.state.modalSubmit })
     }
 
     addCart = async (val) => {
@@ -254,10 +331,99 @@ class CartMutasi extends Component {
             this.setState({confirm: 'falseAdd'})
             this.openConfirm()
         } else {
-            await this.props.addCart(token, val)
+            const data = {
+                ...val,
+                no_ref: val.kategori === 'return' ? this.state.noAjuan : ''
+            }
+            await this.props.addCart(token, data)
             this.getDataCart()
             this.prosesAdd()
         }
+    }
+
+    selectNoIo = async (e) => {
+        console.log(e)
+        const { dataPeng } = this.props.pengadaan
+        const idVal = e.val.value
+        const data = dataPeng.find((item) => item.no_pengadaan === idVal)
+        if (data === undefined) {
+            console.log()
+        } else {
+            this.setState({noAjuan: data.no_pengadaan})
+        }
+    }
+
+    inputNoIo = (val) => {
+        console.log(val)
+        if(val !== undefined && val.length > 10) {
+            this.getDataIo(val)
+        } else {
+            this.setState({ showOptions: false })
+            console.log('please press enter {} {}')
+        }
+    }
+
+    getDataIo = async (val) => {
+        const token = localStorage.getItem("token")
+        const search = val
+        await this.props.searchIo(token, '8', 'all', 'all', search, 100)
+        const {dataPeng} = this.props.pengadaan
+        console.log(dataPeng)
+        if (dataPeng.length > 0) {
+            const listNoIo = [
+                {value: '', label: '-Pilih-'}
+            ]
+
+            for (let i = 0; i < dataPeng.length; i++) {
+                if (dataPeng[i].no_pengadaan !== null) {
+                    listNoIo.push({value: dataPeng[i].no_pengadaan, label: dataPeng[i].no_pengadaan})
+                }
+            }
+            console.log(listNoIo)
+            this.setState({listNoIo: listNoIo, showOptions: true, noAjuan: val})
+        } else {
+            this.setState({listNoIo: [], showOptions: true, noAjuan: val})
+        }
+    }
+
+    selectTes = (val) => {
+        console.log(val)
+    }
+
+    inputTes = (val) => {
+        console.log(val)
+    }
+
+    editCart = async (val) => {
+        const token = localStorage.getItem('token')
+        const {detailIo} = this.props.pengadaan
+        const {dataRinci} = this.state
+        const cek = []
+        for (let i = 0; i < detailIo.length; i++) {
+            if ((detailIo[i].kategori !== val.kategori || detailIo[i].tipe !== val.tipe) && detailIo.length > 1) {
+                cek.push(1)
+            }
+        }
+        if (cek.length > 0) {
+            this.setState({confirm: 'falseUpdate'})
+            this.openConfirm()
+        } else {
+            const data = {
+                ...val,
+                no_ref: val.kategori === 'return' ? this.state.noAjuan : ''
+            }
+            await this.props.updateCart(token, dataRinci.id, data)
+            await this.props.getDocCart(token, dataRinci.id)
+            this.getDataCart()
+            this.prosesRinci()
+            this.setState({confirm: 'update'})
+            this.openConfirm()
+        }
+    }
+
+    getMessage = (val) => {
+        this.setState({ message: val.message, subject: val.subject })
+        console.log(val)
     }
 
     render() {
@@ -355,7 +521,7 @@ class CartMutasi extends Component {
 
                         <div className='rowGeneral mb-4'>
                             <Button className='mr-2' onClick={this.prosesAdd} color="primary" size="lg">Add</Button>
-                            <Button className='' disabled={dataCart.length === 0 ? true : false } onClick={() => this.submitCart()} color="success" size="lg">Submit</Button>
+                            <Button className='' disabled={dataCart.length === 0 ? true : false } onClick={() => this.openModalSub()} color="success" size="lg">Submit</Button>
                         </div>
 
                         <table className={styleTrans.table}>
@@ -365,8 +531,10 @@ class CartMutasi extends Component {
                                     <th>NAMA ASSET</th>
                                     <th>KATEGORI</th>
                                     <th>TIPE</th>
-                                    <th>PRICE</th>
+                                    <th>JENIS</th>
                                     <th>KUANTITAS</th>
+                                    <th>PRICE / UNIT</th>
+                                    <th>TOTAL AMOUNT</th>
                                     <th>OPSI</th>
                                 </tr>
                             </thead>
@@ -378,11 +546,32 @@ class CartMutasi extends Component {
                                             <td>{item.nama}</td>
                                             <td>{item.kategori}</td>
                                             <td>{item.tipe === 'gudang' ? 'Sewa Gudang' : "Barang"}</td>
-                                            <td>{item.price}</td>
+                                            <td className='text-uppercase tdIt'>{item.jenis}</td>
                                             <td>{item.qty}</td>
-                                            <td className='rowCenter'>
-                                                <Button onClick={() => this.proseModalRinci(item)} className='mb-1 mr-1' color='success'><MdEditSquare size={25}/></Button>
-                                                <Button onClick={() => this.deleteItem(item.id)} color='danger'><MdDelete size={25}/></Button>
+                                            <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>Rp {(parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>
+                                                <Button id={`tool${index}`} onClick={() => this.openDoc(item)} className='mt-1 mr-1' color='primary'><IoDocumentTextOutline size={25}/></Button>
+                                                <Button id={`toolEdit${index}`} onClick={() => this.proseModalRinci(item)} className='mt-1 mr-1' color='success'><MdEditSquare size={25}/></Button>
+                                                <Button id={`toolDelete${index}`} onClick={() => this.deleteItem(item.id)} className='mt-1' color='danger'><MdDelete size={25}/></Button>
+                                                <UncontrolledTooltip
+                                                    placement="top"
+                                                    target={`tool${index}`}
+                                                >
+                                                    Dokumen
+                                                </UncontrolledTooltip>
+                                                <UncontrolledTooltip
+                                                    placement="top"
+                                                    target={`toolEdit${index}`}
+                                                >
+                                                    Update
+                                                </UncontrolledTooltip>
+                                                <UncontrolledTooltip
+                                                    placement="top"
+                                                    target={`toolDelete${index}`}
+                                                >
+                                                    Delete
+                                                </UncontrolledTooltip>
                                             </td>
                                         </tr>
                                     )
@@ -397,23 +586,25 @@ class CartMutasi extends Component {
                         )}
                     </div>
                 </div>
+                
                 <Modal isOpen={this.state.add} toggle={this.prosesAdd} size='lg'>
                     <ModalHeader>Add Item</ModalHeader>
                     <Formik
                     initialValues={{
-                    nama: "",
-                    price: "",
-                    qty: "",
-                    kategori: "",
-                    tipe: "",
-                    akta: null,
-                    start: null,
-                    end: null
+                        nama: "",
+                        price: "",
+                        qty: "",
+                        kategori: "",
+                        tipe: "",
+                        jenis: "",
+                        akta: null,
+                        start: null,
+                        end: null
                     }}
                     validationSchema={cartSchema}
                     onSubmit={(values) => {this.addCart(values)}}
                     >
-                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                        {({ setFieldValue, handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
                     <ModalBody>
                         <div className={style.addModalDepo}>
                             <text className="col-md-3">
@@ -444,8 +635,8 @@ class CartMutasi extends Component {
                                 onChange={handleChange("tipe")}
                                 onBlur={handleBlur("tipe")}
                                 >   
-                                    <option value="">-Pilih Tipe-</option>
-                                    {/* <option value="gudang">Sewa Gudang</option> */}
+                                    <option value="">---Pilih---</option>
+                                    <option value="gudang">Sewa Gudang</option>
                                     <option value="barang">Barang</option>
                                 </Input>
                                 {errors.tipe ? (
@@ -455,16 +646,42 @@ class CartMutasi extends Component {
                         </div>
                         <div className={style.addModalDepo}>
                             <text className="col-md-3">
+                                Jenis IT / NON IT
+                            </text>
+                            <div className="col-md-9">
+                            <Input 
+                                type="select"
+                                name="select"
+                                value={values.jenis}
+                                onChange={handleChange("jenis")}
+                                onBlur={handleBlur("jenis")}
+                                >   
+                                    <option value="">---Pilih---</option>
+                                    <option value="it">IT</option>
+                                    <option value="non-it">NON IT</option>
+                                </Input>
+                                {errors.jenis ? (
+                                    <text className={style.txtError}>Must be filled</text>
+                                ) : null}
+                            </div>
+                        </div>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
                                 Price
                             </text>
                             <div className="col-md-9">
-                                <Input 
+                                <NumberInput
+                                    value={values.price}
+                                    className="inputRinci2"
+                                    onValueChange={val => setFieldValue("price", val.floatValue)}
+                                />
+                                {/* <Input 
                                 type="name" 
                                 name="price"
                                 value={values.price}
                                 onBlur={handleBlur("price")}
                                 onChange={handleChange("price")}
-                                />
+                                /> */}
                                 {errors.price ? (
                                     <text className={style.txtError}>Must be filled</text>
                                 ) : null}
@@ -509,6 +726,38 @@ class CartMutasi extends Component {
                                 ) : null}
                             </div>
                         </div>
+                        {values.kategori === 'return' && (
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    No Referensi
+                                </text>
+                                <div className="col-md-9">
+                                    {/* <Input 
+                                    type="name" 
+                                    name="no_ref"
+                                    value={values.no_ref}
+                                    onBlur={handleBlur("no_ref")}
+                                    onChange={handleChange("no_ref")}
+                                    /> */}
+                                    <Select
+                                        // className="inputRinci2"
+                                        options={this.state.showOptions ? this.state.listNoIo : []}
+                                        onChange={e => this.selectNoIo({val: e, type: 'noIo'})}
+                                        onInputChange={e => this.inputNoIo(e)}
+                                        isSearchable
+                                        components={
+                                            {
+                                                DropdownIndicator: () => null,
+                                            }
+                                        }
+                                        value={(values.kategori === 'return') ? {value: this.state.noAjuan, label: this.state.noAjuan} : { value: '', label: '' } }
+                                    />
+                                    {this.state.noAjuan === '' && values.kategori === 'return' ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                            </div>
+                        )}
                         {values.tipe === 'gudang' && (
                             <>
                                 <div className="headReport">
@@ -575,168 +824,266 @@ class CartMutasi extends Component {
                     </Formik>
                 </Modal>
                 <Modal isOpen={this.state.rinci} toggle={this.prosesRinci} size='lg'>
-                <ModalHeader toggle={this.openModalAdd}>Rincian item</ModalHeader>
+                    <ModalHeader toggle={this.openModalAdd}>Rincian item</ModalHeader>
                     <Formik
                     initialValues={{
-                    nama: "",
-                    price: "",
-                    qty: "",
-                    kategori: "",
+                        nama: dataRinci.nama,
+                        price: dataRinci.price,
+                        qty: dataRinci.qty,
+                        kategori: dataRinci.kategori,
+                        tipe: dataRinci.tipe,
+                        jenis: dataRinci.jenis,
+                        akta: dataRinci.akta,
+                        start: dataRinci.start === null || dataRinci.start === undefined ? '' : dataRinci.start.slice(0, 10),
+                        end: dataRinci.end === null || dataRinci.end === undefined ? '' : dataRinci.end.slice(0, 10)
                     }}
                     validationSchema={cartSchema}
-                    onSubmit={(values) => {this.addCart(values)}}
+                    onSubmit={(values) => {this.editCart(values)}}
                     >
-                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
-                    <ModalBody>
-                        <div className={style.addModalDepo}>
-                            <text className="col-md-3">
-                                Deskripsi
-                            </text>
-                            <div className="col-md-9">
-                                <Input 
-                                type="name" 
-                                name="nama"
-                                value={dataRinci.nama}
-                                onBlur={handleBlur("nama")}
-                                onChange={handleChange("nama")}
-                                />
-                                {errors.nama ? (
-                                    <text className={style.txtError}>Must be filled</text>
-                                ) : null}
-                            </div>
-                        </div>
-                        <div className={style.addModalDepo}>
-                            <text className="col-md-3">
-                                Tipe
-                            </text>
-                            <div className="col-md-9">
-                            <Input 
-                                type="select"
-                                name="select"
-                                value={dataRinci.tipe}
-                                onChange={handleChange("tipe")}
-                                onBlur={handleBlur("tipe")}
-                                >   
-                                    <option>-Pilih Tipe-</option>
-                                    <option value="gudang">Sewa Gudang</option>
-                                    <option value="barang">Barang</option>
-                                </Input>
-                                {errors.tipe ? (
-                                    <text className={style.txtError}>Must be filled</text>
-                                ) : null}
-                            </div>
-                        </div>
-                        <div className={style.addModalDepo}>
-                            <text className="col-md-3">
-                                Price
-                            </text>
-                            <div className="col-md-9">
-                                <Input 
-                                type="name" 
-                                name="price"
-                                value={dataRinci.price}
-                                onBlur={handleBlur("price")}
-                                onChange={handleChange("price")}
-                                />
-                                {errors.price ? (
-                                    <text className={style.txtError}>Must be filled</text>
-                                ) : null}
-                            </div>
-                        </div>
-                        <div className={style.addModalDepo}>
-                            <text className="col-md-3">
-                                Qty
-                            </text>
-                            <div className="col-md-9">
-                                <Input 
-                                type="name" 
-                                name="qty"
-                                value={dataRinci.qty}
-                                onBlur={handleBlur("qty")}
-                                onChange={handleChange("qty")}
-                                />
-                                {errors.qty ? (
-                                    <text className={style.txtError}>Must be filled</text>
-                                ) : null}
-                            </div>
-                        </div>
-                        <div className={style.addModalDepo}>
-                            <text className="col-md-3">
-                                Kategori
-                            </text>
-                            <div className="col-md-9">
-                            <Input 
-                                type="select"
-                                name="select"
-                                value={dataRinci.kategori}
-                                onChange={handleChange("kategori")}
-                                onBlur={handleBlur("kategori")}
-                                >   
-                                    <option>-Pilih Status-</option>
-                                    <option value="budget">Budget</option>
-                                    <option value="non-budget">Non Budget</option>
-                                    <option value="return">Return</option>
-                                </Input>
-                                {errors.kategori ? (
-                                    <text className={style.txtError}>Must be filled</text>
-                                ) : null}
-                            </div>
-                        </div>
-                        {dataRinci.tipe === 'gudang' && (
-                            <>
-                                <div className="headReport">
-                                    <text className="col-md-3">Periode</text>
-                                    <div className="optionType col-md-9">
-                                        <Input 
-                                        type="name" 
-                                        name="start" 
-                                        onChange={handleChange("start")}
-                                        onBlur={handleBlur("start")}
-                                        value={dataRinci.start !== null && dataRinci.start.slice(0, 10)}
-                                        ></Input>
-                                        <text className="toColon mr-2 ml-2">To</text>
-                                        <Input 
-                                        type="name" 
-                                        name="end" 
-                                        value={dataRinci.end !== null && dataRinci.end.slice(0, 10)}
-                                        onChange={handleChange("end")}
-                                        onBlur={handleBlur("end")}
-                                        ></Input>
-                                    </div>
+                        {({ setFieldValue, handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                        <ModalBody>
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Deskripsi
+                                </text>
+                                <div className="col-md-9">
+                                    <Input 
+                                    type="name" 
+                                    name="nama"
+                                    value={values.nama}
+                                    onBlur={handleBlur("nama")}
+                                    onChange={handleChange("nama")}
+                                    />
+                                    {errors.nama ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
                                 </div>
+                            </div>
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Tipe
+                                </text>
+                                <div className="col-md-9">
+                                <Input 
+                                    type="select"
+                                    name="select"
+                                    value={values.tipe}
+                                    onChange={handleChange("tipe")}
+                                    onBlur={handleBlur("tipe")}
+                                    >   
+                                        <option value="">-Pilih Tipe-</option>
+                                        <option value="gudang">Sewa Gudang</option>
+                                        <option value="barang">Barang</option>
+                                    </Input>
+                                    {errors.tipe ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                            </div>
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Jenis IT / NON IT
+                                </text>
+                                <div className="col-md-9">
+                                <Input 
+                                    type="select"
+                                    name="select"
+                                    value={values.jenis}
+                                    onChange={handleChange("jenis")}
+                                    onBlur={handleBlur("jenis")}
+                                    >   
+                                        <option value="">---Pilih---</option>
+                                        <option value="it">IT</option>
+                                        <option value="non-it">NON IT</option>
+                                    </Input>
+                                    {errors.jenis ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                            </div>
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Price
+                                </text>
+                                <div className="col-md-9">
+                                    <NumberInput
+                                        value={values.price}
+                                        className="inputRinci2"
+                                        onValueChange={val => setFieldValue("price", val.floatValue)}
+                                    />
+                                    {/* <Input 
+                                    type="name" 
+                                    name="price"
+                                    value={values.price}
+                                    onBlur={handleBlur("price")}
+                                    onChange={handleChange("price")}
+                                    /> */}
+                                    {errors.price ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                            </div>
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Qty
+                                </text>
+                                <div className="col-md-9">
+                                    <Input 
+                                    type="name" 
+                                    name="qty"
+                                    value={values.qty}
+                                    onBlur={handleBlur("qty")}
+                                    onChange={handleChange("qty")}
+                                    />
+                                    {errors.qty ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                            </div>
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Kategori
+                                </text>
+                                <div className="col-md-9">
+                                <Input 
+                                    type="select"
+                                    name="select"
+                                    value={values.kategori}
+                                    onChange={handleChange("kategori")}
+                                    onBlur={handleBlur("kategori")}
+                                    >   
+                                        <option value="">-Pilih Kategori-</option>
+                                        <option value="budget">Budget</option>
+                                        <option value="non-budget">Non Budget</option>
+                                        <option value="return">Return</option>
+                                    </Input>
+                                    {errors.kategori ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                            </div>
+                            {values.kategori === 'return' && (
                                 <div className={style.addModalDepo}>
                                     <text className="col-md-3">
-                                        Dokumen Akta
+                                        No Referensi
                                     </text>
                                     <div className="col-md-9">
-                                        <Input 
-                                        type="select"
-                                        name="select"
-                                        value={dataRinci.akta}
-                                        onChange={handleChange("akta")}
-                                        onBlur={handleBlur("akta")}
-                                        >   
-                                            <option value="null">-Pilih-</option>
-                                            <option value="ada">Ada</option>
-                                            <option value="tidak">Tidak ada</option>
-                                        </Input>
+                                        {/* <Input 
+                                        type="name" 
+                                        name="no_ref"
+                                        value={values.no_ref}
+                                        onBlur={handleBlur("no_ref")}
+                                        onChange={handleChange("no_ref")}
+                                        /> */}
+                                        <Select
+                                            // className="inputRinci2"
+                                            options={this.state.showOptions ? this.state.listNoIo : []}
+                                            onChange={e => this.selectNoIo({val: e, type: 'noIo'})}
+                                            onInputChange={e => this.inputNoIo(e)}
+                                            isSearchable
+                                            components={
+                                                {
+                                                    DropdownIndicator: () => null,
+                                                }
+                                            }
+                                            value={(values.kategori === 'return') ? {value: this.state.noAjuan, label: this.state.noAjuan} : { value: '', label: '' } }
+                                        />
+                                        {this.state.noAjuan === '' && values.kategori === 'return' ? (
+                                            <text className={style.txtError}>Must be filled</text>
+                                        ) : null}
                                     </div>
                                 </div>
-                            </>
-                        )}
-                        <hr/>
-                        <div className={style.foot}>
-                            <div>
-                                <Button color="success" className="mr-3" onClick={this.openDoc}>Dokumen</Button>
+                            )}
+                            {values.tipe === 'gudang' && (
+                                <>
+                                    <div className="headReport">
+                                        <text className="col-md-3">Periode</text>
+                                        <div className="optionType col-md-9">
+                                            <Input 
+                                            type="date" 
+                                            name="start" 
+                                            onChange={handleChange("start")}
+                                            onBlur={handleBlur("start")}
+                                            value={values.start}
+                                            ></Input>
+                                            <text className="toColon">To</text>
+                                            <Input 
+                                            type="date" 
+                                            name="end" 
+                                            value={values.end}
+                                            onChange={handleChange("end")}
+                                            onBlur={handleBlur("end")} 
+                                            ></Input>
+                                        </div>
+                                    </div>
+                                    <div className={style.addModalDepo}>
+                                        <div className="col-md-3"></div>
+                                        <div className="col-md-9">
+                                            {values.tipe === 'gudang' && (values.start === 'null' || values.end === 'null' || values.start === null || values.end === null) ? (
+                                                <text className={style.txtError}>Must be filled</text>
+                                            ) : null}
+                                        </div>
+                                    </div>
+                                    <div className={style.addModalDepo}>
+                                        <text className="col-md-3">
+                                            Dokumen Akta
+                                        </text>
+                                        <div className="col-md-9">
+                                            <Input 
+                                            type="select"
+                                            name="select"
+                                            value={values.akta}
+                                            onChange={handleChange("akta")}
+                                            onBlur={handleBlur("akta")}
+                                            >   
+                                                <option value="null">-Pilih-</option>
+                                                <option value="ada">Ada</option>
+                                                <option value="tidak">Tidak ada</option>
+                                            </Input>
+                                            {values.tipe === 'gudang' && (values.akta === null || values.akta === "null") ? (
+                                                <text className={style.txtError}>Must be filled</text>
+                                            ) : null}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                            <hr/>
+                            <div className={style.foot}>
+                                <div>
+                                    {/* <Button color="success" className="mr-3" onClick={this.openDoc}>Dokumen</Button> */}
+                                </div>
+                                <div>
+                                    <Button 
+                                        className="mr-2" 
+                                        disabled={values.tipe === 'gudang' && (values.akta === null || values.akta === "null" || values.start === null || values.end === null)  ? true : false} 
+                                        onClick={handleSubmit} color="primary"
+                                    >
+                                        Save
+                                    </Button>
+                                    <Button className="mr-3" onClick={this.prosesRinci}>Cancel</Button>
+                                </div>
                             </div>
+                        </ModalBody>
+                        )}
+                    </Formik>
+                </Modal>
+                <Modal isOpen={this.state.modalSubmit} toggle={this.openModalSub} centered={true}>
+                    <ModalBody>
+                        <div className={style.modalApprove}>
                             <div>
-                                {/* <Button className="mr-2" onClick={handleSubmit} color="primary">Save</Button> */}
-                                <Button className="mr-3" onClick={this.prosesRinci}>Cancel</Button>
+                                <text>
+                                    Anda yakin untuk submit
+                                    <text className={style.verif}> </text>
+                                    pada tanggal
+                                    <text className={style.verif}> {moment().format('LL')}</text> ?
+                                </text>
+                            </div>
+                            <div className={style.btnApprove}>
+                                <Button color="primary" onClick={() => this.submitCart()}>Ya</Button>
+                                <Button color="secondary" onClick={this.openModalSub}>Tidak</Button>
                             </div>
                         </div>
                     </ModalBody>
-                        )}
-                    </Formik>
                 </Modal>
                 <Modal isOpen={this.state.agree} toggle={this.openAgree} centered>
                     <ModalBody>
@@ -756,12 +1103,32 @@ class CartMutasi extends Component {
                         <button className="btnSum" disabled={this.state.alasan === '' ? true : false } onClick={() => this.submitMut()}>Submit</button>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.props.pengadaan.isLoading ? true: false} size="sm">
+                <Modal isOpen={this.props.pengadaan.isLoading || this.props.tempmail.isLoading ? true: false} size="sm">
                 <ModalBody>
                     <div>
                         <div className={style.cekUpdate}>
                             <Spinner />
                             <div sucUpdate>Waiting....</div>
+                        </div>
+                    </div>
+                </ModalBody>
+            </Modal>
+            <Modal isOpen={this.state.openDraft} size='xl'>
+                <ModalHeader>Email Pemberitahuan</ModalHeader>
+                <ModalBody>
+                    <Email handleData={this.getMessage}/>
+                    <div className={style.foot}>
+                        <div></div>
+                        <div>
+                            <Button
+                                disabled={this.state.message === '' ? true : false} 
+                                className="mr-2"
+                                onClick={() => this.submitFinal()} 
+                                color="primary"
+                            >
+                                Approve & Send Email
+                            </Button>
+                            <Button className="mr-3" onClick={this.openDraftEmail}>Cancel</Button>
                         </div>
                     </div>
                 </ModalBody>
@@ -790,7 +1157,12 @@ class CartMutasi extends Component {
                                             ) : (
                                                 <BsCircle size={20} />
                                             )}
-                                            <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
+                                            <button 
+                                            className="btnDocIo" 
+                                            // onClick={() => this.showDokumen(x)} 
+                                            >
+                                                {x.desc}
+                                            </button>
                                             <div className="colDoc">
                                                 <input
                                                 className="ml-4"
@@ -841,7 +1213,7 @@ class CartMutasi extends Component {
                     </div>
                 </ModalBody>
             </Modal>
-            <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="sm">
+            <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="md">
                 <ModalBody>
                     {this.state.confirm === 'submit' ? (
                         <div>
@@ -866,10 +1238,28 @@ class CartMutasi extends Component {
                             <div className="errApprove mt-2">Pastikan kategori dan tipe sama di setiap item</div>
                         </div>
                         </div>
+                    ) : this.state.confirm === 'falseUpdate' ? (
+                        <div>
+                            <div className={style.cekUpdate}>
+                            <AiOutlineClose size={80} className={style.red} />
+                            <div className={[style.sucUpdate, style.green]}>Gagal Update Item</div>
+                            <div className="errApprove mt-2">Pastikan kategori dan tipe sama di setiap item</div>
+                        </div>
+                        </div>
+                    ) : this.state.confirm === 'update' ?(
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Update</div>
+                            </div>
+                        </div>
                     ) : (
                         <div></div>
                     )}
                 </ModalBody>
+                <div className='row justify-content-md-center mb-4'>
+                    <Button size='lg' onClick={this.openConfirm} color='primary'>OK</Button>
+                </div>
             </Modal>
             </>
         )
@@ -878,20 +1268,30 @@ class CartMutasi extends Component {
 
 const mapStateToProps = state => ({
     mutasi: state.mutasi,
-    pengadaan: state.pengadaan
+    pengadaan: state.pengadaan,
+    tempmail: state.tempmail
 })
 
 const mapDispatchToProps = {
     logout: auth.logout,
+    searchIo: pengadaan.searchIo,
     getCart: pengadaan.getCart,
     deleteCart: pengadaan.deleteCart,
     submitCart: pengadaan.submitCart,
+    submitIo: pengadaan.submitIo,
+    submitIoFinal: pengadaan.submitIoFinal,
     addCart: pengadaan.addCart,
     updateCart: pengadaan.updateCart,
     showDokumen: pengadaan.showDokumen,
     getDocCart: pengadaan.getDocCart,
     uploadDocument: pengadaan.uploadDocument,
-    resetError: pengadaan.resetError
+    getDraftEmail: tempmail.getDraftEmail,
+    sendEmail: tempmail.sendEmail,
+    getDetail: pengadaan.getDetail,
+    resetError: pengadaan.resetError,
+    addNewNotif: newnotif.addNewNotif,
+    getApproveIo: pengadaan.getApproveIo,
+    updateReason: pengadaan.updateReason,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(CartMutasi)

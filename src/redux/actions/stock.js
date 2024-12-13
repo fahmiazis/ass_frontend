@@ -7,21 +7,25 @@ export default {
         type: 'SUBMIT_STOCK',
         payload: http(token).get('/stock/submit')
     }),
+    submitStockFinal: (token, no) => ({
+        type: 'SUBFINAL_STOCK',
+        payload: http(token).patch(`/stock/subfinal`, qs.stringify(no))
+    }),
     getStockArea: (token, search, limit, page, status) => ({
         type: 'STOCK_AREA',
-        payload: http(token).get(`/stock/area?limit=${limit === undefined ? 10 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&status=${status === undefined ? '' : status}`)
+        payload: http(token).get(`/stock/area?limit=${limit === undefined ? 100 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&status=${status === undefined ? '' : status}`)
     }),
-    getStockAll: (token, search, limit, page, group) => ({
+    getStockAll: (token, search, limit, page, group, status, time1, time2) => ({
         type: 'GET_STOCK',
-        payload: http(token).get(`/stock/get?limit=${limit === undefined ? 10 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&group=${group === undefined ? '' : group}`)
+        payload: http(token).get(`/stock/get?limit=${limit === undefined ? 100 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&group=${group === undefined ? '' : group}&status=${status}&time1=${time1}&time2=${time2}`)
     }),
-    getReportAll: (token, search, limit, page, group, fisik, sap, kondisi, plant) => ({
+    getReportAll: (token, search, limit, page, group, fisik, sap, kondisi, plant, time1, time2) => ({
         type: 'REPORT_STOCK',
-        payload: http(token).get(`/stock/report?limit=${limit === undefined ? 10 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&group=${group === undefined ? '' : group}&fisik=${fisik === undefined ? '' : fisik}&sap=${sap === undefined ? '' : sap}&kondisi=${kondisi === undefined ? '' : kondisi}&plant=${plant === undefined ? '' : plant}`)
+        payload: http(token).get(`/stock/report?limit=${limit === undefined ? 100 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&group=${group === undefined ? '' : group}&fisik=${fisik === undefined ? '' : fisik}&sap=${sap === undefined ? '' : sap}&kondisi=${kondisi === undefined ? '' : kondisi}&plant=${plant === undefined ? '' : plant}&time1=${time1}&time2=${time2}`)
     }),
-    getDetailStock: (token, id) => ({
+    getDetailStock: (token, no) => ({
         type: 'DETAIL_STOCK',
-        payload: http(token).get(`/stock/detail/${id}`)
+        payload: http(token).patch(`/stock/detail`, qs.stringify({no: no}))
     }),
     getDetailItem: (token, id) => ({
         type: 'DETAIL_ITEM',
@@ -35,9 +39,9 @@ export default {
         type: 'CEK_DOC',
         payload: http(token).get(`/stock/cekdoc/${no}`)
     }),
-    getApproveStock: (token, no, nama) => ({
+    getApproveStock: (token, id) => ({
         type: 'GET_APPSTOCK',
-        payload: http(token).get(`/stock/approve/${no}/${nama}`)
+        payload: http(token).get(`/stock/approve/${id}`)
     }),
     deleteStock: (token, id) => ({
         type: 'DELETE_STOCK',
@@ -45,11 +49,11 @@ export default {
     }),
     approveStock: (token, no) => ({
         type: 'APPROVE_STOCK',
-        payload: http(token).patch(`/stock/app/${no}`)
+        payload: http(token).patch(`/stock/app`, qs.stringify({no: no}))
     }),
-    rejectStock: (token, no, data) => ({
+    rejectStock: (token, data) => ({
         type: 'REJECT_STOCK',
-        payload: http(token).patch(`/stock/rej/${no}`, qs.stringify(data))
+        payload: http(token).patch(`/stock/rej`, data)
     }),
     uploadPicture: (token, id, data) => ({
         type: 'UPLOAD_PICTURE',
@@ -79,9 +83,13 @@ export default {
         type: 'SUBMIT_REVISI',
         payload: http(token).patch(`/stock/subrev/${id}`)
     }),
+    appRevisi: (token, id) => ({
+        type: 'APP_REVISI',
+        payload: http(token).patch(`/stock/apprev/${id}`)
+    }),
     submitAsset: (token, no) => ({
         type: 'SUBMIT_ASET',
-        payload: http(token).patch(`/stock/subaset/${no}`)
+        payload: http(token).patch(`/stock/subaset`, qs.stringify({no: no}))
     }),
     addStock: (token, data) => ({
         type: 'ADD_STOCK',

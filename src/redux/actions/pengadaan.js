@@ -3,9 +3,13 @@ import http from '../../helpers/http'
 import qs from 'qs'
 
 export default {
-    getPengadaan: (token, status) => ({
+    getPengadaan: (token, status, time1, time2, search, limit) => ({
         type: 'GET_PENGADAAN',
-        payload: http(token).get(`/ticket/get?status=${status}`)
+        payload: http(token).get(`/ticket/get?status=${status}&time1=${time1}&time2=${time2}&search=${search}&limit=${limit}&page=1`)
+    }),
+    searchIo: (token, status, time1, time2, search, limit) => ({
+        type: 'SEARCH_IO',
+        payload: http(token).get(`/ticket/get?status=${status}&time1=${time1}&time2=${time2}&search=${search}&limit=${limit}&page=1`)
     }),
     getTrackIo: (token) => ({
         type: 'GET_TRACKIO',
@@ -17,11 +21,11 @@ export default {
     }),
     getApproveIo: (token, no) => ({
         type: 'GET_APPROVEIO',
-        payload: http(token).get(`/ticket/approve/${no}`)
+        payload: http(token).patch(`/ticket/approve`, qs.stringify({no: no}))
     }),
     getDocumentIo: (token, no) => ({
         type: 'GET_DOCIO',
-        payload: http(token).get(`/ticket/document/${no}`)
+        payload: http(token).patch(`/ticket/document`, qs.stringify({no: no}))
     }),
     uploadDocument: (token, id, data) => ({
         type: 'UPLOAD_DOCIO',
@@ -41,7 +45,7 @@ export default {
     }),
     getDetail: (token, no) => ({
         type: 'DETAIL_IO',
-        payload: http(token).get(`/ticket/detail/${no}`)
+        payload: http(token).patch(`/ticket/detail`, qs.stringify({no: no}))
     }),
     updateDataIo: (token, id, data) => ({
         type: 'UPDATE_IO',
@@ -49,7 +53,7 @@ export default {
     }),
     updateNoIo: (token, no, data) => ({
         type: 'UPDATE_NOIO',
-        payload: http(token).patch(`/ticket/upnoio/${no}`, qs.stringify(data))
+        payload: http(token).patch(`/ticket/upnoio`, qs.stringify({...data, no: no}))
     }),
     updateNoAsset: (token, id, data) => ({
         type: 'NO_ASSET',
@@ -61,27 +65,31 @@ export default {
     }),
     submitIsAsset: (token, no) => ({
         type: 'SUBMIT_ISASSET',
-        payload: http(token).patch(`/ticket/subasset/${no}`)
+        payload: http(token).patch(`/ticket/subasset`, qs.stringify({no: no}))
     }),
     submitBudget: (token, no) => ({
         type: 'SUBMIT_BUDGET',
-        payload: http(token).patch(`/ticket/subbudget/${no}`)
+        payload: http(token).patch(`/ticket/subbudget`, qs.stringify({no: no}))
     }),
     submitEks: (token, no) => ({
         type: 'SUBMIT_EKS',
-        payload: http(token).patch(`/ticket/subeks/${no}`)
+        payload: http(token).patch(`/ticket/subeks`, qs.stringify({no: no}))
+    }),
+    submitRevisi: (token, data) => ({
+        type: 'SUBMIT_REVISI',
+        payload: http(token).patch(`/ticket/subrev`, qs.stringify(data))
     }),
     approveIo: (token, no) => ({
         type: 'APPROVE_IO',
-        payload: http(token).patch(`/ticket/app/${no}`)
+        payload: http(token).patch(`/ticket/app`, qs.stringify({no: no}))
     }),
     rejectIo: (token, no, data) => ({
         type: 'REJECT_IO',
-        payload: http(token).patch(`/ticket/rej/${no}`, qs.stringify(data))
+        payload: http(token).patch(`/ticket/rej`, data)
     }),
     getTempAsset: (token, no) => ({
         type: 'TEMP_ASSET',
-        payload: http(token).get(`/ticket/temp/${no}`)
+        payload: http(token).patch(`/ticket/temp`, qs.stringify({no: no}))
     }),
     uploadMasterTemp: (token, data, no) => ({
         type: 'UPLOAD_TEMP',
@@ -99,29 +107,41 @@ export default {
         type: 'SUBCART_IO',
         payload: http(token).patch(`/ticket/subcart`)
     }),
+    submitIo: (token) => ({
+        type: 'SUBMIT_IO',
+        payload: http(token).patch(`/ticket/submit`)
+    }),
+    submitIoFinal: (token, no) => ({
+        type: 'SUBFINAL_IO',
+        payload: http(token).patch(`/ticket/subfinio`, qs.stringify(no))
+    }),
     updateCart: (token, id, data) => ({
         type: 'UPCART_IO',
         payload: http(token).patch(`/ticket/upcart/${id}`, qs.stringify(data))
+    }),
+    appRevisi: (token, id) => ({
+        type: 'APP_REVISI',
+        payload: http(token).patch(`/ticket/apprev/${id}`)
     }),
     deleteCart: (token, id) => ({
         type: 'DELCART_IO',
         payload: http(token).delete(`/ticket/delcart/${id}`)
     }),
-    getDocCart: (token, no) => ({
+    getDocCart: (token, id) => ({
         type: 'DOCCART_IO',
-        payload: http(token).get(`/ticket/doccart/${no}`)
+        payload: http(token).get(`/ticket/doccart/${id}`)
     }),
     approveAll: (token, data) => ({
         type: 'APPROVE_ALL',
         payload: http(token).patch(`/ticket/appall`, qs.stringify(data))
     }),
-    updateRecent: (token, no, data) => ({
-        type: 'UPDATE_RECENT',
-        payload: http(token).patch(`/ticket/uprecent/${no}`, qs.stringify(data))
+    updateReason: (token, no, data) => ({
+        type: 'UPDATE_REASON',
+        payload: http(token).patch(`/ticket/upreason`, qs.stringify({...data, no: no}))
     }),
     submitNotAsset: (token, no) => ({
         type: 'SUBMIT_NOTASSET',
-        payload: http(token).patch(`/ticket/subnot/${no}`)
+        payload: http(token).patch(`/ticket/subnot`, qs.stringify({no: no}))
     }),
     testApiPods: (token) => ({
         type: 'TESTAPI_PODS',
@@ -129,7 +149,7 @@ export default {
     }),
     podsSend: (token, no) => ({
         type: 'PODS_SEND',
-        payload: http(token).get(`/ticket/send/${no}`)
+        payload: http(token).patch(`/ticket/send`, qs.stringify({no: no}))
     }),
     resetError: () => ({
         type: 'RESET'

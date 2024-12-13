@@ -27,11 +27,19 @@ import disposalIm from '../assets/img/dis.png'
 import mutasiIm from '../assets/img/mutasis.png'
 import opnameIm from '../assets/img/opname.png'
 import logo from '../assets/img/logo.png'
-import {AiFillHome} from 'react-icons/ai'
-import {FiLogOut, FiUser, FiUsers, FiMail} from 'react-icons/fi'
+import {AiFillHome, AiOutlineMenu} from 'react-icons/ai'
+import {FiLogOut, FiUser, FiUsers, FiMail, FiEye} from 'react-icons/fi'
 import { BsClipboardData, BsHouseDoor, BsFileCheck } from 'react-icons/bs'
 import { FaDatabase, FaHome, FaFileArchive, FaCartPlus, FaRecycle, FaTasks, } from 'react-icons/fa'
 import { RiArrowLeftRightFill, RiMoneyDollarCircleFill } from 'react-icons/ri'
+
+import {FiSend, FiTruck} from 'react-icons/fi'
+import {BiRevision} from 'react-icons/bi'
+import {MdAssignment, MdVerifiedUser} from 'react-icons/md'
+import {HiOutlineDocumentReport} from 'react-icons/hi'
+import {RiDraftFill} from 'react-icons/ri'
+import {FaFileSignature} from 'react-icons/fa'
+import {BsBell, BsFillCircleFill} from 'react-icons/bs'
 
 const userEditSchema = Yup.object().shape({
     fullname: Yup.string().required('must be filled'),
@@ -54,11 +62,31 @@ class Home extends Component {
         modalChange: false,
         sidebarVisible: false,
         dataNull: [],
-        isOpen: false
+        isOpen: false,
+        openTicket: false,
+        openDis: false,
+        openStock: false,
+        openMut: false,
     }
 
     toggle = () => {
         this.setState({isOpen: !this.state.isOpen})
+    }
+
+    toggleTicket = () => {
+        this.setState({openTicket: !this.state.openTicket})
+    }
+
+    toggleDis = () => {
+        this.setState({openDis: !this.state.openDis})
+    }
+
+    toggleStock = () => {
+        this.setState({openStock: !this.state.openStock})
+    }
+
+    toggleMut = () => {
+        this.setState({openMut: !this.state.openMut})
     }
 
     openModalEdit = () => {
@@ -275,7 +303,7 @@ class Home extends Component {
                     ref={(ref) => (this.sidebarRef = ref)} // Mengaitkan referensi sidebar
                 >
                     <div className={styleHome.logo}>
-                    <img src={logo} alt="Logo"  className={styleHome.imgLogo}/>
+                        <img src={logo} alt="Logo"  className={styleHome.imgLogo}/>
                     </div>
                     <nav className={styleHome.nav}>
                     <ul>
@@ -289,22 +317,118 @@ class Home extends Component {
                                 My Asset
                             </li>
                         )}
-                        <li className={styleHome.alignCenter} onClick={() => this.goRoute('navtick')}>
+                        <li className={styleHome.alignCenter} 
+                        // onClick={() => this.goRoute('navtick')}
+                        onClick={this.toggleTicket}
+                        >
                             <FaCartPlus className='mr-2' />
                             Pengadaan Aset
                         </li>
-                        <li className={styleHome.alignCenter} onClick={() => this.goRoute('navdis')} >
+                        <Collapse isOpen={this.state.openTicket} className="ml-3 mt-3">
+                            <li onClick={() => this.goRoute('pengadaan')} className={styleHome.alignCenter}>
+                                <FiSend className="mr-2"/>
+                                Pengajuan Pengadaan Asset
+                            </li>
+                            {(level === '5' || level === '9' || level === '2' || level === '8') && (
+                                <li onClick={() => this.goRoute('revtick')} className={styleHome.alignCenter}>
+                                    <BiRevision className="mr-2"/>
+                                    Revisi Pengadaan Asset
+                                </li>
+                            )}
+                            {(level === '2') && (
+                                <li onClick={() => this.goRoute('ekstick')} className={styleHome.alignCenter}>
+                                    <FiTruck className="mr-2"/>
+                                    Eksekusi Pengadaan Asset
+                                </li>
+                            )}
+                            {(level === '2' || level === '1') && (
+                                <li onClick={() => this.goRoute('reportio')} className={styleHome.alignCenter}>
+                                    <HiOutlineDocumentReport className="mr-2"/>
+                                    Report Pengadaan Asset
+                                </li>
+                            )}
+                            <li onClick={() => this.goRoute('navtick')} className={styleHome.alignCenter}>
+                                <AiOutlineMenu className="mr-2"/>
+                                Navigasi Pengadaan Asset
+                            </li>
+                        </Collapse>
+                        <li className={styleHome.alignCenter} 
+                        // onClick={() => this.goRoute('navdis')} 
+                        onClick={this.toggleDis}
+                        >
                             <FaRecycle className='mr-2' />
                             Disposal Aset
                         </li>
-                        <li className={styleHome.alignCenter} onClick={() => this.goRoute('navmut')} >
+                        <Collapse isOpen={this.state.openDis} className="ml-3 mt-3">
+                            <li onClick={() => this.goRoute('disposal')} className={styleHome.alignCenter}>
+                                <FiSend className="mr-2"/>
+                                Pengajuan Disposal
+                            </li>
+                            <li onClick={() => this.goRoute('navdis')} className={styleHome.alignCenter}>
+                                <AiOutlineMenu className="mr-2"/>
+                                Navigasi Disposal Asset
+                            </li>
+                        </Collapse>
+                        <li className={styleHome.alignCenter} 
+                        // onClick={() => this.goRoute('navmut')} 
+                        onClick={this.toggleMut}
+                        >
                             <RiArrowLeftRightFill className='mr-2' />
                             Mutasi Aset
                         </li>
-                        <li className={styleHome.alignCenter} onClick={() => this.goRoute('navstock')} >
+                        <Collapse isOpen={this.state.openMut} className="ml-3 mt-3">
+                            <li onClick={() => this.goRoute('mutasi')} className={styleHome.alignCenter}>
+                                <FiSend className="mr-2"/>
+                                Pengajuan Mutasi
+                            </li>
+                            <li onClick={() => this.goRoute('navmut')} className={styleHome.alignCenter}>
+                                <AiOutlineMenu className="mr-2"/>
+                                Navigasi Mutasi Asset
+                            </li>
+                        </Collapse>
+                        <li className={styleHome.alignCenter} 
+                        // onClick={() => this.goRoute('navstock')} 
+                        onClick={this.toggleStock}
+                        >
                             <FaTasks className='mr-2' />
                             Stock Opname Aset
                         </li>
+                        <Collapse isOpen={this.state.openStock} className="ml-3 mt-3">
+                            {(level !== '2') && (
+                                <li onClick={() => this.goRoute('stock')} className={styleHome.alignCenter}>
+                                    <FiSend className="mr-2"/>
+                                    Pengajuan Stock Opname
+                                </li>
+                            )}
+                            {(level === '2') && (
+                                <li onClick={() => this.goRoute('stock')} className={styleHome.alignCenter}>
+                                    <FiTruck className="mr-2"/>
+                                    Terima Stock Opname
+                                </li>
+                            )}
+                            {(level === '2') && (
+                                <li onClick={() => this.goRoute('monstock')} className={styleHome.alignCenter}>
+                                    <FiEye className="mr-2"/>
+                                    Monitoring Stock Opname
+                                </li>
+                            )}
+                            {(level === '5' || level === '9') && (
+                                <li onClick={() => this.goRoute('editstock')} className={styleHome.alignCenter}>
+                                    <BiRevision className="mr-2"/>
+                                    Revisi Stock Opname
+                                </li>
+                            )}
+                            {(level === '2' || level === '1') && (
+                                <li onClick={() => this.goRoute('repstock')} className={styleHome.alignCenter}>
+                                    <HiOutlineDocumentReport className="mr-2"/>
+                                    Report Stock Opname
+                                </li>
+                            )}
+                            <li onClick={() => this.goRoute('navstock')} className={styleHome.alignCenter}>
+                                <AiOutlineMenu className="mr-2"/>
+                                Navigasi Stock Opname
+                            </li>
+                        </Collapse>
                         {level === '1' ? (
                             <li className={styleHome.alignCenter} onClick={this.toggle}>
                                 <FaDatabase className="mr-2"/> Master
@@ -313,34 +437,46 @@ class Home extends Component {
                             <div></div>
                         )}
                         <Collapse isOpen={this.state.isOpen} className="ml-3 mt-3">
-                        {/* <button onClick={() => this.goRoute('alasan')} className={styleHome.alignCenter}>
-                            <RiFileUnknowLine className="mr-2"/>
-                            Master Alasan
-                        </button> */}
-                        <li onClick={() => this.goRoute('depo')} className={styleHome.alignCenter}>
-                            <BsHouseDoor className="mr-2"/>
-                            Master Depo
-                        </li>
-                        <li onClick={() => this.goRoute('email')} className={styleHome.alignCenter}>
-                            <FiMail className="mr-2"/>
-                            Master Email
-                        </li>
-                        <li onClick={() => this.goRoute('user')} className={styleHome.alignCenter}>
-                            <FiUser className="mr-2"/>
-                            Master User
-                        </li>
-                        {/* <li onClick={() => this.goRoute('divisi')} className={styleHome.alignCenter}>
-                            <GiFamilyTree className="mr-2"/>
-                            Master Divisi
-                        </li> */}
-                        <li onClick={() => this.goRoute('dokumen')} className={styleHome.alignCenter}>
-                            <BsClipboardData className="mr-2"/>
-                            Master Document
-                        </li>
-                        {/* <li onClick={() => this.goRoute('pic')} className={styleHome.alignCenter}>
-                            <FiUsers className="mr-2"/>
-                            Master PIC
-                        </li> */}
+                            {/* <button onClick={() => this.goRoute('alasan')} className={styleHome.alignCenter}>
+                                <RiFileUnknowLine className="mr-2"/>
+                                Master Alasan
+                            </button> */}
+                            <li onClick={() => this.goRoute('depo')} className={styleHome.alignCenter}>
+                                <BsHouseDoor className="mr-2"/>
+                                Master Depo
+                            </li>
+                            <li onClick={() => this.goRoute('email')} className={styleHome.alignCenter}>
+                                <FiMail className="mr-2"/>
+                                Master Email
+                            </li>
+                            <li onClick={() => this.goRoute('menu')} className={styleHome.alignCenter}>
+                                <AiOutlineMenu className="mr-2"/>
+                                Master Menu
+                            </li>
+                            <li onClick={() => this.goRoute('tempmail')} className={styleHome.alignCenter}>
+                                <FiMail className="mr-2"/>
+                                Template Email
+                            </li>
+                            <li onClick={() => this.goRoute('role')} className={styleHome.alignCenter}>
+                                <FiUser className="mr-2"/>
+                                Master Role
+                            </li>
+                            <li onClick={() => this.goRoute('user')} className={styleHome.alignCenter}>
+                                <FiUser className="mr-2"/>
+                                Master User
+                            </li>
+                            {/* <li onClick={() => this.goRoute('divisi')} className={styleHome.alignCenter}>
+                                <GiFamilyTree className="mr-2"/>
+                                Master Divisi
+                            </li> */}
+                            <li onClick={() => this.goRoute('dokumen')} className={styleHome.alignCenter}>
+                                <BsClipboardData className="mr-2"/>
+                                Master Document
+                            </li>
+                            {/* <li onClick={() => this.goRoute('pic')} className={styleHome.alignCenter}>
+                                <FiUsers className="mr-2"/>
+                                Master PIC
+                            </li> */}
                         </Collapse>
                     </ul>
                     </nav>
@@ -353,7 +489,10 @@ class Home extends Component {
 
                     <div className={`${styleHome.assetContainer} row`}>
                         {/* Pengadaan Aset */}
-                        <div onClick={() => this.goRoute('navtick')} className="col-12 col-md-6 col-lg-3 mb-4">
+                        <div 
+                        onClick={() => this.goRoute('pengadaan')} 
+                        // onClick={() => this.goRoute('navtick')} 
+                        className="col-12 col-md-6 col-lg-3 mb-4">
                             <div className={styleHome.assetCard}>
                                 <img className='mt-4' src={pengadaanIm} alt="Pengadaan Aset"  />
                                 <p className='mt-4'>Pengadaan Aset</p>
@@ -361,7 +500,10 @@ class Home extends Component {
                         </div>
 
                         {/* Disposal Aset */}
-                        <div onClick={() => this.goRoute('navdis')} className="col-12 col-md-6 col-lg-3 mb-4">
+                        <div 
+                        onClick={() => this.goRoute('disposal')} 
+                        // onClick={() => this.goRoute('navdis')} 
+                        className="col-12 col-md-6 col-lg-3 mb-4">
                             <div className={styleHome.assetCard}>
                                 <img className='mt-4' src={disposalIm} alt="Disposal Aset"  />
                                 <p className='mt-4'>Disposal Aset</p>
@@ -369,7 +511,10 @@ class Home extends Component {
                         </div>
 
                         {/* Stock Opname Aset */}
-                        <div onClick={() => this.goRoute('navstock')} className="col-12 col-md-6 col-lg-3 mb-4">
+                        <div 
+                        onClick={() => this.goRoute('stock')} 
+                        // onClick={() => this.goRoute('navstock')} 
+                        className="col-12 col-md-6 col-lg-3 mb-4">
                             <div className={styleHome.assetCard}>
                                 <img className='mt-4' src={opnameIm}alt="Stock Opname Aset"  />
                                 <p className='mt-4'>Stock Opname Aset</p>
@@ -377,7 +522,10 @@ class Home extends Component {
                         </div>
 
                         {/* Mutasi Aset */}
-                        <div onClick={() => this.goRoute('navmut')} className="col-12 col-md-6 col-lg-3 mb-4">
+                        <div 
+                        onClick={() => this.goRoute('mutasi')} 
+                        // onClick={() => this.goRoute('navmut')} 
+                        className="col-12 col-md-6 col-lg-3 mb-4">
                             <div className={styleHome.assetCard}>
                                 <img className='mt-4' src={mutasiIm} alt="Mutasi Aset"  />
                                 <p className='mt-4'>Mutasi Aset</p>

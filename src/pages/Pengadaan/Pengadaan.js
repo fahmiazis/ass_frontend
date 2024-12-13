@@ -18,6 +18,7 @@ import logo from '../../assets/img/logo.png'
 import {connect} from 'react-redux'
 import pengadaan from '../../redux/actions/pengadaan'
 import dokumen from '../../redux/actions/dokumen'
+import tempmail from '../../redux/actions/tempmail'
 import OtpInput from "react-otp-input";
 import moment from 'moment'
 import auth from '../../redux/actions/auth'
@@ -28,11 +29,15 @@ import SidebarContent from "../../components/sidebar_content"
 import placeholder from  "../../assets/img/placeholder.png"
 import TablePeng from '../../components/TablePeng'
 import notif from '../../redux/actions/notif'
+import newnotif from '../../redux/actions/newnotif'
 import NavBar from '../../components/NavBar'
 import renderHTML from 'react-render-html'
 import ModalDokumen from '../../components/ModalDokumen'
 import styleTrans from '../../assets/css/transaksi.module.css'
 import NewNavbar from '../../components/NewNavbar'
+import Email from '../../components/Pengadaan/Email'
+import ExcelJS from "exceljs"
+import fs from "file-saver"
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -42,13 +47,9 @@ const disposalSchema = Yup.object().shape({
 })
 
 const alasanSchema = Yup.object().shape({
-    alasan: Yup.string().required()
+    alasan: Yup.string()
 });
 
-const alasanDisSchema = Yup.object().shape({
-    alasan: Yup.string().required(),
-    jenis_reject: Yup.string().required()
-});
 
 class Pengadaan extends Component {
     constructor(props) {
@@ -84,8 +85,6 @@ class Pengadaan extends Component {
             upload: false,
             errMsg: '',
             fileUpload: '',
-            limit: 12,
-            search: '',
             formDis: false,
             formTrack: false,
             openModalDoc: false,
@@ -129,14 +128,36 @@ class Pengadaan extends Component {
             detailTrack: [],
             collap: false, 
             tipeCol: '',
-            time: '',
+            time: 'pilih',
+            time1: moment().subtract(1, 'month').startOf('month').format('YYYY-MM-DD'),
+            // time1: moment().startOf('month').format('YYYY-MM-DD'),
+            time2: moment().endOf('month').format('YYYY-MM-DD'),
+            limit: 100,
+            search: '',
             typeReject: '',
             menuRev: '',
             noDoc: '',
-            noTrans: ''
+            noTrans: '',
+            openSubmit: false,
+            openDraft: false,
+            tipeEmail: '',
+            subject: '',
+            message: '',
+            openFill: false,
+            dataRej: {},
+            history: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+    }
+
+    openHistory = () => {
+        this.setState({history: !this.state.history})
+    }
+
+    getMessage = (val) => {
+        this.setState({ message: val.message, subject: val.subject })
+        console.log(val)
     }
 
 
@@ -233,11 +254,14 @@ class Pengadaan extends Component {
             this.setState({confirm: 'rejSubmit'})
             this.openConfirm()
         } else {
+            this.prosesSendEmail('budget')
             await this.props.submitBudget(token, detailIo[0].no_pengadaan)
             this.prosesModalIo()
             this.getDataAsset()
             this.setState({confirm: 'submit'})
             this.openConfirm()
+            this.openModalSubmit()
+            this.openDraftEmail()
         }
     }
 
@@ -262,7 +286,11 @@ class Pengadaan extends Component {
         this.setState({openApproveIo: !this.state.openApproveIo})
     }
 
-    cekProsesApprove = async () => {
+    openModalSubmit = () => {
+        this.setState({openSubmit: !this.state.openSubmit})
+    }
+
+    cekProsesApprove = async (val) => {
         const token = localStorage.getItem('token')
         const level = localStorage.getItem('level')
         const {detailIo} = this.props.pengadaan
@@ -293,7 +321,11 @@ class Pengadaan extends Component {
                     }
                 }
                 if (tempdoc.length === arrDoc.length) {
-                    this.openModalApproveIo()
+                    if (val === 'submit') {
+                        this.openModalSubmit()
+                    } else {
+                        this.openModalApproveIo()
+                    }
                 } else {
                     this.setState({confirm: 'falseAppDok'})
                     this.openConfirm()
@@ -317,7 +349,11 @@ class Pengadaan extends Component {
                     }
                 }
                 if (tempdoc.length === arrDoc.length) {
-                    this.openModalApproveIo()
+                    if (val === 'submit') {
+                        this.openModalSubmit()
+                    } else {
+                        this.openModalApproveIo()
+                    }
                 } else {
                     this.setState({confirm: 'falseAppDok'})
                     this.openConfirm()
@@ -409,31 +445,47 @@ class Pengadaan extends Component {
         const {listStat, listMut, typeReject, menuRev} = this.state
         const token = localStorage.getItem('token')
         let temp = ''
-        let status = ''
         for (let i = 0; i < listStat.length; i++) {
             temp += listStat[i] + '.'
         }
         const data = {
             alasan: temp + value.alasan,
-            status: parseInt(status),
             no: detailIo[0].no_pengadaan,
-            menu: menuRev,
+            menu: typeReject === 'pembatalan' ? 'Pengadaan asset' : menuRev,
             list: listMut,
             type: level === '2' || level === '8' ? 'verif' : 'form',
             type_reject: typeReject
         }
-        this.openModalReject()
         await this.props.rejectIo(token, detailIo[0].no_pengadaan, data)
+        this.prosesSendEmail(`reject ${typeReject}`)
+        this.prosesModalIo()
         this.getDataAsset()
+        this.setState({confirm: 'reject'})
+        this.openConfirm()
+        this.openModalReject()
+        this.openDraftEmail()
     }
 
 
     approveIo = async () => {
         const token = localStorage.getItem('token')
         const { detailIo } = this.props.pengadaan
-        this.openModalApproveIo()
+        const app = detailIo[0].appForm
+            const tempApp = []
+            app.map(item => {
+                return (
+                    item.status === 1 && tempApp.push(item)
+                )
+            })
+        const tipe = tempApp.length === app.length-1 ? 'full approve' : 'approve'
+        this.prosesSendEmail(tipe)
         await this.props.approveIo(token, detailIo[0].no_pengadaan)
+        this.prosesModalIo()
         this.getDataAsset()
+        this.setState({confirm: 'approve'})
+        this.openConfirm()
+        this.openModalApproveIo()
+        this.openDraftEmail()
     }
 
     submitAsset = async (val) => {
@@ -469,20 +521,125 @@ class Pengadaan extends Component {
             this.openConfirm()
         } else {
             if (dataFalse.length === detailIo.length) {
+                this.prosesSendEmail('asset')
                 await this.props.submitNotAsset(token, val)
                 await this.props.podsSend(token, val)
                 this.getDataAsset()
                 this.prosesModalIo()
                 this.setState({confirm: 'submitnot'})
                 this.openConfirm()
+                this.openModalSubmit()
+                this.openDraftEmail()
             } else {
+                this.prosesSendEmail('asset')
                 await this.props.submitIsAsset(token, val)
                 this.getDataAsset()
                 this.prosesModalIo()
                 this.setState({confirm: 'submit'})
                 this.openConfirm()
+                this.openModalSubmit()
+                this.openDraftEmail()
             }
         }
+    }
+
+    prosesSendEmail = async (val) => {
+        const token = localStorage.getItem('token')
+        const { draftEmail } = this.props.tempmail
+        const { detailIo } = this.props.pengadaan
+        const { message, subject } = this.state
+        const cc = draftEmail.cc
+        const tempcc = []
+        for (let i = 0; i < cc.length; i++) {
+            tempcc.push(cc[i].email)
+        }
+        const sendMail = {
+            draft: draftEmail,
+            nameTo: draftEmail.to.fullname,
+            to: draftEmail.to.email,
+            cc: tempcc.toString(),
+            message: message,
+            subject: subject,
+            no: detailIo[0].no_pengadaan,
+            tipe: 'pengadaan',
+            menu: `pengadaan asset`,
+            proses: val === 'asset' || val === 'budget' ? 'submit' : val,
+            route: val === 'reject perbaikan' ? 'revtick' : val === 'budget' ? 'ekstick' : 'pengadaan'
+        }
+        await this.props.sendEmail(token, sendMail)
+        await this.props.addNewNotif(token, sendMail)
+    }
+
+    prepSendEmail = async (val) => {
+        const {detailIo} = this.props.pengadaan
+        const token = localStorage.getItem("token")
+         const level = localStorage.getItem('level')
+        if (val === 'asset' || val === 'budget') {
+            const menu = val === 'asset' ? 'Verifikasi asset (Pengadaan asset)' : 'Verifikasi Budget (Pengadaan asset)'
+            const tipe = 'submit'
+            const tempno = {
+                no: detailIo[0].no_pengadaan,
+                kode: detailIo[0].kode_plant,
+                jenis: 'pengadaan',
+                tipe: tipe,
+                menu: menu
+            }
+            this.setState({tipeEmail: val})
+            await this.props.getDetail(token, detailIo[0].no_pengadaan)
+            await this.props.getDraftEmail(token, tempno)
+            this.openDraftEmail()
+        } else {
+            const app = detailIo[0].appForm
+            const tempApp = []
+            for (let i = 0; i < app.length; i++) {
+                if (app[i].status === 1){
+                    tempApp.push(app[i])
+                }
+            }
+            const tipe = tempApp.length === app.length-1 ? 'full approve' : 'approve'
+            const menu = 'Pengajuan Pengadaan Asset (Pengadaan asset)'
+            const tempno = {
+                no: detailIo[0].no_pengadaan,
+                kode: detailIo[0].kode_plant,
+                jenis: 'pengadaan',
+                tipe: tipe,
+                menu: menu
+            }
+            this.setState({tipeEmail: val})
+            // await this.props.getDetail(token, detailIo[0].no_pengadaan)
+            await this.props.getDraftEmail(token, tempno)
+            this.openDraftEmail()
+        }
+    }
+
+    prepReject = async (val) => {
+        const {detailIo} = this.props.pengadaan
+        const {listStat, listMut, typeReject, menuRev} = this.state
+        const token = localStorage.getItem("token")
+        const level = localStorage.getItem('level')
+        if (typeReject === 'pembatalan' && listMut.length !== detailIo.length) {
+            this.setState({confirm: 'falseCancel'})
+            this.openConfirm()
+        } else {
+            const tipe = 'reject'
+            const menu = 'Pengajuan Pengadaan Asset (Pengadaan asset)'
+            const tempno = {
+                no: detailIo[0].no_pengadaan,
+                kode: detailIo[0].kode_plant,
+                jenis: 'pengadaan',
+                tipe: tipe,
+                typeReject: typeReject,
+                menu: menu
+            }
+            this.setState({tipeEmail: 'reject', dataRej: val})
+            await this.props.getDraftEmail(token, tempno)
+            this.openDraftEmail()
+        }
+        
+    }
+
+    openDraftEmail = () => {
+        this.setState({openDraft: !this.state.openDraft}) 
     }
 
     changeView = (val) => {
@@ -502,16 +659,18 @@ class Pengadaan extends Component {
         const data = this.props.pengadaan.detailIo
         let num = 0
         for (let i = 0; i < data.length; i++) {
-            if (data[i].isAsset !== 'true' && level !== '2' ) {
-                const temp = 0
-                num += temp
-            } else {
-                const temp = parseInt(data[i].price) * parseInt(data[i].qty)
-                num += temp
-            }
+            // if (data[i].isAsset !== 'true' && level !== '2' ) {
+            //     const temp = 0
+            //     num += temp
+            // } else {
+            const temp = parseInt(data[i].price) * parseInt(data[i].qty)
+            num += temp
+            // }
         }
-        this.setState({total: num, value: data[0].no_io})
-        this.prosesModalIo()
+        setTimeout(() => {
+            this.setState({total: num, value: data[0].no_io})
+            this.prosesModalIo()
+         }, 100)
     }
 
     rejectDisposal = async (value) => {
@@ -560,7 +719,8 @@ class Pengadaan extends Component {
     }
 
     prosesModalIo = () => {
-        this.setState({openModalIo: !this.state.openModalIo})
+        this.setState({openModalIo: !this.state.openModalIo, listMut: []})
+        
     }
 
     getDetailDisposal = async (value) => {
@@ -582,7 +742,7 @@ class Pengadaan extends Component {
     updateAlasan = async (val) => {
         const token = localStorage.getItem('token')
         const {detailIo} = this.props.pengadaan
-        await this.props.updateRecent(token, detailIo[0].no_pengadaan, val)
+        await this.props.updateReason(token, detailIo[0].no_pengadaan, val)
         await this.props.getDetail(token, detailIo[0].no_pengadaan)
         this.setState({confirm: 'upreason'})
         this.openConfirm()
@@ -763,6 +923,72 @@ class Pengadaan extends Component {
         this.openAppall()
     }
 
+    downloadAjuan = () => {
+        const { dataTemp } = this.props.pengadaan
+        const dataDownload = dataTemp
+
+        if (dataDownload.length === 0) {
+            this.setState({confirm: 'rejDownload'})
+            this.openConfirm()
+        } else {
+    
+            const workbook = new ExcelJS.Workbook();
+            const ws = workbook.addWorksheet('data')
+    
+            // await ws.protect('F1n4NcePm4')
+    
+            const borderStyles = {
+                top: {style:'thin'},
+                left: {style:'thin'},
+                bottom: {style:'thin'},
+                right: {style:'thin'}
+            }
+            
+    
+            ws.columns = [
+                {header: 'NO', key: 'c2'},
+                {header: 'No Pengadaan', key: 'c3'},
+                {header: 'Description', key: 'c4'},
+                {header: 'Price/unit', key: 'c5'},
+                {header: 'Total Amount', key: 'c6'},
+                {header: 'No Asset', key: 'c7'},
+                {header: 'ID Asset', key: 'c8'}
+            ]
+    
+            dataDownload.map((item, index) => { return ( ws.addRow(
+                {
+                    c2: index + 1,
+                    c3: item.no_pengadaan,
+                    c4: item.nama,
+                    c5: `Rp ${item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`,
+                    c6: `Rp ${(parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`,
+                    c7: item.no_asset,
+                    c8: item.id
+                }
+            )
+            ) })
+    
+            ws.eachRow({ includeEmpty: true }, function(row, rowNumber) {
+                row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
+                  cell.border = borderStyles;
+                })
+              })
+    
+              ws.columns.forEach(column => {
+                const lengths = column.values.map(v => v.toString().length)
+                const maxLength = Math.max(...lengths.filter(v => typeof v === 'number'))
+                column.width = maxLength + 5
+            })
+    
+            workbook.xlsx.writeBuffer().then(function(buffer) {
+                fs.saveAs(
+                  new Blob([buffer], { type: "application/octet-stream" }),
+                  `Filling No Aset ${dataDownload[0].no_pengadaan} ${moment().format('DD MMMM YYYY')}.xlsx`
+                )
+            })
+        }
+    }
+
     getDetailTrack = async (value) => {
         const token = localStorage.getItem('token')
         const level = localStorage.getItem('level')
@@ -827,29 +1053,31 @@ class Pengadaan extends Component {
              setTimeout(() => {
                 this.props.getDocumentIo(token, rinciIo.no_pengadaan)
              }, 2100)
-        } else if (approve) {
-            this.setState({confirm: 'approve'})
-            this.openConfirm()
-            this.props.resetApp()
-            this.prosesModalIo()
-            this.props.getApproveIo(token, detailIo[0].no_pengadaan)
-        } else if (rejApprove) {
+        } 
+        // else if (approve) {
+        //     this.setState({confirm: 'approve'})
+        //     this.openConfirm()
+        //     this.props.resetApp()
+        //     this.prosesModalIo()
+        //     this.props.getApproveIo(token, detailIo[0].no_pengadaan)
+        // } 
+        else if (rejApprove) {
             this.setState({confirm: 'rejApprove'})
             this.openConfirm()
             this.props.resetApp()
-        } else if (reject) {
-            this.setState({confirm: 'reject'})
-            this.openConfirm()
-            this.props.resetApp()
-            this.prosesModalIo()
-            this.props.getApproveIo(token, detailIo[0].no_pengadaan)
-        } else if (rejReject) {
+        } 
+        // else if (reject) {
+        //     this.setState({confirm: 'reject'})
+        //     this.openConfirm()
+        //     this.props.resetApp()
+        //     this.prosesModalIo()
+        //     this.props.getApproveIo(token, detailIo[0].no_pengadaan)
+        // } 
+        else if (rejReject) {
             this.setState({confirm: 'rejReject'})
             this.openConfirm()
             this.props.resetApp()
-        } else if (listMut.length > newIo.length) {
-            this.setState({listMut: []})
-        } else if (testPods === 'true') {
+        }  else if (testPods === 'true') {
             this.setState({confirm: 'apitrue'})
             this.openConfirm()
             this.props.resetApp()
@@ -878,12 +1106,25 @@ class Pengadaan extends Component {
         }
     }
 
+    openTemp = async () => {
+        const token = localStorage.getItem('token')
+        const { detailIo } = this.props.pengadaan
+        await this.props.getTempAsset(token, detailIo[0].no_pengadaan)
+        this.openFill()
+    }
+
+    openFill = () => {
+        this.setState({openFill: !this.state.openFill})
+    }
+
     onSearch = async (e) => {
         this.setState({search: e.target.value})
         const token = localStorage.getItem("token")
+        const { filter } = this.state
         if(e.key === 'Enter'){
             // await this.props.getAsset(token, 10, e.target.value, 1)
             // this.getDataAsset({limit: 10, search: this.state.search})
+            this.changeFilter(filter)
         }
     }
 
@@ -899,6 +1140,10 @@ class Pengadaan extends Component {
         await this.props.getNotif(token)
     }
 
+    goRevisi = () => {
+        this.props.history.push('/revtick')
+    }
+
     componentDidMount() {
         // this.getNotif()
         this.getDataAsset()
@@ -906,9 +1151,9 @@ class Pengadaan extends Component {
 
     getDataAsset = async (value) => {
         const level = localStorage.getItem('level')
-        const status = level === '2' ? '1' : level === '8' ? '3' : 'all'
+        const status = level === '2' ? '1' : level === '8' ? '3' : 'available'
         const token = localStorage.getItem("token")
-        await this.props.getPengadaan(token, status)
+        // await this.props.getPengadaan(token, status)
         this.changeFilter(status === 'all' && (level !== '5' && level !== '9') ? 'all' : 'available')
     }
 
@@ -921,16 +1166,40 @@ class Pengadaan extends Component {
     }
 
     changeFilter = async (val) => {
+        const token = localStorage.getItem("token")
         const role = localStorage.getItem('role')
         const level = localStorage.getItem('level')
-
-        const status = val === 'available' && level === '2' ? '1' : val === 'available' && level === '8' ? '3' : 'all'
-        const token = localStorage.getItem("token")
-        await this.props.getPengadaan(token, status)
-
+        const {time1, time2, search, limit} = this.state
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        const status = val === 'selesai' ? '8' : val === 'available' && level === '2' ? '1' : val === 'available' && level === '8' ? '3' : 'all'
+        
+        await this.props.getPengadaan(token, status, cekTime1, cekTime2, search, limit)
         if (level === '2' || level === '8') {
             const {dataPeng} = this.props.pengadaan
-            this.setState({filter: val, newIo: dataPeng})
+            const newIo = []
+            console.log(val)
+            for (let i = 0; i < dataPeng.length; i++) {
+                if (val === 'available') {
+                    if (dataPeng[i].status_reject !== 1) {
+                        newIo.push(dataPeng[i])
+                    }
+                } else if (val === 'reject') {
+                    if (dataPeng[i].status_reject === 1) {
+                        newIo.push(dataPeng[i])
+                    }
+                } else if (val === 'selesai') {
+                    if (dataPeng[i].status_form === '8') {
+                        newIo.push(dataPeng[i])
+                    }
+                } else {
+                    const cek = level === '8' ? '3' : '1'
+                    if (dataPeng[i].status_form !== cek || (dataPeng[i].status_form === cek && dataPeng[i].status_reject === 1)) {
+                        newIo.push(dataPeng[i])
+                    }
+                }
+            }
+            this.setState({filter: val, newIo: newIo})
         } else {
             const {dataPeng} = this.props.pengadaan
             if (val === 'available' && dataPeng.length > 0) {
@@ -941,22 +1210,21 @@ class Pengadaan extends Component {
                     const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
                     if (level === '5' || level === '9') {
                         console.log('at available 2')
-                        console.log(app[find].status === null)
-                        if (dataPeng[i].status_form === '2' && (app[find] === undefined || app.length === 0)) {
+                        if (dataPeng[i].status_reject !== 1 && dataPeng[i].status_form === '2' && (app[find] === undefined || app.length === 0)) {
                             console.log('at available 3')
                             newIo.push(dataPeng[i])
-                        } else if (dataPeng[i].status_form === '2' && app[find].status === null ) {
+                        } else if (dataPeng[i].status_reject !== 1 && dataPeng[i].status_form === '2' && app[find].status === null ) {
                             console.log('at available 4')
                             newIo.push(dataPeng[i])
                         }
                     } else if (find === 0 || find === '0') {
                         console.log('at available 8')
-                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
+                        if (dataPeng[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
                             newIo.push(dataPeng[i])
                         }
                     } else {
                         console.log('at available 5')
-                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
+                        if (dataPeng[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
                             newIo.push(dataPeng[i])
                         }
                     }
@@ -973,7 +1241,7 @@ class Pengadaan extends Component {
             } else if (val === 'selesai' && dataPeng.length > 0) {
                 const newIo = []
                 for (let i = 0; i < dataPeng.length; i++) {
-                    if (dataPeng[i].status_form === 8) {
+                    if (dataPeng[i].status_form === '8') {
                         newIo.push(dataPeng[i])
                     }
                 }
@@ -1011,6 +1279,32 @@ class Pengadaan extends Component {
             }
         }
     }
+
+    selectTime = (val) => {
+        this.setState({[val.type]: val.val})
+    }
+
+    changeTime = async (val) => {
+        const token = localStorage.getItem("token")
+        this.setState({time: val})
+        if (val === 'all') {
+            this.setState({time1: '', time2: ''})
+            setTimeout(() => {
+                this.getDataTime()
+             }, 500)
+        }
+    }
+
+    getDataTime = async () => {
+        const {time1, time2, filter, search, limit} = this.state
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        const token = localStorage.getItem("token")
+        const level = localStorage.getItem("level")
+        // const status = filter === 'selesai' ? '8' : filter === 'available' && level === '2' ? '1' : filter === 'available' && level === '8' ? '3' : 'all'
+        this.changeFilter(filter)
+    }
+
 
     prosesSidebar = (val) => {
         this.setState({sidebarOpen: val})
@@ -1063,14 +1357,15 @@ class Pengadaan extends Component {
     }
 
     chekApp = (val) => {
-        const { listMut, newIo } = this.state
+        const { detailIo } = this.props.pengadaan
         if (val === 'all') {
             const data = []
-            for (let i = 0; i < newIo.length; i++) {
-                data.push(newIo[i].id)
+            for (let i = 0; i < detailIo.length; i++) {
+                data.push(detailIo[i].id)
             }
             this.setState({listMut: data})
         } else {
+            const { listMut } = this.state
             listMut.push(val)
             this.setState({listMut: listMut})
         }
@@ -1094,22 +1389,11 @@ class Pengadaan extends Component {
         }
     }
 
-    changeTime = async (val) => {
-        const token = localStorage.getItem("token")
-        this.setState({time: val})
-        if (val === 'all') {
-            this.setState({time1: '', time2: ''})
-            setTimeout(() => {
-                this.getDataTime()
-             }, 500)
-        }
-    }
-
     render() {
-        const {alert, upload, errMsg, rinciIo, total, listMut, newIo, listStat, fileName, url, detailTrack, sidebarOpen} = this.state
+        const {alert, upload, errMsg, rinciIo, total, listMut, newIo, listStat, fileName, url, detailTrack, sidebarOpen, tipeEmail} = this.state
         const {dataAsset, alertM, alertMsg, alertUpload, page} = this.props.asset
         const pages = this.props.disposal.page 
-        const {dataPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataDocCart} = this.props.pengadaan
+        const {dataPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataDocCart, dataTemp} = this.props.pengadaan
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
         const dataNotif = this.props.notif.data
@@ -1225,7 +1509,7 @@ class Pengadaan extends Component {
                                                 <th>NO AJUAN</th>
                                                 <th>KODE AREA</th>
                                                 <th>NAMA AREA</th>
-                                                <th>TANGGAL AJUAN</th>
+                                                <th>TGL AJUAN</th>
                                                 <th>STATUS</th>
                                                 <th>OPSI</th>
                                             </tr>
@@ -1264,12 +1548,55 @@ class Pengadaan extends Component {
 
                     <div className={`${styleTrans.mainContent} ${this.state.sidebarOpen ? styleTrans.collapsedContent : ''}`}>
                         <h2 className={styleTrans.pageTitle}>Pengadaan Aset</h2>
-                        {(level === '5' || level === '9' ) && (
-                            <div className={styleTrans.searchContainer}>
-                                <Button size="lg" color='primary' onClick={this.goCartTicket}>Create</Button>
-                            </div>
-                        )}
                         <div className={styleTrans.searchContainer}>
+                            {(level === '5' || level === '9' ) ? (
+                                <Button size="lg" color='primary' onClick={this.goCartTicket}>Create</Button>
+                            ) : (
+                                <div></div>
+                            )}
+                            <select value={this.state.filter} onChange={e => this.changeFilter(e.target.value)} className={styleTrans.searchInput}>
+                                <option value="all">All</option>
+                                <option value="available">Available To Approve</option>
+                                <option value="reject">Reject</option>
+                                <option value="selesai">Finished</option>
+                            </select>
+                        </div>
+                        <div className={styleTrans.searchContainer}>
+                            <div className='rowCenter'>
+                                <div className='rowCenter'>
+                                    <Input className={style.filter3} type="select" value={this.state.time} onChange={e => this.changeTime(e.target.value)}>
+                                        <option value="all">Time (All)</option>
+                                        <option value="pilih">Periode</option>
+                                    </Input>
+                                </div>
+                                {this.state.time === 'pilih' ?  (
+                                    <>
+                                        <div className='rowCenter'>
+                                            <text className='bold'>:</text>
+                                            <Input
+                                                type= "date" 
+                                                className="inputRinci"
+                                                value={this.state.time1}
+                                                onChange={e => this.selectTime({val: e.target.value, type: 'time1'})}
+                                            />
+                                            <text className='mr-1 ml-1'>To</text>
+                                            <Input
+                                                type= "date" 
+                                                className="inputRinci"
+                                                value={this.state.time2}
+                                                onChange={e => this.selectTime({val: e.target.value, type: 'time2'})}
+                                            />
+                                            <Button
+                                            disabled={this.state.time1 === '' || this.state.time2 === '' ? true : false} 
+                                            color='primary' 
+                                            onClick={this.getDataTime} 
+                                            className='ml-1'>
+                                                Go
+                                            </Button>
+                                        </div>
+                                    </>
+                                ) : null}
+                            </ div>
                             <input
                                 type="text"
                                 placeholder="Search..."
@@ -1278,39 +1605,45 @@ class Pengadaan extends Component {
                                 onKeyPress={this.onSearch}
                                 className={styleTrans.searchInput}
                             />
-                            <select value={this.state.filter} onChange={e => this.changeFilter(e.target.value)} className={styleTrans.searchInput}>
-                                <option value="all">All</option>
-                                <option value="available">Available To Approve</option>
-                                <option value="reject">Reject</option>
-                                <option value="completed">Selesai</option>
-                            </select>
                         </div>
 
-                        <table className={styleTrans.table}>
+                        <table className={`${styleTrans.table} ${newIo.length > 0 ? styleTrans.tableFull : ''}`}>
                             <thead>
                                 <tr>
                                     <th>NO</th>
                                     <th>NO AJUAN</th>
                                     <th>KODE AREA</th>
                                     <th>NAMA AREA</th>
-                                    <th>TANGGAL AJUAN</th>
-                                    <th>STATUS</th>
+                                    <th>TGL AJUAN</th>
+                                    <th>JENIS AJUAN</th>
+                                    <th>APPROVED BY</th>
+                                    <th>TGL APPROVED</th>
+                                    {/* <th>STATUS</th> */}
                                     <th>OPSI</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {newIo.length > 0 && newIo.map(item => {
                                     return (
-                                        <tr>
+                                        <tr className={item.status_form === '0' ? 'fail' : item.status_reject === 0 ? 'note' : item.status_reject === 1 && 'bad'}>
                                             <td>{newIo.indexOf(item) + 1}</td>
                                             <td>{item.no_pengadaan}</td>
                                             <td>{item.kode_plant}</td>
-                                            <td>{item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}</td>
+                                            <td>{item.depo === null ? '' : item.area === null ? `${item.depo.nama_area} ${item.depo.channel}` : item.area}</td>
                                             <td>{moment(item.tglIo).format('DD MMMM YYYY')}</td>
                                             <td>{item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
+                                            <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? item.appForm.find(item => item.status === 1).nama + ` (${item.appForm.find(item => item.status === 1).jabatan === 'area' ? 'AOS' : item.appForm.find(item => item.status === 1).jabatan})` : '-' }</td>
+                                            <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? moment(item.appForm.find(item => item.status === 1).updatedAt).format('DD/MM/YYYY HH:mm:ss') : '-' }</td>
+                                            {/* <td>{}</td> */}
+                                            {/* <td>{item.history !== null && item.history.split(',').reverse()[0]}</td> */}
                                             <td>
-                                                <Button color='primary' className='mr-1 mb-1' onClick={() => this.openForm(item)}>{this.state.filter === 'available' ? 'Proses' : 'Detail'}</Button>
-                                                <Button color='warning' onClick={() => this.getDetailTrack(item.no_pengadaan)}>Tracking</Button>
+                                                <Button 
+                                                color='primary' 
+                                                className='mr-1 mt-1' 
+                                                onClick={item.status_reject === 1 && item.status_form !== '0' && level === '5' ? this.goRevisi : () => this.openForm(item)}>
+                                                    {this.state.filter === 'available' ? 'Proses' : item.status_reject === 1 && item.status_form !== '0' && level === '5' ? 'Revisi' : 'Detail'}
+                                                </Button>
+                                                <Button className='mt-1'  color='warning' onClick={() => this.getDetailTrack(item.no_pengadaan)}>Tracking</Button>
                                             </td>
                                         </tr>
                                     )
@@ -1326,6 +1659,7 @@ class Pengadaan extends Component {
                     </div>
                 </div>
                 <Modal size="xl" isOpen={this.state.openModalIo} toggle={this.prosesModalIo}>
+                <ModalHeader toggle={this.prosesModalIo}>{detailIo.length > 0 && detailIo[0].no_pengadaan}</ModalHeader>
                 <ModalBody className="mb-5">
                     <Container>
                         <Row className="rowModal">
@@ -1377,11 +1711,10 @@ class Pengadaan extends Component {
                                                 addon
                                                 type="checkbox"
                                                 className='mr-3'
-                                                disabled={this.state.filter === 'not available' ? true : false}
-                                                checked={listMut.length === 0 ? false : listMut.length === newIo.length ? true : false}
-                                                onClick={listMut.length === newIo.length ? () => this.chekRej('all') : () => this.chekApp('all')}
+                                                disabled={this.state.filter === 'available' ? false : true}
+                                                checked={listMut.length === detailIo.length ? true : false}
+                                                onClick={listMut.length === detailIo.length ? () => this.chekRej('all') : () => this.chekApp('all')}
                                                 />
-                                                Select All
                                             </th>
                                             <th>Qty</th>
                                             <th>Description</th>
@@ -1391,6 +1724,7 @@ class Pengadaan extends Component {
                                             {level === '2' && (
                                                 <th>Asset</th>
                                             )}
+                                            <th>Status IT</th>
                                             {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
                                                 <th>Dokumen</th>
                                             ) : (
@@ -1416,21 +1750,22 @@ class Pengadaan extends Component {
                                                             />
                                                         </td>
                                                         <td>{item.qty}</td>
-                                                        <td>{item.nama}</td>
+                                                        <td className='tdDesc'>{item.nama}</td>
                                                         <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                         <td>Rp {(parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                         {/* <td><Button onClick={() => this.openModalRinci()}>Detail</Button></td> */}
                                                         {level === '2' && (
                                                             <td className='colTable'>
-                                                                <div>
+                                                                <div className='mb-1'>
                                                                     <Input
                                                                     addon
                                                                     disabled={item.status_app === null ? false : true}
                                                                     checked={item.isAsset === 'true' ? true : false}
                                                                     type="checkbox"
                                                                     onClick={() => this.updateIo({item: item, value: 'true'})}
+                                                                    className='mr-1'
                                                                     value={item.no_asset} />
-                                                                    <text className='ml-2'>Ya</text>
+                                                                    <text>Ya</text>
                                                                 </div>
                                                                 <div>
                                                                     <Input
@@ -1439,11 +1774,15 @@ class Pengadaan extends Component {
                                                                     checked={item.isAsset === 'false' ? true : false}
                                                                     type="checkbox"
                                                                     onClick={() => this.updateIo({item: item, value: 'false'})}
+                                                                    className='mr-1'
                                                                     value={item.no_asset} />
-                                                                    <text className='ml-2'>Tidak</text>
+                                                                    <text>Tidak</text>
                                                                 </div>
                                                             </td>
                                                         )}
+                                                        <td>
+                                                            {item.jenis === 'it' ? 'IT' : item.jenis === 'non-it' ? 'NON IT' : '-' }
+                                                        </td>
                                                         {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
                                                             <td>
                                                                 <Button color='success' size='sm' onClick={() => this.prosesModalDoc(item)}>Show Dokumen</Button>
@@ -1602,13 +1941,18 @@ class Pengadaan extends Component {
                         <Button className="ml-2" color="warning" onClick={() => this.openModPreview(detailIo[0])}>
                             Download Form
                         </Button>
+                        {detailIo !== undefined && detailIo.length > 0 && detailIo[0].status_form === '8' && (
+                            <Button className="ml-2" color="primary" onClick={() => this.openTemp()}>
+                                List No.Aset
+                            </Button>
+                        )}
                     </div>
-                    {level === '2' || level === '8' && this.state.filter === 'available' ? (
+                    {(level === '2' || level === '8') && this.state.filter === 'available' ? (
                         <div className="btnFoot">
                             <Button className="mr-2" color="danger" disabled={listMut.length === 0 ? true : false} onClick={this.openModalReject}>
                                 Reject 
                             </Button>
-                            <Button disabled={detailIo.find((item) => item.isAsset === 'false') !== undefined ? true : false} color="success" onClick={level === '2' ? () => this.submitAsset(detailIo[0].no_pengadaan) : this.submitBudget}>
+                            <Button color="success" onClick={() => this.cekProsesApprove('submit')}>
                                 Submit
                             </Button>
                         </div>
@@ -1616,10 +1960,10 @@ class Pengadaan extends Component {
                     this.state.filter === 'available' ? (
                         <div className="btnFoot">
                             <Button className="mr-2" color="danger" disabled={listMut.length === 0 ? true : false} onClick={this.openModalReject}>
-                                Reject..
+                                Reject
                             </Button>
                             <Button  color="primary" onClick={this.cekProsesApprove}>
-                                Approve..
+                                Approve
                             </Button>
                         </div>
                     ) : (
@@ -1629,6 +1973,7 @@ class Pengadaan extends Component {
                 </div>
             </Modal>
             <Modal size="xl" isOpen={this.state.preview} toggle={this.openPreview}>
+                <ModalHeader toggle={this.openPreview}>{detailIo.length > 0 && detailIo[0].no_pengadaan}</ModalHeader>
                 <ModalBody className="mb-5">
                     <Container className='mb-4'>
                         <Row className="rowModal">
@@ -1688,7 +2033,7 @@ class Pengadaan extends Component {
                                                     <td>{item.qty}</td>
                                                     <td>{item.nama}</td>
                                                     <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                    <td>Rp {(parseInt(item.price) * parseInt(item.qty).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."))}</td>
+                                                    <td>Rp {((parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."))}</td>
                                                 </tr>
                                                 )
                                             )
@@ -1828,7 +2173,7 @@ class Pengadaan extends Component {
                                             <tr>
                                                 {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
                                                     return (
-                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'ROM' ? 'OM' : item.jabatan}</td>
+                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
                                                     )
                                                 })}
                                             </tr>
@@ -1908,7 +2253,7 @@ class Pengadaan extends Component {
             </Modal>
             <Modal size="xl" isOpen={this.state.openModalDoc} toggle={this.closeProsesModalDoc}>
                 <ModalDokumen  
-                    parDoc={{noDoc: this.state.noDoc, noTrans: this.state.noTrans, tipe: 'pengadaan', filter: this.state.filter}} 
+                    parDoc={{noDoc: this.state.noDoc, noTrans: this.state.noTrans, tipe: 'pengadaan', filter: this.state.filter, detailForm: this.state.valdoc}} 
                     dataDoc={detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? dataDocCart : dataDoc } 
                 />
             </Modal>
@@ -2001,7 +2346,7 @@ class Pengadaan extends Component {
                     </Button>
                 </ModalFooter>
             </Modal>
-            <Modal isOpen={this.props.pengadaan.isLoading || this.props.dokumen.isLoading ? true: false} size="sm">
+            <Modal isOpen={this.props.pengadaan.isLoading || this.props.dokumen.isLoading || this.props.tempmail.isLoading ? true: false} size="sm">
                 <ModalBody>
                     <div>
                         <div className={style.cekUpdate}>
@@ -2160,10 +2505,13 @@ class Pengadaan extends Component {
                     <ModalBody>
                     <Formik
                     initialValues={{
-                    alasan: ".",
+                        alasan: "",
                     }}
                     validationSchema={alasanSchema}
-                    onSubmit={(values) => {this.rejectIo(values)}}
+                    onSubmit={(values) => {
+                        // this.rejectIo(values)
+                        this.prepReject(values)
+                    }}
                     >
                         {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
                             <div className={style.modalApprove}>
@@ -2190,28 +2538,33 @@ class Pengadaan extends Component {
                                         <text className={style.txtError}>Must be filled</text>
                                     ) : null}
                                 </div>
-                                <div className='mb-2 mt-2 titStatus'>Pilih Menu Revisi :</div>
-                                <div className="ml-2">
-                                    <Input
-                                    addon
-                                    type="checkbox"
-                                    checked= {this.state.typeReject === 'Revisi Area' ? true : false}
-                                    onClick={this.state.typeReject === 'Revisi Area' ? () => this.menuRej('Revisi Area') : () => this.menuApp('Revisi Area')}
-                                    />  Revisi Area
-                                </div>
-                                <div className="ml-2">
-                                    <Input
-                                    addon
-                                    type="checkbox"
-                                    checked= {this.state.typeReject === 'pembatalan' ? true : false}
-                                    onClick={this.state.typeReject === 'pembatalan' ? () => this.menuRej('pembatalan') : () => this.menuApp('pembatalan')}
-                                    />  Revisi Asset
-                                </div>
-                                <div className='ml-2'>
-                                    {this.state.typeReject === '' ? (
-                                        <text className={style.txtError}>Must be filled</text>
-                                    ) : null}
-                                </div>
+                                {this.state.typeReject === 'perbaikan' && (
+                                    <>
+                                        <div className='mb-2 mt-2 titStatus'>Pilih Menu Revisi :</div>
+                                        <div className="ml-2">
+                                            <Input
+                                            addon
+                                            type="checkbox"
+                                            checked= {this.state.menuRev === 'Revisi Area' ? true : false}
+                                            onClick={this.state.menuRev === 'Revisi Area' ? () => this.menuRej('Revisi Area') : () => this.menuApp('Revisi Area')}
+                                            />  Revisi Area
+                                        </div>
+                                        {/* <div className="ml-2">
+                                            <Input
+                                            addon
+                                            type="checkbox"
+                                            checked= {this.state.menuRev === 'pembatalan' ? true : false}
+                                            onClick={this.state.menuRev === 'pembatalan' ? () => this.menuRej('pembatalan') : () => this.menuApp('pembatalan')}
+                                            />  Revisi Asset
+                                        </div> */}
+                                        <div className='ml-2'>
+                                            {this.state.menuRev === '' ? (
+                                                <text className={style.txtError}>Must be filled</text>
+                                            ) : null}
+                                        </div>
+                                    </>
+                                )}
+                                
                                 <div className='mb-2 mt-2 titStatus'>Pilih alasan :</div>
                                 <div className="ml-2">
                                     <Input
@@ -2251,12 +2604,12 @@ class Pengadaan extends Component {
                                 onBlur={handleBlur('alasan')}
                                 />
                                 <div className='ml-2'>
-                                    {errors.alasan ? (
-                                        <text className={style.txtError}>{errors.alasan}</text>
+                                    {listStat.length === 0 && (values.alasan.length < 3)? (
+                                        <text className={style.txtError}>Must be filled</text>
                                     ) : null}
                                 </div>
                                 <div className={style.btnApprove}>
-                                    <Button color="primary" disabled={(values.alasan === '.' || values.alasan === '' || this.state.typeReject === '' || this.state.menuRev === '') && listStat.length === 0 ? true : false} onClick={handleSubmit}>Submit</Button>
+                                    <Button color="primary" disabled={(((values.alasan === '.' || values.alasan === '') && listStat.length === 0) || this.state.typeReject === '' || (this.state.typeReject === 'perbaikan' && this.state.menuRev === '')) ? true : false} onClick={handleSubmit}>Submit</Button>
                                     <Button className='ml-2' color="secondary" onClick={this.openModalReject}>Close</Button>
                                 </div>
                             </div>
@@ -2264,7 +2617,7 @@ class Pengadaan extends Component {
                         </Formik>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.state.openApproveIo} toggle={this.openModalApproveIo} centered={true}>
+                <Modal isOpen={this.state.openApproveIo} centered={true}>
                     <ModalBody>
                         <div className={style.modalApprove}>
                             <div>
@@ -2276,8 +2629,28 @@ class Pengadaan extends Component {
                                 </text>
                             </div>
                             <div className={style.btnApprove}>
-                                <Button color="primary" onClick={this.approveIo}>Ya</Button>
+                                {/* <Button color="primary" onClick={this.approveIo}>Ya</Button> */}
+                                <Button color="primary" onClick={() => this.prepSendEmail('approve')}>Ya</Button>
                                 <Button color="secondary" onClick={this.openModalApproveIo}>Tidak</Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.openSubmit} centered={true}>
+                    <ModalBody>
+                        <div className={style.modalApprove}>
+                            <div>
+                                <text>
+                                    Anda yakin untuk submit 
+                                    <text className={style.verif}>  </text>
+                                    pada tanggal
+                                    <text className={style.verif}> {moment().format('LL')}</text> ?
+                                </text>
+                            </div>
+                            <div className={style.btnApprove}>
+                                {/* <Button color="primary" onClick={level === '2' ? () => this.submitAsset(detailIo[0].no_pengadaan) : this.submitBudget}>Ya</Button> */}
+                                <Button color="primary" onClick={level === '2' ? () => this.prepSendEmail('asset') : () => this.prepSendEmail('budget')}>Ya</Button>
+                                <Button color="secondary" onClick={this.openModalSubmit}>Tidak</Button>
                             </div>
                         </div>
                     </ModalBody>
@@ -2316,12 +2689,17 @@ class Pengadaan extends Component {
                             : {detailTrack[0] === undefined ? '' : detailTrack[0].no_pengadaan}
                             </Col>
                         </Row>
-                        <Row className='ml-4 trackSub1'>
+                        <Row className='ml-4 trackSub'>
                             <Col md={3}>
                             Tanggal Pengajuan
                             </Col>
                             <Col md={9}>
                             : {detailTrack[0] === undefined ? '' : moment(detailTrack[0].createdAt === null ? detailTrack[0].createdAt : detailTrack[0].createdAt).locale('idn').format('DD MMMM YYYY ')}
+                            </Col>
+                        </Row>
+                        <Row className='ml-4 trackSub1'>
+                            <Col md={12}>
+                                <Button color='success' size='md' onClick={this.openHistory}>Full History</Button>
                             </Col>
                         </Row>
                         <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
@@ -2407,7 +2785,8 @@ class Pengadaan extends Component {
                                                                 <div class="step-icon-wrap">
                                                                 <button class="step-icon"><FaFileSignature size={30} className="center2" /></button>
                                                                 </div>
-                                                                <h5 class="step-title">{moment(item.updatedAt).format('DD-MM-YYYY')} </h5>
+                                                                <h5 class="step-title">{item.status === null ? '' : moment(item.updatedAt).format('DD-MM-YYYY')} </h5>
+                                                                <h4 class="step-title">{item.status === null ? '' : item.nama}</h4>
                                                                 <h4 class="step-title">{item.jabatan}</h4>
                                                             </div>
                                                         )
@@ -2430,13 +2809,13 @@ class Pengadaan extends Component {
                                                 </div>
                                             ) :  this.state.tipeCol === 'Verifikasi Aset' ? (
                                                 <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
-                                                    <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form == 9 || detailTrack[0].status_form == 8 ? "step completed" : 'step'}>
+                                                    <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form === '1' || parseInt(detailTrack[0].status_form) > 1 ? "step completed" : 'step'}>
                                                         <div class="step-icon-wrap">
                                                         <button class="step-icon" ><FaFileSignature size={30} className="center2" /></button>
                                                         </div>
                                                         <h4 class="step-title">Verifikasi Aset atau Non Asset</h4>
                                                     </div>
-                                                    <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form == 8 ? "step completed" : 'step'}>
+                                                    <div class={detailTrack[0] === undefined ? 'step' : parseInt(detailTrack[0].status_form) > 1 ? "step completed" : 'step'}>
                                                         <div class="step-icon-wrap">
                                                         <button class="step-icon" ><AiOutlineCheck size={30} className="center2" /></button>
                                                         </div>
@@ -2445,13 +2824,13 @@ class Pengadaan extends Component {
                                                 </div>
                                             ) : this.state.tipeCol === 'Proses Budget' && (
                                                 <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
-                                                    <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form == 3 || detailTrack[0].status_form > 3 ? "step completed" : 'step'}>
+                                                    <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form == 3 || parseInt(detailTrack[0].status_form) > 3 ? "step completed" : 'step'}>
                                                         <div class="step-icon-wrap">
                                                         <button class="step-icon" ><FaFileSignature size={30} className="center2" /></button>
                                                         </div>
                                                         <h4 class="step-title">Filling No Io</h4>
                                                     </div>
-                                                    <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form > 3 ? "step completed" : 'step'}>
+                                                    <div class={detailTrack[0] === undefined ? 'step' : parseInt(detailTrack[0].status_form)  > 3 ? "step completed" : 'step'}>
                                                         <div class="step-icon-wrap">
                                                         <button class="step-icon" ><AiOutlineCheck size={30} className="center2" /></button>
                                                         </div>
@@ -2476,7 +2855,20 @@ class Pengadaan extends Component {
                         </div>
                     </div>
                 </Modal>
-                <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="sm">
+                <Modal isOpen={this.state.history} toggle={this.openHistory}>
+                    <ModalBody>
+                        <div className='mb-4'>History Transaksi</div>
+                        <div className='history'>
+                            {detailTrack.length > 0 && detailTrack[0].history.split(',').map(item => {
+                                return (
+                                    item !== null && item !== 'null' && 
+                                    <Button className='mb-2' color='info'>{item}</Button>
+                                )
+                            })}
+                        </div>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="md">
                 <ModalBody>
                     {this.state.confirm === 'submit' ?(
                         <div>
@@ -2490,7 +2882,7 @@ class Pengadaan extends Component {
                             <div className={style.cekUpdate}>
                             <AiFillCheckCircle size={80} className={style.green} />
                             <div className={[style.sucUpdate, style.green]}>Berhasil Submit</div>
-                            <div className="errApprove mt-2">Transaksi dibatalkan</div>
+                            {/* <div className="errApprove mt-2">Transaksi dibatalkan</div> */}
                         </div>
                         </div>
                     ) : this.state.confirm === 'isupdate' ?(
@@ -2531,17 +2923,25 @@ class Pengadaan extends Component {
                     ) : this.state.confirm === 'rejReject' ?(
                         <div>
                             <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Gagal Reject</div>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Reject</div>
+                            </div>
                         </div>
+                    ) : this.state.confirm === 'falseCancel' ?(
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Reject</div>
+                                <div className="errApprove mt-2">Reject pembatalan hanya bisa dilakukan jika semua data ajuan terceklis</div>
+                            </div>
                         </div>
                     ) : this.state.confirm === 'rejSubmit' ?(
                         <div>
                             <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
-                            <div className="errApprove mt-2">Mohon isi Nomor IO terlebih dahulu</div>
-                        </div>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                                <div className="errApprove mt-2">Mohon isi Nomor IO terlebih dahulu</div>
+                            </div>
                         </div>
                     ) : this.state.confirm === 'falseSubmit' ?(
                         <div>
@@ -2621,6 +3021,87 @@ class Pengadaan extends Component {
                         <div></div>
                     )}
                 </ModalBody>
+                <div className='row justify-content-md-center mb-4'>
+                    <Button size='lg' onClick={this.openConfirm} color='primary'>OK</Button>
+                </div>
+            </Modal>
+            <Modal isOpen={this.state.openDraft} size='xl'>
+                <ModalHeader>Email Pemberitahuan</ModalHeader>
+                <ModalBody>
+                    <Email handleData={this.getMessage}/>
+                    <div className={style.foot}>
+                        <div></div>
+                        <div>
+                            <Button
+                                disabled={this.state.message === '' ? true : false} 
+                                className="mr-2"
+                                onClick={tipeEmail === 'asset' ? () => this.submitAsset(detailIo[0].no_pengadaan) 
+                                    : tipeEmail === 'budget' ?  this.submitBudget
+                                    : tipeEmail === 'reject' ? () => this.rejectIo(this.state.dataRej)
+                                    : this.approveIo
+                                } 
+                                color="primary"
+                            >
+                                {tipeEmail === 'reject' ? 'Reject' : 'Approve'} & Send Email
+                            </Button>
+                            <Button className="mr-3" onClick={this.openDraftEmail}>Cancel</Button>
+                        </div>
+                    </div>
+                </ModalBody>
+            </Modal>
+            <Modal size="xl" isOpen={this.state.openFill} toggle={this.openFill}>
+                <ModalHeader>
+                    Filling No. Asset
+                </ModalHeader>
+                <ModalBody>
+                    {/* <Alert color="info" className="alertWrong" isOpen={false}>
+                        <div>Gunakan tanda koma (,) sebagai pemisah antara nomor asset satu dengan yang lainnya, ex: 1000876,20006784,1000756</div>
+                    </Alert> */}
+                    <Table bordered stripped responsive id="table-to-xls">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>No Pengadaan</th>
+                                <th>Description</th>
+                                <th>Price/unit</th>
+                                <th>Total Amount</th>
+                                <th>No Asset</th>
+                                <th>ID Asset</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {dataTemp !== undefined && dataTemp.length > 0 && dataTemp.map(item => {
+                                return (
+                                    // item.isAsset === 'false' ? (
+                                    //     null
+                                    // ) : (
+                                        <tr onClick={() => this.openModalRinci()}>
+                                            <td>{dataTemp.indexOf(item) + 1}</td>
+                                            <th>{item.no_pengadaan}</th>
+                                            <td>{item.nama}</td>
+                                            <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>Rp {(parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.no_asset}</td>
+                                            <td>{item.id}</td>
+                                        </tr>
+                                    // )
+                                )
+                            })}
+                        </tbody>
+                    </Table>
+                    <div className="mt-3 modalFoot">
+                        <div className="btnFoot">
+                        </div>
+                        <div className="btnFoot">
+                            <Button className="mr-2" color="warning" onClick={() => this.downloadAjuan()}>
+                                Download
+                            </Button>
+                            <Button color="secondary" onClick={this.openFill}>
+                                Close
+                            </Button>
+                        </div>
+                    </div>
+                </ModalBody>
             </Modal>
             </>
         )
@@ -2635,7 +3116,8 @@ const mapStateToProps = state => ({
     setuju: state.setuju,
     notif: state.notif,
     auth: state.auth,
-    dokumen: state.dokumen
+    dokumen: state.dokumen,
+    tempmail: state.tempmail
 })
 
 const mapDispatchToProps = {
@@ -2661,10 +3143,14 @@ const mapDispatchToProps = {
     resetApp: pengadaan.resetApp,
     getDocCart: pengadaan.getDocCart,
     approveAll: pengadaan.approveAll,
-    updateRecent: pengadaan.updateRecent,
+    updateReason: pengadaan.updateReason,
     testApiPods: pengadaan.testApiPods,
     submitNotAsset: pengadaan.submitNotAsset,
-    podsSend: pengadaan.podsSend
+    getDraftEmail: tempmail.getDraftEmail,
+    sendEmail: tempmail.sendEmail,
+    getTempAsset: pengadaan.getTempAsset,
+    podsSend: pengadaan.podsSend,
+    addNewNotif: newnotif.addNewNotif,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Pengadaan)

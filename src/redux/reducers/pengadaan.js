@@ -26,6 +26,7 @@ const pengState = {
     rejApprove: false,
     rejReject: false,
     subEks: false,
+    subRevisi: null,
     updateTemp: false,
     errUpload: false,
     getCart: false,
@@ -38,7 +39,7 @@ const pengState = {
     appall: false,
     rejAppall: false,
     dataAppall: [],
-    updateRecent: false,
+    updateReason: false,
     getRev: false,
     revPeng: [],
     testPods: '',
@@ -49,7 +50,11 @@ const pengState = {
     trackIo: [],
     podssend: null,
     submitNotAset: null,
-    dataErr: []
+    dataErr: [],
+    noIo: '',
+    isSubIo: null,
+    isFinIo: null,
+    appRevisi: null
 }
 
 export default (state=pengState, action) => {
@@ -78,6 +83,29 @@ export default (state=pengState, action) => {
                 isLoading: false,
                 isGet: false,
                 isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'SEARCH_IO_PENDING': {
+            return {
+                ...state,
+                isGet: false,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'SEARCH_IO_FULFILLED': {
+            return {
+                ...state,
+                isError: false,
+                isGet: true,
+                dataPeng: action.payload.data.result,
+                alertMsg: 'get pengadaan Succesfully',
+            };
+        }
+        case 'SEARCH_IO_REJECTED': {
+            return {
+                ...state,
+                isGet: false,
                 alertMsg: "Unable connect to server"
             };
         }
@@ -176,7 +204,6 @@ export default (state=pengState, action) => {
             return {
                 ...state,
                 isLoading: false,
-                isError: true,
                 alertMsg: "Unable connect to server"
             };
         }
@@ -226,6 +253,53 @@ export default (state=pengState, action) => {
                 alertMsg: "Unable connect to server"
             };
         }
+        case 'SUBMIT_IO_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'SUBMIT_IO_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isSubIo: true,
+                noIo: action.payload.data.noIo,
+                alertMsg: 'get detail coa Succesfully',
+            };
+        }
+        case 'SUBMIT_IO_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isSubIo: false,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'SUBFINAL_IO_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'SUBFINAL_IO_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isFinIo: true,
+                alertMsg: 'success submet final Succesfully',
+            };
+        }
+        case 'SUBFINAL_IO_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isFinIo: false,
+                alertMsg: "Unable connect to server"
+            };
+        }
         case 'UPCART_IO_PENDING': {
             return {
                 ...state,
@@ -246,6 +320,29 @@ export default (state=pengState, action) => {
                 ...state,
                 isLoading: false,
                 isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'APP_REVISI_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'APP_REVISI_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                appRevisi: true,
+                alertMsg: 'get data cart Succesfully',
+            };
+        }
+        case 'APP_REVISI_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                appRevisi: false,
                 alertMsg: "Unable connect to server"
             };
         }
@@ -436,22 +533,22 @@ export default (state=pengState, action) => {
                 alertMsg: "Unable connect to server"
             };
         }
-        case 'UPDATE_RECENT_PENDING': {
+        case 'UPDATE_REASON_PENDING': {
             return {
                 ...state,
                 isLoading: true,
                 alertMsg: 'Waiting ...'
             };
         }
-        case 'UPDATE_RECENT_FULFILLED': {
+        case 'UPDATE_REASON_FULFILLED': {
             return {
                 ...state,
                 isLoading: false,
-                updateRecent: true,
+                updateReason: true,
                 alertMsg: 'update is asset succesfully',
             };
         }
-        case 'UPDATE_RECENT_REJECTED': {
+        case 'UPDATE_REASON_REJECTED': {
             return {
                 ...state,
                 isLoading: false,
@@ -548,6 +645,29 @@ export default (state=pengState, action) => {
                 ...state,
                 isLoading: false,
                 isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'SUBMIT_REVISI_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'SUBMIT_REVISI_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                subRevisi: true,
+                alertMsg: 'update is asset succesfully',
+            };
+        }
+        case 'SUBMIT_REVISI_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                subRevisi: false,
                 alertMsg: "Unable connect to server"
             };
         }
@@ -843,7 +963,9 @@ export default (state=pengState, action) => {
                 testPods: '',
                 appdoc: null,
                 rejdoc: null,
-                podssend: null
+                podssend: null,
+                subRevisi: null,
+                appRevisi: null
             }
         }
         default: {

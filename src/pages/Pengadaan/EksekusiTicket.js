@@ -22,6 +22,9 @@ import {default as axios} from 'axios'
 import Sidebar from "../../components/Header"
 import MaterialTitlePanel from "../../components/material_title_panel"
 import SidebarContent from "../../components/sidebar_content"
+import tempmail from '../../redux/actions/tempmail'
+import dokumen from '../../redux/actions/dokumen'
+import newnotif from '../../redux/actions/newnotif'
 import placeholder from  "../../assets/img/placeholder.png"
 import TablePeng from '../../components/TablePeng'
 import notif from '../../redux/actions/notif'
@@ -32,6 +35,7 @@ import ExcelJS from "exceljs"
 import fs from "file-saver"
 import styleTrans from '../../assets/css/transaksi.module.css'
 import NewNavbar from '../../components/NewNavbar'
+import Email from '../../components/Pengadaan/Email'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -80,8 +84,12 @@ class EksekusiTicket extends Component {
             upload: false,
             errMsg: '',
             fileUpload: '',
-            limit: 12,
+            limit: 100,
             search: '',
+            time: 'pilih',
+            time1: moment().subtract(1, 'month').startOf('month').format('YYYY-MM-DD'),
+            // time1: moment().startOf('month').format('YYYY-MM-DD'),
+            time2: moment().endOf('month').format('YYYY-MM-DD'),
             formDis: false,
             openModalDoc: false,
             modalRinci: false,
@@ -116,10 +124,22 @@ class EksekusiTicket extends Component {
             openFill: false,
             download: '',
             idTab: null,
-            filter: 'available'
+            filter: 'available',
+            openSubmit: false,
+            openDraft: false,
+            tipeEmail: '',
+            subject: '',
+            message: '',
+            noDoc: '',
+            noTrans: ''
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+    }
+
+    getMessage = (val) => {
+        this.setState({ message: val.message, subject: val.subject })
+        console.log(val)
     }
 
     prosesSidebar = (val) => {
@@ -212,6 +232,15 @@ class EksekusiTicket extends Component {
         this.setState({openModalDoc: !this.state.openModalDoc})
     }
 
+    goDownload = (val) => {
+        const {detailIo} = this.props.pengadaan
+        localStorage.setItem('printData', detailIo[0].no_pengadaan)
+        const newWindow = window.open(`/${val}`, '_blank', 'noopener,noreferrer')
+        if (newWindow) {
+            newWindow.opener = null
+        }
+    }
+
     updateIo = async (val) => {
         const token = localStorage.getItem('token')
         const data = {
@@ -260,10 +289,22 @@ class EksekusiTicket extends Component {
         const token = localStorage.getItem('token')
         this.setState({valdoc: val})
         if (val.asset_token === null || val.asset_token === '') {
+            const tempno = {
+                no: val.id,
+                jenis: 'pengadaan'
+            }
+            await this.props.getDokumen(token, tempno)
             await this.props.getDocCart(token, val.id)
+            this.setState({noDoc: val.id, noTrans: data[0].no_pengadaan})
             this.closeProsesModalDoc()
         } else {
+            const tempno = {
+                no: data[0].no_pengadaan,
+                jenis: 'pengadaan'
+            }
+            await this.props.getDokumen(token, tempno)
             await this.props.getDocumentIo(token, data[0].no_pengadaan)
+            this.setState({noDoc: data[0].no_pengadaan, noTrans: data[0].no_pengadaan})
             this.closeProsesModalDoc()
         }
     }
@@ -300,42 +341,221 @@ class EksekusiTicket extends Component {
         this.getDataAsset()
     }
 
-    submitAsset = async (val) => {
+    openModalSubmit = () => {
+        this.setState({openSubmit: !this.state.openSubmit})
+    }
+
+    cekProsesApprove = async (val) => {
         const token = localStorage.getItem('token')
-        const cek = []
-        const { detailIo } = this.props.pengadaan
-        for (let i = 0; i < detailIo.length; i++) {
-            if (detailIo[i].isAsset === 'true') {
-                if (detailIo[i].no_asset !== null) {
-                    const data = detailIo[i].no_asset.split(',') === undefined ? 1 : detailIo[i].no_asset.split(',')  
-                    if (data.length !== parseInt(detailIo[i].qty) || detailIo[i].jenis === null) {
-                        cek.push(detailIo[i])
+        const level = localStorage.getItem('level')
+        const {detailIo} = this.props.pengadaan
+        
+        if ((level === '5' || level === '9') && (detailIo[0].alasan === '' || detailIo[0].alasan === null || detailIo[0].alasan === '-')) {
+            this.setState({confirm: 'recent'})
+            this.openConfirm()
+        } else if (level !== '5' && level !== '9') {
+            if (detailIo[0].asset_token === null) {
+                const tempdoc = []
+                const arrDoc = []
+                for (let i = 0; i < detailIo.length; i++) {
+                    await this.props.getDocCart(token, detailIo[i].id)
+                    const {dataDocCart} = this.props.pengadaan
+                    for (let j = 0; j < dataDocCart.length; j++) {
+                        if (dataDocCart[j].path !== null) {
+                            const arr = dataDocCart[j]
+                            const stat = arr.status_dokumen
+                            const cekLevel = stat !== null && stat !== '1' ? stat.split(',').reverse()[0].split(';')[0] : ''
+                            const cekStat = stat !== null && stat !== '1' ? stat.split(',').reverse()[0].split(';')[1] : ''
+                            if (cekLevel === ` level ${level}` && cekStat === ` status approve`) {
+                                tempdoc.push(arr)
+                                arrDoc.push(arr)
+                            } else {
+                                arrDoc.push(arr)
+                            }
+                        }
                     }
+                }
+                if (tempdoc.length === arrDoc.length) {
+                    this.cekSubmit()
                 } else {
-                    cek.push(1)
+                    this.setState({confirm: 'falseAppDok'})
+                    this.openConfirm()
+                }
+            } else {
+                const {dataDoc} = this.props.pengadaan
+                const tempdoc = []
+                const arrDoc = []
+                for (let j = 0; j < dataDoc.length; j++) {
+                    if (dataDoc[j].path !== null) {
+                        const arr = dataDoc[j]
+                        const stat = arr.status_dokumen
+                        const cekLevel = stat !== null && stat !== '1' ? stat.split(',').reverse()[0].split(';')[0] : ''
+                        const cekStat = stat !== null && stat !== '1' ? stat.split(',').reverse()[0].split(';')[1] : ''
+                        if (cekLevel === ` level ${level}` && cekStat === ` status approve`) {
+                            tempdoc.push(arr)
+                            arrDoc.push(arr)
+                        } else {
+                            arrDoc.push(arr)
+                        }
+                    }
+                }
+                if (tempdoc.length === arrDoc.length) {
+                    this.cekSubmit()
+                } else {
+                    this.setState({confirm: 'falseAppDok'})
+                    this.openConfirm()
                 }
             }
+        } else {
+            this.cekSubmit()
         }
-        if (cek.length > 0) {
+    }
+
+    cekSubmit = async (val) => {
+        const cek = []
+        const temp = []
+
+        const { detailIo, dataTemp } = this.props.pengadaan
+        for (let i = 0; i < detailIo.length; i++) {
+            if (detailIo[i].jenis === null) {
+                cek.push(detailIo[i])
+            }
+        }
+
+        for (let i = 0; i < dataTemp.length; i++) {
+            if (dataTemp[i].no_asset === null) {
+                temp.push(dataTemp[i])
+            }
+        }
+
+        if (cek.length > 0 || temp.length > 0) {
             this.setState({confirm: 'falseSubmit'})
             this.openConfirm()
         } else {
+            this.openModalSubmit()
+        }
+    }
+
+    submitAsset = async (val) => {
+        const token = localStorage.getItem('token')
+        const cek = []
+        const temp = []
+
+        const { detailIo, dataTemp } = this.props.pengadaan
+        for (let i = 0; i < detailIo.length; i++) {
+            if (detailIo[i].jenis === null) {
+                cek.push(detailIo[i])
+            }
+        }
+
+        for (let i = 0; i < dataTemp.length; i++) {
+            if (dataTemp[i].no_asset === null) {
+                temp.push(dataTemp[i])
+            }
+        }
+
+        if (cek.length > 0 || temp.length > 0) {
+            this.setState({confirm: 'falseSubmit'})
+            this.openConfirm()
+        } else {
+            this.prosesSendEmail(this.state.tipeEmail)
             await this.props.submitEks(token, val)
             if (detailIo[0].ticket_code === null) {
                 this.prosesModalIo()
                 this.getDataAsset()
                 this.setState([{confirm: 'submit'}])
                 this.openConfirm()
+                this.openModalSubmit()
+                this.openDraftEmail()
             } else {
                 await this.props.podsSend(token, val)
+                this.prosesModalIo()
+                this.getDataAsset()
+                this.setState([{confirm: 'submit'}])
+                this.openConfirm()
+                this.openModalSubmit()
+                this.openDraftEmail()
             }
         }
+    }
+
+    prepSendEmail = async (val) => {
+        const {detailIo} = this.props.pengadaan
+        const token = localStorage.getItem("token")
+         const level = localStorage.getItem('level')
+        if (val === 'asset' || val === 'budget') {
+            const menu = 'Eksekusi Pengadaan Asset (Pengadaan asset)'
+            const tipe = 'submit'
+            const tempno = {
+                no: detailIo[0].no_pengadaan,
+                kode: detailIo[0].kode_plant,
+                jenis: 'pengadaan',
+                tipe: tipe,
+                menu: menu
+            }
+            this.setState({tipeEmail: val})
+            await this.props.getDraftEmail(token, tempno)
+            this.openDraftEmail()
+        } else {
+            const app = detailIo[0].appForm
+            const tempApp = []
+            for (let i = 0; i < app.length; i++) {
+                if (app[i].status === 1){
+                    tempApp.push(app[i])
+                }
+            }
+            const tipe = tempApp.length === app.length-1 ? 'full approve' : 'approve'
+            const menu = 'Pengajuan Pengadaan Asset (Pengadaan asset)'
+            const tempno = {
+                no: detailIo[0].no_pengadaan,
+                kode: detailIo[0].kode_plant,
+                jenis: 'pengadaan',
+                tipe: tipe,
+                menu: menu
+            }
+            this.setState({tipeEmail: val})
+            // await this.props.getDetail(token, detailIo[0].no_pengadaan)
+            await this.props.getDraftEmail(token, tempno)
+            this.openDraftEmail()
+        }
+    }
+
+    openDraftEmail = () => {
+        this.setState({openDraft: !this.state.openDraft}) 
+    }
+
+    prosesSendEmail = async (val) => {
+        const token = localStorage.getItem('token')
+        const { draftEmail } = this.props.tempmail
+        const { detailIo } = this.props.pengadaan
+        const { message, subject } = this.state
+        const cc = draftEmail.cc
+        const tempcc = []
+        for (let i = 0; i < cc.length; i++) {
+            tempcc.push(cc[i].email)
+        }
+        const sendMail = {
+            draft: draftEmail,
+            nameTo: draftEmail.to.fullname,
+            to: draftEmail.to.email,
+            cc: tempcc.toString(),
+            message: message,
+            subject: subject,
+            no: detailIo[0].no_pengadaan,
+            tipe: 'pengadaan',
+            menu: `pengadaan asset`,
+            proses: val === 'asset' || val === 'budget' ? 'submit' : val,
+            route: val === 'budget' ? 'ekstick' : 'ticket'
+        }
+        await this.props.sendEmail(token, sendMail)
+        await this.props.addNewNotif(token, sendMail)
     }
 
     openForm = async (val) => {
         const token = localStorage.getItem('token')
         const level = localStorage.getItem('level')
         await this.props.getDetail(token, val.no_pengadaan)
+        await this.props.getTempAsset(token, val.no_pengadaan)
         await this.props.getApproveIo(token, val.no_pengadaan)
         const data = this.props.pengadaan.detailIo
         let num = 0
@@ -726,7 +946,35 @@ class EksekusiTicket extends Component {
 
     getDataAsset = async (value) => {
         const token = localStorage.getItem("token")
-        this.props.getPengadaan(token, '9')
+        const {time1, time2, search, limit} = this.state
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        this.props.getPengadaan(token, '9', cekTime1, cekTime2, search, limit)
+    }
+
+    selectTime = (val) => {
+        this.setState({[val.type]: val.val})
+    }
+
+    changeTime = async (val) => {
+        const token = localStorage.getItem("token")
+        this.setState({time: val})
+        if (val === 'all') {
+            this.setState({time1: '', time2: ''})
+            setTimeout(() => {
+                this.getDataTime()
+             }, 500)
+        }
+    }
+
+    getDataTime = async () => {
+        const {time1, time2, filter, search, limit} = this.state
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        const token = localStorage.getItem("token")
+        const level = localStorage.getItem("level")
+        // const status = filter === 'selesai' ? '8' : filter === 'available' && level === '2' ? '1' : filter === 'available' && level === '8' ? '3' : 'all'
+        this.getDataAsset()
     }
 
     getSubmitDisposal = async (value) => {
@@ -877,6 +1125,41 @@ class EksekusiTicket extends Component {
                     <div className={`${styleTrans.mainContent} ${this.state.sidebarOpen ? styleTrans.collapsedContent : ''}`}>
                         <h2 className={styleTrans.pageTitle}>Eksekusi Pengadaan Asset</h2>
                         <div className={styleTrans.searchContainer}>
+                            <div className='rowCenter'>
+                                <div className='rowCenter'>
+                                    <Input className={style.filter3} type="select" value={this.state.time} onChange={e => this.changeTime(e.target.value)}>
+                                        <option value="all">Time (All)</option>
+                                        <option value="pilih">Periode</option>
+                                    </Input>
+                                </div>
+                                {this.state.time === 'pilih' ?  (
+                                    <>
+                                        <div className='rowCenter'>
+                                            <text className='bold'>:</text>
+                                            <Input
+                                                type= "date" 
+                                                className="inputRinci"
+                                                value={this.state.time1}
+                                                onChange={e => this.selectTime({val: e.target.value, type: 'time1'})}
+                                            />
+                                            <text className='mr-1 ml-1'>To</text>
+                                            <Input
+                                                type= "date" 
+                                                className="inputRinci"
+                                                value={this.state.time2}
+                                                onChange={e => this.selectTime({val: e.target.value, type: 'time2'})}
+                                            />
+                                            <Button
+                                            disabled={this.state.time1 === '' || this.state.time2 === '' ? true : false} 
+                                            color='primary' 
+                                            onClick={this.getDataTime} 
+                                            className='ml-1'>
+                                                Go
+                                            </Button>
+                                        </div>
+                                    </>
+                                ) : null}
+                            </ div>
                             <input
                                 type="text"
                                 placeholder="Search..."
@@ -885,10 +1168,9 @@ class EksekusiTicket extends Component {
                                 onKeyPress={this.onSearch}
                                 className={styleTrans.searchInput}
                             />
-                            <div></div>
                         </div>
 
-                        <table className={styleTrans.table}>
+                        <table className={`${styleTrans.table} ${dataPeng.length > 0 ? styleTrans.tableFull : ''}`}>
                             <thead>
                                 <tr>
                                     <th>NO</th>
@@ -896,6 +1178,7 @@ class EksekusiTicket extends Component {
                                     <th>KODE AREA</th>
                                     <th>NAMA AREA</th>
                                     <th>TANGGAL AJUAN</th>
+                                    <th>JENIS AJUAN</th>
                                     <th>STATUS</th>
                                     <th>OPSI</th>
                                 </tr>
@@ -910,6 +1193,7 @@ class EksekusiTicket extends Component {
                                             <td>{item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}</td>
                                             <td>{moment(item.tglIo).format('DD MMMM YYYY')}</td>
                                             <td>{item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
+                                            <td>{item.history !== null && item.history.split(',').reverse()[0]}</td>
                                             <td>
                                                 <Button color='primary' className='mr-1 mb-1' onClick={() => this.openForm(item)}>{this.state.filter === 'available' ? 'Proses' : 'Detail'}</Button>
                                                 <Button color='warning' onClick={() => this.getDetailTrack(item.no_pengadaan)}>Tracking</Button>
@@ -1134,7 +1418,7 @@ class EksekusiTicket extends Component {
                             <Button className="mr-2" color="primary" onClick={this.openTemp}>
                                 Fill No.Asset
                             </Button>
-                            <Button color="success" onClick={() => this.submitAsset(detailIo[0].no_pengadaan)}>
+                            <Button color="success" onClick={() => this.cekProsesApprove()}>
                                 Submit
                             </Button>
                         </div>
@@ -1148,10 +1432,10 @@ class EksekusiTicket extends Component {
                     Filling No. Asset
                 </ModalHeader>
                 <ModalBody>
-                    <Alert color="info" className="alertWrong" isOpen={false}>
+                    {/* <Alert color="info" className="alertWrong" isOpen={false}>
                         <div>Gunakan tanda koma (,) sebagai pemisah antara nomor asset satu dengan yang lainnya, ex: 1000876,20006784,1000756</div>
-                    </Alert>
-                    <Table bordered stripped responsive id="table-to-xls">
+                    </Alert> */}
+                    <Table bordered stripped id="table-to-xls">
                         <thead>
                             <tr>
                                 <th>No</th>
@@ -1171,11 +1455,11 @@ class EksekusiTicket extends Component {
                                     // ) : (
                                         <tr onClick={() => this.openModalRinci()}>
                                             <td>{dataTemp.indexOf(item) + 1}</td>
-                                            <th>{item.no_pengadaan}</th>
+                                            <td>{item.no_pengadaan}</td>
                                             <td>{item.nama}</td>
                                             <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             <td>Rp {(parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                            <td>
+                                            <td className='fillAset'>
                                             {/* <td onClick={() => this.downloadTemp('false')}> */}
                                                 {this.state.download === 'true' ? (
                                                     item.no_asset
@@ -1203,10 +1487,9 @@ class EksekusiTicket extends Component {
                                                                             // onKeyPress={e => this.updateNoAsset({item: item, target: e.target, key: e.key})}
                                                                             />
                                                                             <Button className='ml-2' color='success' onClick={handleSubmit} disabled={errors.no_asset ? true : false}>Update</Button>
-                                                                        
                                                                     </div>
                                                                     {errors.no_asset ? (
-                                                                        <text className={style.txtError}>{errors.no_asset}</text>
+                                                                        <text className='colred mr-4'>{errors.no_asset}</text>
                                                                     ) : null}
                                                                 </>
                                                             )}
@@ -1223,20 +1506,6 @@ class EksekusiTicket extends Component {
                     </Table>
                     <div className="mt-3 modalFoot">
                         <div className="btnFoot">
-                            {/* {this.state.download === 'true' ? (
-                                <ReactHtmlToExcel
-                                    id="test-table-xls-button"
-                                    className="btn btn-success"
-                                    table="table-to-xls"
-                                    filename="Filling No asset"
-                                    sheet="Template"
-                                    buttonText="Download Template"
-                                />
-                            ) : (
-                            <Button className="mr-2" color="warning" onClick={() => this.downloadTemp('true')}>
-                                Download
-                            </Button>
-                            )} */}
                             <Button className="mr-2" color="warning" onClick={() => this.downloadAjuan()}>
                                 Download
                             </Button>
@@ -1452,7 +1721,7 @@ class EksekusiTicket extends Component {
                                             <tr>
                                                 {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
                                                     return (
-                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'ROM' ? 'OM' : item.jabatan}</td>
+                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
                                                     )
                                                 })}
                                             </tr>
@@ -1493,7 +1762,7 @@ class EksekusiTicket extends Component {
                     <div className="btnFoot">
                     </div>
                     <div className="btnFoot">
-                        <Button className="mr-2" color="warning" onClick={this.openPreview}>
+                        <Button className="mr-2" color="warning" onClick={() => this.goDownload('formio')}>
                             Download
                         </Button>
                         <Button color="secondary" onClick={this.openPreview}>
@@ -1625,7 +1894,7 @@ class EksekusiTicket extends Component {
                     </Button>
                 </ModalFooter>
             </Modal>
-            <Modal isOpen={this.props.pengadaan.isLoading ? true: false} size="sm">
+            <Modal isOpen={this.props.pengadaan.isLoading || this.props.dokumen.isLoading || this.props.tempmail.isLoading ? true: false} size="sm">
                 <ModalBody>
                     <div>
                         <div className={style.cekUpdate}>
@@ -1868,10 +2137,21 @@ class EksekusiTicket extends Component {
                                 <div className={[style.sucUpdate, style.green]}>Gagal Download</div>
                             </div>
                         </div>
+                    ) : this.state.confirm === 'falseAppDok' ?(
+                        <div>
+                            <div className={style.cekUpdate}>
+                            <AiOutlineClose size={80} className={style.red} />
+                            <div className={[style.sucUpdate, style.green]}>Gagal Approve</div>
+                            <div className="errApprove mt-2">Mohon approve dokumen terlebih dahulu</div>
+                        </div>
+                        </div>
                     ) : (
                         <div></div>
                     )}
                 </ModalBody>
+                <div className='row justify-content-md-center mb-4'>
+                    <Button size='lg' onClick={this.openConfirm} color='primary'>OK</Button>
+                </div>
             </Modal>
             <Modal toggle={this.openModalUpload} isOpen={this.state.modalUpload} >
                 <ModalHeader>Upload File Excel</ModalHeader>
@@ -1900,6 +2180,44 @@ class EksekusiTicket extends Component {
                     <Button onClick={this.openModalUpload}>Cancel</Button>
                 </ModalFooter>
             </Modal>
+            <Modal isOpen={this.state.openSubmit} centered={true}>
+                <ModalBody>
+                    <div className={style.modalApprove}>
+                        <div>
+                            <text>
+                                Anda yakin untuk submit 
+                                <text className={style.verif}>  </text>
+                                pada tanggal
+                                <text className={style.verif}> {moment().format('LL')}</text> ?
+                            </text>
+                        </div>
+                        <div className={style.btnApprove}>
+                            <Button color="primary" onClick={level === '2' ? () => this.prepSendEmail('asset') : () => this.prepSendEmail('budget')}>Ya</Button>
+                            <Button color="secondary" onClick={this.openModalSubmit}>Tidak</Button>
+                        </div>
+                    </div>
+                </ModalBody>
+            </Modal>
+            <Modal isOpen={this.state.openDraft} size='xl'>
+                <ModalHeader>Email Pemberitahuan</ModalHeader>
+                <ModalBody>
+                    <Email handleData={this.getMessage}/>
+                    <div className={style.foot}>
+                        <div></div>
+                        <div>
+                            <Button
+                                disabled={this.state.message === '' ? true : false} 
+                                className="mr-2"
+                                onClick={() => this.submitAsset(detailIo[0].no_pengadaan)} 
+                                color="primary"
+                            >
+                                Approve & Send Email
+                            </Button>
+                            <Button className="mr-3" onClick={this.openDraftEmail}>Cancel</Button>
+                        </div>
+                    </div>
+                </ModalBody>
+            </Modal>
             </>
         )
     }
@@ -1912,7 +2230,9 @@ const mapStateToProps = state => ({
     pengadaan: state.pengadaan,
     setuju: state.setuju,
     notif: state.notif,
-    auth: state.auth
+    auth: state.auth,
+    dokumen: state.dokumen,
+    tempmail: state.tempmail
 })
 
 const mapDispatchToProps = {
@@ -1922,6 +2242,7 @@ const mapDispatchToProps = {
     getPengadaan: pengadaan.getPengadaan,
     getApproveIo: pengadaan.getApproveIo,
     getDocumentIo: pengadaan.getDocumentIo,
+    getDokumen: dokumen.getDokumen,
     uploadDocument: pengadaan.uploadDocument,
     approveDocument: pengadaan.approveDocument,
     rejectDocument: pengadaan.rejectDocument,
@@ -1942,6 +2263,9 @@ const mapDispatchToProps = {
     uploadMasterTemp: pengadaan.uploadMasterTemp,
     podsSend: pengadaan.podsSend,
     getDocCart: pengadaan.getDocCart,
+    getDraftEmail: tempmail.getDraftEmail,
+    sendEmail: tempmail.sendEmail,
+    addNewNotif: newnotif.addNewNotif,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EksekusiTicket)
