@@ -18,6 +18,7 @@ import style from '../../assets/css/input.module.css'
 import placeholder from  "../../assets/img/placeholder.png"
 import asset from '../../redux/actions/asset'
 import tempmail from '../../redux/actions/tempmail'
+import newnotif from '../../redux/actions/newnotif'
 import b from "../../assets/img/b.jpg"
 import e from "../../assets/img/e.jpg"
 import {connect} from 'react-redux'
@@ -129,7 +130,7 @@ class EditStock extends Component {
             const token = localStorage.getItem('token')
             const data = new FormData()
             data.append('document', e.target.files[0])
-            this.props.uploadDocumentDis(token, detail.id, data)
+            this.props.uploadDocument(token, detail.id, data)
         }
     }
 
@@ -151,21 +152,60 @@ class EditStock extends Component {
         });
     }
 
+    // uploadPicture = e => {
+    //     const {size, type} = e.target.files[0]
+    //     this.setState({fileUpload: e.target.files[0]})
+    //     if (size >= 20000000) {
+    //         this.setState({errMsg: "Maximum upload size 20 MB"})
+    //         this.uploadAlert()
+    //     } else if (type !== 'image/jpeg' && type !== 'image/png') {
+    //         this.setState({errMsg: 'Invalid file type. Only image files are allowed.'})
+    //         this.uploadAlert()
+    //     } else {
+    //         const {dataRinci} = this.state
+    //         const token = localStorage.getItem('token')
+    //         const data = new FormData()
+    //         data.append('document', e.target.files[0])
+    //         this.props.uploadPicture(token, dataRinci.no_asset, data)
+    //     }
+    // }
+
     uploadPicture = e => {
-        const {size, type} = e.target.files[0]
-        this.setState({fileUpload: e.target.files[0]})
-        if (size >= 20000000) {
-            this.setState({errMsg: "Maximum upload size 20 MB"})
-            this.uploadAlert()
-        } else if (type !== 'image/jpeg' && type !== 'image/png') {
-            this.setState({errMsg: 'Invalid file type. Only image files are allowed.'})
-            this.uploadAlert()
+        const file = e.target.files[0]
+        if (file === undefined) {
+            console.log('error file tidak ditemukan')
         } else {
-            const {dataRinci} = this.state
-            const token = localStorage.getItem('token')
-            const data = new FormData()
-            data.append('document', e.target.files[0])
-            this.props.uploadPicture(token, dataRinci.no_asset, data)
+            const {size, type, lastModified} = e.target.files[0]
+            this.setState({fileUpload: e.target.files[0]})
+            if (size >= 20000000) {
+                this.setState({errMsg: "Maximum upload size 20 MB"})
+                // this.uploadAlert()
+            } else if (type !== 'image/jpeg' && type !== 'image/png') {
+                this.setState({errMsg: 'Invalid file type. Only image files are allowed.'})
+                // this.uploadAlert()
+            } else {
+                const date1 = moment(lastModified)
+                const date2 = moment()
+                const diffTime = Math.abs(date2 - date1)
+                const day = 1000 * 60 * 60 * 24
+                const finDiff = Math.round(diffTime / day)
+                console.log(finDiff)
+                if (finDiff > 10) {
+                    this.setState({confirm: 'oldPict'})
+                    this.openConfirm()
+                } else {
+                    const detRinci = this.props.stock.detailAsset
+                    const token = localStorage.getItem('token')
+                    const data = new FormData()
+                    data.append('document', e.target.files[0])
+                    this.props.uploadImage(token, detRinci.id, data)
+                    // if (detRinci.no_asset === '' || detRinci.no_asset === null || detRinci.no_asset === undefined) {
+                    //     this.props.uploadImage(token, detRinci.id, data)
+                    // } else {
+                    //     this.props.uploadPicture(token, detRinci.no_asset, data)
+                    // }
+                }
+            }
         }
     }
 
@@ -255,6 +295,8 @@ class EditStock extends Component {
         const token = localStorage.getItem("token")
         this.setState({dataRinci: val})
         await this.props.getDetailItem(token, val.id)
+        const detRinci = this.props.stock.detailAsset
+        this.setState({stat: detRinci.grouping})
         this.openModalStock()
     }
 
@@ -277,25 +319,25 @@ class EditStock extends Component {
         this.getDataAsset()
     }
 
-    componentDidUpdate() {
-        const {isUpload, isError, isApprove, isReject, rejReject, rejApprove, isUpdateNew, isSubrev} = this.props.stock
+    async componentDidUpdate() {
+        const {isUpload, isError, isApprove, isReject, rejReject, rejApprove, isUpdateNew, isSubrev, isImage, isDocStock} = this.props.stock
         const {dataRinci} = this.state
+        const detRinci = this.props.stock.detailAsset
         const errUpload = this.props.disposal.isUpload
         const token = localStorage.getItem('token')
         if (isUpload) {
             this.props.resetStock()
-             setTimeout(() => {
-                this.props.getDetailItem(token, dataRinci.id)
-                this.getDataAsset()
-             }, 100)
-        } else if (errUpload) {
-            setTimeout(() => {
-                this.props.resetDis()
-             }, 1000)
-             setTimeout(() => {
-                 this.cekStatus('DIPINJAM SEMENTARA')
-             }, 1100)
-        } 
+            await this.props.getDetailItem(token, detRinci.id)
+        } else if (isImage) {
+            this.props.resetStock()
+            await this.props.getDetailItem(token, detRinci.id)
+        } else if (isDocStock === false) {
+            this.props.resetStock()
+            this.cekStatus('DIPINJAM SEMENTARA')
+        } else if (isDocStock === true) {
+            this.props.resetStock()
+            await this.props.getDocument(token, detRinci.no_asset, detRinci.id)
+        }
         // else if (isSubrev) {
         //     this.getDataAsset()
         //     this.props.resetStock()
@@ -403,7 +445,7 @@ class EditStock extends Component {
             satuan: value.satuan,
             unit: value.unit,
             lokasi: value.lokasi,
-            grouping: value.grouping,
+            grouping: this.state.stat,
             keterangan: value.keterangan,
             status_fisik: value.fisik,
             kondisi: value.kondisi
@@ -525,15 +567,18 @@ class EditStock extends Component {
 
     listStatus = async (val) => {
         const token = localStorage.getItem("token")
-        await this.props.getDetailItem(token, val)
-        const { detailAsset } = this.props.stock
-        if (detailAsset !== undefined) {
-            this.setState({stat: detailAsset.grouping})
-            if (detailAsset.kondisi === null && detailAsset.status_fisik === null) {
+        console.log(val)
+        console.log(val.kondisi)
+        console.log(val.fisik)
+        // await this.props.getDetailItem(token, val)
+        // const { detailAsset } = this.props.stock
+        if (val !== undefined) {
+            // this.setState({stat: val.grouping})
+            if (val.kondisi === null && val.fisik === null) {
                 await this.props.getStatus(token, '', '')
                 this.modalStatus()
             } else {
-                await this.props.getStatus(token, detailAsset.status_fisik === null ? '' : detailAsset.status_fisik, detailAsset.kondisi === null ? '' : detailAsset.kondisi, 'true')
+                await this.props.getStatus(token, val.fisik === null ? '' : val.fisik, val.kondisi === null ? '' : val.kondisi, 'true')
                 this.modalStatus()
             }
         }
@@ -542,7 +587,7 @@ class EditStock extends Component {
     openProsesModalDoc = async () => {
         const token = localStorage.getItem("token")
         const { detailAsset } = this.props.stock
-        await this.props.getDocument(token, detailAsset.no_asset)
+        await this.props.getDocument(token, detailAsset.no_asset, detailAsset.id)
         this.openModalDoc()
     }
 
@@ -550,7 +595,7 @@ class EditStock extends Component {
         const token = localStorage.getItem("token")
         const { detailAsset } = this.props.stock
         if (val === 'DIPINJAM SEMENTARA') {
-            await this.props.cekDokumen(token, detailAsset.no_asset)
+            await this.props.cekDokumen(token, detailAsset.no_asset, detailAsset.id)
         }
     }
 
@@ -599,11 +644,12 @@ class EditStock extends Component {
             subject: subject,
             no: detailStock[0].no_stock,
             tipe: 'stock',
-            menu: `Revisi Area (Stock Opname asset)`,
+            menu: `stock opname asset`,
             proses: 'submit',
             route: 'stock'
         }
         await this.props.sendEmail(token, sendMail)
+        await this.props.addNewNotif(token, sendMail)
         this.openDraftEmail()
     }
 
@@ -636,7 +682,7 @@ class EditStock extends Component {
             kode: detailStock[0].kode_plant,
             jenis: 'stock',
             tipe: tipe,
-            menu: 'Revisi Area (Stock Opname asset)'
+            menu: 'Revisi (Stock Opname asset)'
         }
         this.setState({tipeEmail: val})
         await this.props.getDraftEmail(token, tempno)
@@ -1103,13 +1149,14 @@ class EditStock extends Component {
                         <div className="mainRinci2">
                             <div className="leftRinci2 mb-5">
                                 <div className="titRinci">{dataRinci.nama_asset}</div>
-                                <img src={detailAsset.pict === undefined || detailAsset.pict.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detailAsset.pict[detailAsset.pict.length - 1].path}`} className="imgRinci" />
+                                {detailAsset.image !== undefined && detailAsset.image !== null && detailAsset.image !== '' ? (
+                                    <img src={`${REACT_APP_BACKEND_URL}/${detailAsset.image}`} className="imgRinci" />
+                                ) : detailAsset.pict === undefined || detailAsset.pict.length === 0 ? (
+                                    <img src={detailAsset.img === undefined || detailAsset.img.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detailAsset.img[detailAsset.img.length - 1].path}`} className="imgRinci" />
+                                ) : (
+                                    <img src={detailAsset.pict === undefined || detailAsset.pict.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detailAsset.pict[detailAsset.pict.length - 1].path}`} className="imgRinci" />
+                                )}
                                 <Input type="file" className='mt-2' onChange={this.uploadPicture}>Upload Picture</Input>
-                                {/* <div className="secImgSmall">
-                                    <button className="btnSmallImg">
-                                        <img src={placeholder} className="imgSmallRinci" />
-                                    </button>
-                                </div> */}
                             </div>
                             <Formik
                             initialValues = {{
@@ -1344,7 +1391,7 @@ class EditStock extends Component {
                                             <td>
                                                 {item.isreject === 1 || item.isreject === 0 ? 
                                                 <>
-                                                    {item.isreject === 1 ? 'Perlu Diperbaiki' : 'Telah diperbaiki'}
+                                                    <div>{item.isreject === 1 ? 'Perlu Diperbaiki' : 'Telah diperbaiki'}</div>
                                                     <Button className='mt-2' color="info" size='sm' onClick={() => this.getRinciStock(item)}>Update</Button>
                                                 </>
                                                 :'-'}
@@ -1576,27 +1623,23 @@ class EditStock extends Component {
                         <div className="mainRinci2">
                             <div className="leftRinci2 mb-5">
                                 <div className="titRinci">{dataRinci.nama_asset}</div>
-                                {detRinci.pict === undefined || detRinci.pict.length === 0 ? (
+                                {detRinci.image !== undefined && detRinci.image !== null && detRinci.image !== '' ? (
+                                    <img src={`${REACT_APP_BACKEND_URL}/${detRinci.image}`} className="imgRinci" />
+                                ) : detRinci.pict === undefined || detRinci.pict.length === 0 ? (
                                     <img src={detRinci.img === undefined || detRinci.img.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detRinci.img[detRinci.img.length - 1].path}`} className="imgRinci" />
                                 ) : (
                                     <img src={detRinci.pict === undefined || detRinci.pict.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detRinci.pict[detRinci.pict.length - 1].path}`} className="imgRinci" />
                                 )}
                                 {(level === '5' || level === '9') && (
-                                    <Input type="file" className='mt-2' onChange={this.uploadGambar}>Upload Picture</Input>
+                                    <Input type="file" className='mt-2' onChange={this.uploadPicture}>Upload Picture</Input>
                                 )}
-                                {/* <div className="secImgSmall">
-                                    <button className="btnSmallImg">
-                                        <img src={placeholder} className="imgSmallRinci" />
-                                    </button>
-                                </div> */}
                             </div>
                             <Formik
                             initialValues = {{
                                 merk: detRinci.merk === null ? '' : detRinci.merk,
                                 satuan: detRinci.satuan === null ? '' : detRinci.satuan,
-                                unit: 1,
+                                unit: detRinci.unit === null ? '' : detRinci.unit,
                                 lokasi: detRinci.lokasi === null ? '' : detRinci.lokasi,
-                                grouping: detRinci.grouping === null ? '' : detRinci.grouping,
                                 keterangan: detRinci.keterangan === null ? '' : detRinci.keterangan,
                                 status_fisik: detRinci.status_fisik === null ? '' : detRinci.status_fisik,
                                 kondisi: detRinci.kondisi === null ? '' : detRinci.kondisi
@@ -1688,8 +1731,9 @@ class EditStock extends Component {
                                                 disabled={level === '5' || level === '9' ? false : true}
                                                 type="select"
                                                 className="inputRinci" 
-                                                value={detRinci.fisik} 
+                                                value={values.status_fisik} 
                                                 onBlur={handleBlur("status_fisik")}
+                                                onChange={handleChange("status_fisik")}
                                                 // onChange={e => { handleChange("status_fisik"); this.selectStatus(e.target.value, this.state.kondisi)} }
                                                 >
                                                     <option>{values.status_fisik}</option>
@@ -1710,11 +1754,14 @@ class EditStock extends Component {
                                                 className="inputRinci" 
                                                 value={values.kondisi} 
                                                 onBlur={handleBlur("kondisi")}
+                                                onChange={handleChange("kondisi")}
                                                 // onChange={e => { handleChange("kondisi"); this.selectStatus(this.state.fisik, e.target.value)} }
                                                 >
                                                     <option>{values.kondisi}</option>
                                                     <option>-Pilih Kondisi-</option>
-                                                    <option value="baik">Baik</option>
+                                                    {values.status_fisik === 'ada' && (
+                                                        <option value="baik">Baik</option>
+                                                    )}
                                                     <option value="rusak">Rusak</option>
                                                     <option value="">-</option>
                                                 </Input>
@@ -1726,15 +1773,18 @@ class EditStock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Status Aset</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' || level === '9' ? false : true}
+                                                disabled={
+                                                    values.status_fisik === null 
+                                                    || values.kondisi === null
+                                                    || values.status_fisik === '' ? true : false}
                                                 type= "select" 
                                                 className="inputRinci"
-                                                value={values.grouping}
+                                                value={this.state.stat}
                                                 // onBlur={handleBlur("grouping")}
                                                 // onChange={handleChange("grouping")}
-                                                onClick={() => this.listStatus(detRinci)}
+                                                onClick={() => this.listStatus({fisik: values.status_fisik, kondisi: values.kondisi})}
                                                 >
-                                                    <option>{values.grouping}</option>
+                                                    <option>{this.state.stat}</option>
                                                     {/* <option>-Pilih Status Aset-</option> */}
                                                     {/* {dataStatus.length > 0 && dataStatus.map(item => {
                                                         return (
@@ -1781,7 +1831,12 @@ class EditStock extends Component {
                         </div>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.props.stock.isLoading || this.props.depo.isLoading || this.props.asset.isLoading || this.props.tempmail.isLoading ? true: false} size="sm">
+                <Modal isOpen={
+                    this.props.stock.isLoading || 
+                    this.props.depo.isLoading || 
+                    this.props.asset.isLoading || 
+                    this.props.tempmail.isLoading || 
+                    this.props.newnotif.isLoading ? true: false} size="sm">
                         <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>
@@ -1927,7 +1982,7 @@ class EditStock extends Component {
                         }) : (
                             <div>Tidak ada opsi status asset mohon pilih ulang kondisi asset atau status fisik asset</div>
                         )}
-                        {dataStatus.length > 0 && (
+                        {/* {dataStatus.length > 0 && (
                             <div className="ml-2">
                                 <Input
                                 addon
@@ -1937,17 +1992,15 @@ class EditStock extends Component {
                                 onClick={() => {this.setState({stat: 'null'}); this.cekStatus('null')}}
                                 value={'null'} /> RESET (Untuk bisa memilih ulang kondisi atau status fisik)
                             </div>
-                        )}
+                        )} */}
                         {/* <div className="footRinci4 mt-4">
                             <Button color="primary" disabled={this.state.stat === '' || this.state.stat === null ? true : false} onClick={this.updateStatus}>Save</Button>
                             <Button className="ml-3" color="secondary" onClick={() => this.modalStatus()}>Close</Button>
                         </div> */}
                         <div className="modalFoot mt-3">
                             <div className="btnFoot">
-                            {this.state.stat === 'DIPINJAM SEMENTARA' ? (
+                            {this.state.stat === 'DIPINJAM SEMENTARA' && (
                                 <Button color='success' onClick={this.openProsesModalDoc}>Upload dokumen</Button>
-                            ) : (
-                                <Button color="secondary" onClick={() => this.modalStatus()}>Close</Button>
                             )}
                             </div>
                             <div className="btnFoot">
@@ -1957,13 +2010,15 @@ class EditStock extends Component {
                                 ) : dataStatus.length === 0 ? (
                                     <div></ div>
                                 ) : (
-                                    <Button color="primary" disabled={this.state.stat === '' || this.state.stat === null ? true : false} onClick={this.updateStatus}>Save</Button>
+                                    <Button color="primary" 
+                                    disabled={this.state.stat === '' || this.state.stat === null ? true : false} 
+                                    // onClick={this.updateStatus}
+                                    onClick={() => this.modalStatus()}
+                                    >
+                                        Save
+                                    </Button>
                                 )}
-                                {this.state.stat === 'DIPINJAM SEMENTARA' ? (
-                                    <Button className="ml-3" color="secondary" onClick={() => this.modalStatus()}>Close</Button>
-                                ) : (
-                                    <div></div>
-                                )}
+                                <Button className='ml-2' color="secondary" onClick={() => this.modalStatus()}>Close</Button>
                             </div>
                         </div>
                     </ModalBody>
@@ -2012,6 +2067,14 @@ class EditStock extends Component {
                                 <AiFillCheckCircle size={80} className={style.green} />
                                 <div className={[style.sucUpdate, style.green]}>Berhasil Submit Revisi</div>
                             </div>
+                        </div>
+                    ) : this.state.confirm === 'oldPict' ? (
+                        <div>
+                            <div className={style.cekUpdate}>
+                            <AiOutlineClose size={80} className={style.red} />
+                            <div className={[style.sucUpdate, style.green]}>Gagal Upload Gambar</div>
+                            <div className="errApprove mt-2">Pastikan dokumentasi yang diupload tidak lebih dari 10 hari saat revisi stock opname</div>
+                        </div>
                         </div>
                     ) : (
                         <div></div>
@@ -2123,7 +2186,8 @@ const mapStateToProps = state => ({
     setuju: state.setuju,
     depo: state.depo,
     stock: state.stock,
-    tempmail: state.tempmail
+    tempmail: state.tempmail,
+    newnotif: state.newnotif,
 })
 
 const mapDispatchToProps = {
@@ -2135,7 +2199,7 @@ const mapDispatchToProps = {
     resetError: asset.resetError,
     nextPage: asset.nextPage,
     getDisposal: disposal.getDisposal,
-    uploadDocumentDis: disposal.uploadDocumentDis,
+    uploadDocument: stock.uploadDocument,
     getNameApprove: approve.getNameApprove,
     getDetailDepo: depo.getDetailDepo,
     getDepo: depo.getDepo,
@@ -2147,6 +2211,7 @@ const mapDispatchToProps = {
     approveStock: stock.approveStock,
     rejectStock: stock.rejectStock,
     uploadPicture: stock.uploadPicture,
+    uploadImage: stock.uploadImage,
     getStatus: stock.getStatus,
     getStatusAll: stock.getStatusAll,
     resetStock: stock.resetStock,
@@ -2164,6 +2229,7 @@ const mapDispatchToProps = {
     appRevisi: stock.appRevisi,
     getDraftEmail: tempmail.getDraftEmail,
     sendEmail: tempmail.sendEmail,
+    addNewNotif: newnotif.addNewNotif,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EditStock)

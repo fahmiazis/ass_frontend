@@ -75,11 +75,16 @@ class ReportTicket extends Component {
             upload: false,
             errMsg: '',
             fileUpload: '',
-            limit: 10,
+            limit: 100,
             search: '',
             newIo: [],
             listIo: [],
             dataDownload: [],
+            time: 'pilih',
+            time1: moment().subtract(1, 'month').startOf('month').format('YYYY-MM-DD'),
+            // time1: moment().startOf('month').format('YYYY-MM-DD'),
+            time2: moment().endOf('month').format('YYYY-MM-DD'),
+            filter: 'selesai'
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -239,10 +244,14 @@ class ReportTicket extends Component {
     changeFilter = async (val) => {
         const role = localStorage.getItem('role')
         const level = localStorage.getItem('level')
+        const { time1, time2, search, limit } = this.state
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        const tipe = 'pengadaan'
 
-        const status = val === 'selesai' ? '8' : val === 'available' && level === '2' ? '1' : val === 'available' && level === '8' ? '3' : 'all'
+        const status = val === 'selesai' ? '8' : 'all'
         const token = localStorage.getItem("token")
-        await this.props.getReportIo(token, 100, '', 1, status)
+        await this.props.getReportIo(token, limit, search, 1, status, tipe, cekTime1, cekTime2)
 
         if (level === '2' || level === '8') {
             const {dataIo} = this.props.report
@@ -448,7 +457,7 @@ class ReportTicket extends Component {
                 c25: item.depo === null ? item.depo.nama_pic_1 : '-',
                 c26: '-',
                 c27: '-',
-                c28: item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS',
+                c28: item.kategori === 'return' ? 'Pengajuan Return' : item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS',
             }
         )
         ) })
@@ -546,6 +555,31 @@ class ReportTicket extends Component {
             }
             this.setState({listIo: data})
         }
+    }
+
+    selectTime = (val) => {
+        this.setState({ [val.type]: val.val })
+    }
+
+    changeTime = async (val) => {
+        const token = localStorage.getItem("token")
+        this.setState({ time: val })
+        if (val === 'all') {
+            this.setState({ time1: '', time2: '' })
+            setTimeout(() => {
+                this.getDataTime()
+            }, 500)
+        }
+    }
+
+    getDataTime = async () => {
+        const { time1, time2, filter, search, limit } = this.state
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        const token = localStorage.getItem("token")
+        const level = localStorage.getItem("level")
+        // const status = filter === 'selesai' ? '8' : filter === 'available' && level === '2' ? '1' : filter === 'available' && level === '8' ? '3' : 'all'
+        this.changeFilter(filter)
     }
     
 
@@ -736,8 +770,48 @@ class ReportTicket extends Component {
                         <h2 className={styleTrans.pageTitle}>Report Pengadaan Asset</h2>
                         <div className={styleTrans.searchContainer}>
                             <Button color='success' size='lg' onClick={this.prosesDownload}>Download</Button>
+                            <select value={this.state.filter} onChange={e => this.changeFilter(e.target.value)} className={styleTrans.searchInput}>
+                                <option value="all">All</option>
+                                <option value="reject">Reject</option>
+                                <option value="selesai">Finished</option>
+                            </select>
                         </div>
                         <div className={styleTrans.searchContainer}>
+                            <div className='rowCenter'>
+                                <div className='rowCenter'>
+                                    <Input className={style.filter3} type="select" value={this.state.time} onChange={e => this.changeTime(e.target.value)}>
+                                        <option value="all">Time (All)</option>
+                                        <option value="pilih">Periode</option>
+                                    </Input>
+                                </div>
+                                {this.state.time === 'pilih' ?  (
+                                    <>
+                                        <div className='rowCenter'>
+                                            <text className='bold'>:</text>
+                                            <Input
+                                                type= "date" 
+                                                className="inputRinci"
+                                                value={this.state.time1}
+                                                onChange={e => this.selectTime({val: e.target.value, type: 'time1'})}
+                                            />
+                                            <text className='mr-1 ml-1'>To</text>
+                                            <Input
+                                                type= "date" 
+                                                className="inputRinci"
+                                                value={this.state.time2}
+                                                onChange={e => this.selectTime({val: e.target.value, type: 'time2'})}
+                                            />
+                                            <Button
+                                            disabled={this.state.time1 === '' || this.state.time2 === '' ? true : false} 
+                                            color='primary' 
+                                            onClick={this.getDataTime} 
+                                            className='ml-1'>
+                                                Go
+                                            </Button>
+                                        </div>
+                                    </>
+                                ) : null}
+                            </ div>
                             <input
                                 type="text"
                                 placeholder="Search..."
@@ -746,11 +820,6 @@ class ReportTicket extends Component {
                                 onKeyPress={this.onSearch}
                                 className={styleTrans.searchInput}
                             />
-                            <select value={this.state.filter} onChange={e => this.changeFilter(e.target.value)} className={styleTrans.searchInput}>
-                                <option value="all">All</option>
-                                <option value="reject">Reject</option>
-                                <option value="selesai">Selesai</option>
-                            </select>
                         </div>
 
                         <table className={`${styleTrans.table} ${newIo.length > 0 ? styleTrans.tableFull : ''}`}>
@@ -844,7 +913,7 @@ class ReportTicket extends Component {
                                             <td>{item.depo === null ? item.depo.nama_pic_1 : ''}</td>
                                             <td></td>
                                             <td></td>
-                                            <td>{item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
+                                            <td>{item.kategori === 'return' ? 'Pengajuan Return' : item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
                                             <td>{item.history !== null && item.history.split(',').reverse()[0]}</td>
                                         </tr>
                                     )

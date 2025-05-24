@@ -37,7 +37,12 @@ const disposalState = {
     isGetCart: false,
     isSubmitDis: null,
     isEditEks: null,
-    rejEks: null
+    rejEks: null,
+    no_disposal: '',
+    isSubmitFin: null,
+    subRevisi: null,
+    appRevisi: null,
+    detailNew: []
 };
 
 export default (state=disposalState, action) => {
@@ -140,6 +145,28 @@ export default (state=disposalState, action) => {
                 return {
                     ...state,
                     isError: true,
+                    isLoading: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'NEWDETAIL_DISPOSAL_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'NEWDETAIL_DISPOSAL_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    detailNew: action.payload.data.result,
+                    alertMsg: 'get detail disposal Succesfully',
+                };
+            }
+            case 'NEWDETAIL_DISPOSAL_REJECTED': {
+                return {
+                    ...state,
                     isLoading: false,
                     alertMsg: "Unable connect to server"
                 };
@@ -327,6 +354,7 @@ export default (state=disposalState, action) => {
                     ...state,
                     isLoading: false,
                     isSubmit: true,
+                    no_disposal: action.payload.data.no_disposal,
                     alertMsg: 'add disposal Succesfully',
                 };
             }
@@ -335,6 +363,30 @@ export default (state=disposalState, action) => {
                     ...state,
                     isLoading: false,
                     isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'SUBMIT_FINAL_DISPOSAL_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'SUBMIT_FINAL_DISPOSAL_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isSubmitFin: true,
+                    alertMsg: 'submit disposal Succesfully',
+                };
+            }
+            case 'SUBMIT_FINAL_DISPOSAL_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: true,
+                    isSubmitFin: false,
                     alertMsg: "Unable connect to server"
                 };
             }
@@ -548,6 +600,52 @@ export default (state=disposalState, action) => {
                     alertMsg: "Unable connect to server"
                 };
             }
+            case 'APP_REVISI_DISPOSAL_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'APP_REVISI_DISPOSAL_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    appRevisi: true,
+                    alertMsg: 'update app revisi success',
+                };
+            }
+            case 'APP_REVISI_DISPOSAL_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    appRevisi: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'SUBMIT_REVISI_DISPOSAL_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'SUBMIT_REVISI_DISPOSAL_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    subRevisi: true,
+                    alertMsg: 'submit revisi succesfully',
+                };
+            }
+            case 'SUBMIT_REVISI_DISPOSAL_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    subRevisi: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
             case 'RESET_DISPOSAL': {
                 return {
                     ...state,
@@ -562,7 +660,10 @@ export default (state=disposalState, action) => {
                     isDelete: false,
                     isSubmitDis: null,
                     isEditEks: null,
-                    rejEks: null
+                    rejEks: null,
+                    isSubmitFin: null,
+                    subRevisi: null,
+                    appRevisi: null,
                 }
             }
             case 'RESET_APPREJ': {

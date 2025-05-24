@@ -35,7 +35,7 @@ import { RiArrowLeftRightFill, RiMoneyDollarCircleFill } from 'react-icons/ri'
 
 import {FiSend, FiTruck} from 'react-icons/fi'
 import {BiRevision} from 'react-icons/bi'
-import {MdAssignment, MdVerifiedUser} from 'react-icons/md'
+import {MdAssignment, MdVerifiedUser, MdOutlineVerifiedUser, MdMonetizationOn, MdDomainVerification} from 'react-icons/md'
 import {HiOutlineDocumentReport} from 'react-icons/hi'
 import {RiDraftFill} from 'react-icons/ri'
 import {FaFileSignature} from 'react-icons/fa'
@@ -130,7 +130,7 @@ class Home extends Component {
             await this.props.getNotif(token)
             const ket = val.keterangan
             const jenis = (val.jenis === '' || val.jenis === null) && val.no_proses.split('')[0] === 'O' ? 'Stock Opname' : val.jenis
-            const route = ket === 'tax' || ket === 'finance' || ket === 'tax and finance' ? 'taxfin' : ket === 'eksekusi' && jenis === 'disposal' ? 'eksdis' : jenis === 'disposal' && ket === 'pengajuan' ? 'disposal' : jenis === 'mutasi' && ket === 'pengajuan' ? 'mutasi' : jenis === 'Stock Opname' && ket === 'pengajuan' ? 'stock' : jenis === 'disposal' ? 'navdis' : jenis === 'mutasi' ? 'navmut' : jenis === 'Stock Opname' && 'navstock' 
+            const route = ket === 'tax' || ket === 'finance' || ket === 'tax and finance' ? 'taxfin' : ket === 'eksekusi' && jenis === 'disposal' ? 'eksdis' : jenis === 'disposal' && ket === 'pengajuan' ? 'disposal' : jenis === 'mutasi' && ket === 'pengajuan' ? 'mutasi' : jenis === 'Stock Opname' && ket === 'pengajuan' ? 'stock' : jenis === 'disposal' ? 'navdis' : jenis === 'mutasi' ? 'nav-mutasi' : jenis === 'Stock Opname' && 'navstock' 
             localStorage.setItem('route', route)
             this.props.history.push(`/${route}`)
         }
@@ -243,6 +243,10 @@ class Home extends Component {
         const id = localStorage.getItem('id')
         const { alertM, alertMsg } = this.props.user
         const dataNotif = this.props.notif.data
+        const allowSet = ['1','17','20', '21', '22', '23', '24', '25']
+        const disposalRoute = level === '6' ? 'purchdis' : level === '3' || level === '4' ? 'taxfin-disposal' : 'disposal'
+        const mutasiRoute = level === '2' ? 'eks-mutasi' : level === '8' ? 'budget-mutasi' : 'mutasi'
+        
         return (
             <>
             {/* <div className="bodyHome">
@@ -279,7 +283,7 @@ class Home extends Component {
                                     Stock Opname Asset
                                 </div>
                             </button>
-                            <button className="cardHome1" onClick={() => this.goRoute('navmut')}>
+                            <button className="cardHome1" onClick={() => this.goRoute('nav-mutasi')}>
                                 <img src={mutasiPicture} className="picHome" />
                                 <div className="titCard mt-4">
                                     Mutasi
@@ -294,7 +298,7 @@ class Home extends Component {
                     <FaBars className={styleHome.burgerMenu} onClick={this.toggleSidebar} />
                     <div className={styleHome.icons}>
                         <Bell dataNotif={[]} color={"black"}/>
-                        <Account color={"black"}/>
+                        <Account color={"black"} handleRoute={this.goRoute}/>
                     </div>
                 </header>
         
@@ -311,7 +315,7 @@ class Home extends Component {
                             <AiFillHome className='mr-2' />
                             Home
                         </li>
-                        {(level === '1' || level === '2' || level === '5') && (
+                        {(level === '1' || level === '2' || level === '5' || level === '9') && (
                             <li className={styleHome.alignCenter} onClick={() => this.goRoute('asset')}>
                                 <RiMoneyDollarCircleFill className='mr-2' />
                                 My Asset
@@ -329,7 +333,7 @@ class Home extends Component {
                                 <FiSend className="mr-2"/>
                                 Pengajuan Pengadaan Asset
                             </li>
-                            {(level === '5' || level === '9' || level === '2' || level === '8') && (
+                            {(level === '5' || level === '9') && (
                                 <li onClick={() => this.goRoute('revtick')} className={styleHome.alignCenter}>
                                     <BiRevision className="mr-2"/>
                                     Revisi Pengadaan Asset
@@ -347,10 +351,10 @@ class Home extends Component {
                                     Report Pengadaan Asset
                                 </li>
                             )}
-                            <li onClick={() => this.goRoute('navtick')} className={styleHome.alignCenter}>
+                            {/* <li onClick={() => this.goRoute('navtick')} className={styleHome.alignCenter}>
                                 <AiOutlineMenu className="mr-2"/>
                                 Navigasi Pengadaan Asset
-                            </li>
+                            </li> */}
                         </Collapse>
                         <li className={styleHome.alignCenter} 
                         // onClick={() => this.goRoute('navdis')} 
@@ -360,31 +364,111 @@ class Home extends Component {
                             Disposal Aset
                         </li>
                         <Collapse isOpen={this.state.openDis} className="ml-3 mt-3">
-                            <li onClick={() => this.goRoute('disposal')} className={styleHome.alignCenter}>
-                                <FiSend className="mr-2"/>
-                                Pengajuan Disposal
-                            </li>
-                            <li onClick={() => this.goRoute('navdis')} className={styleHome.alignCenter}>
+                            {(level !== '6') && ( 
+                                <li onClick={() => this.goRoute('disposal')} className={styleHome.alignCenter}>
+                                    <FiSend className="mr-2"/>
+                                    Pengajuan Disposal
+                                </li>
+                            )}
+                            {allowSet.find(item => item === level) && ( 
+                                <li onClick={() => this.goRoute('persetujuan-disposal')} className={styleHome.alignCenter}>
+                                    <FiSend className="mr-2"/>
+                                    Persetujuan Disposal
+                                </li>
+                            )}
+                            {(level === '5' || level === '9') && (
+                                <li onClick={() => this.goRoute('rev-disposal')} className={styleHome.alignCenter}>
+                                    <BiRevision className="mr-2"/>
+                                    Revisi Disposal Asset
+                                </li>
+                            )}
+                            {(level === '6') && (
+                                <li onClick={() => this.goRoute('purchdis')} className={styleHome.alignCenter}>
+                                    <MdMonetizationOn className="mr-2"/>
+                                    Verifikasi Purchasing
+                                </li>
+                            )}
+                            {(level === '2') && (
+                                <>
+                                    <li onClick={() => this.goRoute('eksdis')} className={styleHome.alignCenter}>
+                                        <FiTruck className="mr-2"/>
+                                        Eksekusi Disposal Asset
+                                    </li>
+                                </>
+                            )}
+                            {(level === '3') && (
+                                <li onClick={() => this.goRoute('taxfin-disposal')} className={styleHome.alignCenter}>
+                                    <MdMonetizationOn className="mr-2"/>
+                                    Proses Tax Disposal
+                                </li>
+                            )}
+                            {(level === '4') && (
+                                <li onClick={() => this.goRoute('taxfin-disposal')} className={styleHome.alignCenter}>
+                                    <MdMonetizationOn className="mr-2"/>
+                                    Proses Finance Disposal
+                                </li>
+                            )}
+                            {(level === '2') && (
+                                <li onClick={() => this.goRoute('taxfin-disposal')} className={styleHome.alignCenter}>
+                                    <MdDomainVerification className="mr-2"/>
+                                    Verifikasi Final Disposal
+                                </li>
+                            )}
+                            {(level === '2' || level === '1') && (
+                                <li onClick={() => this.goRoute('report-disposal')} className={styleHome.alignCenter}>
+                                    <HiOutlineDocumentReport className="mr-2"/>
+                                    Report Disposal Asset
+                                </li>
+                            )}
+                            {/* <li onClick={() => this.goRoute('navdis')} className={styleHome.alignCenter}>
                                 <AiOutlineMenu className="mr-2"/>
                                 Navigasi Disposal Asset
-                            </li>
+                            </li> */}
                         </Collapse>
                         <li className={styleHome.alignCenter} 
-                        // onClick={() => this.goRoute('navmut')} 
+                        // onClick={() => this.goRoute('nav-mutasi')} 
                         onClick={this.toggleMut}
                         >
                             <RiArrowLeftRightFill className='mr-2' />
                             Mutasi Aset
                         </li>
                         <Collapse isOpen={this.state.openMut} className="ml-3 mt-3">
+                           {(level !== '8') && ( 
                             <li onClick={() => this.goRoute('mutasi')} className={styleHome.alignCenter}>
-                                <FiSend className="mr-2"/>
-                                Pengajuan Mutasi
-                            </li>
-                            <li onClick={() => this.goRoute('navmut')} className={styleHome.alignCenter}>
+                                    <FiSend className="mr-2"/>
+                                    Pengajuan Mutasi Asset
+                                </li>
+                            )}
+                            {(level === '5' || level === '9') && (
+                                <li onClick={() => this.goRoute('rev-mutasi')} className={styleHome.alignCenter}>
+                                    <BiRevision className="mr-2"/>
+                                    Revisi Mutasi Asset
+                                </li>
+                            )}
+                            {(level === '2') && (
+                                <>
+                                    <li onClick={() => this.goRoute('eks-mutasi')} className={styleHome.alignCenter}>
+                                        <FiTruck className="mr-2"/>
+                                        Eksekusi Mutasi Asset
+                                    </li>
+                                </>
+                            )}
+                            {(level === '8') && (
+                                <li onClick={() => this.goRoute('budget-mutasi')} className={styleHome.alignCenter}>
+                                    <MdOutlineVerifiedUser className="mr-2"/>
+                                    Verifikasi Budget Mutasi
+                                </li>
+                            )}
+                            {(level === '2' || level === '1') && (
+                                <li onClick={() => this.goRoute('report-mutasi')} className={styleHome.alignCenter}>
+                                    <HiOutlineDocumentReport className="mr-2"/>
+                                    Report Mutasi Asset
+                                </li>
+                            )}
+                            {/* <li onClick={() => this.goRoute('nav-mutasi')} className={styleHome.alignCenter}>
                                 <AiOutlineMenu className="mr-2"/>
                                 Navigasi Mutasi Asset
-                            </li>
+                            </li> */}
                         </Collapse>
                         <li className={styleHome.alignCenter} 
                         // onClick={() => this.goRoute('navstock')} 
@@ -424,10 +508,10 @@ class Home extends Component {
                                     Report Stock Opname
                                 </li>
                             )}
-                            <li onClick={() => this.goRoute('navstock')} className={styleHome.alignCenter}>
+                            {/* <li onClick={() => this.goRoute('navstock')} className={styleHome.alignCenter}>
                                 <AiOutlineMenu className="mr-2"/>
                                 Navigasi Stock Opname
-                            </li>
+                            </li> */}
                         </Collapse>
                         {level === '1' ? (
                             <li className={styleHome.alignCenter} onClick={this.toggle}>
@@ -445,10 +529,10 @@ class Home extends Component {
                                 <BsHouseDoor className="mr-2"/>
                                 Master Depo
                             </li>
-                            <li onClick={() => this.goRoute('email')} className={styleHome.alignCenter}>
+                            {/* <li onClick={() => this.goRoute('email')} className={styleHome.alignCenter}>
                                 <FiMail className="mr-2"/>
                                 Master Email
-                            </li>
+                            </li> */}
                             <li onClick={() => this.goRoute('menu')} className={styleHome.alignCenter}>
                                 <AiOutlineMenu className="mr-2"/>
                                 Master Menu
@@ -472,6 +556,10 @@ class Home extends Component {
                             <li onClick={() => this.goRoute('dokumen')} className={styleHome.alignCenter}>
                                 <BsClipboardData className="mr-2"/>
                                 Master Document
+                            </li>
+                            <li onClick={() => this.goRoute('approval')} className={styleHome.alignCenter}>
+                                <BsClipboardData className="mr-2"/>
+                                Setting Approval
                             </li>
                             {/* <li onClick={() => this.goRoute('pic')} className={styleHome.alignCenter}>
                                 <FiUsers className="mr-2"/>
@@ -501,7 +589,7 @@ class Home extends Component {
 
                         {/* Disposal Aset */}
                         <div 
-                        onClick={() => this.goRoute('disposal')} 
+                        onClick={() => this.goRoute(disposalRoute)} 
                         // onClick={() => this.goRoute('navdis')} 
                         className="col-12 col-md-6 col-lg-3 mb-4">
                             <div className={styleHome.assetCard}>
@@ -523,8 +611,8 @@ class Home extends Component {
 
                         {/* Mutasi Aset */}
                         <div 
-                        onClick={() => this.goRoute('mutasi')} 
-                        // onClick={() => this.goRoute('navmut')} 
+                        onClick={() => this.goRoute(mutasiRoute)} 
+                        // onClick={() => this.goRoute('nav-mutasi')} 
                         className="col-12 col-md-6 col-lg-3 mb-4">
                             <div className={styleHome.assetCard}>
                                 <img className='mt-4' src={mutasiIm} alt="Mutasi Aset"  />

@@ -48,7 +48,8 @@ const stockState = {
     isFinStock: null,
     noStock: '',
     isApprev: null,
-    dataDepo: []
+    dataDepo: [],
+    isDocStock: null
 };
 
 export default (state=stockState, action) => {
@@ -192,6 +193,29 @@ export default (state=stockState, action) => {
                 isDokumen: true,
                 dataDoc: action.payload.data.result,
                 alertMsg: 'get document disposal Succesfully'
+            };
+        }
+        case 'UPLOAD_DOCSTOCK_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'UPLOAD_DOCSTOCK_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isDocStock: true,
+                alertMsg: 'upload document succesfully',
+            };
+        }
+        case 'UPLOAD_DOCSTOCK_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isDocStock: false,
+                alertMsg: "Unable connect to server"
             };
         }
         case 'CEK_DOC_REJECTED': {
@@ -641,7 +665,8 @@ export default (state=stockState, action) => {
                 isAdd: false,
                 isImage: false,
                 isSubmit: null,
-                isSubaset: false
+                isSubaset: false,
+                isDocStock: null
             }
         }
         default: {

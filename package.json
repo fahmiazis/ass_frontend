@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@david.kucsai/react-pdf-table": "^0.3.0",
+    "@develoka/angka-terbilang-js": "^1.4.2",
     "@react-pdf/renderer": "^2.0.19",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",

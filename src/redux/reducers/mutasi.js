@@ -1,7 +1,7 @@
 /* eslint-disable import/no-anonymous-default-export */
 const mutasiState = {
     isAdd: false,
-    isUpdate: false,
+    isUpdate: null,
     isGet: false,
     isGetRec: false,
     isGetApprove: false,
@@ -33,7 +33,14 @@ const mutasiState = {
     rejReject: false,
     rejApprove: false,
     isRejDoc: false,
-    statusBudget: false
+    statusBudget: false,
+    isSubFinal: null,
+    isUpload: null,
+    appdoc: null,
+    dataCart: [],
+    subRevisi: null,
+    appRevisi: null,
+    upReason: null
 };
 
 export default (state=mutasiState, action) => {
@@ -61,6 +68,29 @@ export default (state=mutasiState, action) => {
                     isError: true,
                     alertMsg: "Unable connect to server",
                     alertM: action.payload.response.data.message
+                };
+            }
+            case 'UPDATE_MUTASI_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'UPDATE_MUTASI_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isUpdate: true,
+                    alertMsg: 'submit mutasi Succesfully'
+                };
+            }
+            case 'UPDATE_MUTASI_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isUpdate: false,
+                    alertMsg: "Unable connect to server"
                 };
             }
             case 'SUBMIT_EDIT_PENDING': {
@@ -201,6 +231,28 @@ export default (state=mutasiState, action) => {
                     alertMsg: 'unable connect to server'
                 };
             }
+            case 'GET_CART_MUTASI_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'GET_CART_MUTASI_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    dataCart: action.payload.data.result.rows,
+                    alertMsg: 'get mutasi Succesfully'
+                };
+            }
+            case 'GET_CART_MUTASI_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
             case 'GET_MUTASI_PENDING': {
                 return {
                     ...state,
@@ -289,7 +341,7 @@ export default (state=mutasiState, action) => {
                     ...state,
                     isLoading: false,
                     isSubmit: true,
-                    nomor_mutasi: action.payload.data.nomor_mutasi,
+                    nomor_mutasi: action.payload.data.no_mutasi,
                     alertMsg: 'submit mutasi Succesfully'
                 };
             }
@@ -298,6 +350,29 @@ export default (state=mutasiState, action) => {
                     ...state,
                     isLoading: false,
                     isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'SUBMIT_MUTASI_FINAL_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'SUBMIT_MUTASI_FINAL_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isSubFinal: true,
+                    alertMsg: 'submit mutasi Succesfully'
+                };
+            }
+            case 'SUBMIT_MUTASI_FINAL_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isSubFinal: false,
                     alertMsg: "Unable connect to server"
                 };
             }
@@ -442,13 +517,128 @@ export default (state=mutasiState, action) => {
                     alertMsg: "Unable connect to server"
                 };
             }
+            case 'UPLOAD_DOCMUT_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'UPLOAD_DOCMUT_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isUpload: true,
+                    alertMsg: 'upload document succesfully',
+                };
+            }
+            case 'UPLOAD_DOCMUT_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isUpload: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'APPROVE_DOCMUT_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'APPROVE_DOCMUT_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    appdoc: true,
+                    alertMsg: 'upload document succesfully',
+                };
+            }
+            case 'APPROVE_DOCMUT_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    appdoc: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'APP_REVISI_MUTASI_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'APP_REVISI_MUTASI_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    appRevisi: true,
+                    alertMsg: 'update app revisi success',
+                };
+            }
+            case 'APP_REVISI_MUTASI_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    appRevisi: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'SUBMIT_REVISI_MUTASI_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'SUBMIT_REVISI_MUTASI_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    subRevisi: true,
+                    alertMsg: 'submit revisi succesfully',
+                };
+            }
+            case 'SUBMIT_REVISI_MUTASI_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    subRevisi: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'UPDATE_REASON_MUTASI_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'UPDATE_REASON_MUTASI_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    upReason: true,
+                    alertMsg: 'submit revisi succesfully',
+                };
+            }
+            case 'UPDATE_REASON_MUTASI_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    upReason: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
             case 'RESET_ADD_MUT': {
                 return {
                     ...state,
                     errorAdd: false
                 };
             }
-            case 'RESET_APPREJMUT': {
+            case 'RESET_MUTASI': {
                 return {
                     ...state,
                     isApprove: false,
@@ -458,7 +648,13 @@ export default (state=mutasiState, action) => {
                     isRejDoc: false,
                     submitEdit: false,
                     submitEks: false,
-                    submitBud: false
+                    submitBud: false,
+                    isUpdate: null,
+                    isSubFinal: null,
+                    isUpload: null,
+                    subRevisi: null,
+                    appRevisi: null,
+                    upReason: null
                 }
             }
             default: {

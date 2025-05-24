@@ -17,6 +17,7 @@ import {connect} from 'react-redux'
 import pengadaan from '../../redux/actions/pengadaan'
 import dokumen from '../../redux/actions/dokumen'
 import tempmail from '../../redux/actions/tempmail'
+import newnotif from '../../redux/actions/newnotif'
 import OtpInput from "react-otp-input";
 import moment from 'moment'
 import auth from '../../redux/actions/auth'
@@ -440,7 +441,7 @@ class EditTicket extends Component {
     updateAlasan = async (val) => {
         const token = localStorage.getItem('token')
         const {detailIo} = this.props.pengadaan
-        await this.props.updateRecent(token, detailIo[0].no_pengadaan, val)
+        await this.props.updateReason(token, detailIo[0].no_pengadaan, val)
         await this.props.getDetail(token, detailIo[0].no_pengadaan)
         this.setState({confirm: 'upreason'})
         this.openConfirm()
@@ -818,7 +819,7 @@ class EditTicket extends Component {
         const {detailIo} = this.props.pengadaan
         const token = localStorage.getItem("token")
         const level = localStorage.getItem('level')
-        const menu = 'Revisi Area (Pengadaan asset)'
+        const menu = 'Revisi (Pengadaan asset)'
         const tipe = 'revisi'
         const tempno = {
             no: detailIo[0].no_pengadaan,
@@ -873,10 +874,11 @@ class EditTicket extends Component {
             no: detailIo[0].no_pengadaan,
             tipe: 'pengadaan',
             menu: `pengadaan asset`,
-            proses: val === 'asset' || val === 'budget' ? 'submit' : val,
-            route: val === 'reject pembatalan' ? 'revtick' : val === 'budget' ? 'ekstick' : 'ticket'
+            proses: 'submit revisi',
+            route: 'pengadaan'
         }
         await this.props.sendEmail(token, sendMail)
+        await this.props.addNewNotif(token, sendMail)
     }
 
     cekSubmit = () => {
@@ -978,7 +980,7 @@ class EditTicket extends Component {
                                                                 <td>{item.no_pengadaan}</td>
                                                                 <td>{item.kode_plant}</td>
                                                                 <td>{item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}</td>
-                                                                <td>{item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
+                                                                <td>{item.kategori === 'return' ? 'Pengajuan Return' : item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
                                                                 <td><Button color='primary' onClick={() => this.openForm(item)}>Proses</Button></td>
                                                             </tr>
                                                         ) : (
@@ -1035,7 +1037,7 @@ class EditTicket extends Component {
                                                 <td>{item.kode_plant}</td>
                                                 <td>{item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}</td>
                                                 <td>{moment(item.tglIo).format('DD MMMM YYYY')}</td>
-                                                <td>{item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
+                                                <td>{item.kategori === 'return' ? 'Pengajuan Return' : item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
                                                 <td>{item.history !== null && item.history.split(',').reverse()[0]}</td>
                                                 <td><Button color='primary' onClick={() => this.openForm(item)}>Proses</Button></td>
                                             </tr>
@@ -1052,9 +1054,9 @@ class EditTicket extends Component {
                         )}
                     </div>
                 </div>
-                <Modal size="xl" isOpen={this.state.openModalIo} toggle={this.prosesModalIo}>
+                <Modal size="xl" isOpen={this.state.openModalIo} toggle={this.prosesModalIo} className='large'>
                     <ModalBody className="mb-5">
-                        <Container>
+                        <Container className='borderGen'>
                             <Row className="rowModal">
                                 <Col md={3} lg={3}>
                                     <img src={logo} className="imgModal" />
@@ -1116,14 +1118,14 @@ class EditTicket extends Component {
                                                         null
                                                     ) : (
                                                         <tr onClick={() => this.openModalRinci()}>
-                                                            <th className='colGeneral'>
+                                                            <td className='colGeneral'>
                                                                 {item.isreject === 1 || item.isreject === 0 ? 
                                                                 <>
                                                                     {item.isreject === 1 ? 'Perlu Diperbaiki' : 'Telah diperbaiki'}
                                                                     <Button className='mt-2' color="info" size='sm' onClick={() => this.prosesModalRinci(item)}>Update</Button>
                                                                 </>
                                                                 :'-'}
-                                                            </th>
+                                                            </td>
                                                             <td>{item.qty}</td>
                                                             <td>{item.nama}</td>
                                                             <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
@@ -1276,6 +1278,109 @@ class EditTicket extends Component {
                                         </div>
                                     )}
                             </Formik>
+                            <Row className="rowModal mt-4">
+                                <Col md={12} lg={12}>
+                                    {detailIo[0] === undefined ? '' : `${detailIo[0].area}, ${moment(detailIo[0].tglIo).format('DD MMMM YYYY')}`}
+                                </Col>
+                            </Row>
+                            <Table borderless responsive className="tabPreview mt-4">
+                                <thead>
+                                    <tr>
+                                        <th className="buatPre">Dibuat oleh,</th>
+                                        <th className="buatPre">Diperiksa oleh,</th>
+                                        <th className="buatPre">Disetujui oleh,</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="tbodyPre">
+                                    <tr>
+                                        <td className="restTable">
+                                            <Table bordered responsive className="divPre">
+                                                <thead>
+                                                    <tr>
+                                                        {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
+                                                            return (
+                                                                <th className="headPre">
+                                                                    <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
+                                                                    <div>{item.nama === null ? "-" : item.nama}</div>
+                                                                </th>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
+                                                            return (
+                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'area' ? 'AOS' : item.jabatan}</td>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </tbody>
+                                            </Table>
+                                        </td>
+                                        <td className="restTable">
+                                            <Table bordered responsive className="divPre">
+                                                <thead>
+                                                    <tr>
+                                                        {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
+                                                            return (
+                                                                <th className="headPre">
+                                                                    <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
+                                                                    <div>{item.nama === null ? "-" : item.nama}</div>
+                                                                </th>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
+                                                            return (
+                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </tbody>
+                                            </Table>
+                                        </td>
+                                        <td className="restTable">
+                                            <Table bordered responsive className="divPre">
+                                                <thead>
+                                                    <tr>
+                                                        {dataApp.penyetuju !== undefined && dataApp.penyetuju.map(item => {
+                                                            return (
+                                                                <th className="headPre">
+                                                                    <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
+                                                                    <div>{item.nama === null ? "-" : item.nama}</div>
+                                                                </th>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        {dataApp.penyetuju !== undefined && dataApp.penyetuju.map(item => {
+                                                            return (
+                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </tbody>
+                                            </Table>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </Table>
+                            <div className='mt-4 bold'>Keterangan:</div>
+                            <div className=''>No. IO dan Profit Center diisi oleh Budgeting Department</div>
+                            <div className=''>Cost Center diisi oleh Asset Department</div>
+                            <div className=''>Untuk kategori Non Budgeted dan Return kolom alasan "Wajib" diisi</div>
+                            <div className=''>* Sesuai Matriks Otorisasi, disetujui oleh :</div>
+                            <div className='ml-4'>- Budgeted / Return : NFAM</div>
+                            <div className='ml-4 mb-3'>- Non Budgeted : DH OPS, NFAM, DH FA, DH HC, CM</div>
+                        </Container>
+                        <Container>
+                            <div className='mt-4'>FRM-FAD-058 REV 06</div>
                         </Container>
                     </ModalBody>
                     <hr />
@@ -1288,7 +1393,7 @@ class EditTicket extends Component {
                                     Dokumen 
                                 </Button>
                             )}
-                            <Button className="ml-2" color="warning" onClick={() => this.openModPreview(detailIo[0])}>
+                            <Button className="ml-2" color="warning" onClick={() => this.goDownload('formio')}>
                                 Download Form
                             </Button>
                         </div>
@@ -1617,7 +1722,7 @@ class EditTicket extends Component {
                                     onBlur={handleBlur("tipe")}
                                     >   
                                         <option value="">-Pilih Tipe-</option>
-                                        <option value="gudang">Sewa Gudang</option>
+                                        {/* <option value="gudang">Sewa Gudang</option> */}
                                         <option value="barang">Barang</option>
                                     </Input>
                                     {errors.tipe ? (
@@ -1913,7 +2018,11 @@ class EditTicket extends Component {
                         </Button>
                     </ModalFooter>
                 </Modal>
-                <Modal isOpen={this.props.pengadaan.isLoading || this.props.dokumen.isLoading || this.props.tempmail.isLoading ? true: false} size="sm">
+                <Modal isOpen={
+                    this.props.pengadaan.isLoading || 
+                    this.props.dokumen.isLoading || 
+                    this.props.tempmail.isLoading || 
+                    this.props.newnotif.isLoading ? true: false} size="sm">
                     <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>
@@ -2168,7 +2277,8 @@ const mapStateToProps = state => ({
     notif: state.notif,
     auth: state.auth,
     dokumen: dokumen,
-    tempmail: state.tempmail
+    tempmail: state.tempmail,
+    newnotif: state.newnotif,
 })
 
 const mapDispatchToProps = {
@@ -2193,13 +2303,14 @@ const mapDispatchToProps = {
     resetApp: pengadaan.resetApp,
     getDocCart: pengadaan.getDocCart,
     approveAll: pengadaan.approveAll,
-    updateRecent: pengadaan.updateRecent,
+    updateReason: pengadaan.updateReason,
     submitRevisi: pengadaan.submitRevisi,
     appRevisi: pengadaan.appRevisi,
     updateCart: pengadaan.updateCart,
     getDokumen: dokumen.getDokumen,
     getDraftEmail: tempmail.getDraftEmail,
     sendEmail: tempmail.sendEmail,
+    addNewNotif: newnotif.addNewNotif
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EditTicket)

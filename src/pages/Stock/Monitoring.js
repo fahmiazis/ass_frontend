@@ -403,7 +403,7 @@ class Stock extends Component {
             tipe: 'stock',
             menu: val === 'asset' ? 'Terima Stock Opname (Stock Opname asset)' : `Pengajuan Stock Opname (Stock Opname asset)`,
             proses: val === 'asset' ? 'submit' : val,
-            route: val === 'reject perbaikan' ? 'revstock' : 'stock'
+            route: val === 'reject perbaikan' ? 'editstock' : 'stock'
         }
         await this.props.sendEmail(token, sendMail)
         await this.props.addNewNotif(token, sendMail)
@@ -1576,6 +1576,8 @@ class Stock extends Component {
             ...titleStyle
         }
 
+        ws.pageSetup.printTitlesRow = '1:4';
+
         //table
         ws.mergeCells(`B4`, `B4`)
         ws.getCell(`B4`).value = 'NO'
@@ -1769,7 +1771,10 @@ class Stock extends Component {
 
             ws.getRow(i + 5).height = 200
 
-            const result = await this.toDataURL(`${REACT_APP_BACKEND_URL}/${dataExp[i].pict[dataExp[i].pict.length - 1].path}`);
+            const cekPict = dataExp[i].image !== null && dataExp.image !== ''
+            const pict = cekPict ? dataExp[i].image : dataExp[i].pict[dataExp[i].pict.length - 1].path
+
+            const result = await this.toDataURL(`${REACT_APP_BACKEND_URL}/${pict}`);
 
             const imageId2 = workbook.addImage({
             base64: result.base64Url,
@@ -2261,7 +2266,7 @@ class Stock extends Component {
             }
         }
 
-        await ws.protect('As5etPm4')
+        // await ws.protect('As5etPm4')
 
         workbook.xlsx.writeBuffer().then(function(buffer) {
             fs.saveAs(
@@ -2337,7 +2342,7 @@ class Stock extends Component {
     openProsesModalDoc = async () => {
         const token = localStorage.getItem("token")
         const { detailAsset } = this.props.asset
-        await this.props.getDocument(token, detailAsset.no_asset)
+        await this.props.getDocument(token, detailAsset.no_asset, detailAsset.id)
         this.openModalDoc()
     }
 
@@ -2345,7 +2350,7 @@ class Stock extends Component {
         const token = localStorage.getItem("token")
         const { detailAsset } = this.props.asset
         if (val === 'DIPINJAM SEMENTARA') {
-            await this.props.cekDokumen(token, detailAsset.no_asset)
+            await this.props.cekDokumen(token, detailAsset.no_asset, detailAsset.id)
         }
     }
 
@@ -2820,11 +2825,6 @@ class Stock extends Component {
                     </Alert> */}
                     <ModalBody>
                         <div className="mainRinci2">
-                            {/* <div className="leftRinci2 mb-5">
-                                <div className="titRinci">{dataRinci.nama_asset}</div>
-                                <img src={detailAsset.pict === undefined || detailAsset.pict.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detailAsset.pict[detailAsset.pict.length - 1].path}`} className="imgRinci" />
-                                <Input type="file" className='mt-2' onChange={this.uploadPicture}>Upload Picture</Input>
-                            </div> */}
                             <Formik
                             initialValues = {{
                                 deskripsi: '',
@@ -3234,7 +3234,9 @@ class Stock extends Component {
                         <div className="mainRinci2">
                             <div className="leftRinci2 mb-5">
                                 <div className="titRinci">{dataRinci.nama_asset}</div>
-                                {detRinci.pict === undefined || detRinci.pict.length === 0 ? (
+                                {detRinci.image !== undefined && detRinci.image !== null && detRinci.image !== '' ? (
+                                    <img src={`${REACT_APP_BACKEND_URL}/${detRinci.image}`} className="imgRinci" />
+                                ) : detRinci.pict === undefined || detRinci.pict.length === 0 ? (
                                     <img src={detRinci.img === undefined || detRinci.img.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detRinci.img[detRinci.img.length - 1].path}`} className="imgRinci" />
                                 ) : (
                                     <img src={detRinci.pict === undefined || detRinci.pict.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detRinci.pict[detRinci.pict.length - 1].path}`} className="imgRinci" />
@@ -3538,16 +3540,21 @@ class Stock extends Component {
                                                 <td onClick={() => this.getRinciStock(item)} >{item.grouping}</td>
                                                 <td onClick={() => this.getRinciStock(item)} >{item.keterangan}</td>
                                                 <td onClick={() => this.getRinciStock(item)} >
-                                                    {item.pict !== undefined && item.pict.length !== 0 
-                                                        ? <div className="">
-                                                            <img src={`${REACT_APP_BACKEND_URL}/${item.pict[item.pict.length - 1].path}`} className="imgTable" />
-                                                            <text className='textPict'>{moment(item.pict[item.pict.length - 1].createdAt).format('DD MMMM YYYY')}</text>
-                                                        </div> 
-                                                        : item.img !== undefined && item.img.length !== 0 
-                                                        ? <div className="">
-                                                            <img src={`${REACT_APP_BACKEND_URL}/${item.img[item.img.length - 1].path}`} className="imgTable" />
-                                                            <text className='textPict'>{moment(item.img[item.img.length - 1].createdAt).format('DD MMMM YYYY')}</text>
-                                                        </div> : null
+                                                    {item.image !== '' && item.image !== null 
+                                                    ? <div className="">
+                                                        <img src={`${REACT_APP_BACKEND_URL}/${item.image}`} className="imgTable" />
+                                                        <text className='textPict'>{moment(item.date_img).format('DD MMMM YYYY')}</text>
+                                                    </div> 
+                                                    : item.pict !== undefined && item.pict.length !== 0 
+                                                    ? <div className="">
+                                                        <img src={`${REACT_APP_BACKEND_URL}/${item.pict[item.pict.length - 1].path}`} className="imgTable" />
+                                                        <text className='textPict'>{moment(item.pict[item.pict.length - 1].createdAt).format('DD MMMM YYYY')}</text>
+                                                    </div> 
+                                                    : item.img !== undefined && item.img.length !== 0 
+                                                    ? <div className="">
+                                                        <img src={`${REACT_APP_BACKEND_URL}/${item.img[item.img.length - 1].path}`} className="imgTable" />
+                                                        <text className='textPict'>{moment(item.img[item.img.length - 1].createdAt).format('DD MMMM YYYY')}</text>
+                                                    </div> : null
                                                     }
                                                 </td>
                                                 {/* <td>{item.status_app === 0 ? 'reject' : item.status_app === 1 ? 'revisi' : '-'}</td> */}
@@ -4169,11 +4176,13 @@ class Stock extends Component {
                                             <td>{item.kondisi}</td>
                                             <td>{item.grouping}</td>
                                             <td style={{height: 200}}>
-                                                {item.pict !== undefined && item.pict.length !== 0 
-                                                    ? <img src={`${REACT_APP_BACKEND_URL}/${item.pict[item.pict.length - 1].path}`} style={{objectFit: 'cover'}} height={'auto'} width={200} />
-                                                    : item.img !== undefined && item.img.length !== 0 
-                                                    ? <img src={`${REACT_APP_BACKEND_URL}/${item.img[item.img.length - 1].path}`} style={{objectFit: 'cover'}} height={'auto'} width={200} />
-                                                    : null
+                                                {item.image !== null && item.image.length !== '' 
+                                                ? <img src={`${REACT_APP_BACKEND_URL}/${item.image}`} style={{objectFit: 'cover'}} height={'auto'} width={200} />
+                                                : item.pict !== undefined && item.pict.length !== 0 
+                                                ? <img src={`${REACT_APP_BACKEND_URL}/${item.pict[item.pict.length - 1].path}`} style={{objectFit: 'cover'}} height={'auto'} width={200} />
+                                                : item.img !== undefined && item.img.length !== 0 
+                                                ? <img src={`${REACT_APP_BACKEND_URL}/${item.img[item.img.length - 1].path}`} style={{objectFit: 'cover'}} height={'auto'} width={200} />
+                                                : null
                                                 }
                                             </td>
                                         </tr>

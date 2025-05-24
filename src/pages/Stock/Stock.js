@@ -402,7 +402,7 @@ class Stock extends Component {
             tipe: 'stock',
             menu: val === 'asset' ? 'Terima Stock Opname (Stock Opname asset)' : `Pengajuan Stock Opname (Stock Opname asset)`,
             proses: val === 'asset' ? 'submit' : val,
-            route: val === 'reject perbaikan' ? 'revstock' : 'stock'
+            route: val === 'reject perbaikan' ? 'editstock' : 'stock'
         }
         await this.props.sendEmail(token, sendMail)
         await this.props.addNewNotif(token, sendMail)
@@ -576,11 +576,12 @@ class Stock extends Component {
         //     this.getDataStock()
         //     this.openModalRinci()
         // } 
-        else if (isSubmit) {
-            this.openConfirm(this.setState({confirm: 'submit'}))
-            this.openModalApprove()
-            this.props.resetStock()
-        } else if (isImage) {
+        // else if (isSubmit) {
+        //     this.openConfirm(this.setState({confirm: 'submit'}))
+        //     this.openModalApprove()
+        //     this.props.resetStock()
+        // } 
+        else if (isImage) {
             this.props.getDetailItem(token, dataId)
             this.props.resetStock()
         } 
@@ -868,7 +869,7 @@ class Stock extends Component {
             }
 
             ws.mergeCells(`M${numTb}`, `M${numTb}`)
-            ws.getCell(`M${numTb}`).value = 'KONDISI'
+            ws.getCell(`M${numTb}`).value = 'STATUS FISIK'
             ws.getCell(`M${numTb}`).alignment = { 
                 ...tbStyle
             }
@@ -879,8 +880,8 @@ class Stock extends Component {
                 ...boldStyle
             }
 
-            ws.mergeCells(`N${numTb}`, `O${numTb}`)
-            ws.getCell(`N${numTb}`).value = 'LOKASI'
+            ws.mergeCells(`N${numTb}`, `N${numTb}`)
+            ws.getCell(`N${numTb}`).value = 'KONDISI'
             ws.getCell(`N${numTb}`).alignment = { 
                 ...tbStyle
             }
@@ -891,27 +892,39 @@ class Stock extends Component {
                 ...boldStyle
             }
 
-            ws.mergeCells(`P${numTb}`, `Q${numTb}`)
-            ws.getCell(`P${numTb}`).value = 'GROUPING'
-            ws.getCell(`P${numTb}`).alignment = { 
+            ws.mergeCells(`O${numTb}`, `P${numTb}`)
+            ws.getCell(`O${numTb}`).value = 'LOKASI'
+            ws.getCell(`O${numTb}`).alignment = { 
                 ...tbStyle
             }
-            ws.getCell(`P${numTb}`).border = { 
+            ws.getCell(`O${numTb}`).border = { 
                 ...borderStyles
             }
-            ws.getCell(`P${numTb}`).font = { 
+            ws.getCell(`O${numTb}`).font = { 
                 ...boldStyle
             }
 
-            ws.mergeCells(`R${numTb}`, `T${numTb}`)
-            ws.getCell(`R${numTb}`).value = 'KETERANGAN'
-            ws.getCell(`R${numTb}`).alignment = { 
+            ws.mergeCells(`Q${numTb}`, `R${numTb}`)
+            ws.getCell(`Q${numTb}`).value = 'GROUPING'
+            ws.getCell(`Q${numTb}`).alignment = { 
                 ...tbStyle
             }
-            ws.getCell(`R${numTb}`).border = { 
+            ws.getCell(`Q${numTb}`).border = { 
                 ...borderStyles
             }
-            ws.getCell(`R${numTb}`).font = { 
+            ws.getCell(`Q${numTb}`).font = { 
+                ...boldStyle
+            }
+
+            ws.mergeCells(`S${numTb}`, `U${numTb}`)
+            ws.getCell(`S${numTb}`).value = 'KETERANGAN'
+            ws.getCell(`S${numTb}`).alignment = { 
+                ...tbStyle
+            }
+            ws.getCell(`S${numTb}`).border = { 
+                ...borderStyles
+            }
+            ws.getCell(`S${numTb}`).font = { 
                 ...boldStyle
             }
         }
@@ -975,16 +988,16 @@ class Stock extends Component {
             }
     
             ws.mergeCells(`M${numTb}`, `M${numTb}`)
-            ws.getCell(`M${numTb}`).value = `${detailStock[i].kondisi === null ? '' : detailStock[i].kondisi}`
+            ws.getCell(`M${numTb}`).value = `${detailStock[i].status_fisik === null ? '' : detailStock[i].status_fisik}`
             ws.getCell(`M${numTb}`).alignment = { 
                 ...tbStyle
             }
             ws.getCell(`M${numTb}`).border = { 
                 ...borderStyles
             }
-    
-            ws.mergeCells(`N${numTb}`, `O${numTb}`)
-            ws.getCell(`N${numTb}`).value = `${detailStock[i].lokasi === null ? '' : detailStock[i].lokasi}`
+
+            ws.mergeCells(`N${numTb}`, `N${numTb}`)
+            ws.getCell(`N${numTb}`).value = `${detailStock[i].kondisi === null ? '' : detailStock[i].kondisi}`
             ws.getCell(`N${numTb}`).alignment = { 
                 ...tbStyle
             }
@@ -992,21 +1005,30 @@ class Stock extends Component {
                 ...borderStyles
             }
     
-            ws.mergeCells(`P${numTb}`, `Q${numTb}`)
-            ws.getCell(`P${numTb}`).value = `${detailStock[i].grouping === null ? '' : detailStock[i].grouping}`
-            ws.getCell(`P${numTb}`).alignment = { 
+            ws.mergeCells(`O${numTb}`, `P${numTb}`)
+            ws.getCell(`O${numTb}`).value = `${detailStock[i].lokasi === null ? '' : detailStock[i].lokasi}`
+            ws.getCell(`O${numTb}`).alignment = { 
                 ...tbStyle
             }
-            ws.getCell(`P${numTb}`).border = { 
+            ws.getCell(`O${numTb}`).border = { 
                 ...borderStyles
             }
     
-            ws.mergeCells(`R${numTb}`, `T${numTb}`)
-            ws.getCell(`R${numTb}`).value = `${detailStock[i].keterangan === null ? '' : detailStock[i].keterangan}`
-            ws.getCell(`R${numTb}`).alignment = { 
+            ws.mergeCells(`Q${numTb}`, `R${numTb}`)
+            ws.getCell(`Q${numTb}`).value = `${detailStock[i].grouping === null ? '' : detailStock[i].grouping}`
+            ws.getCell(`Q${numTb}`).alignment = { 
                 ...tbStyle
             }
-            ws.getCell(`R${numTb}`).border = { 
+            ws.getCell(`Q${numTb}`).border = { 
+                ...borderStyles
+            }
+    
+            ws.mergeCells(`S${numTb}`, `U${numTb}`)
+            ws.getCell(`S${numTb}`).value = `${detailStock[i].keterangan === null ? '' : detailStock[i].keterangan}`
+            ws.getCell(`S${numTb}`).alignment = { 
+                ...tbStyle
+            }
+            ws.getCell(`S${numTb}`).border = { 
                 ...borderStyles
             }
         }
@@ -1509,6 +1531,7 @@ class Stock extends Component {
 
     downloadDokumentasi = async () => {
         const {dataExp} = this.props.report
+
         this.setState({isLoading: true})
 
         const borderStyles = {
@@ -1562,200 +1585,236 @@ class Stock extends Component {
             ...titleStyle
         }
 
+        ws.pageSetup.printTitlesRow = '1:4';
+
+        //formula
+        const range = 4
+        const dataRange = 3
+
+        const hdSection = dataExp.length > 3 ? Math.ceil(dataExp.length / dataRange) : 1
+
         //table
-        ws.mergeCells(`B4`, `B4`)
-        ws.getCell(`B4`).value = 'NO'
-        ws.getCell(`B4`).alignment = { 
+        const numTd = 4
+        ws.mergeCells(`B${numTd}`, `B${numTd}`)
+        ws.getCell(`B${numTd}`).value = 'NO'
+        ws.getCell(`B${numTd}`).alignment = { 
             ...tbStyle
         }
-        ws.getCell(`B4`).border = { 
+        ws.getCell(`B${numTd}`).border = { 
             ...borderStyles
         }
-        ws.getCell(`B4`).font = { 
+        ws.getCell(`B${numTd}`).font = { 
             ...boldStyle
         }
 
-        ws.mergeCells(`C4`, `D4`)
-        ws.getCell(`C4`).value = 'NO. ASET'
-        ws.getCell(`C4`).alignment = { 
+        ws.mergeCells(`C${numTd}`, `D${numTd}`)
+        ws.getCell(`C${numTd}`).value = 'NO. ASET'
+        ws.getCell(`C${numTd}`).alignment = { 
             ...tbStyle
         }
-        ws.getCell(`C4`).border = { 
+        ws.getCell(`C${numTd}`).border = { 
             ...borderStyles
         }
-        ws.getCell(`C4`).font = { 
+        ws.getCell(`C${numTd}`).font = { 
             ...boldStyle
         }
 
-        ws.mergeCells(`E4`, `H4`)
-        ws.getCell(`E4`).value = 'DESKRIPSI'
-        ws.getCell(`E4`).alignment = { 
+        ws.mergeCells(`E${numTd}`, `H${numTd}`)
+        ws.getCell(`E${numTd}`).value = 'DESKRIPSI'
+        ws.getCell(`E${numTd}`).alignment = { 
             ...tbStyle
         }
-        ws.getCell(`E4`).border = { 
+        ws.getCell(`E${numTd}`).border = { 
             ...borderStyles
         }
-        ws.getCell(`E4`).font = { 
+        ws.getCell(`E${numTd}`).font = { 
             ...boldStyle
         }
 
-        ws.mergeCells(`I4`, `I4`)
-        ws.getCell(`I4`).value = 'PLANT'
-        ws.getCell(`I4`).alignment = { 
+        ws.mergeCells(`I${numTd}`, `I${numTd}`)
+        ws.getCell(`I${numTd}`).value = 'PLANT'
+        ws.getCell(`I${numTd}`).alignment = { 
             ...tbStyle
         }
-        ws.getCell(`I4`).border = { 
+        ws.getCell(`I${numTd}`).border = { 
             ...borderStyles
         }
-        ws.getCell(`I4`).font = { 
+        ws.getCell(`I${numTd}`).font = { 
             ...boldStyle
         }
 
-        ws.mergeCells(`J4`, `K4`)
-        ws.getCell(`J4`).value = 'AREA'
-        ws.getCell(`J4`).alignment = { 
+        ws.mergeCells(`J${numTd}`, `K${numTd}`)
+        ws.getCell(`J${numTd}`).value = 'AREA'
+        ws.getCell(`J${numTd}`).alignment = { 
             ...tbStyle
         }
-        ws.getCell(`J4`).border = { 
+        ws.getCell(`J${numTd}`).border = { 
             ...borderStyles
         }
-        ws.getCell(`J4`).font = { 
+        ws.getCell(`J${numTd}`).font = { 
             ...boldStyle
         }
 
-        ws.mergeCells(`L4`, `L4`)
-        ws.getCell(`L4`).value = 'SATUAN'
-        ws.getCell(`L4`).alignment = { 
+        ws.mergeCells(`L${numTd}`, `L${numTd}`)
+        ws.getCell(`L${numTd}`).value = 'SATUAN'
+        ws.getCell(`L${numTd}`).alignment = { 
             ...tbStyle
         }
-        ws.getCell(`L4`).border = { 
+        ws.getCell(`L${numTd}`).border = { 
             ...borderStyles
         }
-        ws.getCell(`L4`).font = { 
+        ws.getCell(`L${numTd}`).font = { 
             ...boldStyle
         }
 
-        ws.mergeCells(`M4`, `M4`)
-        ws.getCell(`M4`).value = 'KONDISI'
-        ws.getCell(`M4`).alignment = { 
+        ws.mergeCells(`M${numTd}`, `M${numTd}`)
+        ws.getCell(`M${numTd}`).value = 'KONDISI'
+        ws.getCell(`M${numTd}`).alignment = { 
             ...tbStyle
         }
-        ws.getCell(`M4`).border = { 
+        ws.getCell(`M${numTd}`).border = { 
             ...borderStyles
         }
-        ws.getCell(`M4`).font = { 
+        ws.getCell(`M${numTd}`).font = { 
             ...boldStyle
         }
 
-        ws.mergeCells(`N4`, `O4`)
-        ws.getCell(`N4`).value = 'GROUPING'
-        ws.getCell(`N4`).alignment = { 
+        ws.mergeCells(`N${numTd}`, `N${numTd}`)
+        ws.getCell(`N${numTd}`).value = 'LOKASI'
+        ws.getCell(`N${numTd}`).alignment = { 
             ...tbStyle
         }
-        ws.getCell(`N4`).border = { 
+        ws.getCell(`N${numTd}`).border = { 
             ...borderStyles
         }
-        ws.getCell(`N4`).font = { 
+        ws.getCell(`N${numTd}`).font = { 
             ...boldStyle
         }
 
-        ws.mergeCells(`P4`, `S4`)
-        ws.getCell(`P4`).value = 'PICTURE'
-        ws.getCell(`P4`).alignment = { 
+        ws.mergeCells(`O${numTd}`, `P${numTd}`)
+        ws.getCell(`O${numTd}`).value = 'GROUPING'
+        ws.getCell(`O${numTd}`).alignment = { 
             ...tbStyle
         }
-        ws.getCell(`P4`).border = { 
+        ws.getCell(`O${numTd}`).border = { 
             ...borderStyles
         }
-        ws.getCell(`P4`).font = { 
+        ws.getCell(`O${numTd}`).font = { 
             ...boldStyle
         }
+
+        ws.mergeCells(`Q${numTd}`, `T${numTd}`)
+        ws.getCell(`Q${numTd}`).value = 'PICTURE'
+        ws.getCell(`Q${numTd}`).alignment = { 
+            ...tbStyle
+        }
+        ws.getCell(`Q${numTd}`).border = { 
+            ...borderStyles
+        }
+        ws.getCell(`Q${numTd}`).font = { 
+            ...boldStyle
+        }
+
+        const tdContent = hdSection + 1
 
         for (let i = 0; i < dataExp.length; i++) {
-            ws.mergeCells(`B${i + 5}`, `B${i + 5}`)
-            ws.getCell(`B${i + 5}`).value = `${i + 1}`
-            ws.getCell(`B${i + 5}`).alignment = { 
+            const numContent = 5 + i
+            ws.mergeCells(`B${numContent}`, `B${numContent}`)
+            ws.getCell(`B${numContent}`).value = `${i + 1}`
+            ws.getCell(`B${numContent}`).alignment = { 
                 ...tbStyle
             }
-            ws.getCell(`B${i + 5}`).border = { 
+            ws.getCell(`B${numContent}`).border = { 
                 ...borderStyles
             }
     
-            ws.mergeCells(`C${i + 5}`, `D${i + 5}`)
-            ws.getCell(`C${i + 5}`).value = `${dataExp[i].no_asset === null ? '' : dataExp[i].no_asset}`
-            ws.getCell(`C${i + 5}`).alignment = { 
+            ws.mergeCells(`C${numContent}`, `D${numContent}`)
+            ws.getCell(`C${numContent}`).value = `${dataExp[i].no_asset === null ? '-' : dataExp[i].no_asset}`
+            ws.getCell(`C${numContent}`).alignment = { 
                 ...tbStyle
             }
-            ws.getCell(`C${i + 5}`).border = { 
+            ws.getCell(`C${numContent}`).border = { 
                 ...borderStyles
             }
     
-            ws.mergeCells(`E${i + 5}`, `H${i + 5}`)
-            ws.getCell(`E${i + 5}`).value = `${dataExp[i].deskripsi === null ? '' : dataExp[i].deskripsi }`
-            ws.getCell(`E${i + 5}`).alignment = { 
+            ws.mergeCells(`E${numContent}`, `H${numContent}`)
+            ws.getCell(`E${numContent}`).value = `${dataExp[i].deskripsi === null ? '-' : dataExp[i].deskripsi }`
+            ws.getCell(`E${numContent}`).alignment = { 
                 ...tbStyle
             }
-            ws.getCell(`E${i + 5}`).border = { 
+            ws.getCell(`E${numContent}`).border = { 
                 ...borderStyles
             }
     
-            ws.mergeCells(`I${i + 5}`, `I${i + 5}`)
-            ws.getCell(`I${i + 5}`).value = `${dataExp[i].kode_plant === null ? '' : dataExp[i].kode_plant}`
-            ws.getCell(`I${i + 5}`).alignment = { 
+            ws.mergeCells(`I${numContent}`, `I${numContent}`)
+            ws.getCell(`I${numContent}`).value = `${dataExp[i].kode_plant === null ? '-' : dataExp[i].kode_plant}`
+            ws.getCell(`I${numContent}`).alignment = { 
                 ...tbStyle
             }
-            ws.getCell(`I${i + 5}`).border = { 
+            ws.getCell(`I${numContent}`).border = { 
                 ...borderStyles
             }
     
-            ws.mergeCells(`J${i + 5}`, `K${i + 5}`)
-            ws.getCell(`J${i + 5}`).value = `${dataExp[i].area === null ? '' : dataExp[i].area }`
-            ws.getCell(`J${i + 5}`).alignment = { 
+            ws.mergeCells(`J${numContent}`, `K${numContent}`)
+            ws.getCell(`J${numContent}`).value = `${dataExp[i].area === null ? '-' : dataExp[i].area }`
+            ws.getCell(`J${numContent}`).alignment = { 
                 ...tbStyle
             }
-            ws.getCell(`J${i + 5}`).border = { 
+            ws.getCell(`J${numContent}`).border = { 
                 ...borderStyles
             }
     
-            ws.mergeCells(`L${i + 5}`, `L${i + 5}`)
-            ws.getCell(`L${i + 5}`).value = `${dataExp[i].satuan === null ? '' : dataExp[i].satuan}`
-            ws.getCell(`L${i + 5}`).alignment = { 
+            ws.mergeCells(`L${numContent}`, `L${numContent}`)
+            ws.getCell(`L${numContent}`).value = `${dataExp[i].satuan === null ? '-' : dataExp[i].satuan}`
+            ws.getCell(`L${numContent}`).alignment = { 
                 ...tbStyle
             }
-            ws.getCell(`L${i + 5}`).border = { 
+            ws.getCell(`L${numContent}`).border = { 
                 ...borderStyles
             }
     
-            ws.mergeCells(`M${i + 5}`, `M${i + 5}`)
-            ws.getCell(`M${i + 5}`).value = `${dataExp[i].kondisi === null ? '' : dataExp[i].kondisi}`
-            ws.getCell(`M${i + 5}`).alignment = { 
+            ws.mergeCells(`M${numContent}`, `M${numContent}`)
+            ws.getCell(`M${numContent}`).value = `${dataExp[i].kondisi === null ? '-' : dataExp[i].kondisi}`
+            ws.getCell(`M${numContent}`).alignment = { 
                 ...tbStyle
             }
-            ws.getCell(`M${i + 5}`).border = { 
+            ws.getCell(`M${numContent}`).border = { 
+                ...borderStyles
+            }
+
+            ws.mergeCells(`N${numContent}`, `N${numContent}`)
+            ws.getCell(`N${numContent}`).value = `${dataExp[i].lokasi === null ? '-' : dataExp[i].lokasi}`
+            ws.getCell(`N${numContent}`).alignment = { 
+                ...tbStyle
+            }
+            ws.getCell(`N${numContent}`).border = { 
                 ...borderStyles
             }
     
-            ws.mergeCells(`N${i + 5}`, `O${i + 5}`)
-            ws.getCell(`N${i + 5}`).value = `${dataExp[i].grouping === null ? '' : dataExp[i].grouping}`
-            ws.getCell(`N${i + 5}`).alignment = { 
+            ws.mergeCells(`O${numContent}`, `P${numContent}`)
+            ws.getCell(`O${numContent}`).value = `${dataExp[i].grouping === null ? '-' : dataExp[i].grouping}`
+            ws.getCell(`O${numContent}`).alignment = { 
                 ...tbStyle
             }
-            ws.getCell(`N${i + 5}`).border = { 
+            ws.getCell(`O${numContent}`).border = { 
                 ...borderStyles
             }
     
-            ws.mergeCells(`P${i + 5}`, `S${i + 5}`)
-            // ws.getCell(`P${i + 5}`).value = `${dataExp[i].grouping === null ? '' : dataExp[i].grouping}`
-            ws.getCell(`P${i + 5}`).alignment = { 
+            ws.mergeCells(`Q${numContent}`, `T${numContent}`)
+            // ws.getCell(`Q${numContent}`).value = `${dataExp[i].grouping === null ? '-' : dataExp[i].grouping}`
+            ws.getCell(`Q${numContent}`).alignment = { 
                 ...imgStyle
             }
-            ws.getCell(`P${i + 5}`).border = { 
+            ws.getCell(`Q${numContent}`).border = { 
                 ...borderStyles
             }
 
-            ws.getRow(i + 5).height = 200
+            ws.getRow(numContent).height = 200
 
-            const result = await this.toDataURL(`${REACT_APP_BACKEND_URL}/${dataExp[i].pict[dataExp[i].pict.length - 1].path}`);
+            const cekPict = dataExp[i].image !== null && dataExp.image !== ''
+            const pict = cekPict ? dataExp[i].image : dataExp[i].pict[dataExp[i].pict.length - 1].path
+
+            const result = await this.toDataURL(`${REACT_APP_BACKEND_URL}/${pict}`);
 
             const imageId2 = workbook.addImage({
             base64: result.base64Url,
@@ -1763,7 +1822,7 @@ class Stock extends Component {
             });
 
             ws.addImage(imageId2, {
-                tl: { col: 15.2, row: i + 4.2 },
+                tl: { col: 16.2, row: i + 4.2 },
                 ext: { width: 230, height: 150 },
             });
         }
@@ -1843,16 +1902,17 @@ class Stock extends Component {
 
     openProsesModalDoc = async () => {
         const token = localStorage.getItem("token")
-        const { detailAsset } = this.props.asset
-        await this.props.getDocument(token, detailAsset.no_asset)
+        const detRinci = this.props.stock.detailAsset
+        await this.props.getDocument(token, detRinci.no_asset, detRinci.id)
         this.openModalDoc()
     }
 
     cekStatus = async (val) => {
         const token = localStorage.getItem("token")
         const { detailAsset } = this.props.asset
+        const detRinci = this.props.stock.detailAsset
         if (val === 'DIPINJAM SEMENTARA') {
-            await this.props.cekDokumen(token, detailAsset.no_asset)
+            await this.props.cekDokumen(token, detRinci.no_asset, detRinci.id)
         }
     }
 
@@ -2254,11 +2314,6 @@ class Stock extends Component {
                     </Alert> */}
                     <ModalBody>
                         <div className="mainRinci2">
-                            {/* <div className="leftRinci2 mb-5">
-                                <div className="titRinci">{dataRinci.nama_asset}</div>
-                                <img src={detailAsset.pict === undefined || detailAsset.pict.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detailAsset.pict[detailAsset.pict.length - 1].path}`} className="imgRinci" />
-                                <Input type="file" className='mt-2' onChange={this.uploadPicture}>Upload Picture</Input>
-                            </div> */}
                             <Formik
                             initialValues = {{
                                 deskripsi: '',
@@ -2462,204 +2517,6 @@ class Stock extends Component {
                         <Button color='primary' onClick={this.openModalUpload}>Done</Button>
                     </ModalFooter>
                 </Modal>
-                <Modal isOpen={this.state.modalEdit} toggle={this.openModalEdit} size="lg">
-                    <ModalHeader>
-                        Rincian
-                    </ModalHeader>
-                    <ModalBody>
-                        <div className="mainRinci2">
-                            <div className="leftRinci2 mb-5">
-                                <div className="titRinci">{dataRinci.nama_asset}</div>
-                                <img src={detailAsset.pict === undefined || detailAsset.pict.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detailAsset.pict[detailAsset.pict.length - 1].path}`} className="imgRinci" />
-                                <Input type="file" className='mt-2' onChange={this.uploadPicture}>Upload Picture</Input>
-                                {/* <div className="secImgSmall">
-                                    <button className="btnSmallImg">
-                                        <img src={placeholder} className="imgSmallRinci" />
-                                    </button>
-                                </div> */}
-                            </div>
-                            <Formik
-                            initialValues = {{
-                                merk: detailAsset.merk === null ? '' : detailAsset.merk,
-                                satuan: detailAsset.satuan === null ? '' : detailAsset.satuan,
-                                unit: 1,
-                                lokasi: detailAsset.lokasi === null ? '' : detailAsset.lokasi,
-                                keterangan: detailAsset.keterangan === null ? '' : detailAsset.keterangan,
-                                status_fisik: detailAsset.status_fisik === null ? '' : detailAsset.status_fisik,
-                                kondisi: detailAsset.kondisi === null ? '' : detailAsset.kondisi
-                            }}
-                            validationSchema = {stockSchema}
-                            onSubmit={(values) => {this.updateAsset(values)}}
-                            >
-                            {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
-                                <div className="rightRinci2">
-                                    <div>
-                                        <Row className="mb-2 rowRinci">
-                                            <Col md={3}>No Asset</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
-                                        </Row>
-                                        <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Deskripsi</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={level === '5' || level === '9' ? dataRinci.nama_asset : dataRinci.deskripsi} disabled /></Col>
-                                        </Row>
-                                        <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Merk</Col>
-                                            <Col md={9} className="colRinci">:  <Input
-                                                type= "text" 
-                                                className="inputRinci"
-                                                value={values.merk}
-                                                onBlur={handleBlur("merk")}
-                                                onChange={handleChange("merk")}
-                                                />
-                                            </Col>
-                                        </Row>
-                                        {errors.merk ? (
-                                            <text className={style.txtError}>{errors.merk}</text>
-                                        ) : null}
-                                        <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Satuan</Col>
-                                            <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' || level === '9' ? false : true}
-                                                type= "select" 
-                                                className="inputRinci"
-                                                value={values.satuan}
-                                                onBlur={handleBlur("satuan")}
-                                                onChange={handleChange("satuan")}
-                                                >
-                                                    <option>{values.satuan}</option>
-                                                    <option>-Pilih Satuan-</option>
-                                                    <option value="UNIT">UNIT</option>
-                                                    <option value="PAKET">PAKET</option>
-                                                </Input>
-                                            </Col>
-                                        </Row>
-                                        {errors.satuan ? (
-                                            <text className={style.txtError}>{errors.satuan}</text>
-                                        ) : null}
-                                        <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Unit</Col>
-                                            <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' || level === '9' ? false : true}
-                                                type= "text" 
-                                                className="inputRinci"
-                                                value={values.unit}
-                                                onBlur={handleBlur("unit")}
-                                                onChange={handleChange("unit")}
-                                                />
-                                            </Col>
-                                        </Row>
-                                        {errors.unit ? (
-                                            <text className={style.txtError}>{errors.unit}</text>
-                                        ) : null}
-                                        <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Lokasi</Col>
-                                            <Col md={9} className="colRinci">:
-                                            <Input
-                                                disabled={level === '5' || level === '9' ? false : true}
-                                                type= "text" 
-                                                className="inputRinci"
-                                                value={values.lokasi}
-                                                onBlur={handleBlur("lokasi")}
-                                                onChange={handleChange("lokasi")}
-                                                />
-                                            </Col>
-                                        </Row>
-                                        {errors.lokasi ? (
-                                            <text className={style.txtError}>{errors.lokasi}</text>
-                                        ) : null}
-                                        <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Status Fisik</Col>
-                                            <Col md={9} className="colRinci">:  <Input 
-                                                disabled={(level === '5' || level === '9') && (detailAsset.grouping === null || detailAsset.grouping === '') ? false : true}
-                                                type="select"
-                                                className="inputRinci" 
-                                                value={detailAsset.fisik} 
-                                                onBlur={handleBlur("status_fisik")}
-                                                onChange={e => {handleChange("status_fisik"); this.updateCond({tipe: "status_fisik", val: e.target.value})}}
-                                                // onChange={e => { handleChange("status_fisik"); this.selectStatus(e.target.value, this.state.kondisi)} }
-                                                >
-                                                    <option>{values.status_fisik}</option>
-                                                    <option>-Pilih Status Fisik-</option>
-                                                    <option value="ada">Ada</option>
-                                                    <option value="tidak ada">Tidak Ada</option>
-                                                </Input>
-                                            </Col>
-                                        </Row>
-                                        {errors.status_fisik ? (
-                                            <text className={style.txtError}>{errors.status_fisik}</text>
-                                        ) : null}
-                                        <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Kondisi</Col>
-                                            <Col md={9} className="colRinci">:  <Input 
-                                                disabled={(level === '5' || level === '9') && (detailAsset.grouping === null || detailAsset.grouping === '') ? false : true}
-                                                type="select"
-                                                className="inputRinci" 
-                                                value={detailAsset.fisik} 
-                                                onBlur={handleBlur("kondisi")}
-                                                onChange={e => {handleChange("kondisi"); this.updateCond({tipe: "kondisi", val: e.target.value})}}
-                                                // onChange={e => { handleChange("kondisi"); this.selectStatus(this.state.fisik, e.target.value)} }
-                                                >
-                                                    <option>{values.kondisi === "" ? "-" : values.kondisi}</option>
-                                                    <option>-Pilih Kondisi-</option>
-                                                    <option value="baik">Baik</option>
-                                                    <option value="rusak">Rusak</option>
-                                                    <option value="">-</option>
-                                                </Input>
-                                            </Col>
-                                        </Row>
-                                        {errors.kondisi ? (
-                                            <text className={style.txtError}>{errors.kondisi}</text>
-                                        ) : null}
-                                        <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Status Aset</Col>
-                                            <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' || level === '9' ? false : true}
-                                                type= "select" 
-                                                className="inputRinci"
-                                                value={detailAsset.grouping}
-                                                // onBlur={handleBlur("grouping")}
-                                                // onChange={handleChange("grouping")}
-                                                onClick={() => this.listStatus(detailAsset)}
-                                                >
-                                                    <option>{detailAsset.grouping}</option>
-                                                    {/* <option>-Pilih Status Aset-</option> */}
-                                                    {/* {dataStatus.length > 0 && dataStatus.map(item => {
-                                                        return (
-                                                            <option value={item.status}>{item.status}</option>
-                                                        )
-                                                    })} */}
-                                                </Input>
-                                            </Col>
-                                        </Row>
-                                        {detailAsset.grouping === null || detailAsset.grouping ===  "" ? (
-                                            <text className={style.txtError}>Must be filled</text>
-                                        ) : null}
-                                        <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Keterangan</Col>
-                                            <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' || level === '9' ? false : true}
-                                                type= "text" 
-                                                className="inputRinci"
-                                                value={values.keterangan}
-                                                onBlur={handleBlur("keterangan")}
-                                                onChange={handleChange("keterangan")}
-                                                />
-                                            </Col>
-                                        </Row>
-                                        {errors.keterangan ? (
-                                            <text className={style.txtError}>{errors.keterangan}</text>
-                                        ) : null}
-                                    </div>
-                                    <ModalFooter>
-                                        <Button className="btnFootRinci1 mr-3" size="md" disabled={(level === '5' || level === '9') && (detailAsset.grouping !== null && detailAsset.grouping !==  "") ? false : true} color="primary" onClick={handleSubmit}>Save</Button>
-                                        <Button className="btnFootRinci1" size="md" color="secondary" onClick={() => this.openModalEdit()}>Close</Button>
-                                    </ModalFooter>
-                                </div>
-                            )}
-                            </Formik>
-                        </div>
-                    </ModalBody>
-                </Modal>
                 <Modal isOpen={this.state.modalStock} toggle={this.openModalStock} size="lg">
                     <ModalHeader>
                         Rincian
@@ -2667,20 +2524,14 @@ class Stock extends Component {
                     <ModalBody>
                         <div className="mainRinci2">
                             <div className="leftRinci2 mb-5">
-                                <div className="titRinci">{dataRinci.nama_asset}</div>
-                                {detRinci.pict === undefined || detRinci.pict.length === 0 ? (
+                                <div className="titRinci">{detRinci.nama_asset}</div>
+                                {detRinci.image !== undefined && detRinci.image !== null && detRinci.image !== '' ? (
+                                    <img src={`${REACT_APP_BACKEND_URL}/${detRinci.image}`} className="imgRinci" />
+                                ) : detRinci.pict === undefined || detRinci.pict.length === 0 ? (
                                     <img src={detRinci.img === undefined || detRinci.img.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detRinci.img[detRinci.img.length - 1].path}`} className="imgRinci" />
                                 ) : (
                                     <img src={detRinci.pict === undefined || detRinci.pict.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detRinci.pict[detRinci.pict.length - 1].path}`} className="imgRinci" />
                                 )}
-                                {(level === '5' || level === '9') && (
-                                    <Input type="file" className='mt-2' onChange={this.uploadGambar}>Upload Picture</Input>
-                                )}
-                                {/* <div className="secImgSmall">
-                                    <button className="btnSmallImg">
-                                        <img src={placeholder} className="imgSmallRinci" />
-                                    </button>
-                                </div> */}
                             </div>
                             <Formik
                             initialValues = {{
@@ -2710,7 +2561,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Merk</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' || level === '9' ? false : true}
+                                                disabled
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.merk}
@@ -2725,7 +2576,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Satuan</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' || level === '9' ? false : true}
+                                                disabled
                                                 type= "select" 
                                                 className="inputRinci"
                                                 value={values.satuan}
@@ -2745,7 +2596,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Unit</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' || level === '9' ? false : true}
+                                                disabled
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.unit}
@@ -2761,7 +2612,7 @@ class Stock extends Component {
                                             <Col md={3}>Lokasi</Col>
                                             <Col md={9} className="colRinci">:
                                             <Input
-                                                disabled={level === '5' || level === '9' ? false : true}
+                                                disabled
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.lokasi}
@@ -2776,7 +2627,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Status Fisik</Col>
                                             <Col md={9} className="colRinci">:  <Input 
-                                                disabled={level === '5' || level === '9' ? false : true}
+                                                disabled
                                                 type="select"
                                                 className="inputRinci" 
                                                 value={detRinci.fisik} 
@@ -2796,7 +2647,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Kondisi</Col>
                                             <Col md={9} className="colRinci">:  <Input 
-                                                disabled={level === '5' || level === '9' ? false : true}
+                                                disabled
                                                 type="select"
                                                 className="inputRinci" 
                                                 value={values.kondisi} 
@@ -2817,7 +2668,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Status Aset</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' || level === '9' ? false : true}
+                                                disabled
                                                 type= "select" 
                                                 className="inputRinci"
                                                 value={values.grouping}
@@ -2841,7 +2692,7 @@ class Stock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Keterangan</Col>
                                             <Col md={9} className="colRinci">:  <Input
-                                                disabled={level === '5' || level === '9' ? false : true}
+                                                disabled
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.keterangan}
@@ -2860,7 +2711,7 @@ class Stock extends Component {
                                         ) : (
                                             <div></div>
                                         )}
-                                        <Button className="btnFootRinci1 mr-3" size="md" disabled={level === '5' || level === '9' ? false : true} color="primary" onClick={handleSubmit}>Save</Button>
+                                        {/* <Button className="btnFootRinci1 mr-3" size="md" disabled={level === '5' || level === '9' ? false : true} color="primary" onClick={handleSubmit}>Save</Button> */}
                                         <Button className="btnFootRinci1" size="md" color="secondary" onClick={() => this.openModalStock()}>Close</Button>
                                     </ModalFooter>
                                 </div>
@@ -2972,16 +2823,21 @@ class Stock extends Component {
                                                 <td onClick={() => this.getRinciStock(item)} >{item.grouping}</td>
                                                 <td onClick={() => this.getRinciStock(item)} >{item.keterangan}</td>
                                                 <td onClick={() => this.getRinciStock(item)} >
-                                                    {item.pict !== undefined && item.pict.length !== 0 
-                                                        ? <div className="">
-                                                            <img src={`${REACT_APP_BACKEND_URL}/${item.pict[item.pict.length - 1].path}`} className="imgTable" />
-                                                            <text className='textPict'>{moment(item.pict[item.pict.length - 1].createdAt).format('DD MMMM YYYY')}</text>
-                                                        </div> 
-                                                        : item.img !== undefined && item.img.length !== 0 
-                                                        ? <div className="">
-                                                            <img src={`${REACT_APP_BACKEND_URL}/${item.img[item.img.length - 1].path}`} className="imgTable" />
-                                                            <text className='textPict'>{moment(item.img[item.img.length - 1].createdAt).format('DD MMMM YYYY')}</text>
-                                                        </div> : null
+                                                    {item.image !== '' && item.image !== null 
+                                                    ? <div className="">
+                                                        <img src={`${REACT_APP_BACKEND_URL}/${item.image}`} className="imgTable" />
+                                                        <text className='textPict'>{moment(item.date_img).format('DD MMMM YYYY')}</text>
+                                                    </div> 
+                                                    : item.pict !== undefined && item.pict.length !== 0 
+                                                    ? <div className="">
+                                                        <img src={`${REACT_APP_BACKEND_URL}/${item.pict[item.pict.length - 1].path}`} className="imgTable" />
+                                                        <text className='textPict'>{moment(item.pict[item.pict.length - 1].createdAt).format('DD MMMM YYYY')}</text>
+                                                    </div> 
+                                                    : item.img !== undefined && item.img.length !== 0 
+                                                    ? <div className="">
+                                                        <img src={`${REACT_APP_BACKEND_URL}/${item.img[item.img.length - 1].path}`} className="imgTable" />
+                                                        <text className='textPict'>{moment(item.img[item.img.length - 1].createdAt).format('DD MMMM YYYY')}</text>
+                                                    </div> : null
                                                     }
                                                 </td>
                                                 {/* <td>{item.status_app === 0 ? 'reject' : item.status_app === 1 ? 'revisi' : '-'}</td> */}
@@ -3014,20 +2870,20 @@ class Stock extends Component {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {detailStock.length !== 0 && detailStock.map((item, index) => {
+                                            {detailStock.length !== 0 && detailStock.filter(e => e.status_doc === 1).map((item, index) => {
                                                 return (
                                                 item.status_doc === 1 && (
                                                     <tr>
                                                         <td> 
                                                             <Input
-                                                            addon
-                                                            disabled={item.status_app === 0 ? true : false}
-                                                            checked={item.status_app === 0 ? true : listMut.find(element => element === item.id) !== undefined ? true : false}
-                                                            type="checkbox"
-                                                            onClick={listMut.find(element => element === item.id) === undefined ? () => this.chekRej(item.id) : () => this.chekApp(item.id)}
-                                                            value={item.no_asset} />
+                                                                addon
+                                                                disabled={this.state.filter === 'available' ? false : true}
+                                                                checked={listMut.find(element => element === item.id) ? true : false}
+                                                                type="checkbox"
+                                                                onClick={listMut.find(element => element === item.id) === undefined ? () => this.chekApp(item.id) : () => this.chekRej(item.id)}
+                                                            />
                                                         </td>
-                                                        <td onClick={() => this.getRinciStock(item)} scope="row">*</td>
+                                                        <td onClick={() => this.getRinciStock(item)} scope="row">{index + 1}</td>
                                                         <td onClick={() => this.getRinciStock(item)} >{item.deskripsi}</td>
                                                         <td onClick={() => this.getRinciStock(item)} >{item.merk}</td>
                                                         <td onClick={() => this.getRinciStock(item)} >{item.satuan}</td>
@@ -3060,11 +2916,11 @@ class Stock extends Component {
                             </Button>
                             )}
                             {level === '2' && this.state.filter === 'available' ? (
-                                <Button color="success" disabled={this.state.filter !== 'available' ? true : detailStock.find(({status_app}) => status_app === 0) !== undefined ? true : listMut.length === 0 ? false : true} onClick={this.openModalSub}>
+                                <Button color="success" disabled={this.state.filter === 'available' ? false : true} onClick={this.openModalSub}>
                                     Submit
                                 </Button>
                             ) : this.state.filter === 'available' && (
-                                <Button color="success" disabled={this.state.filter !== 'available' ? true : detailStock.find(({status_app}) => status_app === 0) !== undefined ? true : listMut.length === 0 ? false : true} onClick={this.openModalApprove}>
+                                <Button color="success" disabled={this.state.filter === 'available' ? false : true} onClick={this.openModalApprove}>
                                     Approve
                                 </Button>
                             )}
@@ -3138,7 +2994,7 @@ class Stock extends Component {
                                 <tbody>
                                     {detailStock.length !== 0 && detailStock.map(item => {
                                         return (
-                                        <tr onClick={() => this.getRincian(item)}>
+                                        <tr onClick={() => this.getRinciStock(item)}>
                                             <th scope="row">{(detailStock.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</th>
                                             <td>{item.no_asset}</td>
                                             <td>{item.deskripsi}</td>
@@ -3434,7 +3290,7 @@ class Stock extends Component {
                         </div>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.state.openApprove && (level === '5' || level === '9')} toggle={this.openModalApprove} centered={true}>
+                {/* <Modal isOpen={this.state.openApprove && (level === '5' || level === '9')} toggle={this.openModalApprove} centered={true}>
                     <ModalBody>
                         <div className={style.modalApprove}>
                             <div>
@@ -3451,7 +3307,7 @@ class Stock extends Component {
                             </div>
                         </div>
                     </ModalBody>
-                </Modal>
+                </Modal> */}
                 <Modal isOpen={this.state.openConfirm} toggle={this.openModalConfirm} centered={true}>
                     <ModalBody>
                         <div className={style.modalApprove}>
@@ -3466,102 +3322,6 @@ class Stock extends Component {
                             </div>
                         </div>
                     </ModalBody>
-                </Modal>
-                <Modal isOpen={this.state.submitPre} toggle={this.modalSubmitPre} size="xl" className='xl'>
-                    <ModalBody>
-                        <div>
-                            <div className="stockTitle">kertas kerja opname aset kantor</div>
-                            <div className="ptStock">pt. pinus merah abadi</div>
-                            <Row className="ptStock inputStock">
-                                <Col md={3} xl={3} sm={3}>kantor pusat/cabang</Col>
-                                <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={detailDepo.nama_area} className="ml-3"  /></Col>
-                            </Row>
-                            <Row className="ptStock inputStock">
-                                <Col md={3} xl={3} sm={3}>depo/cp</Col>
-                                <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={detailDepo.nama_area} className="ml-3" /></Col>
-                            </Row>
-                            <Row className="ptStock inputStock">
-                                <Col md={3} xl={3} sm={3}>opname per tanggal</Col>
-                                <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={moment().format('LL')} className="ml-3"  /></Col>
-                            </Row>
-                        </div>
-                        {dataAsset.length === 0 ? (
-                            <div className={style.tableDashboard}>
-                                <Table bordered responsive hover className={style.tab}>
-                                    <thead>
-                                        <tr>
-                                            <th>No</th>
-                                            <th>NO. ASET</th>
-                                            <th>DESKRIPSI</th>
-                                            <th>MERK</th>
-                                            <th>SATUAN</th>
-                                            <th>UNIT</th>
-                                            <th>KONDISI</th>
-                                            <th>LOKASI</th>
-                                            <th>GROUPING</th>
-                                            <th>KETERANGAN</th>
-                                        </tr>
-                                    </thead>
-                                </Table>
-                                <div className={style.spin}>
-                                        <Spinner type="grow" color="primary"/>
-                                        <Spinner type="grow" className="mr-3 ml-3" color="success"/>
-                                        <Spinner type="grow" color="warning"/>
-                                        <Spinner type="grow" className="mr-3 ml-3" color="danger"/>
-                                        <Spinner type="grow" color="info"/>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className={style.tableDashboard}>
-                            <Table bordered responsive hover className={style.tab}>
-                                <thead>
-                                    <tr>
-                                        <th>No</th>
-                                        <th>NO. ASET</th>
-                                        <th>DESKRIPSI</th>
-                                        <th>MERK</th>
-                                        <th>SATUAN</th>
-                                        <th>UNIT</th>
-                                        <th>LOKASI</th>
-                                        <th>STATUS FISIK</th>
-                                        <th>KONDISI</th>
-                                        <th>STATUS ASET</th>
-                                        <th>KETERANGAN</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {dataAsset.length !== 0 && dataAsset.map(item => {
-                                        return (
-                                        <tr onClick={() => this.getRincian(item)}>
-                                            <th scope="row">{(dataAsset.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</th>
-                                            <td>{item.no_asset}</td>
-                                            <td>{level === '5' || level === '9' ? item.nama_asset : item.deskripsi}</td>
-                                            <td>{item.merk}</td>
-                                            <td>{item.satuan}</td>
-                                            <td>{item.unit}</td>
-                                            <td>{item.lokasi}</td>
-                                            <td>{item.status_fisik}</td>
-                                            <td>{item.kondisi}</td>
-                                            <td>{item.grouping}</td>
-                                            <td>{item.keterangan}</td>
-                                        </tr>
-                                        )})}
-                                </tbody>
-                            </Table>
-                        </div>
-                        )}
-                    </ModalBody>
-                    {/* <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
-                        <div>{alertM}</div>
-                    </Alert> */}
-                    <div className="modalFoot ml-3">
-                        <div></div>
-                        <div className="btnFoot">
-                            <Button className="mr-2" color="success" onClick={this.openModalConfirm}>
-                                Submit
-                            </Button>
-                        </div>
-                    </div>
                 </Modal>
                 <Modal size='xl' isOpen={this.state.opendok} toggle={this.openModalDok} className='xl'>
                     <ModalBody>
@@ -3600,6 +3360,7 @@ class Stock extends Component {
                                         <th>AREA</th>
                                         <th>SATUAN</th>
                                         <th>KONDISI</th>
+                                        <th>LOKASI</th>
                                         <th>GROUPING</th>
                                         <th style={{width: 200}}>PICTURE</th>
                                     </tr>
@@ -3607,21 +3368,24 @@ class Stock extends Component {
                                 <tbody>
                                     {dataExp.length !== 0 && dataExp.map(item => {
                                         return (
-                                        <tr onClick={() => this.getRincian(item)}>
+                                        <tr onClick={() => this.getRinciStock(item)}>
                                             <th scope="row">{(dataExp.indexOf(item) + 1)}</th>
                                             <td>{item.no_asset}</td>
-                                            <td>{level === '5' || level === '9' ? item.nama_asset : item.deskripsi}</td>
+                                            <td>{item.deskripsi}</td>
                                             <td>{item.kode_plant}</td>
                                             <td>{item.area}</td>
                                             <td>{item.satuan}</td>
                                             <td>{item.kondisi}</td>
+                                            <td>{item.lokasi}</td>
                                             <td>{item.grouping}</td>
                                             <td style={{height: 200}}>
-                                                {item.pict !== undefined && item.pict.length !== 0 
-                                                    ? <img src={`${REACT_APP_BACKEND_URL}/${item.pict[item.pict.length - 1].path}`} style={{objectFit: 'cover'}} height={'auto'} width={200} />
-                                                    : item.img !== undefined && item.img.length !== 0 
-                                                    ? <img src={`${REACT_APP_BACKEND_URL}/${item.img[item.img.length - 1].path}`} style={{objectFit: 'cover'}} height={'auto'} width={200} />
-                                                    : null
+                                                {item.image !== null && item.image.length !== '' 
+                                                ? <img src={`${REACT_APP_BACKEND_URL}/${item.image}`} style={{objectFit: 'cover'}} height={'auto'} width={200} />
+                                                : item.pict !== undefined && item.pict.length !== 0 
+                                                ? <img src={`${REACT_APP_BACKEND_URL}/${item.pict[item.pict.length - 1].path}`} style={{objectFit: 'cover'}} height={'auto'} width={200} />
+                                                : item.img !== undefined && item.img.length !== 0 
+                                                ? <img src={`${REACT_APP_BACKEND_URL}/${item.img[item.img.length - 1].path}`} style={{objectFit: 'cover'}} height={'auto'} width={200} />
+                                                : null
                                                 }
                                             </td>
                                         </tr>
@@ -3718,9 +3482,9 @@ class Stock extends Component {
                     <div className="modalFoot ml-3">
                         <div></div>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="success" onClick={this.openModalApprove}>
+                            {/* <Button className="mr-2" color="success" onClick={this.openModalApprove}>
                                 Submit
-                            </Button>
+                            </Button> */}
                         </div>
                     </div>
                 </Modal>
@@ -4056,24 +3820,24 @@ class Stock extends Component {
                                             )}
                                             <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
                                             <div className="colDoc">
-                                                <input
+                                                {/* <input
                                                 className="ml-4"
                                                 type="file"
                                                 onClick={() => this.setState({detail: x})}
                                                 onChange={this.onChangeUpload}
                                                 />
-                                                <text className="txtError ml-4">Maximum file upload is 20 Mb</text>
+                                                <text className="txtError ml-4">Maximum file upload is 20 Mb</text> */}
                                             </div>
                                         </Col>
                                     ) : (
                                         <Col md={6} lg={6} className="colDoc">
-                                            <input
+                                            {/* <input
                                             className="ml-4"
                                             type="file"
                                             onClick={() => this.setState({detail: x})}
                                             onChange={this.onChangeUpload}
                                             />
-                                            <text className="txtError ml-4">Maximum file upload is 20 Mb</text>
+                                            <text className="txtError ml-4">Maximum file upload is 20 Mb</text> */}
                                         </Col>
                                     )}
                                 </Row>
@@ -4082,7 +3846,7 @@ class Stock extends Component {
                     </Container>
                 </ModalBody>
                 <ModalFooter>
-                    <Button className="mr-2" color="secondary" onClick={this.openModalDoc}>
+                    <Button className="" color="secondary" onClick={this.openModalDoc}>
                         Close
                     </Button>
                     {this.state.stat === 'DIPINJAM SEMENTARA' && (dataDoc.length === 0 || dataDoc.find(({status}) => status === 1) === undefined) ? (

@@ -27,17 +27,21 @@ const userSchema = Yup.object().shape({
     username: Yup.string().required(),
     fullname: Yup.string().required(),
     password: Yup.string().required(),
+    email: Yup.string().email().required(),
     depo: Yup.string(),
     user_level: Yup.string().required(),
-    status: Yup.string().required()
+    status: Yup.string().required(),
+    status_it: Yup.string()
 });
 
 const userEditSchema = Yup.object().shape({
     username: Yup.string().required(),
     fullname: Yup.string().required(),
+    email: Yup.string().email().required(),
     depo: Yup.string(),
     user_level: Yup.string().required(),
-    status: Yup.string().required()
+    status: Yup.string().required(),
+    status_it: Yup.string()
 });
 
 const changeSchema = Yup.object().shape({
@@ -80,7 +84,8 @@ class MasterUser extends Component {
             modalReset: false,
             filter: null,
             filterName: 'All',
-            listUser: []
+            listUser: [],
+            listRole: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -159,6 +164,7 @@ class MasterUser extends Component {
         this.setState({modalAdd: !this.state.modalAdd})
     }
     openModalEdit = () => {
+        console.log(this.state.listRole)
         this.setState({modalEdit: !this.state.modalEdit})
     }
     openModalUpload = () => {
@@ -167,18 +173,50 @@ class MasterUser extends Component {
     openModalDownload = () => {
         this.setState({modalUpload: !this.state.modalUpload})
     }
+    
+    prosesOpenAdd = async (val) => {
+        this.setState({listRole: []})
+        const token = localStorage.getItem("token")
+        await this.props.getRole(token, '')
+        this.openModalAdd()
+    }
+
+    prosesOpenEdit = async (val) => {
+        const token = localStorage.getItem("token")
+        this.setState({detail: val})
+        await this.props.getRole(token, '')
+        await this.props.getDetailUser(token, val.id)
+        const { detailUser } = this.props.user
+        if (detailUser.detail_role !== null && detailUser.detail_role !== undefined && detailUser.detail_role.length > 0) {
+            const multiRole = detailUser.detail_role
+            console.log(multiRole)
+            const listRole = []
+            for (let i = 0; i < multiRole.length; i++) {
+                listRole.push(multiRole[i].id_role)
+                console.log(multiRole[i].id_role)
+            }
+            this.setState({listRole: listRole})
+            this.openModalEdit()
+        } else {
+            this.setState({listRole: []})
+            this.openModalEdit()
+        }
+    }
 
     addUser = async (values) => {
         const token = localStorage.getItem("token")
-        const destruct = values.depo === "-Pilih Depo-" ? ["", ""] : values.depo.split('-') 
+        const { listRole } = this.state
+        // const destruct = values.depo === "-Pilih Area-" ? ["", ""] : values.depo.split('-') 
         const data = {
             username: values.username,
             fullname: values.fullname,
             password: values.password,
             user_level: values.user_level,
-            kode_plant: destruct[0],
+            kode_plant: values.user_level == '5' || values.user_level == '9' ? values.depo : '',
             email: values.email,
-            status: values.status
+            status: values.status,
+            status_it: values.user_level == '9' ? values.status_it : '',
+            multi_role: values.user_level == '5' || values.user_level == '9' ? '' : listRole.toString()
         }
         await this.props.addUser(token, data)
         const {isAdd} = this.props.user
@@ -187,6 +225,31 @@ class MasterUser extends Component {
             this.openConfirm()
             await this.getDataUser()
             this.openModalAdd()
+        }
+    }
+
+    editUser = async (values,id) => {
+        const token = localStorage.getItem("token")
+        // const destruct = values.depo === "" ? ["", ""] : values.depo.split('-')
+        const { listRole } = this.state
+        console.log(values)
+        const data = {
+            username: values.username,
+            fullname: values.fullname,
+            user_level: values.user_level,
+            email: values.email,
+            kode_plant: (values.user_level == '5' || values.user_level == '9') ? values.depo : '',
+            status: values.status,
+            status_it: values.user_level == '9' ? values.status_it : '',
+            multi_role: values.user_level == '5' || values.user_level == '9' ? '' : listRole.toString()
+        }
+        await this.props.updateUser(token, id, data)
+        const {isUpdate} = this.props.user
+        if (isUpdate) {
+            this.setState({confirm: 'edit'})
+            this.openConfirm()
+            this.getDataUser()
+            this.openModalEdit()
         }
     }
 
@@ -227,28 +290,6 @@ class MasterUser extends Component {
         const data = new FormData()
         data.append('master', this.state.fileUpload)
         await this.props.uploadMaster(token, data)
-    }
-
-    editUser = async (values,id) => {
-        const token = localStorage.getItem("token")
-        const destruct = values.depo === "" ? ["", ""] : values.depo.split('-')
-        const data = {
-            username: values.username,
-            fullname: values.fullname,
-            password: values.password,
-            user_level: values.user_level,
-            email: values.email,
-            kode_plant: destruct[0],
-            status: values.status
-        }
-        await this.props.updateUser(token, id, data)
-        const {isUpdate} = this.props.user
-        if (isUpdate) {
-            this.setState({confirm: 'edit'})
-            this.openConfirm()
-            this.getDataUser()
-            this.openModalEdit()
-        }
     }
 
     ExportMaster = () => {
@@ -353,6 +394,40 @@ class MasterUser extends Component {
         }
     }
 
+
+    roleApp = (val) => {
+        const { listRole } = this.state
+        const { dataRole } = this.props.user
+        if (val === 'all') {
+            const data = []
+            for (let i = 0; i < dataRole.length; i++) {
+                data.push(dataRole[i].name)
+            }
+            this.setState({listRole: data})
+        } else {
+            listRole.push(val)
+            this.setState({listRole: listRole})
+        }
+    }
+
+    roleRej = (val) => {
+        const { listRole } = this.state
+        if (val === 'all') {
+            const data = []
+            this.setState({listRole: data})
+        } else {
+            const data = []
+            for (let i = 0; i < listRole.length; i++) {
+                if (listRole[i] == val) {
+                    data.push()
+                } else {
+                    data.push(listRole[i])
+                }
+            }
+            this.setState({listRole: data})
+        }
+    }
+
     downloadTemplate = () => {
         const {listUser} = this.state
         const {dataUser} = this.props.user
@@ -401,7 +476,7 @@ class MasterUser extends Component {
 
     downloadData = () => {
         const {listUser} = this.state
-        const {dataUser} = this.props.user
+        const {dataUser, dataRole} = this.props.user
         const dataDownload = []
         for (let i = 0; i < listUser.length; i++) {
             for (let j = 0; j < dataUser.length; j++) {
@@ -438,7 +513,7 @@ class MasterUser extends Component {
                 c3: item.fullname,
                 c4: item.kode_plant === 0 ? "" : item.kode_plant,
                 c5: item.email,
-                c6: `${item.user_level}-${item.role.name}`,
+                c6: `${item.user_level}-${dataRole.find(({nomor}) => nomor == item.user_level).name}`,
             }
         )
         ) })
@@ -464,7 +539,7 @@ class MasterUser extends Component {
     }
 
     render() {
-        const {isOpen, dropOpen, dropOpenNum, detail, level, upload, errMsg, listUser} = this.state
+        const {isOpen, dropOpen, dropOpenNum, detail, level, upload, errMsg, listUser, listRole} = this.state
         const {dataUser, isGet, alertM, alertMsg, alertUpload, page, dataRole} = this.props.user
         const { dataDepo } = this.props.depo
         const levels = localStorage.getItem('level')
@@ -699,7 +774,7 @@ class MasterUser extends Component {
                                     >
                                         {dataRole !== undefined && dataRole.map(item => {
                                             return (
-                                                <DropdownItem onClick={() => {this.setState({filter: item.id, filterName: item.name}); this.changeFilter({name: item.name, nomor: item.id})}}>{item.name}</DropdownItem>
+                                                <DropdownItem onClick={() => {this.setState({filter: item.id, filterName: item.name}); this.changeFilter({name: item.name, nomor: item.nomor})}}>{item.name}</DropdownItem>
                                             )
                                         })}
                                     </DropdownMenu>
@@ -708,7 +783,7 @@ class MasterUser extends Component {
                         </div>
                         <div className={styleTrans.searchContainer}>
                             <div className='rowGeneral'>
-                                <Button onClick={this.openModalAdd} color="primary" size="lg">Add</Button>
+                                <Button onClick={this.prosesOpenAdd} color="primary" size="lg">Add</Button>
                                 <Button onClick={this.openModalUpload} className='ml-2' color="warning" size="lg">Upload</Button>
                                 <Button onClick={this.downloadData} className='ml-2' color="success" size="lg">Download</Button>
                             </div>
@@ -740,7 +815,7 @@ class MasterUser extends Component {
                                     <th>No</th>
                                     <th>User Name</th>
                                     <th>Full Name</th>
-                                    <th>Kode Plant</th>
+                                    <th>Kode Area</th>
                                     <th>Email</th>
                                     <th>User Level</th>
                                     <th>Opsi</th>
@@ -764,7 +839,7 @@ class MasterUser extends Component {
                                             <td>{item.email}</td>
                                             <td>{dataRole.find(({nomor}) => nomor == item.user_level).name}</td>
                                             <td>
-                                                <Button onClick={()=>this.openModalEdit(this.setState({detail: item}))} color='success'>Detail</Button>
+                                                <Button onClick={()=>this.prosesOpenEdit(item)} color='success'>Detail</Button>
                                             </td>
                                         </tr>
                                     )
@@ -788,16 +863,18 @@ class MasterUser extends Component {
                         </div>
                     </div>
                 </div>
-                <Modal toggle={this.openModalAdd} isOpen={this.state.modalAdd}>
+                <Modal toggle={this.openModalAdd} isOpen={this.state.modalAdd} size='lg'>
                     <ModalHeader toggle={this.openModalAdd}>Add Master User</ModalHeader>
                     <Formik
                     initialValues={{
-                    username: "",
-                    fullname: "",
-                    password: "",
-                    depo: "",
-                    user_level: "", 
-                    status: ""
+                        username: "",
+                        fullname: "",
+                        password: "",
+                        email: "",
+                        depo: "",
+                        user_level: "", 
+                        status: "",
+                        status_it: ""
                     }}
                     validationSchema={userSchema}
                     onSubmit={(values) => {this.addUser(values)}}
@@ -840,6 +917,23 @@ class MasterUser extends Component {
                         </div>
                         <div className={style.addModalDepo}>
                             <text className="col-md-3">
+                                Email
+                            </text>
+                            <div className="col-md-9">
+                                <Input 
+                                type="name" 
+                                name="email"
+                                value={values.email}
+                                onBlur={handleBlur("email")}
+                                onChange={handleChange("email")}
+                                />
+                                {errors.email ? (
+                                    <text className={style.txtError}>{errors.email}</text>
+                                ) : null}
+                            </div>
+                        </div>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
                                 Password
                             </text>
                             <div className="col-md-9">
@@ -857,7 +951,7 @@ class MasterUser extends Component {
                         </div>
                         <div className={style.addModalDepo}>
                             <text className="col-md-3">
-                                User Level
+                                Role Utama
                             </text>
                             <div className="col-md-9">
                             <Input 
@@ -867,7 +961,7 @@ class MasterUser extends Component {
                                 onChange={handleChange("user_level")}
                                 onBlur={handleBlur("user_level")}
                                 >
-                                    <option>-Pilih Level-</option>
+                                    <option>-Pilih Role-</option>
                                     {dataRole.length !== 0 && dataRole.map(item => {
                                         return (
                                             <option value={item.nomor}>{item.name}</option>
@@ -879,33 +973,38 @@ class MasterUser extends Component {
                                 ) : null}
                             </div>
                         </div>
-                        <div className={style.addModalDepo}>
-                            <text className="col-md-3">
-                                Depo
-                            </text>
-                            <div className="col-md-9">
-                            <Input 
-                                type="select"
-                                name="select"
-                                disabled={values.user_level === "5" ? false : true}
-                                value={values.depo}
-                                onChange={handleChange("depo")}
-                                onBlur={handleBlur("depo")}
-                                >
-                                    <option>-Pilih Depo-</option>
-                                    {dataDepo.length !== 0 && dataDepo.map(item => {
-                                        return (
-                                            item.kode_plant.length === 4 && (
-                                                <option value={item.kode_plant + '-' + item.nama_area}>{item.kode_plant + '-' + item.nama_area}</option>
-                                            ) 
-                                        )
-                                    })}
-                                </Input>
-                                {errors.depo ? (
-                                    <text className={style.txtError}>{errors.depo}</text>
-                                ) : null}
+                        {(values.user_level == '5' || values.user_level == '9') && (
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Area
+                                </text>
+                                <div className="col-md-9">
+                                <Input 
+                                    type="select"
+                                    name="select"
+                                    disabled={values.user_level == '5' || values.user_level == '9' ? false : true}
+                                    value={values.depo}
+                                    onChange={handleChange("depo")}
+                                    onBlur={handleBlur("depo")}
+                                    >
+                                        <option>-Pilih Area-</option>
+                                        {dataDepo.length !== 0 && dataDepo.map(item => {
+                                            return (
+                                                (values.user_level == '5' && item.kode_plant.length === 4) ? (
+                                                    <option value={item.kode_plant}>{item.kode_plant + '-' + item.nama_area}</option>
+                                                ) : (values.user_level == '9' && item.kode_plant.length > 4) && (
+                                                    <option value={item.kode_plant}>{item.kode_plant + '-' + item.nama_area}</option>
+                                                )
+                                                
+                                            )
+                                        })}
+                                    </Input>
+                                    {errors.depo ? (
+                                        <text className={style.txtError}>{errors.depo}</text>
+                                    ) : null}
+                                </div>
                             </div>
-                        </div>
+                        )}
                         <div className={style.addModalDepo}>
                             <text className="col-md-3">
                                 Status
@@ -927,6 +1026,52 @@ class MasterUser extends Component {
                                 ) : null}
                             </div>
                         </div>
+                        {values.user_level == '9' && (
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Status IT
+                                </text>
+                                <div className="col-md-9">
+                                <Input 
+                                    type="select"
+                                    name="select"
+                                    value={values.status_it}
+                                    onChange={handleChange("status_it")}
+                                    onBlur={handleBlur("status_it")}
+                                    >   
+                                        <option>-Pilih Status-</option>
+                                        <option value="it">IT</option>
+                                        <option value="non-it">NON IT</option>
+                                    </Input>
+                                    {errors.status_it ? (
+                                        <text className={style.txtError}>{errors.status_it}</text>
+                                    ) : null}
+                                </div>
+                            </div>
+                        )}
+                        {(values.user_level != '1' && values.user_level != '9' && values.user_level != '5' && values.user_level !== '') && (
+                            <div className='addModalMenu'>
+                                <text className="col-md-3">
+                                    Role Tambahan
+                                </text>
+                                <div className="col-md-9 listcek">
+                                    {dataRole.length !== 0 && dataRole.filter(item => (item.nomor != '1' && item.nomor != '9' && item.nomor != '5' && item.nomor != values.user_level)).map(item => {
+                                        return (
+                                            <div className='listcek mr-2'>
+                                                <Input 
+                                                type="checkbox" 
+                                                name="access"
+                                                checked={listRole.find(element => element == item.nomor) !== undefined ? true : false}
+                                                className='ml-1'
+                                                onChange={listRole.find(element => element == item.nomor) === undefined ? () => this.roleApp(item.nomor) : () => this.roleRej(item.nomor)}
+                                                />
+                                                <text className='ml-4'>{item.name}</text>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        )}
                         <hr/>
                         <div className={style.foot}>
                             <div></div>
@@ -939,16 +1084,17 @@ class MasterUser extends Component {
                         )}
                     </Formik>
                 </Modal>
-                <Modal toggle={this.openModalEdit} isOpen={this.state.modalEdit}>
+                <Modal toggle={this.openModalEdit} isOpen={this.state.modalEdit} size='lg'>
                     <ModalHeader toggle={this.openModalEdit}>Edit Master User</ModalHeader>
                     <Formik
                     initialValues={{
-                    username: detail.username === null ? '' : detail.username,
-                    depo: level === '5' ? detail.kode_plant + "-" + detail.nama_depo : '',
-                    user_level: detail.user_level === null ? '' : detail.user_level, 
-                    status: 'active',
-                    email: detail.email === null ? '' : detail.email,
-                    fullname: detail.fullname === null ? '' : detail.fullname
+                        username: detail.username === null ? '' : detail.username,
+                        depo: (detail.user_level == '5' || detail.user_level == '9') ? detail.kode_plant : '',
+                        user_level: detail.user_level === null ? '' : detail.user_level, 
+                        status: 'active',
+                        email: detail.email === null ? '' : detail.email,
+                        fullname: detail.fullname === null ? '' : detail.fullname,
+                        status_it: detail.status_it === null ? '' : detail.status_it
                     }}
                     validationSchema={userEditSchema}
                     onSubmit={(values) => {this.editUser(values, detail.id)}}
@@ -989,10 +1135,27 @@ class MasterUser extends Component {
                                 ) : null}
                             </div>
                         </div>
-                        {detail.user_level === '5' || detail.user_level === 5 ? (
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                Email
+                            </text>
+                            <div className="col-md-9">
+                                <Input 
+                                type="name" 
+                                name="email"
+                                value={values.email}
+                                onBlur={handleBlur("email")}
+                                onChange={handleChange("email")}
+                                />
+                                {errors.email ? (
+                                    <text className={style.txtError}>{errors.email}</text>
+                                ) : null}
+                            </div>
+                        </div>
+                        {(detail.user_level == '5' || detail.user_level === 5) || (detail.user_level == '9' || detail.user_level === 9) ? (
                             <div className={style.addModalDepo}>
                                 <text className="col-md-3">
-                                    Depo
+                                    Area
                                 </text>
                                 <div className="col-md-9">
                                 <Input 
@@ -1002,12 +1165,14 @@ class MasterUser extends Component {
                                     onChange={handleChange("depo")}
                                     onBlur={handleBlur("depo")}
                                     >
-                                        <option>-Pilih Depo-</option>
+                                        <option>-Pilih Area-</option>
                                         {dataDepo.length !== 0 && dataDepo.map(item => {
                                             return (
-                                                item.kode_plant.length === 4 && (
-                                                    <option value={item.kode_plant + '-' + item.nama_area}>{item.kode_plant + '-' + item.nama_area}</option>
-                                                ) 
+                                                (detail.user_level == '5' || detail.user_level === 5) && item.kode_plant.length === 4 ? (
+                                                    <option value={item.kode_plant}>{item.kode_plant + '-' + item.nama_area}</option>
+                                                ) : (detail.user_level == '9' || detail.user_level === 9) && item.kode_plant.length > 4 && (
+                                                    <option value={item.kode_plant}>{item.kode_plant + '-' + item.nama_area}</option>
+                                                )
                                             )
                                         })}
                                         {/* <option value="50-MEDAN TIMUR">50-MEDAN TIMUR</option>
@@ -1023,7 +1188,7 @@ class MasterUser extends Component {
                         )}
                         <div className={style.addModalDepo}>
                             <text className="col-md-3">
-                                User Level
+                                Role Utama
                             </text>
                             <div className="col-md-9">
                             <Input 
@@ -1033,7 +1198,7 @@ class MasterUser extends Component {
                                 onChange={handleChange("user_level")}
                                 onBlur={handleBlur("user_level")}
                                 >
-                                    <option>-Pilih Level-</option>
+                                    <option>-Pilih Role-</option>
                                     {dataRole.length !== 0 && dataRole.map(item => {
                                         return (
                                             <option value={item.nomor}>{item.name}</option>
@@ -1042,23 +1207,6 @@ class MasterUser extends Component {
                                 </Input>
                                 {errors.user_level ? (
                                     <text className={style.txtError}>{errors.user_level}</text>
-                                ) : null}
-                            </div>
-                        </div>
-                        <div className={style.addModalDepo}>
-                            <text className="col-md-3">
-                                Email
-                            </text>
-                            <div className="col-md-9">
-                                <Input 
-                                type="name" 
-                                name="email"
-                                value={values.email}
-                                onBlur={handleBlur("email")}
-                                onChange={handleChange("email")}
-                                />
-                                {errors.email ? (
-                                    <text className={style.txtError}>{errors.email}</text>
                                 ) : null}
                             </div>
                         </div>
@@ -1083,6 +1231,52 @@ class MasterUser extends Component {
                                 ) : null}
                             </div>
                         </div> */}
+                        {(detail.user_level == '9' || detail.user_level === 9) && (
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Status IT
+                                </text>
+                                <div className="col-md-9">
+                                <Input 
+                                    type="select"
+                                    name="select"
+                                    value={values.status_it}
+                                    onChange={handleChange("status_it")}
+                                    onBlur={handleBlur("status_it")}
+                                    >   
+                                        <option>-Pilih Status-</option>
+                                        <option value="it">IT</option>
+                                        <option value="non-it">NON IT</option>
+                                    </Input>
+                                    {errors.status_it ? (
+                                        <text className={style.txtError}>{errors.status_it}</text>
+                                    ) : null}
+                                </div>
+                            </div>
+                        )}
+                        {(values.user_level != '1' && values.user_level != '9' && values.user_level != '5' && values.user_level !== '') && (
+                            <div className='addModalMenu'>
+                                <text className="col-md-3">
+                                    Role Tambahan
+                                </text>
+                                <div className="col-md-9 listcek">
+                                    {dataRole.length !== 0 && dataRole.filter(item => (item.nomor != '1' && item.nomor != '9' && item.nomor != '5' && item.nomor != values.user_level)).map(item => {
+                                        return (
+                                            <div className='listcek mr-2'>
+                                                <Input 
+                                                type="checkbox" 
+                                                name="access"
+                                                checked={listRole.find(element => element == item.nomor) !== undefined ? true : false}
+                                                className='ml-1'
+                                                onChange={listRole.find(element => element == item.nomor) === undefined ? () => this.roleApp(item.nomor) : () => this.roleRej(item.nomor)}
+                                                />
+                                                <text className='ml-4'>{item.name}</text>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        )}
                         <hr/>
                         <div className={style.foot}>
                             <div>
@@ -1245,7 +1439,8 @@ const mapDispatchToProps = {
     nextPage: user.nextPage,
     exportMaster: user.exportMaster,
     getRole: user.getRole,
-    resetPassword: user.resetPassword
+    resetPassword: user.resetPassword,
+    getDetailUser: user.getDetailUser
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(MasterUser)

@@ -13,12 +13,13 @@ export default function AllPages(props) {
     setNumPages(numPages)
   }
 
-  const { pdf, dataFile, noDoc, noTrans, detailForm } = props
+  const { pdf, dataFile, noDoc, noTrans, detailForm, tipe } = props
   const genData = dataFile === undefined ? ['file.pdf'] : dataFile.path.split('/')
   const cekDoc = genData[genData.length - 1].split('.')
   const cekPr = genData.find(item => item === 'printPR')
   console.log(cekDoc)
   console.log(cekDoc[cekDoc.length - 1])
+  console.log(pdf)
   return (
     cekDoc.length !== 0 && filePict.find(item => item === cekDoc[cekDoc.length - 1].toString().toLowerCase()) !== undefined ? 
     <div>
@@ -36,10 +37,9 @@ export default function AllPages(props) {
       // </Document>
       <div id="wrap">
         <iframe id="scaled-frame" 
-        src={noDoc === noTrans ? dataFile.path : pdf}
+        src={tipe !== 'pengadaan' ? pdf : noDoc === noTrans ? dataFile.path : pdf}
         // src={pdf} 
         className='pdfDiv' />
-        {/* <iframe id="scaled-frame" src={pdf} className='pdfDiv' /> */}
       </div>
     // : dataFile.path === (detailForm !== undefined ? detailForm.no_ref : null) ? 
     // <div >

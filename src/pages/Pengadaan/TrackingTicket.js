@@ -337,7 +337,7 @@ class TrackingMutasi extends Component {
                                                     <td>{item.kode_plant}</td>
                                                     <td>{item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}</td>
                                                     <td>{moment(item.tglIo).format('DD MMMM YYYY')}</td>
-                                                    <td>{item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
+                                                    <td>{item.kategori === 'return' ? 'Pengajuan Return' : item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
                                                     <td>
                                                         <Button color="primary" onClick={() => {this.getDetailTrack(item.no_pengadaan)}}>Lacak</Button>
                                                     </td>

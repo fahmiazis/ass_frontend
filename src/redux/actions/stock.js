@@ -3,9 +3,9 @@ import http from '../../helpers/http'
 import qs from 'qs'
 
 export default {
-    submitStock: (token) => ({
+    submitStock: (token, data) => ({
         type: 'SUBMIT_STOCK',
-        payload: http(token).get('/stock/submit')
+        payload: http(token).patch('/stock/submit', qs.stringify(data))
     }),
     submitStockFinal: (token, no) => ({
         type: 'SUBFINAL_STOCK',
@@ -31,13 +31,17 @@ export default {
         type: 'DETAIL_ITEM',
         payload: http(token).get(`/stock/item/${id}`)
     }),
-    getDocumentStock: (token, no) => ({
-        type: 'DOK_STOCK',
-        payload: http(token).get(`/stock/doc/${no}`)
+    uploadDocument: (token, id, data) => ({
+        type: 'UPLOAD_DOCSTOCK',
+        payload: http(token).post(`/stock/upload/${id}`, data)
     }),
-    cekDocumentStock: (token, no) => ({
+    getDocumentStock: (token, no, id) => ({
+        type: 'DOK_STOCK',
+        payload: http(token).get(`/stock/doc/${no}/${id === undefined ? 'undefined' : id}`)
+    }),
+    cekDocumentStock: (token, no, id) => ({
         type: 'CEK_DOC',
-        payload: http(token).get(`/stock/cekdoc/${no}`)
+        payload: http(token).get(`/stock/cekdoc/${no}/${id === undefined ? 'undefined' : id}`)
     }),
     getApproveStock: (token, id) => ({
         type: 'GET_APPSTOCK',
@@ -57,11 +61,11 @@ export default {
     }),
     uploadPicture: (token, id, data) => ({
         type: 'UPLOAD_PICTURE',
-        payload: http(token).post(`/stock/img/${id}`, data)
+        payload: http(token).post(`/stock/pict/${id}`, data)
     }),
     uploadImage: (token, id, data) => ({
         type: 'UPLOAD_IMAGE',
-        payload: http(token).post(`/stock/pict/${id}`, data)
+        payload: http(token).post(`/stock/img/${id}`, data)
     }),
     getStatus: (token, fisik, kondisi, sap) => ({
         type: 'GET_STATUS',

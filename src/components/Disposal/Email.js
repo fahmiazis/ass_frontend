@@ -25,18 +25,19 @@ class TableRincian extends Component {
 
     componentDidMount() {
         const { draftEmail } = this.props.tempmail
-        const {detailIo} = this.props.pengadaan
+        const {detailDis} = this.props.disposal
+        const tipe = this.props.tipe || 'pengajuan'
         const cek = draftEmail.result
-        const stat = detailIo[0].status_form
-        const no = detailIo[0].no_pengadaan
+        const stat = detailDis[0].status_form
+        const no = tipe === 'persetujuan' ? detailDis[0].no_persetujuan : detailDis[0].no_disposal
         const message = cek === undefined ? '' : `${cek.message} (${no})`
-        const subject = cek === undefined ? '' : `${cek.type === 'submit' ? '' : cek.type} ${detailIo[0].kategori === 'return' ? cek.menu.replace('(Pengadaan asset)', '(Return IO)') : cek.menu} NO ${no}`
+        const subject = cek === undefined ? '' : `${cek.type === 'submit' ? '' : cek.type} ${cek.menu} NO ${no}`
         this.setState({message: message, subject: subject})
         this.props.handleData({message: message, subject: subject})
     }
 
   render() {
-    const {detailIo} = this.props.pengadaan
+    const {detailDis} = this.props.disposal
     const { draftEmail } = this.props.tempmail
     const statMail = this.props.statMail || ''
     const {dataResmail} = this.props.tempmail
@@ -171,25 +172,27 @@ class TableRincian extends Component {
                     <thead>
                         <tr>
                             <th>NO</th>
-                            <th>NO AJUAN</th>
-                            <th>NAMA ASSET</th>
-                            <th>KATEGORI</th>
-                            <th>TIPE</th>
-                            <th>PRICE</th>
-                            <th>KUANTITAS</th>
+                            <th>No Disposal</th>
+                            <th>Tipe</th>
+                            <th>No Asset</th>
+                            <th>Asset description</th>
+                            <th>Cost Ctr</th>
+                            <th>Cabang / Depo</th>
+                            <th>Tgl Ajuan</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {detailIo.length !== 0 && detailIo.map((item, index) => {
+                        {detailDis.length !== 0 && detailDis.map((item, index) => {
                             return (
                                 <tr>
                                     <td>{index + 1}</td>
-                                    <td>{item.no_pengadaan}</td>
-                                    <td>{item.nama}</td>
-                                    <td>{item.kategori}</td>
-                                    <td>{item.tipe === 'gudang' ? 'Sewa Gudang' : "Barang"}</td>
-                                    <td>{item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                    <td>{item.qty}</td>
+                                    <td>{item.no_disposal}</td>
+                                    <td>{item.nilai_jual === 0 || item.nilai_jual === '0' ? 'Pemusnahan' : 'Penjualan'}</td>
+                                    <td>{item.no_asset}</td>
+                                    <td>{item.nama_asset}</td>
+                                    <td>{item.cost_center}</td>
+                                    <td>{item.area}</td>
+                                    <td>{moment(item.tanggalDis).format('DD MMMM YYYY')}</td>
                                 </tr>
                             )
                         })}
@@ -206,7 +209,7 @@ class TableRincian extends Component {
 }
 
 const mapStateToProps = state => ({
-    pengadaan: state.pengadaan,
+    disposal: state.disposal,
     menu: state.menu,
     reason: state.reason,
     tempmail: state.tempmail

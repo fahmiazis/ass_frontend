@@ -9,7 +9,7 @@ import { Container, Collapse, Nav, Navbar,
 import logo from "../../assets/img/logo.png"
 import style from '../../assets/css/ofr.module.css'
 import {FaSearch, FaUserCircle, FaBars} from 'react-icons/fa'
-import {AiOutlineFileExcel, AiFillCheckCircle} from 'react-icons/ai'
+import {AiOutlineFileExcel, AiFillCheckCircle, AiOutlineInbox} from 'react-icons/ai'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
 import menu from '../../redux/actions/menu'
@@ -24,6 +24,8 @@ import Sidebar from "../../components/Header";
 import MaterialTitlePanel from "../../components/material_title_panel";
 import SidebarContent from "../../components/sidebar_content";
 import NavBar from '../../components/NavBar'
+import styleTrans from '../../assets/css/transaksi.module.css'
+import NewNavbar from '../../components/NewNavbar'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const menuSchema = Yup.object().shape({
@@ -83,6 +85,14 @@ class MasterMenu extends Component {
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+    }
+
+    prosesSidebar = (val) => {
+        this.setState({sidebarOpen: val})
+    }
+    
+    goRoute = (val) => {
+        this.props.history.push(`/${val}`)
     }
 
     openMenuName = () => {
@@ -377,7 +387,7 @@ class MasterMenu extends Component {
           };
         return (
             <>
-                <Sidebar {...sidebarProps}>
+                {/* <Sidebar {...sidebarProps}>
                     <MaterialTitlePanel title={contentHeader}>
                         <div className={style.backgroundLogo}>
                             <Alert color="danger" className={style.alertWrong} isOpen={alert}>
@@ -396,22 +406,6 @@ class MasterMenu extends Component {
                                 <div className={style.headMaster}>
                                     <div className={style.titleDashboard}>Master Menu</div>
                                 </div>
-                                {/* <div className={style.secHeadDashboard}>
-                                    <div>
-                                        <text>Show: </text>
-                                        <ButtonDropdown className={style.drop} isOpen={dropOpen} toggle={this.dropDown}>
-                                        <DropdownToggle caret color="light">
-                                            {this.state.limit}
-                                        </DropdownToggle>
-                                        <DropdownMenu>
-                                        <DropdownItem className={style.item} onClick={() => this.getDataMenu({limit: 10, search: ''})}>10</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataMenu({limit: 20, search: ''})}>20</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataMenu({limit: 50, search: ''})}>50</DropdownItem>
-                                        </DropdownMenu>
-                                        </ButtonDropdown>
-                                        <text className={style.textEntries}>entries</text>
-                                    </div>
-                                </div> */}
                                 <div className='secEmail'>
                                     <div className={style.headEmail}>
                                         <Button color="success" size="lg" onClick={() => this.openMenuName()}>Add</Button>
@@ -467,17 +461,69 @@ class MasterMenu extends Component {
                                 )}
                                 <div>
                                     <div className={style.infoPageEmail}>
-                                        {/* <text>Showing {page.currentPage} of {page.pages} pages</text>
+                                        <text>Showing {page.currentPage} of {page.pages} pages</text>
                                         <div className={style.pageButton}>
                                             <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
                                             <button className={style.btnPrev} color="info" disabled={page.nextLink === null ? true : false} onClick={this.next}>Next</button>
-                                        </div> */}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </MaterialTitlePanel>
-                </Sidebar>
+                </Sidebar> */}
+                <div className={styleTrans.app}>
+                    <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
+
+                    <div className={`${styleTrans.mainContent} ${this.state.sidebarOpen ? styleTrans.collapsedContent : ''}`}>
+                        <h2 className={styleTrans.pageTitle}>Master Menu</h2>
+
+                        <div className={styleTrans.searchContainer}>
+                            <div>
+                                <Button color="success" size="lg" onClick={() => this.openMenuName()}>Add</Button>
+                            </div>
+                            <div></div>
+                        </div>
+                        <table className={`${styleTrans.table} ${dataName.length > 0 ? styleTrans.tableFull : ''}`}>
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Nama Menu</th>
+                                    <th>Tipe</th>
+                                    <th>Opsi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {dataName.length !== 0 && dataName.map(item => {
+                                    return (
+                                    <tr>
+                                        <td scope="row">{(dataName.indexOf(item) + 1)}</td>
+                                        <td>{item.name}</td>
+                                        <td>{item.type}</td>
+                                        <td>
+                                            <Button color='primary' onClick={() => this.getDataDetailMenu(item)}>Detail</Button>
+                                        </td>
+                                    </tr>
+                                )})}
+                            </tbody>
+                        </table>
+                        {dataName.length === 0 && (
+                            <div className={style.spinCol}>
+                                <AiOutlineInbox size={50} className='mb-4' />
+                                <div className='textInfo'>Data menu tidak ditemukan</div>
+                            </div>
+                        )}
+                        <div>
+                            <div className={style.infoPageEmail1}>
+                                <text>Showing {page.currentPage} of {page.pages} pages</text>
+                                <div className={style.pageButton}>
+                                    <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
+                                    <button className={style.btnPrev} color="info" disabled={page.nextLink === null ? true : false} onClick={this.next}>Next</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <Modal toggle={this.openMenuName} isOpen={this.state.approveName} size="lg">
                     <ModalHeader toggle={this.openMenuName}>Add Master Menu</ModalHeader>
                     <Formik

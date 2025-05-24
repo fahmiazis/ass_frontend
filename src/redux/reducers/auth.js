@@ -8,7 +8,9 @@ const authState = {
     isError: false,
     alertMsg: '',
     level: 0,
-    isRoute: false
+    isRoute: false,
+    listUser: [],
+    dataToken: {}
 };
 
 export default (state=authState, action) => {
@@ -29,6 +31,8 @@ export default (state=authState, action) => {
                 localStorage.setItem('kode', action.payload.data.user.kode_plant)
                 localStorage.setItem('id', action.payload.data.user.id)
                 localStorage.setItem('role', action.payload.data.user.role)
+                localStorage.setItem('it', action.payload.data.user.status_it)
+                localStorage.setItem('dataUser', action.payload.data.user.dataUser.length)
                 return {
                     ...state,
                     level: action.payload.data.user.user_level,
@@ -36,6 +40,7 @@ export default (state=authState, action) => {
                     isError: false,
                     isLoading: false,
                     token: action.payload.data.Token,
+                    listUser: action.payload.data.user.dataUser,
                     alertMsg: 'Login Succesfully'
                 };
             }
@@ -48,16 +53,84 @@ export default (state=authState, action) => {
                     alertMsg: 'Login Failed'
                 };
             }
+            case 'CH_PLANT_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Login in ....'
+                };
+            }
+            case 'CH_PLANT_FULFILLED': {
+                localStorage.setItem('chplant', action.payload.data.result.kode_plant)
+                return {
+                    ...state,
+                    isLoading: false,
+                    alertMsg: 'Login Succesfully'
+                };
+            }
+            case 'CH_PLANT_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    alertMsg: 'Login Failed'
+                };
+            }
+            case 'GET_LOGIN_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Login in ....'
+                };
+            }
+            case 'GET_LOGIN_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    listUser: action.payload.data.result,
+                    alertMsg: 'Login Succesfully'
+                };
+            }
+            case 'GET_LOGIN_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    alertMsg: 'Login Failed'
+                };
+            }
+            case 'GET_TOKEN_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Login in ....'
+                };
+            }
+            case 'GET_TOKEN_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    dataToken: action.payload.data.result,
+                    alertMsg: 'Login Succesfully'
+                };
+            }
+            case 'GET_TOKEN_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    alertMsg: 'Login Failed'
+                };
+            }
             case 'SET_TOKEN': {
                 return {
                   ...state,
                   token: action.payload.token,
                   isLogin: true,
                 }
-              }
+            }
             case 'LOGOUT': {
                 localStorage.removeItem('token')
                 localStorage.removeItem('level')
+                localStorage.removeItem('chplant')
+                localStorage.removeItem('dataUser')
                 return {
                     state: undefined
                 }

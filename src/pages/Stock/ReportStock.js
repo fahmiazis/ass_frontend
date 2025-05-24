@@ -13,9 +13,9 @@ import auth from '../../redux/actions/auth'
 import depo from '../../redux/actions/depo'
 import {connect} from 'react-redux'
 import NavBar from '../../components/NavBar'
+import ReactHtmlToExcel from "react-html-table-to-excel"
 import styleTrans from '../../assets/css/transaksi.module.css'
 import NewNavbar from '../../components/NewNavbar'
-import ReactHtmlToExcel from "react-html-table-to-excel"
 import moment from 'moment'
 import ExcelJS from "exceljs"
 import fs from "file-saver"

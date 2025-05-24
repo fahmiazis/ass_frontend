@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Input, Button, UncontrolledDropdown, DropdownToggle,
     DropdownMenu, DropdownItem, Modal, ModalHeader, ModalBody } from 'reactstrap'
 import {FaBars, FaFileSignature, FaUserCircle} from 'react-icons/fa'
-import { FiLogOut } from 'react-icons/fi'
+import { FiLogOut, FiUser } from 'react-icons/fi'
 import auth from '../redux/actions/auth'
 import user from '../redux/actions/user'
 import {connect} from 'react-redux'
@@ -11,6 +11,11 @@ import * as Yup from 'yup'
 import newnotif from '../redux/actions/newnotif'
 import {VscAccount} from 'react-icons/vsc'
 import style from '../assets/css/input.module.css'
+import styleHome from '../assets/css/Home.module.css'
+import pengadaanIm from '../assets/img/io.png'
+import disposalIm from '../assets/img/dis.png'
+import mutasiIm from '../assets/img/mutasis.png'
+import opnameIm from '../assets/img/opname.png'
 
 const changeSchema = Yup.object().shape({
     current_password: Yup.string().required('must be filled'),
@@ -25,7 +30,8 @@ class Account extends Component {
         relog: false,
         alert: false,
         setting: false,
-        modalConfirm: false
+        modalConfirm: false,
+        modalChange: false
     }
 
     editUser = async (val) => {
@@ -53,14 +59,68 @@ class Account extends Component {
         this.getData()
     }
 
+    prosesOpenChange = async (val) => {
+        const token = localStorage.getItem("token")
+        const id = localStorage.getItem("id")
+        await this.props.getLogin(token, id)
+        this.openChange()
+    }
+
+    openChange = () => {
+        this.setState({modalChange: !this.state.modalChange})
+    }
+
+    goPage = (val) => {
+        this.props.handleRoute(val)
+    }
+
+    changeUser = async (val) => {
+        const token = localStorage.getItem("token")
+        await this.props.getToken(token, val.id)
+        const {dataToken} = this.props.auth
+        console.log(dataToken)
+        console.log(val)
+        const chPlant = (val.kode_plant === undefined || val.kode_plant === null || val.kode_plant === '') ? val.username : val.kode_plant
+        await this.props.getAllNewNotif(dataToken.Token)
+        localStorage.setItem('token', dataToken.Token)
+        localStorage.setItem('chplant', chPlant)
+        localStorage.setItem('kode', val.kode_plant)
+        localStorage.setItem('id', val.id)
+        localStorage.setItem('name', val.username)
+        localStorage.setItem('fullname', val.fullname)
+        localStorage.setItem('it', val.status_it)
+        localStorage.setItem('level', val.user_level)
+        localStorage.setItem('role', val.role.name)
+        this.goPage('')
+        this.setState({modalChange: false})
+    }
+
     getData = async () => {
         const token = localStorage.getItem("token")
         await this.props.getAllNewNotif(token)
+        this.cekUser()
+    }
+
+    cekUser = async () => {
+        const { listUser } = this.props.auth
+        const cekUser = parseInt(localStorage.getItem('dataUser'))
+        const getPlant = localStorage.getItem('chplant')
+        const level = localStorage.getItem('level')
+        const cekPlant = getPlant === undefined || getPlant === null || getPlant === ''
+        console.log(cekUser)
+        console.log(listUser)
+        if (cekUser > 1 && cekPlant) {
+            this.prosesOpenChange()
+        }
     }
 
   render() {
     const level = localStorage.getItem('level')
-    const names = localStorage.getItem('name')
+    const names = localStorage.getItem('fullname')
+    const { listUser } = this.props.auth
+    const cekUser = parseInt(localStorage.getItem('dataUser'))
+    const getPlant = localStorage.getItem('chplant')
+    const cekPlant = getPlant === undefined || getPlant === null || getPlant === ''
     const color = this.props.color
     return (
         <>
@@ -81,6 +141,12 @@ class Account extends Component {
                     </text>
                 </DropdownToggle>
                 <DropdownMenu right>
+                    {/* {(level === '5' || level === '9') && listUser.length > 1 && ( */}
+                    {cekUser > 1 && (
+                        <DropdownItem onClick={this.prosesOpenChange}>
+                            Change User
+                        </DropdownItem>
+                    )}
                     <DropdownItem onClick={this.openModalEdit}>
                         Change Password
                     </DropdownItem>
@@ -182,6 +248,31 @@ class Account extends Component {
                 </div>
             </ModalBody>
         </Modal>
+        <Modal isOpen={this.state.modalChange} size='xl' toggle={!cekPlant && this.openChange}>
+            <ModalBody>
+            <div className={styleHome.mainContent}>
+                    <main className={styleHome.mainSection}>
+                    <h1 className={styleHome.title}>Please select your user</h1>
+                    <h4 className={styleHome.subtitle}></h4>
+
+                    <div className={`${styleHome.assetContainer} row`}>
+                        {listUser.length > 0 && listUser.map(item => {
+                            return (
+                                <div 
+                                onClick={() => this.changeUser(item)} 
+                                className="col-12 col-md-6 col-lg-3 mb-4">
+                                    <div className={styleHome.assetCard1}>
+                                        <FiUser size={150} className='mt-4 mb-4' />
+                                        <p className='mt-2 mb-4 sizeCh'>{item.username}</p>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                    </main>
+                </div>
+            </ModalBody>
+        </Modal>
     </>
     )
   }
@@ -200,6 +291,9 @@ const mapDispatchToProps = {
     getAllNewNotif: newnotif.getAllNewNotif,
     changePassword: user.changePassword,
     goRoute: auth.goRoute,
+    choosePlant: auth.choosePlant,
+    getLogin: auth.getLogin,
+    getToken: auth.getToken
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Account)

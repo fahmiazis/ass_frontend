@@ -24,7 +24,8 @@ const assetState = {
     isGetAll: false,
     detailAsset: {},
     getDetail: false,
-    isUpdateNew: false
+    isUpdateNew: false,
+    isSync: null
 };
 
 export default (state=assetState, action) => {
@@ -292,6 +293,29 @@ export default (state=assetState, action) => {
                     alertMsg: "Unable connect to server"
                 };
             }
+            case 'SYNC_ASSET_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'SYNC_ASSET_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isSync: true,
+                    alertMsg: 'get detail faktur Succesfully',
+                };
+            }
+            case 'SYNC_ASSET_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isSync: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
             case 'RESET_ASSET': {
                 return {
                     ...state,
@@ -300,7 +324,8 @@ export default (state=assetState, action) => {
                     isGet: false,
                     isExport: false,
                     isUpdate: false,
-                    isUpdateNew: false
+                    isUpdateNew: false,
+                    isSync: null
                 }
             }
             case 'RESET_DATA': {

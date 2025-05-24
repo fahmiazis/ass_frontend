@@ -1,32 +1,34 @@
 /* eslint-disable jsx-a11y/no-distracting-elements */
 /* eslint-disable jsx-a11y/alt-text */
 import React, { Component } from 'react'
-import { Container, NavbarBrand, Table, Input, Button, Col,
+import {
+    Container, NavbarBrand, Table, Input, Button, Col,
     Alert, Spinner, Row, Modal, ModalBody, ModalHeader, ModalFooter, Collapse,
-    UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem, Card, CardBody} from 'reactstrap'
+    UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem, Card, CardBody
+} from 'reactstrap'
 import style from '../../assets/css/input.module.css'
-import {FaSearch, FaUserCircle, FaBars, FaCartPlus, FaFileSignature, FaTh, FaList} from 'react-icons/fa'
-import {BsCircle, BsBell, BsFillCircleFill} from 'react-icons/bs'
-import { AiOutlineCheck, AiOutlineClose, AiFillCheckCircle, AiOutlineInbox} from 'react-icons/ai'
-import {MdAssignment} from 'react-icons/md'
-import {FiSend, FiTruck, FiSettings, FiUpload} from 'react-icons/fi'
-import {Formik} from 'formik'
+import { FaSearch, FaUserCircle, FaBars, FaCartPlus, FaFileSignature, FaTh, FaList } from 'react-icons/fa'
+import { BsCircle, BsBell, BsFillCircleFill } from 'react-icons/bs'
+import { AiOutlineCheck, AiOutlineClose, AiFillCheckCircle, AiOutlineInbox } from 'react-icons/ai'
+import { MdAssignment } from 'react-icons/md'
+import { FiSend, FiTruck, FiSettings, FiUpload } from 'react-icons/fi'
+import { Formik } from 'formik'
 import * as Yup from 'yup'
 import Pdf from "../../components/Pdf"
-import {Form} from 'react-bootstrap'
+import { Form } from 'react-bootstrap'
 import logo from '../../assets/img/logo.png'
-import {connect} from 'react-redux'
+import { connect } from 'react-redux'
 import pengadaan from '../../redux/actions/pengadaan'
 import dokumen from '../../redux/actions/dokumen'
 import tempmail from '../../redux/actions/tempmail'
 import OtpInput from "react-otp-input";
 import moment from 'moment'
 import auth from '../../redux/actions/auth'
-import {default as axios} from 'axios'
+import { default as axios } from 'axios'
 import Sidebar from "../../components/Header"
 import MaterialTitlePanel from "../../components/material_title_panel"
 import SidebarContent from "../../components/sidebar_content"
-import placeholder from  "../../assets/img/placeholder.png"
+import placeholder from "../../assets/img/placeholder.png"
 import TablePeng from '../../components/TablePeng'
 import notif from '../../redux/actions/notif'
 import newnotif from '../../redux/actions/newnotif'
@@ -38,7 +40,8 @@ import NewNavbar from '../../components/NewNavbar'
 import Email from '../../components/Pengadaan/Email'
 import ExcelJS from "exceljs"
 import fs from "file-saver"
-const {REACT_APP_BACKEND_URL} = process.env
+import terbilang from '@develoka/angka-terbilang-js'
+const { REACT_APP_BACKEND_URL } = process.env
 
 const disposalSchema = Yup.object().shape({
     merk: Yup.string().validateSync(""),
@@ -126,7 +129,7 @@ class Pengadaan extends Component {
             url: '',
             valdoc: {},
             detailTrack: [],
-            collap: false, 
+            collap: false,
             tipeCol: '',
             time: 'pilih',
             time1: moment().subtract(1, 'month').startOf('month').format('YYYY-MM-DD'),
@@ -152,7 +155,7 @@ class Pengadaan extends Component {
     }
 
     openHistory = () => {
-        this.setState({history: !this.state.history})
+        this.setState({ history: !this.state.history })
     }
 
     getMessage = (val) => {
@@ -162,24 +165,24 @@ class Pengadaan extends Component {
 
 
     rejectApp = (val) => {
-        this.setState({typeReject: val})
+        this.setState({ typeReject: val })
     }
 
     rejectRej = (val) => {
-        const {typeReject} = this.state
+        const { typeReject } = this.state
         if (typeReject === val) {
-            this.setState({typeReject: ''})
+            this.setState({ typeReject: '' })
         }
     }
 
     menuApp = (val) => {
-        this.setState({menuRev: val})
+        this.setState({ menuRev: val })
     }
 
     menuRej = (val) => {
-        const {menuRev} = this.state
+        const { menuRev } = this.state
         if (menuRev === val) {
-            this.setState({menuRev: ''})
+            this.setState({ menuRev: '' })
         }
     }
 
@@ -191,7 +194,7 @@ class Pengadaan extends Component {
     statusApp = (val) => {
         const { listStat } = this.state
         listStat.push(val)
-        this.setState({listStat: listStat})
+        this.setState({ listStat: listStat })
     }
 
     statusRej = (val) => {
@@ -204,19 +207,19 @@ class Pengadaan extends Component {
                 data.push(listStat[i])
             }
         }
-        this.setState({listStat: data})
+        this.setState({ listStat: data })
     }
 
     openModalRinci = () => {
-        this.setState({modalRinci: !this.state.modalRinci})
+        this.setState({ modalRinci: !this.state.modalRinci })
     }
 
     openRinciAdmin = () => {
-        this.setState({rinciAdmin: !this.state.rinciAdmin})
+        this.setState({ rinciAdmin: !this.state.rinciAdmin })
     }
 
     openPreview = () => {
-        this.setState({preview: !this.state.preview})
+        this.setState({ preview: !this.state.preview })
     }
 
     openModPreview = async (val) => {
@@ -226,18 +229,18 @@ class Pengadaan extends Component {
     }
 
     onChange = value => {
-        this.setState({value: value})
+        this.setState({ value: value })
     }
 
     updateNomorIo = async (val) => {
-        const {value} = this.state
+        const { value } = this.state
         const token = localStorage.getItem('token')
         const data = {
             no_io: value
         }
         await this.props.updateNoIo(token, val, data)
         await this.props.getDetail(token, val)
-        this.setState({confirm: 'isupdate'})
+        this.setState({ confirm: 'isupdate' })
         this.openConfirm()
     }
 
@@ -247,18 +250,18 @@ class Pengadaan extends Component {
         const cek = []
         for (let i = 0; i < detailIo.length; i++) {
             if (detailIo[i].no_io === null || detailIo[i].no_io === '') {
-                cek.push(detailIo[i])  
+                cek.push(detailIo[i])
             }
         }
         if (cek.length > 0) {
-            this.setState({confirm: 'rejSubmit'})
+            this.setState({ confirm: 'rejSubmit' })
             this.openConfirm()
         } else {
             this.prosesSendEmail('budget')
             await this.props.submitBudget(token, detailIo[0].no_pengadaan)
             this.prosesModalIo()
             this.getDataAsset()
-            this.setState({confirm: 'submit'})
+            this.setState({ confirm: 'submit' })
             this.openConfirm()
             this.openModalSubmit()
             this.openDraftEmail()
@@ -270,7 +273,7 @@ class Pengadaan extends Component {
     }
 
     closeProsesModalDoc = () => {
-        this.setState({openModalDoc: !this.state.openModalDoc})
+        this.setState({ openModalDoc: !this.state.openModalDoc })
     }
 
     updateIo = async (val) => {
@@ -283,20 +286,20 @@ class Pengadaan extends Component {
     }
 
     openModalApproveIo = () => {
-        this.setState({openApproveIo: !this.state.openApproveIo})
+        this.setState({ openApproveIo: !this.state.openApproveIo })
     }
 
     openModalSubmit = () => {
-        this.setState({openSubmit: !this.state.openSubmit})
+        this.setState({ openSubmit: !this.state.openSubmit })
     }
 
     cekProsesApprove = async (val) => {
         const token = localStorage.getItem('token')
         const level = localStorage.getItem('level')
-        const {detailIo} = this.props.pengadaan
-        
+        const { detailIo } = this.props.pengadaan
+
         if ((level === '5' || level === '9') && (detailIo[0].alasan === '' || detailIo[0].alasan === null || detailIo[0].alasan === '-')) {
-            this.setState({confirm: 'recent'})
+            this.setState({ confirm: 'recent' })
             this.openConfirm()
         } else if (level !== '5' && level !== '9') {
             if (detailIo[0].asset_token === null) {
@@ -304,7 +307,7 @@ class Pengadaan extends Component {
                 const arrDoc = []
                 for (let i = 0; i < detailIo.length; i++) {
                     await this.props.getDocCart(token, detailIo[i].id)
-                    const {dataDocCart} = this.props.pengadaan
+                    const { dataDocCart } = this.props.pengadaan
                     for (let j = 0; j < dataDocCart.length; j++) {
                         if (dataDocCart[j].path !== null) {
                             const arr = dataDocCart[j]
@@ -327,11 +330,11 @@ class Pengadaan extends Component {
                         this.openModalApproveIo()
                     }
                 } else {
-                    this.setState({confirm: 'falseAppDok'})
+                    this.setState({ confirm: 'falseAppDok' })
                     this.openConfirm()
                 }
             } else {
-                const {dataDoc} = this.props.pengadaan
+                const { dataDoc } = this.props.pengadaan
                 const tempdoc = []
                 const arrDoc = []
                 for (let j = 0; j < dataDoc.length; j++) {
@@ -355,7 +358,7 @@ class Pengadaan extends Component {
                         this.openModalApproveIo()
                     }
                 } else {
-                    this.setState({confirm: 'falseAppDok'})
+                    this.setState({ confirm: 'falseAppDok' })
                     this.openConfirm()
                 }
             }
@@ -365,33 +368,33 @@ class Pengadaan extends Component {
     }
 
     openModalRejectDis = () => {
-        this.setState({openRejectDis: !this.state.openRejectDis})
+        this.setState({ openRejectDis: !this.state.openRejectDis })
     }
 
     openModalReject = () => {
         const level = localStorage.getItem('level')
-        const {detailIo} = this.props.pengadaan
+        const { detailIo } = this.props.pengadaan
         if ((level === '5' || level === '9') && (detailIo[0].alasan === '' || detailIo[0].alasan === null || detailIo[0].alasan === '-')) {
-            this.setState({confirm: 'recent'})
+            this.setState({ confirm: 'recent' })
             this.openConfirm()
         } else {
-            this.setState({listStat: [], openReject: !this.state.openReject})
+            this.setState({ listStat: [], openReject: !this.state.openReject })
         }
     }
 
     openModalApprove = () => {
-        this.setState({openApprove: !this.state.openApprove})
+        this.setState({ openApprove: !this.state.openApprove })
     }
 
     modalSubmitPre = () => {
-        this.setState({submitPre: !this.state.submitPre})
+        this.setState({ submitPre: !this.state.submitPre })
     }
 
     prosesModalDoc = async (val) => {
         const data = this.props.pengadaan.detailIo
         const token = localStorage.getItem('token')
-        this.setState({valdoc: val})
-        
+        this.setState({ valdoc: val })
+
         if (val.asset_token === null || val.asset_token === '') {
             const tempno = {
                 no: val.id,
@@ -399,7 +402,7 @@ class Pengadaan extends Component {
             }
             await this.props.getDokumen(token, tempno)
             await this.props.getDocCart(token, val.id)
-            this.setState({noDoc: val.id, noTrans: data[0].no_pengadaan})
+            this.setState({ noDoc: val.id, noTrans: data[0].no_pengadaan })
             this.closeProsesModalDoc()
         } else {
             const tempno = {
@@ -408,7 +411,7 @@ class Pengadaan extends Component {
             }
             await this.props.getDokumen(token, tempno)
             await this.props.getDocumentIo(token, data[0].no_pengadaan)
-            this.setState({noDoc: data[0].no_pengadaan, noTrans: data[0].no_pengadaan})
+            this.setState({ noDoc: data[0].no_pengadaan, noTrans: data[0].no_pengadaan })
             this.closeProsesModalDoc()
         }
     }
@@ -424,25 +427,25 @@ class Pengadaan extends Component {
     }
 
     approveDokumen = async () => {
-        const {fileName} = this.state
+        const { fileName } = this.state
         const token = localStorage.getItem('token')
         await this.props.approveDocument(token, fileName.id)
-        this.setState({openApprove: !this.state.openApprove})
-        this.setState({openPdf: false, openBid: false})
+        this.setState({ openApprove: !this.state.openApprove })
+        this.setState({ openPdf: false, openBid: false })
     }
 
     rejectDokumen = async (value) => {
-        const {fileName} = this.state
+        const { fileName } = this.state
         const token = localStorage.getItem('token')
-        this.setState({openRejectDis: !this.state.openRejectDis})
+        this.setState({ openRejectDis: !this.state.openRejectDis })
         await this.props.rejectDocument(token, fileName.id, value)
-        this.setState({openPdf: false, openBid: false})
+        this.setState({ openPdf: false, openBid: false })
     }
 
     rejectIo = async (value) => {
         const { detailIo } = this.props.pengadaan
         const level = localStorage.getItem('level')
-        const {listStat, listMut, typeReject, menuRev} = this.state
+        const { listStat, listMut, typeReject, menuRev } = this.state
         const token = localStorage.getItem('token')
         let temp = ''
         for (let i = 0; i < listStat.length; i++) {
@@ -460,7 +463,7 @@ class Pengadaan extends Component {
         this.prosesSendEmail(`reject ${typeReject}`)
         this.prosesModalIo()
         this.getDataAsset()
-        this.setState({confirm: 'reject'})
+        this.setState({ confirm: 'reject' })
         this.openConfirm()
         this.openModalReject()
         this.openDraftEmail()
@@ -471,18 +474,18 @@ class Pengadaan extends Component {
         const token = localStorage.getItem('token')
         const { detailIo } = this.props.pengadaan
         const app = detailIo[0].appForm
-            const tempApp = []
-            app.map(item => {
-                return (
-                    item.status === 1 && tempApp.push(item)
-                )
-            })
-        const tipe = tempApp.length === app.length-1 ? 'full approve' : 'approve'
+        const tempApp = []
+        app.map(item => {
+            return (
+                item.status === 1 && tempApp.push(item)
+            )
+        })
+        const tipe = tempApp.length === app.length - 1 ? 'full approve' : 'approve'
         this.prosesSendEmail(tipe)
         await this.props.approveIo(token, detailIo[0].no_pengadaan)
         this.prosesModalIo()
         this.getDataAsset()
-        this.setState({confirm: 'approve'})
+        this.setState({ confirm: 'approve' })
         this.openConfirm()
         this.openModalApproveIo()
         this.openDraftEmail()
@@ -496,28 +499,28 @@ class Pengadaan extends Component {
         const { detailIo } = this.props.pengadaan
         for (let i = 0; i < detailIo.length; i++) {
             if (detailIo[i].isAsset !== 'true' && detailIo[i].isAsset !== 'false') {
-                cek.push(detailIo[i])  
+                cek.push(detailIo[i])
             } else if (detailIo[i].isAsset === 'false') {
                 dataFalse.push(detailIo[i])
             } else if (detailIo[i].asset_token === null) {
                 await this.props.getDocCart(token, detailIo[i].id)
-                const {dataDocCart} = this.props.pengadaan
-                if (dataDocCart.find(({status}) => status === null) || dataDocCart.find(({status}) => status === 0)) {
+                const { dataDocCart } = this.props.pengadaan
+                if (dataDocCart.find(({ status }) => status === null) || dataDocCart.find(({ status }) => status === 0)) {
                     cekDok.push(dataDocCart)
                 }
             } else if (detailIo[i].asset_token !== null) {
                 await this.props.getDocumentIo(token, detailIo[i].no_pengadaan)
-                const {dataDoc} = this.props.pengadaan
-                if (dataDoc.find(({status}) => status === null) || dataDoc.find(({status}) => status === 0)) {
+                const { dataDoc } = this.props.pengadaan
+                if (dataDoc.find(({ status }) => status === null) || dataDoc.find(({ status }) => status === 0)) {
                     cekDok.push(dataDoc)
                 }
             }
         }
         if (cek.length > 0) {
-            this.setState({confirm: 'falseSubmit'})
+            this.setState({ confirm: 'falseSubmit' })
             this.openConfirm()
         } else if (cekDok.length > 0) {
-            this.setState({confirm: 'falseSubmitDok'})
+            this.setState({ confirm: 'falseSubmitDok' })
             this.openConfirm()
         } else {
             if (dataFalse.length === detailIo.length) {
@@ -526,7 +529,7 @@ class Pengadaan extends Component {
                 await this.props.podsSend(token, val)
                 this.getDataAsset()
                 this.prosesModalIo()
-                this.setState({confirm: 'submitnot'})
+                this.setState({ confirm: 'submitnot' })
                 this.openConfirm()
                 this.openModalSubmit()
                 this.openDraftEmail()
@@ -535,7 +538,7 @@ class Pengadaan extends Component {
                 await this.props.submitIsAsset(token, val)
                 this.getDataAsset()
                 this.prosesModalIo()
-                this.setState({confirm: 'submit'})
+                this.setState({ confirm: 'submit' })
                 this.openConfirm()
                 this.openModalSubmit()
                 this.openDraftEmail()
@@ -571,9 +574,9 @@ class Pengadaan extends Component {
     }
 
     prepSendEmail = async (val) => {
-        const {detailIo} = this.props.pengadaan
+        const { detailIo } = this.props.pengadaan
         const token = localStorage.getItem("token")
-         const level = localStorage.getItem('level')
+        const level = localStorage.getItem('level')
         if (val === 'asset' || val === 'budget') {
             const menu = val === 'asset' ? 'Verifikasi asset (Pengadaan asset)' : 'Verifikasi Budget (Pengadaan asset)'
             const tipe = 'submit'
@@ -584,7 +587,7 @@ class Pengadaan extends Component {
                 tipe: tipe,
                 menu: menu
             }
-            this.setState({tipeEmail: val})
+            this.setState({ tipeEmail: val })
             await this.props.getDetail(token, detailIo[0].no_pengadaan)
             await this.props.getDraftEmail(token, tempno)
             this.openDraftEmail()
@@ -592,11 +595,11 @@ class Pengadaan extends Component {
             const app = detailIo[0].appForm
             const tempApp = []
             for (let i = 0; i < app.length; i++) {
-                if (app[i].status === 1){
+                if (app[i].status === 1) {
                     tempApp.push(app[i])
                 }
             }
-            const tipe = tempApp.length === app.length-1 ? 'full approve' : 'approve'
+            const tipe = tempApp.length === app.length - 1 ? 'full approve' : 'approve'
             const menu = 'Pengajuan Pengadaan Asset (Pengadaan asset)'
             const tempno = {
                 no: detailIo[0].no_pengadaan,
@@ -605,7 +608,7 @@ class Pengadaan extends Component {
                 tipe: tipe,
                 menu: menu
             }
-            this.setState({tipeEmail: val})
+            this.setState({ tipeEmail: val })
             // await this.props.getDetail(token, detailIo[0].no_pengadaan)
             await this.props.getDraftEmail(token, tempno)
             this.openDraftEmail()
@@ -613,12 +616,12 @@ class Pengadaan extends Component {
     }
 
     prepReject = async (val) => {
-        const {detailIo} = this.props.pengadaan
-        const {listStat, listMut, typeReject, menuRev} = this.state
+        const { detailIo } = this.props.pengadaan
+        const { listStat, listMut, typeReject, menuRev } = this.state
         const token = localStorage.getItem("token")
         const level = localStorage.getItem('level')
         if (typeReject === 'pembatalan' && listMut.length !== detailIo.length) {
-            this.setState({confirm: 'falseCancel'})
+            this.setState({ confirm: 'falseCancel' })
             this.openConfirm()
         } else {
             const tipe = 'reject'
@@ -631,19 +634,19 @@ class Pengadaan extends Component {
                 typeReject: typeReject,
                 menu: menu
             }
-            this.setState({tipeEmail: 'reject', dataRej: val})
+            this.setState({ tipeEmail: 'reject', dataRej: val })
             await this.props.getDraftEmail(token, tempno)
             this.openDraftEmail()
         }
-        
+
     }
 
     openDraftEmail = () => {
-        this.setState({openDraft: !this.state.openDraft}) 
+        this.setState({ openDraft: !this.state.openDraft })
     }
 
     changeView = (val) => {
-        this.setState({view: val})
+        this.setState({ view: val })
         if (val === 'list') {
             // this.getDataList()
         } else {
@@ -668,32 +671,19 @@ class Pengadaan extends Component {
             // }
         }
         setTimeout(() => {
-            this.setState({total: num, value: data[0].no_io})
+            this.setState({ total: num, value: data[0].no_io })
             this.prosesModalIo()
-         }, 100)
-    }
-
-    rejectDisposal = async (value) => {
-        const token = localStorage.getItem('token')
-        const data = {
-            alasan: value.value.alasan
-        }
-        if (value.value.jenis_reject === 'batal') {
-            this.openModalDis()
-        } 
-        await this.props.rejectDisposal(token, value.no, data, value.value.jenis_reject)
-        this.openModalReject()
-        this.getDataDisposal()
+        }, 100)
     }
 
     showAlert = () => {
-        this.setState({alert: true, modalEdit: false, modalAdd: false, modalUpload: false })
-       
-         setTimeout(() => {
+        this.setState({ alert: true, modalEdit: false, modalAdd: false, modalUpload: false })
+
+        setTimeout(() => {
             this.setState({
                 alert: false
             })
-         }, 10000)
+        }, 10000)
     }
 
     next = async () => {
@@ -709,18 +699,18 @@ class Pengadaan extends Component {
     }
 
     uploadAlert = () => {
-        this.setState({upload: true, modalUpload: false })
-       
-         setTimeout(() => {
+        this.setState({ upload: true, modalUpload: false })
+
+        setTimeout(() => {
             this.setState({
                 upload: false
             })
-         }, 10000)
+        }, 10000)
     }
 
     prosesModalIo = () => {
-        this.setState({openModalIo: !this.state.openModalIo, listMut: []})
-        
+        this.setState({ openModalIo: !this.state.openModalIo, listMut: [] })
+
     }
 
     getDetailDisposal = async (value) => {
@@ -731,29 +721,29 @@ class Pengadaan extends Component {
                 detail.push(dataDis[i])
             }
         }
-        this.setState({detailDis: detail})
+        this.setState({ detailDis: detail })
         this.openModalDis()
     }
 
     toggle = () => {
-        this.setState({isOpen: !this.state.isOpen})
+        this.setState({ isOpen: !this.state.isOpen })
     }
 
     updateAlasan = async (val) => {
         const token = localStorage.getItem('token')
-        const {detailIo} = this.props.pengadaan
+        const { detailIo } = this.props.pengadaan
         await this.props.updateReason(token, detailIo[0].no_pengadaan, val)
         await this.props.getDetail(token, detailIo[0].no_pengadaan)
-        this.setState({confirm: 'upreason'})
+        this.setState({ confirm: 'upreason' })
         this.openConfirm()
     }
 
     openConfirm = () => {
-        this.setState({modalConfirm: !this.state.modalConfirm})
+        this.setState({ modalConfirm: !this.state.modalConfirm })
     }
 
     openModalDis = () => {
-        this.setState({formDis: !this.state.formDis})
+        this.setState({ formDis: !this.state.formDis })
     }
 
     DownloadTemplate = () => {
@@ -772,40 +762,40 @@ class Pengadaan extends Component {
     }
 
     dropDown = () => {
-        this.setState({dropOpen: !this.state.dropOpen})
+        this.setState({ dropOpen: !this.state.dropOpen })
     }
     dropApp = () => {
-        this.setState({dropApp: !this.state.dropApp})
+        this.setState({ dropApp: !this.state.dropApp })
     }
     dropOpen = () => {
-        this.setState({dropOpenNum: !this.state.dropOpenNum})
+        this.setState({ dropOpenNum: !this.state.dropOpenNum })
     }
     onSetSidebarOpen = () => {
         this.setState({ sidebarOpen: !this.state.sidebarOpen });
     }
     openModalAdd = () => {
-        this.setState({modalAdd: !this.state.modalAdd})
+        this.setState({ modalAdd: !this.state.modalAdd })
     }
     openModalEdit = () => {
-        this.setState({modalEdit: !this.state.modalEdit})
+        this.setState({ modalEdit: !this.state.modalEdit })
     }
     openModalUpload = () => {
-        this.setState({modalUpload: !this.state.modalUpload})
+        this.setState({ modalUpload: !this.state.modalUpload })
     }
     openModalDownload = () => {
-        this.setState({modalUpload: !this.state.modalUpload})
+        this.setState({ modalUpload: !this.state.modalUpload })
     }
 
     openModalPdf = () => {
-        this.setState({openPdf: !this.state.openPdf})
+        this.setState({ openPdf: !this.state.openPdf })
     }
 
     addDokumen = async (values) => {
         const token = localStorage.getItem("token")
         await this.props.addDokumen(token, values)
-        const {isAdd} = this.props.asset
+        const { isAdd } = this.props.asset
         if (isAdd) {
-            this.setState({confirm: 'add'})
+            this.setState({ confirm: 'add' })
             this.openConfirm()
             this.openModalAdd()
             setTimeout(() => {
@@ -816,10 +806,10 @@ class Pengadaan extends Component {
 
     showDokumen = async (value) => {
         const token = localStorage.getItem('token')
-        this.setState({date: value.updatedAt, idDoc: value.id, fileName: value})
+        this.setState({ date: value.updatedAt, idDoc: value.id, fileName: value })
         const data = this.props.pengadaan.detailIo
         await this.props.showDokumen(token, value.id, value.no_pengadaan)
-        const {isShow} = this.props.pengadaan
+        const { isShow } = this.props.pengadaan
         if (isShow) {
             this.prosesDoc(data)
             this.openModalPdf()
@@ -827,12 +817,12 @@ class Pengadaan extends Component {
     }
 
     showDokPods = async (val) => {
-        this.setState({date: val.updatedAt, idDoc: val.id, fileName: val})
+        this.setState({ date: val.updatedAt, idDoc: val.id, fileName: val })
         const data = this.props.pengadaan.detailIo
         const url = val.path
         const cekBidding = url.search('bidding')
         if (cekBidding !== -1) {
-            this.setState({dataBid: url})
+            this.setState({ dataBid: url })
             this.openModalBidding()
         } else {
             window.open(url, '_blank')
@@ -842,7 +832,7 @@ class Pengadaan extends Component {
     }
 
     openModalBidding = () => {
-        this.setState({openBid: !this.state.openBid})
+        this.setState({ openBid: !this.state.openBid })
     }
 
     downloadData = () => {
@@ -896,20 +886,20 @@ class Pengadaan extends Component {
 
 
     onChangeHandler = e => {
-        const {size, type} = e.target.files[0]
+        const { size, type } = e.target.files[0]
         if (size >= 5120000) {
-            this.setState({errMsg: "Maximum upload size 5 MB"})
+            this.setState({ errMsg: "Maximum upload size 5 MB" })
             this.uploadAlert()
-        } else if (type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && type !== 'application/vnd.ms-excel' ){
-            this.setState({errMsg: 'Invalid file type. Only excel files are allowed.'})
+        } else if (type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && type !== 'application/vnd.ms-excel') {
+            this.setState({ errMsg: 'Invalid file type. Only excel files are allowed.' })
             this.uploadAlert()
         } else {
-            this.setState({fileUpload: e.target.files[0]})
+            this.setState({ fileUpload: e.target.files[0] })
         }
     }
 
     approveAll = async () => {
-        const {newIo, listMut} = this.state
+        const { newIo, listMut } = this.state
         const token = localStorage.getItem('token')
         const data = []
         for (let i = 0; i < newIo.length; i++) {
@@ -928,62 +918,64 @@ class Pengadaan extends Component {
         const dataDownload = dataTemp
 
         if (dataDownload.length === 0) {
-            this.setState({confirm: 'rejDownload'})
+            this.setState({ confirm: 'rejDownload' })
             this.openConfirm()
         } else {
-    
+
             const workbook = new ExcelJS.Workbook();
             const ws = workbook.addWorksheet('data')
-    
+
             // await ws.protect('F1n4NcePm4')
-    
+
             const borderStyles = {
-                top: {style:'thin'},
-                left: {style:'thin'},
-                bottom: {style:'thin'},
-                right: {style:'thin'}
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' }
             }
-            
-    
+
+
             ws.columns = [
-                {header: 'NO', key: 'c2'},
-                {header: 'No Pengadaan', key: 'c3'},
-                {header: 'Description', key: 'c4'},
-                {header: 'Price/unit', key: 'c5'},
-                {header: 'Total Amount', key: 'c6'},
-                {header: 'No Asset', key: 'c7'},
-                {header: 'ID Asset', key: 'c8'}
+                { header: 'NO', key: 'c2' },
+                { header: 'No Pengadaan', key: 'c3' },
+                { header: 'Description', key: 'c4' },
+                { header: 'Price/unit', key: 'c5' },
+                { header: 'Total Amount', key: 'c6' },
+                { header: 'No Asset', key: 'c7' },
+                { header: 'ID Asset', key: 'c8' }
             ]
-    
-            dataDownload.map((item, index) => { return ( ws.addRow(
-                {
-                    c2: index + 1,
-                    c3: item.no_pengadaan,
-                    c4: item.nama,
-                    c5: `Rp ${item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`,
-                    c6: `Rp ${(parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`,
-                    c7: item.no_asset,
-                    c8: item.id
-                }
-            )
-            ) })
-    
-            ws.eachRow({ includeEmpty: true }, function(row, rowNumber) {
-                row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
-                  cell.border = borderStyles;
+
+            dataDownload.map((item, index) => {
+                return (ws.addRow(
+                    {
+                        c2: index + 1,
+                        c3: item.no_pengadaan,
+                        c4: item.nama,
+                        c5: `Rp ${item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`,
+                        c6: `Rp ${(parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`,
+                        c7: item.no_asset,
+                        c8: item.id
+                    }
+                )
+                )
+            })
+
+            ws.eachRow({ includeEmpty: true }, function (row, rowNumber) {
+                row.eachCell({ includeEmpty: true }, function (cell, colNumber) {
+                    cell.border = borderStyles;
                 })
-              })
-    
-              ws.columns.forEach(column => {
+            })
+
+            ws.columns.forEach(column => {
                 const lengths = column.values.map(v => v.toString().length)
                 const maxLength = Math.max(...lengths.filter(v => typeof v === 'number'))
                 column.width = maxLength + 5
             })
-    
-            workbook.xlsx.writeBuffer().then(function(buffer) {
+
+            workbook.xlsx.writeBuffer().then(function (buffer) {
                 fs.saveAs(
-                  new Blob([buffer], { type: "application/octet-stream" }),
-                  `Filling No Aset ${dataDownload[0].no_pengadaan} ${moment().format('DD MMMM YYYY')}.xlsx`
+                    new Blob([buffer], { type: "application/octet-stream" }),
+                    `Filling No Aset ${dataDownload[0].no_pengadaan} ${moment().format('DD MMMM YYYY')}.xlsx`
                 )
             })
         }
@@ -1002,29 +994,29 @@ class Pengadaan extends Component {
             num += temp
             detail.push(data[i])
         }
-        this.setState({total: num, value: data[0].no_io})
-        this.setState({detailTrack: detail})
+        this.setState({ total: num, value: data[0].no_io })
+        this.setState({ detailTrack: detail })
         this.openModalTrack()
     }
 
     openModalTrack = () => {
-        this.setState({formTrack: !this.state.formTrack})
+        this.setState({ formTrack: !this.state.formTrack })
     }
 
 
     showCollap = (val) => {
         if (val === 'close') {
-            this.setState({collap: false})
+            this.setState({ collap: false })
         } else {
-            this.setState({collap: false})
+            this.setState({ collap: false })
             setTimeout(() => {
-                this.setState({collap: true, tipeCol: val})
-             }, 500)
+                this.setState({ collap: true, tipeCol: val })
+            }, 500)
         }
     }
 
     goDownload = (val) => {
-        const {detailIo} = this.props.pengadaan
+        const { detailIo } = this.props.pengadaan
         localStorage.setItem('printData', detailIo[0].no_pengadaan)
         const newWindow = window.open(`/${val}`, '_blank', 'noopener,noreferrer')
         if (newWindow) {
@@ -1033,8 +1025,8 @@ class Pengadaan extends Component {
     }
 
     componentDidUpdate() {
-        const {isError, isUpload, isUpdate, approve, rejApprove, reject, rejReject, detailIo, testPods, appdoc, rejdoc} = this.props.pengadaan
-        const {rinciIo, listMut, newIo} = this.state
+        const { isError, isUpload, isUpdate, approve, rejApprove, reject, rejReject, detailIo, testPods, appdoc, rejdoc } = this.props.pengadaan
+        const { rinciIo, listMut, newIo } = this.state
         const token = localStorage.getItem('token')
         if (isError) {
             this.props.resetError()
@@ -1042,18 +1034,18 @@ class Pengadaan extends Component {
         } else if (isUpload) {
             setTimeout(() => {
                 this.props.resetError()
-             }, 2000)
-             setTimeout(() => {
+            }, 2000)
+            setTimeout(() => {
                 this.props.getDocumentIo(token, rinciIo.no_pengadaan)
-             }, 2100)
+            }, 2100)
         } else if (isUpdate) {
             setTimeout(() => {
                 this.props.resetError()
-             }, 2000)
-             setTimeout(() => {
+            }, 2000)
+            setTimeout(() => {
                 this.props.getDocumentIo(token, rinciIo.no_pengadaan)
-             }, 2100)
-        } 
+            }, 2100)
+        }
         // else if (approve) {
         //     this.setState({confirm: 'approve'})
         //     this.openConfirm()
@@ -1062,10 +1054,10 @@ class Pengadaan extends Component {
         //     this.props.getApproveIo(token, detailIo[0].no_pengadaan)
         // } 
         else if (rejApprove) {
-            this.setState({confirm: 'rejApprove'})
+            this.setState({ confirm: 'rejApprove' })
             this.openConfirm()
             this.props.resetApp()
-        } 
+        }
         // else if (reject) {
         //     this.setState({confirm: 'reject'})
         //     this.openConfirm()
@@ -1074,33 +1066,33 @@ class Pengadaan extends Component {
         //     this.props.getApproveIo(token, detailIo[0].no_pengadaan)
         // } 
         else if (rejReject) {
-            this.setState({confirm: 'rejReject'})
+            this.setState({ confirm: 'rejReject' })
             this.openConfirm()
             this.props.resetApp()
-        }  else if (testPods === 'true') {
-            this.setState({confirm: 'apitrue'})
+        } else if (testPods === 'true') {
+            this.setState({ confirm: 'apitrue' })
             this.openConfirm()
             this.props.resetApp()
         } else if (testPods === 'false') {
-            this.setState({confirm: 'apifalse'})
+            this.setState({ confirm: 'apifalse' })
             this.openConfirm()
             this.props.resetApp()
         } else if (appdoc === true) {
-            this.setState({confirm: 'appDocTrue'})
+            this.setState({ confirm: 'appDocTrue' })
             this.openConfirm()
             this.props.resetApp()
             this.prosesDoc(this.state.valdoc)
         } else if (appdoc === false) {
-            this.setState({confirm: 'appDocFalse'})
+            this.setState({ confirm: 'appDocFalse' })
             this.openConfirm()
             this.props.resetApp()
         } else if (rejdoc === true) {
-            this.setState({confirm: 'rejDocTrue'})
+            this.setState({ confirm: 'rejDocTrue' })
             this.openConfirm()
             this.props.resetApp()
             this.prosesDoc(this.state.valdoc)
         } else if (rejdoc === false) {
-            this.setState({confirm: 'rejDocFalse'})
+            this.setState({ confirm: 'rejDocFalse' })
             this.openConfirm()
             this.props.resetApp()
         }
@@ -1114,14 +1106,14 @@ class Pengadaan extends Component {
     }
 
     openFill = () => {
-        this.setState({openFill: !this.state.openFill})
+        this.setState({ openFill: !this.state.openFill })
     }
 
     onSearch = async (e) => {
-        this.setState({search: e.target.value})
+        this.setState({ search: e.target.value })
         const token = localStorage.getItem("token")
         const { filter } = this.state
-        if(e.key === 'Enter'){
+        if (e.key === 'Enter') {
             // await this.props.getAsset(token, 10, e.target.value, 1)
             // this.getDataAsset({limit: 10, search: this.state.search})
             this.changeFilter(filter)
@@ -1134,7 +1126,7 @@ class Pengadaan extends Component {
         this.modalSubmitPre()
         this.getDataDisposal()
     }
-    
+
     getNotif = async () => {
         const token = localStorage.getItem("token")
         await this.props.getNotif(token)
@@ -1162,26 +1154,31 @@ class Pengadaan extends Component {
     }
 
     openAppall = () => {
-        this.setState({isAppall: !this.state.isAppall})
+        this.setState({ isAppall: !this.state.isAppall })
     }
 
     changeFilter = async (val) => {
         const token = localStorage.getItem("token")
         const role = localStorage.getItem('role')
         const level = localStorage.getItem('level')
-        const {time1, time2, search, limit} = this.state
+        const { time1, time2, search, limit } = this.state
         const cekTime1 = time1 === '' ? 'undefined' : time1
         const cekTime2 = time2 === '' ? 'undefined' : time2
-        const status = val === 'selesai' ? '8' : val === 'available' && level === '2' ? '1' : val === 'available' && level === '8' ? '3' : 'all'
-        
+        // const status = val === 'selesai' ? '8' : val === 'available' && level === '2' ? '1' : val === 'available' && level === '8' ? '3' : 'all'
+        const status = val === 'selesai' ? '8' : 'all'
+
         await this.props.getPengadaan(token, status, cekTime1, cekTime2, search, limit)
         if (level === '2' || level === '8') {
-            const {dataPeng} = this.props.pengadaan
+            const { dataPeng } = this.props.pengadaan
             const newIo = []
             console.log(val)
             for (let i = 0; i < dataPeng.length; i++) {
-                if (val === 'available') {
-                    if (dataPeng[i].status_reject !== 1) {
+                // const cekBudget = (dataPeng[i].status_form === '3' && dataPeng[i].kategori !== 'return') || (dataPeng[i].status_form === '4' && dataPeng[i].kategori === 'return')
+                // const cekAsset = dataPeng[i].status_form === '1' || (dataPeng[i].status_form === '3' && dataPeng[i].kategori === 'return')
+                const cekBudget = dataPeng[i].status_form === '3'
+                const cekAsset = dataPeng[i].status_form === '1'
+                if (val === 'available' ) {
+                    if (((level === '8' && cekBudget) || (level === '2' && cekAsset)) && dataPeng[i].status_reject !== 1) {
                         newIo.push(dataPeng[i])
                     }
                 } else if (val === 'reject') {
@@ -1193,27 +1190,28 @@ class Pengadaan extends Component {
                         newIo.push(dataPeng[i])
                     }
                 } else {
-                    const cek = level === '8' ? '3' : '1'
-                    if (dataPeng[i].status_form !== cek || (dataPeng[i].status_form === cek && dataPeng[i].status_reject === 1)) {
+                    if ((!cekAsset && level === '2') || (!cekBudget && level === '8')) {
                         newIo.push(dataPeng[i])
+                    } else if (((level === '8' && cekBudget) || (level === '2' && cekAsset)) && dataPeng[i].status_reject === 1) {
+
                     }
                 }
             }
-            this.setState({filter: val, newIo: newIo})
+            this.setState({ filter: val, newIo: newIo })
         } else {
-            const {dataPeng} = this.props.pengadaan
+            const { dataPeng } = this.props.pengadaan
             if (val === 'available' && dataPeng.length > 0) {
                 console.log('at available')
                 const newIo = []
                 for (let i = 0; i < dataPeng.length; i++) {
-                    const app = dataPeng[i].appForm ===  undefined ? [] : dataPeng[i].appForm
-                    const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
+                    const app = dataPeng[i].appForm === undefined ? [] : dataPeng[i].appForm
+                    const find = app.indexOf(app.find(({ jabatan }) => jabatan === role))
                     if (level === '5' || level === '9') {
                         console.log('at available 2')
                         if (dataPeng[i].status_reject !== 1 && dataPeng[i].status_form === '2' && (app[find] === undefined || app.length === 0)) {
                             console.log('at available 3')
                             newIo.push(dataPeng[i])
-                        } else if (dataPeng[i].status_reject !== 1 && dataPeng[i].status_form === '2' && app[find].status === null ) {
+                        } else if (dataPeng[i].status_reject !== 1 && dataPeng[i].status_form === '2' && app[find].status === null) {
                             console.log('at available 4')
                             newIo.push(dataPeng[i])
                         }
@@ -1229,7 +1227,7 @@ class Pengadaan extends Component {
                         }
                     }
                 }
-                this.setState({filter: val, newIo: newIo})
+                this.setState({ filter: val, newIo: newIo })
             } else if (val === 'reject' && dataPeng.length > 0) {
                 const newIo = []
                 for (let i = 0; i < dataPeng.length; i++) {
@@ -1237,7 +1235,7 @@ class Pengadaan extends Component {
                         newIo.push(dataPeng[i])
                     }
                 }
-                this.setState({filter: val, newIo: newIo})
+                this.setState({ filter: val, newIo: newIo })
             } else if (val === 'selesai' && dataPeng.length > 0) {
                 const newIo = []
                 for (let i = 0; i < dataPeng.length; i++) {
@@ -1245,17 +1243,17 @@ class Pengadaan extends Component {
                         newIo.push(dataPeng[i])
                     }
                 }
-                this.setState({filter: val, newIo: newIo})
+                this.setState({ filter: val, newIo: newIo })
             } else {
                 const newIo = []
                 for (let i = 0; i < dataPeng.length; i++) {
-                    const app = dataPeng[i].appForm ===  undefined ? [] : dataPeng[i].appForm
-                    const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
+                    const app = dataPeng[i].appForm === undefined ? [] : dataPeng[i].appForm
+                    const find = app.indexOf(app.find(({ jabatan }) => jabatan === role))
                     if (level === '5' || level === '9') {
                         if (dataPeng[i].status_form === '2' && (app[find] === undefined || app.length === 0)) {
                             console.log('at all 3')
                             newIo.push()
-                        } else if (dataPeng[i].status_form === '2' && app[find].status === null ) {
+                        } else if (dataPeng[i].status_form === '2' && app[find].status === null) {
                             console.log('at all 4')
                             newIo.push()
                         } else {
@@ -1275,28 +1273,28 @@ class Pengadaan extends Component {
                         }
                     }
                 }
-                this.setState({filter: val, newIo: newIo})
+                this.setState({ filter: val, newIo: newIo })
             }
         }
     }
 
     selectTime = (val) => {
-        this.setState({[val.type]: val.val})
+        this.setState({ [val.type]: val.val })
     }
 
     changeTime = async (val) => {
         const token = localStorage.getItem("token")
-        this.setState({time: val})
+        this.setState({ time: val })
         if (val === 'all') {
-            this.setState({time1: '', time2: ''})
+            this.setState({ time1: '', time2: '' })
             setTimeout(() => {
                 this.getDataTime()
-             }, 500)
+            }, 500)
         }
     }
 
     getDataTime = async () => {
-        const {time1, time2, filter, search, limit} = this.state
+        const { time1, time2, filter, search, limit } = this.state
         const cekTime1 = time1 === '' ? 'undefined' : time1
         const cekTime2 = time2 === '' ? 'undefined' : time2
         const token = localStorage.getItem("token")
@@ -1307,9 +1305,9 @@ class Pengadaan extends Component {
 
 
     prosesSidebar = (val) => {
-        this.setState({sidebarOpen: val})
+        this.setState({ sidebarOpen: val })
     }
-    
+
     goRoute = (val) => {
         this.props.history.push(`/${val}`)
     }
@@ -1348,11 +1346,11 @@ class Pengadaan extends Component {
     }
 
     openDataRinci = (val) => {
-        this.setState({dataRinci: val})
+        this.setState({ dataRinci: val })
         const role = localStorage.getItem('role')
         const app = val.appForm
-        const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
-        this.setState({app: app, find: find})
+        const find = app.indexOf(app.find(({ jabatan }) => jabatan === role))
+        this.setState({ app: app, find: find })
         this.openRinciAdmin()
     }
 
@@ -1363,11 +1361,11 @@ class Pengadaan extends Component {
             for (let i = 0; i < detailIo.length; i++) {
                 data.push(detailIo[i].id)
             }
-            this.setState({listMut: data})
+            this.setState({ listMut: data })
         } else {
             const { listMut } = this.state
             listMut.push(val)
-            this.setState({listMut: listMut})
+            this.setState({ listMut: listMut })
         }
     }
 
@@ -1375,7 +1373,7 @@ class Pengadaan extends Component {
         const { listMut } = this.state
         if (val === 'all') {
             const data = []
-            this.setState({listMut: data})
+            this.setState({ listMut: data })
         } else {
             const data = []
             for (let i = 0; i < listMut.length; i++) {
@@ -1385,26 +1383,26 @@ class Pengadaan extends Component {
                     data.push(listMut[i])
                 }
             }
-            this.setState({listMut: data})
+            this.setState({ listMut: data })
         }
     }
 
     render() {
-        const {alert, upload, errMsg, rinciIo, total, listMut, newIo, listStat, fileName, url, detailTrack, sidebarOpen, tipeEmail} = this.state
-        const {dataAsset, alertM, alertMsg, alertUpload, page} = this.props.asset
-        const pages = this.props.disposal.page 
-        const {dataPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataDocCart, dataTemp} = this.props.pengadaan
+        const { alert, upload, errMsg, rinciIo, total, listMut, newIo, listStat, fileName, url, detailTrack, sidebarOpen, tipeEmail } = this.state
+        const { dataAsset, alertM, alertMsg, alertUpload, page } = this.props.asset
+        const pages = this.props.disposal.page
+        const { dataPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataDocCart, dataTemp } = this.props.pengadaan
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
         const dataNotif = this.props.notif.data
         const role = localStorage.getItem('role')
 
-        const contentHeader =  (
+        const contentHeader = (
             <div className={style.navbar}>
                 <NavbarBrand
                     href="#"
                     onClick={this.menuButtonClick}
-                    >
+                >
                     <FaBars size={20} className={style.white} />
                 </NavbarBrand>
                 <NavBar dataNotif={dataNotif} />
@@ -1425,7 +1423,7 @@ class Pengadaan extends Component {
             dragToggleDistance: this.state.dragToggleDistance,
             transitions: this.state.transitions,
             onSetOpen: this.onSetOpen
-          };
+        };
         return (
             <>
                 {/* <Sidebar {...sidebarProps}>
@@ -1549,7 +1547,7 @@ class Pengadaan extends Component {
                     <div className={`${styleTrans.mainContent} ${this.state.sidebarOpen ? styleTrans.collapsedContent : ''}`}>
                         <h2 className={styleTrans.pageTitle}>Pengadaan Aset</h2>
                         <div className={styleTrans.searchContainer}>
-                            {(level === '5' || level === '9' ) ? (
+                            {(level === '5' || level === '9') ? (
                                 <Button size="lg" color='primary' onClick={this.goCartTicket}>Create</Button>
                             ) : (
                                 <div></div>
@@ -1569,28 +1567,28 @@ class Pengadaan extends Component {
                                         <option value="pilih">Periode</option>
                                     </Input>
                                 </div>
-                                {this.state.time === 'pilih' ?  (
+                                {this.state.time === 'pilih' ? (
                                     <>
                                         <div className='rowCenter'>
                                             <text className='bold'>:</text>
                                             <Input
-                                                type= "date" 
+                                                type="date"
                                                 className="inputRinci"
                                                 value={this.state.time1}
-                                                onChange={e => this.selectTime({val: e.target.value, type: 'time1'})}
+                                                onChange={e => this.selectTime({ val: e.target.value, type: 'time1' })}
                                             />
                                             <text className='mr-1 ml-1'>To</text>
                                             <Input
-                                                type= "date" 
+                                                type="date"
                                                 className="inputRinci"
                                                 value={this.state.time2}
-                                                onChange={e => this.selectTime({val: e.target.value, type: 'time2'})}
+                                                onChange={e => this.selectTime({ val: e.target.value, type: 'time2' })}
                                             />
                                             <Button
-                                            disabled={this.state.time1 === '' || this.state.time2 === '' ? true : false} 
-                                            color='primary' 
-                                            onClick={this.getDataTime} 
-                                            className='ml-1'>
+                                                disabled={this.state.time1 === '' || this.state.time2 === '' ? true : false}
+                                                color='primary'
+                                                onClick={this.getDataTime}
+                                                className='ml-1'>
                                                 Go
                                             </Button>
                                         </div>
@@ -1612,6 +1610,7 @@ class Pengadaan extends Component {
                                 <tr>
                                     <th>NO</th>
                                     <th>NO AJUAN</th>
+                                    <th>KATEGORI</th>
                                     <th>KODE AREA</th>
                                     <th>NAMA AREA</th>
                                     <th>TGL AJUAN</th>
@@ -1628,22 +1627,23 @@ class Pengadaan extends Component {
                                         <tr className={item.status_form === '0' ? 'fail' : item.status_reject === 0 ? 'note' : item.status_reject === 1 && 'bad'}>
                                             <td>{newIo.indexOf(item) + 1}</td>
                                             <td>{item.no_pengadaan}</td>
-                                            <td>{item.kode_plant}</td>
+                                            <td className='tdKat'>{item.kategori}</td>
+                                            <td className='tdPlant'>{item.kode_plant}</td>
                                             <td>{item.depo === null ? '' : item.area === null ? `${item.depo.nama_area} ${item.depo.channel}` : item.area}</td>
-                                            <td>{moment(item.tglIo).format('DD MMMM YYYY')}</td>
-                                            <td>{item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
-                                            <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? item.appForm.find(item => item.status === 1).nama + ` (${item.appForm.find(item => item.status === 1).jabatan === 'area' ? 'AOS' : item.appForm.find(item => item.status === 1).jabatan})` : '-' }</td>
-                                            <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? moment(item.appForm.find(item => item.status === 1).updatedAt).format('DD/MM/YYYY HH:mm:ss') : '-' }</td>
+                                            <td className='tdDate'>{moment(item.tglIo).format('DD MMMM YYYY')}</td>
+                                            <td>{item.kategori === 'return' ? 'Pengajuan Return' : item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
+                                            <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? item.appForm.find(item => item.status === 1).nama + ` (${item.appForm.find(item => item.status === 1).jabatan === 'area' ? 'AOS' : item.appForm.find(item => item.status === 1).jabatan})` : '-'}</td>
+                                            <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? moment(item.appForm.find(item => item.status === 1).updatedAt).format('DD/MM/YYYY HH:mm:ss') : '-'}</td>
                                             {/* <td>{}</td> */}
                                             {/* <td>{item.history !== null && item.history.split(',').reverse()[0]}</td> */}
                                             <td>
-                                                <Button 
-                                                color='primary' 
-                                                className='mr-1 mt-1' 
-                                                onClick={item.status_reject === 1 && item.status_form !== '0' && level === '5' ? this.goRevisi : () => this.openForm(item)}>
+                                                <Button
+                                                    color='primary'
+                                                    className='mr-1 mt-1'
+                                                    onClick={item.status_reject === 1 && item.status_form !== '0' && level === '5' ? this.goRevisi : () => this.openForm(item)}>
                                                     {this.state.filter === 'available' ? 'Proses' : item.status_reject === 1 && item.status_form !== '0' && level === '5' ? 'Revisi' : 'Detail'}
                                                 </Button>
-                                                <Button className='mt-1'  color='warning' onClick={() => this.getDetailTrack(item.no_pengadaan)}>Tracking</Button>
+                                                <Button className='mt-1' color='warning' onClick={() => this.getDetailTrack(item.no_pengadaan)}>Tracking</Button>
                                             </td>
                                         </tr>
                                     )
@@ -1658,243 +1658,251 @@ class Pengadaan extends Component {
                         )}
                     </div>
                 </div>
-                <Modal size="xl" isOpen={this.state.openModalIo} toggle={this.prosesModalIo}>
-                <ModalHeader toggle={this.prosesModalIo}>{detailIo.length > 0 && detailIo[0].no_pengadaan}</ModalHeader>
-                <ModalBody className="mb-5">
-                    <Container>
-                        <Row className="rowModal">
-                            <Col md={3} lg={3}>
-                                <img src={logo} className="imgModal" />
-                            </Col>
-                            <Col md={9} lg={9}>
-                                <text className="titModal">FORM INTERNAL ORDER ASSET</text>
-                            </Col>
-                        </Row>
-                        <div className="mt-4 mb-3">Io type:</div>
-                        <div className="mb-4">
-                            <Form.Check 
-                                type="checkbox"
-                                checked
-                                label="CB-20 IO Capex"
-                            />
-                        </div>
-                        <Row className="rowModal">
-                            <Col md={2} lg={2}>
-                                Nomor IO
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                            <OtpInput
-                                value={this.state.value}
-                                onChange={this.onChange}
-                                numInputs={11}
-                                inputStyle={style.otp}
-                                containerStyle={style.containerOtp}
-                                isDisabled={level === '8' ? false : true}
-                            />
-                            {level === '8' && (
-                                <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo(detailIo[0].no_pengadaan)}>Save</Button>
-                            )}
-                            </Col>
-                        </Row>
-                        <Row className="mt-4">
-                            <Col md={2} lg={2}>
-                                Deskripsi
-                            </Col>
-                            <Col md={10} lg={10} className="colModalTab">
-                                <text className="mr-3">:</text>
-                                <Table bordered stripped responsive>
-                                    <thead>
-                                        <tr>
-                                            <th>
-                                                <Input 
-                                                addon
-                                                type="checkbox"
-                                                className='mr-3'
-                                                disabled={this.state.filter === 'available' ? false : true}
-                                                checked={listMut.length === detailIo.length ? true : false}
-                                                onClick={listMut.length === detailIo.length ? () => this.chekRej('all') : () => this.chekApp('all')}
-                                                />
-                                            </th>
-                                            <th>Qty</th>
-                                            <th>Description</th>
-                                            <th>Price/unit</th>
-                                            <th>Total Amount</th>
-                                            {/* <th>OPSI</th> */}
-                                            {level === '2' && (
-                                                <th>Asset</th>
-                                            )}
-                                            <th>Status IT</th>
-                                            {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
-                                                <th>Dokumen</th>
-                                            ) : (
-                                                null
-                                            )}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {detailIo !== undefined && detailIo.length > 0 && detailIo.map(item => {
-                                            return (
-                                                item.isAsset === 'false' && level !== '2' ? (
-                                                    null
+                <Modal size="xl" isOpen={this.state.openModalIo} toggle={this.prosesModalIo} className='large'>
+                    <ModalHeader toggle={this.prosesModalIo}>{detailIo.length > 0 && detailIo[0].no_pengadaan}</ModalHeader>
+                    <ModalBody className="mb-5">
+                        <Container className='borderGen'>
+                            <Row className="rowModal">
+                                <Col md={3} lg={3}>
+                                    <img src={logo} className="imgModal" />
+                                </Col>
+                                <Col md={9} lg={9}>
+                                    <text className="titModal">FORM INTERNAL ORDER ASSET</text>
+                                </Col>
+                            </Row>
+                            <div className="mt-4 mb-3">Io type:</div>
+                            <div className="mb-4">
+                                <Form.Check
+                                    type="checkbox"
+                                    checked
+                                    label="CB-20 IO Capex"
+                                />
+                            </div>
+                            <Row className="rowModal">
+                                <Col md={2} lg={2}>
+                                    Nomor IO
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                    <text className="mr-3">:</text>
+                                    <OtpInput
+                                        value={this.state.value}
+                                        onChange={this.onChange}
+                                        numInputs={11}
+                                        inputStyle={style.otp}
+                                        containerStyle={style.containerOtp}
+                                        isDisabled={level === '8' ? false : true}
+                                    />
+                                    {level === '8' && (
+                                        <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo(detailIo[0].no_pengadaan)}>Save</Button>
+                                    )}
+                                </Col>
+                            </Row>
+                            <Row className="mt-4">
+                                <Col md={2} lg={2}>
+                                    Deskripsi
+                                </Col>
+                                <Col md={10} lg={10} className="colModalTab">
+                                    <text className="mr-3">:</text>
+                                    <Table bordered stripped responsive>
+                                        <thead>
+                                            <tr>
+                                                <th>
+                                                    <Input
+                                                        addon
+                                                        type="checkbox"
+                                                        className='mr-3'
+                                                        disabled={this.state.filter === 'available' ? false : true}
+                                                        checked={listMut.length === detailIo.length ? true : false}
+                                                        onClick={listMut.length === detailIo.length ? () => this.chekRej('all') : () => this.chekApp('all')}
+                                                    />
+                                                </th>
+                                                <th>Qty</th>
+                                                <th>Description</th>
+                                                <th>Price/unit</th>
+                                                <th>Total Amount</th>
+                                                {/* <th>OPSI</th> */}
+                                                {level === '2' && (
+                                                    <th>Asset</th>
+                                                )}
+                                                <th>Status IT</th>
+                                                {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
+                                                    <th>Dokumen</th>
                                                 ) : (
-                                                    <tr >
-                                                        <td>
-                                                            <Input 
-                                                            addon
-                                                            type="checkbox"
-                                                            className=''
-                                                            disabled={this.state.filter === 'not available' ? true : false}
-                                                            checked={listMut.find(element => element === item.id) !== undefined ? true : false}
-                                                            onClick={listMut.find(element => element === item.id) === undefined ? () => this.chekApp(item.id) : () => this.chekRej(item.id)}
-                                                            />
-                                                        </td>
-                                                        <td>{item.qty}</td>
-                                                        <td className='tdDesc'>{item.nama}</td>
-                                                        <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                        <td>Rp {(parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                        {/* <td><Button onClick={() => this.openModalRinci()}>Detail</Button></td> */}
-                                                        {level === '2' && (
-                                                            <td className='colTable'>
-                                                                <div className='mb-1'>
-                                                                    <Input
-                                                                    addon
-                                                                    disabled={item.status_app === null ? false : true}
-                                                                    checked={item.isAsset === 'true' ? true : false}
-                                                                    type="checkbox"
-                                                                    onClick={() => this.updateIo({item: item, value: 'true'})}
-                                                                    className='mr-1'
-                                                                    value={item.no_asset} />
-                                                                    <text>Ya</text>
-                                                                </div>
-                                                                <div>
-                                                                    <Input
-                                                                    addon
-                                                                    disabled={item.status_app === null ? false : true}
-                                                                    checked={item.isAsset === 'false' ? true : false}
-                                                                    type="checkbox"
-                                                                    onClick={() => this.updateIo({item: item, value: 'false'})}
-                                                                    className='mr-1'
-                                                                    value={item.no_asset} />
-                                                                    <text>Tidak</text>
-                                                                </div>
-                                                            </td>
-                                                        )}
-                                                        <td>
-                                                            {item.jenis === 'it' ? 'IT' : item.jenis === 'non-it' ? 'NON IT' : '-' }
-                                                        </td>
-                                                        {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
+                                                    null
+                                                )}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {detailIo !== undefined && detailIo.length > 0 && detailIo.map(item => {
+                                                return (
+                                                    item.isAsset === 'false' && level !== '2' ? (
+                                                        null
+                                                    ) : (
+                                                        <tr >
                                                             <td>
-                                                                <Button color='success' size='sm' onClick={() => this.prosesModalDoc(item)}>Show Dokumen</Button>
+                                                                <Input
+                                                                    addon
+                                                                    type="checkbox"
+                                                                    className=''
+                                                                    disabled={this.state.filter === 'not available' ? true : false}
+                                                                    checked={listMut.find(element => element === item.id) !== undefined ? true : false}
+                                                                    onClick={listMut.find(element => element === item.id) === undefined ? () => this.chekApp(item.id) : () => this.chekRej(item.id)}
+                                                                />
                                                             </td>
-                                                        ) : (
-                                                            null
-                                                        )}
-                                                    </tr>
+                                                            <td>{item.qty}</td>
+                                                            <td className='tdDesc'>{item.nama}</td>
+                                                            <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                            <td>Rp {(parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                            {/* <td><Button onClick={() => this.openModalRinci()}>Detail</Button></td> */}
+                                                            {level === '2' && (
+                                                                <td className='colTable'>
+                                                                    <div className='mb-1'>
+                                                                        <Input
+                                                                            addon
+                                                                            disabled={item.status_app === null ? false : true}
+                                                                            checked={item.isAsset === 'true' ? true : false}
+                                                                            type="checkbox"
+                                                                            onClick={() => this.updateIo({ item: item, value: 'true' })}
+                                                                            className='mr-1'
+                                                                            value={item.no_asset} />
+                                                                        <text>Ya</text>
+                                                                    </div>
+                                                                    <div>
+                                                                        <Input
+                                                                            addon
+                                                                            disabled={item.status_app === null ? false : true}
+                                                                            checked={item.isAsset === 'false' ? true : false}
+                                                                            type="checkbox"
+                                                                            onClick={() => this.updateIo({ item: item, value: 'false' })}
+                                                                            className='mr-1'
+                                                                            value={item.no_asset} />
+                                                                        <text>Tidak</text>
+                                                                    </div>
+                                                                </td>
+                                                            )}
+                                                            <td>
+                                                                {item.jenis === 'it' ? 'IT' : item.jenis === 'non-it' ? 'NON IT' : '-'}
+                                                            </td>
+                                                            {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
+                                                                <td>
+                                                                    <Button color='success' size='sm' onClick={() => this.prosesModalDoc(item)}>Show Dokumen</Button>
+                                                                </td>
+                                                            ) : (
+                                                                null
+                                                            )}
+                                                        </tr>
+                                                    )
                                                 )
-                                            )
-                                        })}
-                                    </tbody>
-                                </Table>
-                            </Col>
-                        </Row>
-                        <Row className="rowModal mt-4">
-                            <Col md={2} lg={2}>
-                                Cost Center
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                            <OtpInput
-                                value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.cost_center}
-                                isDisabled
-                                numInputs={10}
-                                inputStyle={style.otp}
-                                containerStyle={style.containerOtp}
-                            />
-                            </Col>
-                        </Row>
-                        <Row className="rowModal mt-2">
-                            <Col md={2} lg={2}>
-                                Profit Center
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                            <OtpInput
-                                value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.profit_center}
-                                isDisabled
-                                numInputs={10}
-                                inputStyle={style.otp}
-                                containerStyle={style.containerOtp}
-                            />
-                            </Col>
-                        </Row>
-                        <Row className="rowModal mt-4">
-                            <Col md={2} lg={2}>
-                                Kategori
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                                <Col md={4} lg={4}>
-                                    <Form.Check 
-                                        type="checkbox"
-                                        label="Budget"
-                                        checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'budget' ? true : false}
+                                            })}
+                                        </tbody>
+                                    </Table>
+                                </Col>
+                            </Row>
+                            <Row className="rowModal mt-4">
+                                <Col md={2} lg={2}>
+                                    Cost Center
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                    <text className="mr-3">:</text>
+                                    <OtpInput
+                                        value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.cost_center}
+                                        isDisabled
+                                        numInputs={10}
+                                        inputStyle={style.otp}
+                                        containerStyle={style.containerOtp}
                                     />
                                 </Col>
-                                <Col md={4} lg={4}>
-                                    <Form.Check 
-                                        type="checkbox"
-                                        label="Non Budgeted"
-                                        checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'non-budget' ? true : false}
+                            </Row>
+                            <Row className="rowModal mt-2">
+                                <Col md={2} lg={2}>
+                                    Profit Center
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                    <text className="mr-3">:</text>
+                                    <OtpInput
+                                        value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.profit_center}
+                                        isDisabled
+                                        numInputs={10}
+                                        inputStyle={style.otp}
+                                        containerStyle={style.containerOtp}
                                     />
                                 </Col>
-                                <Col md={4} lg={4}>
-                                    <Form.Check 
-                                        type="checkbox"
-                                        label="Return"
-                                        checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'return' ? true : false}
-                                    />
+                            </Row>
+                            <Row className="rowModal mt-4">
+                                <Col md={2} lg={2}>
+                                    Kategori
                                 </Col>
-                            </Col>
-                        </Row>
-                        <Row className="rowModal mt-4">
-                            <Col md={2} lg={2}>
-                                Amount
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                            <text>Rp {total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</text>
-                            </Col>
-                        </Row>
-                        <Formik
-                            initialValues={{
-                            alasan: detailIo[0] === undefined ? '' : detailIo[0].alasan === null || detailIo[0].alasan === '' || detailIo[0].alasan === '-' ? '' : detailIo[0].alasan,
-                            }}
-                            validationSchema={alasanSchema}
-                            onSubmit={(values) => {this.updateAlasan(values)}}
+                                <Col md={10} lg={10} className="colModal">
+                                    <text className="mr-3">:</text>
+                                    <Col md={4} lg={4}>
+                                        <Form.Check
+                                            type="checkbox"
+                                            label="Budget"
+                                            checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'budget' ? true : false}
+                                        />
+                                    </Col>
+                                    <Col md={4} lg={4}>
+                                        <Form.Check
+                                            type="checkbox"
+                                            label="Non Budgeted"
+                                            checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'non-budget' ? true : false}
+                                        />
+                                    </Col>
+                                    <Col md={4} lg={4}>
+                                        <Form.Check
+                                            type="checkbox"
+                                            label="Return"
+                                            checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'return' ? true : false}
+                                        />
+                                    </Col>
+                                </Col>
+                            </Row>
+                            <Row className="rowModal mt-4">
+                                <Col md={2} lg={2}>
+                                    Amount
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                    <text className="mr-3">:</text>
+                                    <text>Rp {total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</text>
+                                </Col>
+                            </Row>
+                            <Row className="rowModal mt-4">
+                                <Col md={2} lg={2}>
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                    <text className="mr-3"> </text>
+                                    <text className='text-capitalize'>Terbilang ( {terbilang(total)} Rupiah )</text>
+                                </Col>
+                            </Row>
+                            <Formik
+                                initialValues={{
+                                    alasan: detailIo[0] === undefined ? '' : detailIo[0].alasan === null || detailIo[0].alasan === '' || detailIo[0].alasan === '-' ? '' : detailIo[0].alasan,
+                                }}
+                                validationSchema={alasanSchema}
+                                onSubmit={(values) => { this.updateAlasan(values) }}
                             >
-                                {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                                {({ handleChange, handleBlur, handleSubmit, values, errors, touched, }) => (
                                     <div>
                                         <Row className="rowModal mt-4">
                                             <Col md={2} lg={2}>
                                                 Alasan
                                             </Col>
                                             <Col md={10} lg={10} className="colModal">
-                                            <text className="mr-3">:</text>
-                                            {level === '5' || level === '9' ? (
-                                                <>
-                                                    <Input 
-                                                        type='textarea'
-                                                        name='alasan'
-                                                        className='inputRecent'
-                                                        value={values.alasan}
-                                                        onChange={handleChange('alasan')}
-                                                        onBlur={handleBlur('alasan')} 
-                                                    />
-                                                </>
-                                            ) : (
-                                                <text>{detailIo[0] === undefined ? '-' : detailIo[0].alasan}</text>
-                                            )}
+                                                <text className="mr-3">:</text>
+                                                {level === '5' || level === '9' ? (
+                                                    <>
+                                                        <Input
+                                                            type='textarea'
+                                                            name='alasan'
+                                                            className='inputRecent'
+                                                            value={values.alasan}
+                                                            onChange={handleChange('alasan')}
+                                                            onBlur={handleBlur('alasan')}
+                                                        />
+                                                    </>
+                                                ) : (
+                                                    <text>{detailIo[0] === undefined ? '-' : detailIo[0].alasan}</text>
+                                                )}
                                             </Col>
                                         </Row>
                                         <Row>
@@ -1911,379 +1919,491 @@ class Pengadaan extends Component {
                                                 <Col md={2} lg={2}>
                                                 </Col>
                                                 <Col md={10} lg={10} className="colModal1">
-                                                <text className="mr-3"></text>
-                                                {level === '5' || level === '9' ? (
-                                                    <Button onClick={handleSubmit} color='success'>Update</Button>
-                                                ) : (
-                                                    null
-                                                )}
+                                                    <text className="mr-3"></text>
+                                                    {level === '5' || level === '9' ? (
+                                                        <Button onClick={handleSubmit} color='success'>Update</Button>
+                                                    ) : (
+                                                        null
+                                                    )}
                                                 </Col>
                                             </Row>
                                         ) : (
                                             <Row></Row>
                                         )}
-                                        
+
                                     </div>
                                 )}
-                        </Formik>
-                    </Container>
-                </ModalBody>
-                <hr />
-                <div className="modalFoot">
-                    <div className="btnFoot">
-                        {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
-                            null
+                            </Formik>
+                            <Row className="rowModal mt-4">
+                                <Col md={12} lg={12}>
+                                    {detailIo[0] === undefined ? '' : `${detailIo[0].area}, ${moment(detailIo[0].tglIo).format('DD MMMM YYYY')}`}
+                                </Col>
+                            </Row>
+                            <Table borderless responsive className="tabPreview mt-4">
+                                <thead>
+                                    <tr>
+                                        <th className="buatPre">Dibuat oleh,</th>
+                                        <th className="buatPre">Diperiksa oleh,</th>
+                                        <th className="buatPre">Disetujui oleh,</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="tbodyPre">
+                                    <tr>
+                                        <td className="restTable">
+                                            <Table bordered responsive className="divPre">
+                                                <thead>
+                                                    <tr>
+                                                        {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
+                                                            return (
+                                                                <th className="headPre">
+                                                                    <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
+                                                                    <div>{item.nama === null ? "-" : item.nama}</div>
+                                                                </th>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
+                                                            return (
+                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'area' ? 'AOS' : item.jabatan}</td>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </tbody>
+                                            </Table>
+                                        </td>
+                                        <td className="restTable">
+                                            <Table bordered responsive className="divPre">
+                                                <thead>
+                                                    <tr>
+                                                        {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
+                                                            return (
+                                                                <th className="headPre">
+                                                                    <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
+                                                                    <div>{item.nama === null ? "-" : item.nama}</div>
+                                                                </th>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
+                                                            return (
+                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </tbody>
+                                            </Table>
+                                        </td>
+                                        <td className="restTable">
+                                            <Table bordered responsive className="divPre">
+                                                <thead>
+                                                    <tr>
+                                                        {dataApp.penyetuju !== undefined && dataApp.penyetuju.map(item => {
+                                                            return (
+                                                                <th className="headPre">
+                                                                    <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
+                                                                    <div>{item.nama === null ? "-" : item.nama}</div>
+                                                                </th>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        {dataApp.penyetuju !== undefined && dataApp.penyetuju.map(item => {
+                                                            return (
+                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </tbody>
+                                            </Table>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </Table>
+                            <div className='mt-4 bold'>Keterangan:</div>
+                            <div className=''>No. IO dan Profit Center diisi oleh Budgeting Department</div>
+                            <div className=''>Cost Center diisi oleh Asset Department</div>
+                            <div className=''>Untuk kategori Non Budgeted dan Return kolom alasan "Wajib" diisi</div>
+                            <div className=''>* Sesuai Matriks Otorisasi, disetujui oleh :</div>
+                            <div className='ml-4'>- Budgeted / Return : NFAM</div>
+                            <div className='ml-4 mb-3'>- Non Budgeted : DH OPS, NFAM, DH FA, DH HC, CM</div>
+                        </Container>
+                        <Container>
+                            <div className='mt-4'>FRM-FAD-058 REV 06</div>
+                        </Container>
+                    </ModalBody>
+                    <hr />
+                    <div className="modalFoot">
+                        <div className="btnFoot">
+                            {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
+                                null
+                            ) : (
+                                <Button className="ml-4" color="info" onClick={this.prosesModalDoc}>
+                                    Dokumen
+                                </Button>
+                            )}
+                            <Button className="ml-2" color="warning" onClick={() => this.goDownload('formio')}>
+                                Download Form
+                            </Button>
+                            {detailIo !== undefined && detailIo.length > 0 && detailIo[0].status_form === '8' && (
+                                <Button className="ml-2" color="primary" onClick={() => this.openTemp()}>
+                                    List No.Aset
+                                </Button>
+                            )}
+                        </div>
+                        {(level === '2' || level === '8') && this.state.filter === 'available' ? (
+                            <div className="btnFoot">
+                                <Button className="mr-2" color="danger" disabled={listMut.length === 0 ? true : false} onClick={this.openModalReject}>
+                                    Reject
+                                </Button>
+                                <Button color="success" onClick={() => this.cekProsesApprove('submit')}>
+                                    Submit
+                                </Button>
+                            </div>
                         ) : (
-                            <Button className="ml-4" color="info" onClick={this.prosesModalDoc}>
-                                Dokumen 
-                            </Button>
-                        )}
-                        <Button className="ml-2" color="warning" onClick={() => this.openModPreview(detailIo[0])}>
-                            Download Form
-                        </Button>
-                        {detailIo !== undefined && detailIo.length > 0 && detailIo[0].status_form === '8' && (
-                            <Button className="ml-2" color="primary" onClick={() => this.openTemp()}>
-                                List No.Aset
-                            </Button>
+                            this.state.filter === 'available' ? (
+                                <div className="btnFoot">
+                                    <Button className="mr-2" color="danger" disabled={listMut.length === 0 ? true : false} onClick={this.openModalReject}>
+                                        Reject
+                                    </Button>
+                                    <Button color="primary" onClick={this.cekProsesApprove}>
+                                        Approve
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div></div>
+                            )
                         )}
                     </div>
-                    {(level === '2' || level === '8') && this.state.filter === 'available' ? (
-                        <div className="btnFoot">
-                            <Button className="mr-2" color="danger" disabled={listMut.length === 0 ? true : false} onClick={this.openModalReject}>
-                                Reject 
-                            </Button>
-                            <Button color="success" onClick={() => this.cekProsesApprove('submit')}>
-                                Submit
-                            </Button>
-                        </div>
-                    ) : (
-                    this.state.filter === 'available' ? (
-                        <div className="btnFoot">
-                            <Button className="mr-2" color="danger" disabled={listMut.length === 0 ? true : false} onClick={this.openModalReject}>
-                                Reject
-                            </Button>
-                            <Button  color="primary" onClick={this.cekProsesApprove}>
-                                Approve
-                            </Button>
-                        </div>
-                    ) : (
-                        <div></div>
-                    )
-                    )}
-                </div>
-            </Modal>
-            <Modal size="xl" isOpen={this.state.preview} toggle={this.openPreview}>
-                <ModalHeader toggle={this.openPreview}>{detailIo.length > 0 && detailIo[0].no_pengadaan}</ModalHeader>
-                <ModalBody className="mb-5">
-                    <Container className='mb-4'>
-                        <Row className="rowModal">
-                            <Col md={3} lg={3}>
-                                <img src={logo} className="imgModal" />
-                            </Col>
-                            <Col md={9} lg={9}>
-                                <text className="titModal">FORM INTERNAL ORDER ASSET</text>
-                            </Col>
-                        </Row>
-                        <div className="mt-4 mb-3">Io type:</div>
-                        <div className="mb-4">
-                            <Form.Check 
-                                checked
-                                type="checkbox"
-                                label="CB-20 IO Capex"
-                            />
-                        </div>
-                        <Row className="rowModal">
-                            <Col md={2} lg={2}>
-                                Nomor IO
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                            <OtpInput
-                                value={this.state.value}
-                                onChange={this.onChange}
-                                numInputs={11}
-                                inputStyle={style.otp}
-                                containerStyle={style.containerOtp}
-                                isDisabled
-                            />
-                            </Col>
-                        </Row>
-                        <Row className="mt-4">
-                            <Col md={2} lg={2}>
-                                Deskripsi
-                            </Col>
-                            <Col md={10} lg={10} className="colModalTab">
-                                <text className="mr-3">:</text>
-                                <Table bordered stripped responsive>
-                                    <thead>
-                                        <tr>
-                                            <th>Qty</th>
-                                            <th>Description</th>
-                                            <th>Price/unit</th>
-                                            <th>Total Amount</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {detailIo !== undefined && detailIo.length > 0 && detailIo.map(item => {
-                                            return (
-                                                item.isAsset === 'false' && level !== '2' ? (
-                                                    null
-                                                ) : (
-                                                <tr onClick={() => this.openModalRinci()}>
-                                                    <td>{item.qty}</td>
-                                                    <td>{item.nama}</td>
-                                                    <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                    <td>Rp {((parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."))}</td>
-                                                </tr>
-                                                )
-                                            )
-                                        })}
-                                    </tbody>
-                                </Table>
-                            </Col>
-                        </Row>
-                        <Row className="rowModal mt-4">
-                            <Col md={2} lg={2}>
-                                Cost Center
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                            <OtpInput
-                                value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.cost_center}
-                                isDisabled
-                                numInputs={10}
-                                inputStyle={style.otp}
-                                containerStyle={style.containerOtp}
-                            />
-                            </Col>
-                        </Row>
-                        <Row className="rowModal mt-2">
-                            <Col md={2} lg={2}>
-                                Profit Center
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                            <OtpInput
-                                value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.profit_center}
-                                isDisabled
-                                numInputs={10}
-                                inputStyle={style.otp}
-                                containerStyle={style.containerOtp}
-                            />
-                            </Col>
-                        </Row>
-                        <Row className="rowModal mt-4">
-                            <Col md={2} lg={2}>
-                                Kategori
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                                <Col md={4} lg={4}>
-                                    <Form.Check 
-                                        type="checkbox"
-                                        label="Budget"
-                                        checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'budget' ? true : false}
+                </Modal>
+                <Modal size="xl" isOpen={this.state.preview} toggle={this.openPreview}>
+                    <ModalHeader toggle={this.openPreview}>{detailIo.length > 0 && detailIo[0].no_pengadaan}</ModalHeader>
+                    <ModalBody className="mb-5">
+                        <Container className='mb-4'>
+                            <Row className="rowModal">
+                                <Col md={3} lg={3}>
+                                    <img src={logo} className="imgModal" />
+                                </Col>
+                                <Col md={9} lg={9}>
+                                    <text className="titModal">FORM INTERNAL ORDER ASSET</text>
+                                </Col>
+                            </Row>
+                            <div className="mt-4 mb-3">IO type:</div>
+                            <div className="mb-4">
+                                <Form.Check
+                                    checked
+                                    type="checkbox"
+                                    label="CB-20 IO Capex"
+                                />
+                            </div>
+                            <Row className="rowModal">
+                                <Col md={2} lg={2}>
+                                    Nomor IO
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                    <text className="mr-3">:</text>
+                                    <OtpInput
+                                        value={this.state.value}
+                                        onChange={this.onChange}
+                                        numInputs={11}
+                                        inputStyle={style.otp}
+                                        containerStyle={style.containerOtp}
+                                        isDisabled
                                     />
                                 </Col>
-                                <Col md={4} lg={4}>
-                                    <Form.Check 
-                                        type="checkbox"
-                                        label="Non Budgeted"
-                                        checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'non-budget' ? true : false}
-                                    />
+                            </Row>
+                            <Row className="mt-4">
+                                <Col md={2} lg={2}>
+                                    Deskripsi
                                 </Col>
-                                <Col md={4} lg={4}>
-                                    <Form.Check 
-                                        type="checkbox"
-                                        label="Return"
-                                        checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'return' ? true : false}
-                                    />
-                                </Col>
-                            </Col>
-                        </Row>
-                        <Row className="rowModal mt-4">
-                            <Col md={2} lg={2}>
-                                Amount
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                            <text>Rp {total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</text>
-                            </Col>
-                        </Row>
-                        <Row className="rowModal mt-4">
-                            <Col md={2} lg={2}>
-                                Alasan
-                            </Col>
-                            <Col md={10} lg={10} className="colModal">
-                            <text className="mr-3">:</text>
-                            <text>{detailIo[0] === undefined ? '-' : detailIo[0].alasan}</text>
-                            </Col>
-                        </Row>
-                    </Container>
-                    <Table borderless responsive className="tabPreview">
-                        <thead>
-                            <tr>
-                                <th className="buatPre">Dibuat oleh,</th>
-                                <th className="buatPre">Diperiksa oleh,</th>
-                                <th className="buatPre">Disetujui oleh,</th>
-                            </tr>
-                        </thead>
-                        <tbody className="tbodyPre">
-                            <tr>
-                                <td className="restTable">
-                                    <Table bordered responsive className="divPre">
+                                <Col md={10} lg={10} className="colModalTab">
+                                    <text className="mr-3">:</text>
+                                    <Table bordered stripped responsive>
                                         <thead>
                                             <tr>
-                                                {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
-                                                    return (
-                                                        <th className="headPre">
-                                                            <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                            <div>{item.nama === null ? "-" : item.nama}</div>
-                                                        </th>
-                                                    )
-                                                })}
+                                                <th>Qty</th>
+                                                <th>Description</th>
+                                                <th>Price/unit</th>
+                                                <th>Total Amount</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                            {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
+                                            {detailIo !== undefined && detailIo.length > 0 && detailIo.map(item => {
                                                 return (
-                                                    <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'area' ? 'AOS' : item.jabatan}</td>
+                                                    item.isAsset === 'false' && level !== '2' ? (
+                                                        null
+                                                    ) : (
+                                                        <tr onClick={() => this.openModalRinci()}>
+                                                            <td>{item.qty}</td>
+                                                            <td>{item.nama}</td>
+                                                            <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                            <td>Rp {((parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."))}</td>
+                                                        </tr>
+                                                    )
                                                 )
                                             })}
-                                            </tr>
                                         </tbody>
                                     </Table>
-                                </td>
-                                <td className="restTable">
-                                    <Table bordered responsive className="divPre">
-                                        <thead>
-                                            <tr>
-                                                {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
-                                                    return (
-                                                        <th className="headPre">
-                                                            <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                            <div>{item.nama === null ? "-" : item.nama}</div>
-                                                        </th>
-                                                    )
-                                                })}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
-                                                    return (
-                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                    )
-                                                })}
-                                            </tr>
-                                        </tbody>
-                                    </Table>
-                                </td>
-                                <td className="restTable">
-                                    <Table bordered responsive className="divPre">
-                                        <thead>
-                                            <tr>
-                                                {dataApp.penyetuju !== undefined && dataApp.penyetuju.map(item => {
-                                                    return (
-                                                        <th className="headPre">
-                                                            <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                            <div>{item.nama === null ? "-" : item.nama}</div>
-                                                        </th>
-                                                    )
-                                                })}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                {dataApp.penyetuju !== undefined && dataApp.penyetuju.map(item => {
-                                                    return (
-                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                    )
-                                                })}
-                                            </tr>
-                                        </tbody>
-                                    </Table>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </Table>
-                </ModalBody>
-                <hr />
-                <div className="modalFoot">
-                    <div className="btnFoot">
+                                </Col>
+                            </Row>
+                            <Row className="rowModal mt-4">
+                                <Col md={2} lg={2}>
+                                    Cost Center
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                    <text className="mr-3">:</text>
+                                    <OtpInput
+                                        value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.cost_center}
+                                        isDisabled
+                                        numInputs={10}
+                                        inputStyle={style.otp}
+                                        containerStyle={style.containerOtp}
+                                    />
+                                </Col>
+                            </Row>
+                            <Row className="rowModal mt-2">
+                                <Col md={2} lg={2}>
+                                    Profit Center
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                    <text className="mr-3">:</text>
+                                    <OtpInput
+                                        value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.profit_center}
+                                        isDisabled
+                                        numInputs={10}
+                                        inputStyle={style.otp}
+                                        containerStyle={style.containerOtp}
+                                    />
+                                </Col>
+                            </Row>
+                            <Row className="rowModal mt-4">
+                                <Col md={2} lg={2}>
+                                    Kategori
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                    <text className="mr-3">:</text>
+                                    <Col md={4} lg={4}>
+                                        <Form.Check
+                                            type="checkbox"
+                                            label="Budget"
+                                            checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'budget' ? true : false}
+                                        />
+                                    </Col>
+                                    <Col md={4} lg={4}>
+                                        <Form.Check
+                                            type="checkbox"
+                                            label="Non Budgeted"
+                                            checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'non-budget' ? true : false}
+                                        />
+                                    </Col>
+                                    <Col md={4} lg={4}>
+                                        <Form.Check
+                                            type="checkbox"
+                                            label="Return"
+                                            checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'return' ? true : false}
+                                        />
+                                    </Col>
+                                </Col>
+                            </Row>
+                            <Row className="rowModal mt-4">
+                                <Col md={2} lg={2}>
+                                    Amount
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                    <text className="mr-3">:</text>
+                                    <text>Rp {total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</text>
+                                </Col>
+                            </Row>
+                            <Row className="rowModal mt-4">
+                                <Col md={2} lg={2}>
+                                    
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                    <text className="mr-3"> </text>
+                                    <text className='text-capitalize'>Terbilang ( {terbilang(total)} Rupiah )</text>
+                                </Col>
+                            </Row>
+                            <Row className="rowModal mt-4">
+                                <Col md={2} lg={2}>
+                                    Alasan
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                    <text className="mr-3">:</text>
+                                    <text>{detailIo[0] === undefined ? '-' : detailIo[0].alasan}</text>
+                                </Col>
+                            </Row>
+                        </Container>
+                        <Table borderless responsive className="tabPreview">
+                            <thead>
+                                <tr>
+                                    <th className="buatPre">Dibuat oleh,</th>
+                                    <th className="buatPre">Diperiksa oleh,</th>
+                                    <th className="buatPre">Disetujui oleh,</th>
+                                </tr>
+                            </thead>
+                            <tbody className="tbodyPre">
+                                <tr>
+                                    <td className="restTable">
+                                        <Table bordered responsive className="divPre">
+                                            <thead>
+                                                <tr>
+                                                    {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
+                                                        return (
+                                                            <th className="headPre">
+                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
+                                                                <div>{item.nama === null ? "-" : item.nama}</div>
+                                                            </th>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
+                                                        return (
+                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'area' ? 'AOS' : item.jabatan}</td>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </tbody>
+                                        </Table>
+                                    </td>
+                                    <td className="restTable">
+                                        <Table bordered responsive className="divPre">
+                                            <thead>
+                                                <tr>
+                                                    {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
+                                                        return (
+                                                            <th className="headPre">
+                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
+                                                                <div>{item.nama === null ? "-" : item.nama}</div>
+                                                            </th>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
+                                                        return (
+                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </tbody>
+                                        </Table>
+                                    </td>
+                                    <td className="restTable">
+                                        <Table bordered responsive className="divPre">
+                                            <thead>
+                                                <tr>
+                                                    {dataApp.penyetuju !== undefined && dataApp.penyetuju.map(item => {
+                                                        return (
+                                                            <th className="headPre">
+                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
+                                                                <div>{item.nama === null ? "-" : item.nama}</div>
+                                                            </th>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    {dataApp.penyetuju !== undefined && dataApp.penyetuju.map(item => {
+                                                        return (
+                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </tbody>
+                                        </Table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </Table>
+                    </ModalBody>
+                    <hr />
+                    <div className="modalFoot">
+                        <div className="btnFoot">
+                        </div>
+                        <div className="btnFoot">
+                            <Button className="mr-2" color="warning" onClick={() => this.goDownload('formio')}>
+                                Download
+                            </Button>
+                            <Button color="secondary" onClick={this.openPreview}>
+                                Close
+                            </Button>
+                        </div>
                     </div>
-                    <div className="btnFoot">
-                        <Button className="mr-2" color="warning" onClick={() => this.goDownload('formio')}>
-                            Download
+                </Modal>
+                <Modal>
+                    <ModalBody>
+
+                    </ModalBody>
+                </Modal>
+                <Modal size="md" isOpen={this.state.openModalTtd} toggle={this.prosesModalTtd}>
+                    <ModalHeader>
+                        Proses Tanda Tangan
+                    </ModalHeader>
+                    <ModalBody>
+                        <Row>
+                            <Col md={3} lg={3}>
+                                Nama
+                            </Col>
+                            <Col md={9} lg={9}>
+                                : <input />
+                            </Col>
+                        </Row>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button color="secondary" onClick={this.prosesModalTtd}>
+                            Close
                         </Button>
-                        <Button color="secondary" onClick={this.openPreview}>
-                            Close 
+                        <Button color="primary" onClick={this.prosesModalTtd}>
+                            Save
                         </Button>
-                    </div>
-                </div>
-            </Modal>
-            <Modal>
-                <ModalBody>
-                    
-                </ModalBody>
-            </Modal>
-            <Modal size="md" isOpen={this.state.openModalTtd} toggle={this.prosesModalTtd}>
-                <ModalHeader>
-                    Proses Tanda Tangan
-                </ModalHeader>
-                <ModalBody>
-                    <Row>
-                        <Col md={3} lg={3}>
-                            Nama
-                        </Col>
-                        <Col md={9} lg={9}>
-                            : <input />
-                        </Col>
-                    </Row>
-                </ModalBody>
-                <ModalFooter>
-                    <Button color="secondary" onClick={this.prosesModalTtd}>
-                        Close
-                    </Button>
-                    <Button color="primary" onClick={this.prosesModalTtd}>
-                        Save 
-                    </Button>
-                </ModalFooter>
-            </Modal>
-            <Modal size="xl" isOpen={this.state.openModalDoc} toggle={this.closeProsesModalDoc}>
-                <ModalDokumen  
-                    parDoc={{noDoc: this.state.noDoc, noTrans: this.state.noTrans, tipe: 'pengadaan', filter: this.state.filter, detailForm: this.state.valdoc}} 
-                    dataDoc={detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? dataDocCart : dataDoc } 
-                />
-            </Modal>
-            <Modal size="xl">
-                <ModalHeader>
-                   Kelengkapan Dokumen
-                </ModalHeader>
-                <ModalBody>
-                    <Container>
-                        <Alert color="danger" className="alertWrong" isOpen={this.state.upload}>
-                            <div>{this.state.errMsg}</div>
-                        </Alert>
-                        {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
-                            dataDocCart !== undefined && dataDocCart.map(x => {
-                                return (
-                                    <Row className="mt-3 mb-4">
-                                        <Col md={12} lg={12} >
-                                            <text>{dataDocCart.indexOf(x) + 1}. {x.nama_dokumen}</text>
-                                        </Col>
-                                        {x.path !== null ? (
+                    </ModalFooter>
+                </Modal>
+                <Modal size="xl" isOpen={this.state.openModalDoc} toggle={this.closeProsesModalDoc}>
+                    <ModalDokumen
+                        parDoc={{ noDoc: this.state.noDoc, noTrans: this.state.noTrans, tipe: 'pengadaan', filter: this.state.filter, detailForm: this.state.valdoc }}
+                        dataDoc={detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? dataDocCart : dataDoc}
+                    />
+                </Modal>
+                <Modal size="xl">
+                    <ModalHeader>
+                        Kelengkapan Dokumen
+                    </ModalHeader>
+                    <ModalBody>
+                        <Container>
+                            <Alert color="danger" className="alertWrong" isOpen={this.state.upload}>
+                                <div>{this.state.errMsg}</div>
+                            </Alert>
+                            {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
+                                dataDocCart !== undefined && dataDocCart.map(x => {
+                                    return (
+                                        <Row className="mt-3 mb-4">
                                             <Col md={12} lg={12} >
-                                                {x.status === 0 ? (
-                                                    <AiOutlineClose size={20} />
-                                                ) : x.status === 3 ? (
-                                                    <AiOutlineCheck size={20} />
-                                                ) : (
-                                                    <BsCircle size={20} />
-                                                )}
-                                                <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
-                                                {/* <div>
+                                                <text>{dataDocCart.indexOf(x) + 1}. {x.nama_dokumen}</text>
+                                            </Col>
+                                            {x.path !== null ? (
+                                                <Col md={12} lg={12} >
+                                                    {x.status === 0 ? (
+                                                        <AiOutlineClose size={20} />
+                                                    ) : x.status === 3 ? (
+                                                        <AiOutlineCheck size={20} />
+                                                    ) : (
+                                                        <BsCircle size={20} />
+                                                    )}
+                                                    <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
+                                                    {/* <div>
                                                     <input
                                                     // className="ml-4"
                                                     type="file"
@@ -2291,33 +2411,33 @@ class Pengadaan extends Component {
                                                     onChange={this.onChangeUpload}
                                                     />
                                                 </div> */}
-                                            </Col>
-                                        ) : (
+                                                </Col>
+                                            ) : (
+                                                <Col md={12} lg={12} >
+                                                    -
+                                                </Col>
+                                            )}
+                                        </Row>
+                                    )
+                                })
+                            ) : (
+                                dataDoc !== undefined && dataDoc.map(x => {
+                                    return (
+                                        <Row className="mt-3 mb-4">
                                             <Col md={12} lg={12} >
-                                                -
+                                                <text>{dataDoc.indexOf(x) + 1}. {x.nama_dokumen}</text>
                                             </Col>
-                                        )}
-                                    </Row>
-                                )
-                            })
-                        ) : (
-                            dataDoc !== undefined && dataDoc.map(x => {
-                                return (
-                                    <Row className="mt-3 mb-4">
-                                        <Col md={12} lg={12} >
-                                            <text>{dataDoc.indexOf(x) + 1}. {x.nama_dokumen}</text>
-                                        </Col>
-                                        {x.path !== null ? (
-                                            <Col md={12} lg={12} >
-                                                {x.status === 0 ? (
-                                                    <AiOutlineClose size={20} />
-                                                ) : x.status === 3 ? (
-                                                    <AiOutlineCheck size={20} />
-                                                ) : (
-                                                    <BsCircle size={20} />
-                                                )}
-                                                <button className="btnDocIo" onClick={() => this.showDokPods(x)} >{x.nama_dokumen}</button>
-                                                {/* <div>
+                                            {x.path !== null ? (
+                                                <Col md={12} lg={12} >
+                                                    {x.status === 0 ? (
+                                                        <AiOutlineClose size={20} />
+                                                    ) : x.status === 3 ? (
+                                                        <AiOutlineCheck size={20} />
+                                                    ) : (
+                                                        <BsCircle size={20} />
+                                                    )}
+                                                    <button className="btnDocIo" onClick={() => this.showDokPods(x)} >{x.nama_dokumen}</button>
+                                                    {/* <div>
                                                     <input
                                                     // className="ml-4"
                                                     type="file"
@@ -2325,66 +2445,66 @@ class Pengadaan extends Component {
                                                     onChange={this.onChangeUpload}
                                                     />
                                                 </div> */}
-                                            </Col>
-                                        ) : (
-                                            <Col md={12} lg={12} >
-                                                -
-                                            </Col>
-                                        )}
-                                    </Row>
-                                )
-                            })
-                        )}
-                    </Container>
-                </ModalBody>
-                <ModalFooter>
-                    <Button className="mr-2" color="secondary" onClick={this.closeProsesModalDoc}>
+                                                </Col>
+                                            ) : (
+                                                <Col md={12} lg={12} >
+                                                    -
+                                                </Col>
+                                            )}
+                                        </Row>
+                                    )
+                                })
+                            )}
+                        </Container>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button className="mr-2" color="secondary" onClick={this.closeProsesModalDoc}>
                             Close
                         </Button>
                         <Button color="primary" onClick={this.closeProsesModalDoc}>
-                            Save 
-                    </Button>
-                </ModalFooter>
-            </Modal>
-            <Modal isOpen={this.props.pengadaan.isLoading || this.props.dokumen.isLoading || this.props.tempmail.isLoading ? true: false} size="sm">
-                <ModalBody>
-                    <div>
-                        <div className={style.cekUpdate}>
-                            <Spinner />
-                            <div sucUpdate>Waiting....</div>
+                            Save
+                        </Button>
+                    </ModalFooter>
+                </Modal>
+                <Modal isOpen={this.props.pengadaan.isLoading || this.props.dokumen.isLoading || this.props.tempmail.isLoading ? true : false} size="sm">
+                    <ModalBody>
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <Spinner />
+                                <div sucUpdate>Waiting....</div>
+                            </div>
                         </div>
-                    </div>
-                </ModalBody>
-            </Modal>
-            <Modal isOpen={this.props.pengadaan.isUpload ? true: false} size="sm">
-                <ModalBody>
-                    <div>
-                        <div className={style.cekUpdate}>
-                            <AiFillCheckCircle size={80} className={style.green} />
-                            <div className={[style.sucUpdate, style.green]}>Success</div>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.props.pengadaan.isUpload ? true : false} size="sm">
+                    <ModalBody>
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Success</div>
+                            </div>
                         </div>
-                    </div>
-                </ModalBody>
-            </Modal>
-            <Modal isOpen={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
-                <ModalHeader>Dokumen</ModalHeader>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
+                    <ModalHeader>Dokumen</ModalHeader>
                     <ModalBody>
                         <div className={style.readPdf}>
                             <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}?no=${fileName.no_pengadaan}`} />
                         </div>
-                        <hr/>
+                        <hr />
                         <div className={style.foot}>
                             <div>
                                 {/* <div>{moment(this.state.date).format('LLL')}</div> */}
                                 <Button color="success" onClick={this.downloadData}>Download</Button>
                             </div>
-                        {level === '2' ? (
-                            <div>
-                                <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
-                                <Button color="primary" onClick={this.openModalApprove}>Approve</Button>
-                            </div>
+                            {level === '2' ? (
+                                <div>
+                                    <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
+                                    <Button color="primary" onClick={this.openModalApprove}>Approve</Button>
+                                </div>
                             ) : (
-                                <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                                <Button color="primary" onClick={() => this.setState({ openPdf: false })}>Close</Button>
                             )}
                         </div>
                     </ModalBody>
@@ -2401,29 +2521,29 @@ class Pengadaan extends Component {
                     </ModalFooter>)} */}
                 </Modal>
                 <Modal className='modalBid' isOpen={this.state.openBid} size="xl" toggle={this.openModalBidding} centered={true}>
-                <ModalHeader>Dokumen</ModalHeader>
+                    <ModalHeader>Dokumen</ModalHeader>
                     <ModalBody className='bodyBid'>
                         {/* <div className={style.readPdf}>
                         </div> */}
-                        <iframe 
-                        allowfullscreen={true}
-                        height="600"
-                        className='bidding' 
-                        src={fileName.path} 
-                        title="Dokumen Bidding"
+                        <iframe
+                            allowfullscreen={true}
+                            height="600"
+                            className='bidding'
+                            src={fileName.path}
+                            title="Dokumen Bidding"
                         />
-                        <hr/>
+                        <hr />
                         <div className={style.foot}>
                             <div>
                                 {/* <Button color="success" onClick={this.downloadData}>Download</Button> */}
                             </div>
-                        {level === '2' ? (
-                            <div>
-                                <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
-                                <Button color="primary" onClick={this.openModalApprove}>Approve</Button>
-                            </div>
+                            {level === '2' ? (
+                                <div>
+                                    <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
+                                    <Button color="primary" onClick={this.openModalApprove}>Approve</Button>
+                                </div>
                             ) : (
-                                <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                                <Button color="primary" onClick={() => this.setState({ openPdf: false })}>Close</Button>
                             )}
                         </div>
                     </ModalBody>
@@ -2433,7 +2553,7 @@ class Pengadaan extends Component {
                         <div className={style.modalApprove}>
                             <div>
                                 <text>
-                                    Anda yakin untuk approve 
+                                    Anda yakin untuk approve
                                     <text className={style.verif}> {fileName.nama_dokumen} </text>
                                     pada tanggal
                                     <text className={style.verif}> {moment().format('LL')}</text> ?
@@ -2448,38 +2568,38 @@ class Pengadaan extends Component {
                 </Modal>
                 <Modal isOpen={this.state.openRejectDis} toggle={this.openModalRejectDis} centered={true}>
                     <ModalBody>
-                    <Formik
-                    initialValues={{
-                    alasan: "",
-                    }}
-                    validationSchema={alasanSchema}
-                    onSubmit={(values) => {this.rejectDokumen(values)}}
-                    >
-                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
-                            <div className={style.modalApprove}>
-                            <div className={style.quest}>Anda yakin untuk reject {this.state.fileName.nama_dokumen} ?</div>
-                            <div className={style.alasan}>
-                                <text className="col-md-3">
-                                    Alasan
-                                </text>
-                                <Input 
-                                type="name" 
-                                name="select" 
-                                className="col-md-9"
-                                value={values.alasan}
-                                onChange={handleChange('alasan')}
-                                onBlur={handleBlur('alasan')}
-                                />
-                            </div>
-                            {errors.alasan ? (
-                                    <text className={style.txtError}>{errors.alasan}</text>
-                                ) : null}
-                            <div className={style.btnApprove}>
-                                <Button color="primary" onClick={handleSubmit}>Ya</Button>
-                                <Button color="secondary" onClick={this.openModalRejectDis}>Tidak</Button>
-                            </div>
-                        </div>
-                        )}
+                        <Formik
+                            initialValues={{
+                                alasan: "",
+                            }}
+                            validationSchema={alasanSchema}
+                            onSubmit={(values) => { this.rejectDokumen(values) }}
+                        >
+                            {({ handleChange, handleBlur, handleSubmit, values, errors, touched, }) => (
+                                <div className={style.modalApprove}>
+                                    <div className={style.quest}>Anda yakin untuk reject {this.state.fileName.nama_dokumen} ?</div>
+                                    <div className={style.alasan}>
+                                        <text className="col-md-3">
+                                            Alasan
+                                        </text>
+                                        <Input
+                                            type="name"
+                                            name="select"
+                                            className="col-md-9"
+                                            value={values.alasan}
+                                            onChange={handleChange('alasan')}
+                                            onBlur={handleBlur('alasan')}
+                                        />
+                                    </div>
+                                    {errors.alasan ? (
+                                        <text className={style.txtError}>{errors.alasan}</text>
+                                    ) : null}
+                                    <div className={style.btnApprove}>
+                                        <Button color="primary" onClick={handleSubmit}>Ya</Button>
+                                        <Button color="secondary" onClick={this.openModalRejectDis}>Tidak</Button>
+                                    </div>
+                                </div>
+                            )}
                         </Formik>
                     </ModalBody>
                 </Modal>
@@ -2488,8 +2608,8 @@ class Pengadaan extends Component {
                         <div className={style.modalApprove}>
                             <div>
                                 <text>
-                                    Anda yakin untuk approve 
-                                    <text className={style.verif}> Pengadaan {newIo.map(item => { return (listMut.find(element => element === item.id) !== undefined ? `${item.no_pengadaan},` : null)})} </text>
+                                    Anda yakin untuk approve
+                                    <text className={style.verif}> Pengadaan {newIo.map(item => { return (listMut.find(element => element === item.id) !== undefined ? `${item.no_pengadaan},` : null) })} </text>
                                     pada tanggal
                                     <text className={style.verif}> {moment().format('LL')}</text> ?
                                 </text>
@@ -2503,53 +2623,53 @@ class Pengadaan extends Component {
                 </Modal>
                 <Modal isOpen={this.state.openReject} toggle={this.openModalReject} centered={true}>
                     <ModalBody>
-                    <Formik
-                    initialValues={{
-                        alasan: "",
-                    }}
-                    validationSchema={alasanSchema}
-                    onSubmit={(values) => {
-                        // this.rejectIo(values)
-                        this.prepReject(values)
-                    }}
-                    >
-                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
-                            <div className={style.modalApprove}>
-                                <div className='mb-2 quest'>Anda yakin untuk reject ?</div>
-                                <div className='mb-2 titStatus'>Pilih reject :</div>
-                                <div className="ml-2">
-                                    <Input
-                                    addon
-                                    type="checkbox"
-                                    checked= {this.state.typeReject === 'perbaikan' ? true : false}
-                                    onClick={this.state.typeReject === 'perbaikan' ? () => this.rejectRej('perbaikan') : () => this.rejectApp('perbaikan')}
-                                    />  Perbaikan
-                                </div>
-                                <div className="ml-2">
-                                    <Input
-                                    addon
-                                    type="checkbox"
-                                    checked= {this.state.typeReject === 'pembatalan' ? true : false}
-                                    onClick={this.state.typeReject === 'pembatalan' ? () => this.rejectRej('pembatalan') : () => this.rejectApp('pembatalan')}
-                                    />  Pembatalan
-                                </div>
-                                <div className='ml-2'>
-                                    {this.state.typeReject === '' ? (
-                                        <text className={style.txtError}>Must be filled</text>
-                                    ) : null}
-                                </div>
-                                {this.state.typeReject === 'perbaikan' && (
-                                    <>
-                                        <div className='mb-2 mt-2 titStatus'>Pilih Menu Revisi :</div>
-                                        <div className="ml-2">
-                                            <Input
+                        <Formik
+                            initialValues={{
+                                alasan: "",
+                            }}
+                            validationSchema={alasanSchema}
+                            onSubmit={(values) => {
+                                // this.rejectIo(values)
+                                this.prepReject(values)
+                            }}
+                        >
+                            {({ handleChange, handleBlur, handleSubmit, values, errors, touched, }) => (
+                                <div className={style.modalApprove}>
+                                    <div className='mb-2 quest'>Anda yakin untuk reject ?</div>
+                                    <div className='mb-2 titStatus'>Pilih reject :</div>
+                                    <div className="ml-2">
+                                        <Input
                                             addon
                                             type="checkbox"
-                                            checked= {this.state.menuRev === 'Revisi Area' ? true : false}
-                                            onClick={this.state.menuRev === 'Revisi Area' ? () => this.menuRej('Revisi Area') : () => this.menuApp('Revisi Area')}
-                                            />  Revisi Area
-                                        </div>
-                                        {/* <div className="ml-2">
+                                            checked={this.state.typeReject === 'perbaikan' ? true : false}
+                                            onClick={this.state.typeReject === 'perbaikan' ? () => this.rejectRej('perbaikan') : () => this.rejectApp('perbaikan')}
+                                        />  Perbaikan
+                                    </div>
+                                    <div className="ml-2">
+                                        <Input
+                                            addon
+                                            type="checkbox"
+                                            checked={this.state.typeReject === 'pembatalan' ? true : false}
+                                            onClick={this.state.typeReject === 'pembatalan' ? () => this.rejectRej('pembatalan') : () => this.rejectApp('pembatalan')}
+                                        />  Pembatalan
+                                    </div>
+                                    <div className='ml-2'>
+                                        {this.state.typeReject === '' ? (
+                                            <text className={style.txtError}>Must be filled</text>
+                                        ) : null}
+                                    </div>
+                                    {this.state.typeReject === 'perbaikan' && (
+                                        <>
+                                            <div className='mb-2 mt-2 titStatus'>Pilih Menu Revisi :</div>
+                                            <div className="ml-2">
+                                                <Input
+                                                    addon
+                                                    type="checkbox"
+                                                    checked={this.state.menuRev === 'Revisi Area' ? true : false}
+                                                    onClick={this.state.menuRev === 'Revisi Area' ? () => this.menuRej('Revisi Area') : () => this.menuApp('Revisi Area')}
+                                                />  Revisi Area
+                                            </div>
+                                            {/* <div className="ml-2">
                                             <Input
                                             addon
                                             type="checkbox"
@@ -2557,63 +2677,63 @@ class Pengadaan extends Component {
                                             onClick={this.state.menuRev === 'pembatalan' ? () => this.menuRej('pembatalan') : () => this.menuApp('pembatalan')}
                                             />  Revisi Asset
                                         </div> */}
-                                        <div className='ml-2'>
-                                            {this.state.menuRev === '' ? (
-                                                <text className={style.txtError}>Must be filled</text>
-                                            ) : null}
-                                        </div>
-                                    </>
-                                )}
-                                
-                                <div className='mb-2 mt-2 titStatus'>Pilih alasan :</div>
-                                <div className="ml-2">
+                                            <div className='ml-2'>
+                                                {this.state.menuRev === '' ? (
+                                                    <text className={style.txtError}>Must be filled</text>
+                                                ) : null}
+                                            </div>
+                                        </>
+                                    )}
+
+                                    <div className='mb-2 mt-2 titStatus'>Pilih alasan :</div>
+                                    <div className="ml-2">
+                                        <Input
+                                            addon
+                                            type="checkbox"
+                                            checked={listStat.find(element => element === 'Deskripsi, kuantitas, dan harga tidak sesuai') !== undefined ? true : false}
+                                            onClick={listStat.find(element => element === 'Deskripsi, kuantitas, dan harga tidak sesuai') === undefined ? () => this.statusApp('Deskripsi, kuantitas, dan harga tidak sesuai') : () => this.statusRej('Deskripsi, kuantitas, dan harga tidak sesuai')}
+                                        />  Deskripsi, kuantitas, dan harga tidak sesuai
+                                    </div>
+                                    <div className="ml-2">
+                                        <Input
+                                            addon
+                                            type="checkbox"
+                                            checked={listStat.find(element => element === 'Dokumen lampiran tidak sesuai') !== undefined ? true : false}
+                                            onClick={listStat.find(element => element === 'Dokumen lampiran tidak sesuai') === undefined ? () => this.statusApp('Dokumen lampiran tidak sesuai') : () => this.statusRej('Dokumen lampiran tidak sesuai')}
+                                        />  Dokumen lampiran tidak sesuai
+                                    </div>
+                                    <div className="ml-2">
+                                        <Input
+                                            addon
+                                            type="checkbox"
+                                            checked={listStat.find(element => element === 'Alasan di form io yang tidak sesuai') !== undefined ? true : false}
+                                            onClick={listStat.find(element => element === 'Alasan di form io yang tidak sesuai') === undefined ? () => this.statusApp('Alasan di form io yang tidak sesuai') : () => this.statusRej('Alasan di form io yang tidak sesuai')}
+                                        />  Alasan di form io yang tidak sesuai
+                                    </div>
+                                    <div className={style.alasan}>
+                                        <text className='ml-2'>
+                                            Lainnya
+                                        </text>
+                                    </div>
                                     <Input
-                                    addon
-                                    type="checkbox"
-                                    checked= {listStat.find(element => element === 'Deskripsi, kuantitas, dan harga tidak sesuai') !== undefined ? true : false}
-                                    onClick={listStat.find(element => element === 'Deskripsi, kuantitas, dan harga tidak sesuai') === undefined ? () => this.statusApp('Deskripsi, kuantitas, dan harga tidak sesuai') : () => this.statusRej('Deskripsi, kuantitas, dan harga tidak sesuai')}
-                                    />  Deskripsi, kuantitas, dan harga tidak sesuai
+                                        type="name"
+                                        name="select"
+                                        className="ml-2 inputRec"
+                                        value={values.alasan}
+                                        onChange={handleChange('alasan')}
+                                        onBlur={handleBlur('alasan')}
+                                    />
+                                    <div className='ml-2'>
+                                        {listStat.length === 0 && (values.alasan.length < 3) ? (
+                                            <text className={style.txtError}>Must be filled</text>
+                                        ) : null}
+                                    </div>
+                                    <div className={style.btnApprove}>
+                                        <Button color="primary" disabled={(((values.alasan === '.' || values.alasan === '') && listStat.length === 0) || this.state.typeReject === '' || (this.state.typeReject === 'perbaikan' && this.state.menuRev === '')) ? true : false} onClick={handleSubmit}>Submit</Button>
+                                        <Button className='ml-2' color="secondary" onClick={this.openModalReject}>Close</Button>
+                                    </div>
                                 </div>
-                                <div className="ml-2">
-                                    <Input
-                                    addon
-                                    type="checkbox"
-                                    checked= {listStat.find(element => element === 'Dokumen lampiran tidak sesuai') !== undefined ? true : false}
-                                    onClick={listStat.find(element => element === 'Dokumen lampiran tidak sesuai') === undefined ? () => this.statusApp('Dokumen lampiran tidak sesuai') : () => this.statusRej('Dokumen lampiran tidak sesuai')}
-                                    />  Dokumen lampiran tidak sesuai
-                                </div>
-                                <div className="ml-2">
-                                    <Input
-                                    addon
-                                    type="checkbox"
-                                    checked= {listStat.find(element => element === 'Alasan di form io yang tidak sesuai') !== undefined ? true : false}
-                                    onClick={listStat.find(element => element === 'Alasan di form io yang tidak sesuai') === undefined ? () => this.statusApp('Alasan di form io yang tidak sesuai') : () => this.statusRej('Alasan di form io yang tidak sesuai')}
-                                    />  Alasan di form io yang tidak sesuai
-                                </div>
-                                <div className={style.alasan}>
-                                    <text className='ml-2'>
-                                        Lainnya
-                                    </text>
-                                </div>
-                                <Input 
-                                type="name" 
-                                name="select" 
-                                className="ml-2 inputRec"
-                                value={values.alasan}
-                                onChange={handleChange('alasan')}
-                                onBlur={handleBlur('alasan')}
-                                />
-                                <div className='ml-2'>
-                                    {listStat.length === 0 && (values.alasan.length < 3)? (
-                                        <text className={style.txtError}>Must be filled</text>
-                                    ) : null}
-                                </div>
-                                <div className={style.btnApprove}>
-                                    <Button color="primary" disabled={(((values.alasan === '.' || values.alasan === '') && listStat.length === 0) || this.state.typeReject === '' || (this.state.typeReject === 'perbaikan' && this.state.menuRev === '')) ? true : false} onClick={handleSubmit}>Submit</Button>
-                                    <Button className='ml-2' color="secondary" onClick={this.openModalReject}>Close</Button>
-                                </div>
-                            </div>
-                        )}
+                            )}
                         </Formik>
                     </ModalBody>
                 </Modal>
@@ -2622,7 +2742,7 @@ class Pengadaan extends Component {
                         <div className={style.modalApprove}>
                             <div>
                                 <text>
-                                    Anda yakin untuk approve 
+                                    Anda yakin untuk approve
                                     <text className={style.verif}>  </text>
                                     pada tanggal
                                     <text className={style.verif}> {moment().format('LL')}</text> ?
@@ -2641,7 +2761,7 @@ class Pengadaan extends Component {
                         <div className={style.modalApprove}>
                             <div>
                                 <text>
-                                    Anda yakin untuk submit 
+                                    Anda yakin untuk submit
                                     <text className={style.verif}>  </text>
                                     pada tanggal
                                     <text className={style.verif}> {moment().format('LL')}</text> ?
@@ -2655,7 +2775,7 @@ class Pengadaan extends Component {
                         </div>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.state.formTrack} toggle={() => {this.openModalTrack(); this.showCollap('close')}} size="xl">
+                <Modal isOpen={this.state.formTrack} toggle={() => { this.openModalTrack(); this.showCollap('close') }} size="xl">
                     {/* <Alert color="danger" className={style.alertWrong} isOpen={detailTrack.find(({status_form}) => status_form == 26) === undefined ? false : true}>
                         <div>Data Penjualan Asset Sedang Dilengkapi oleh divisi purchasing</div>
                     </Alert> */}
@@ -2670,7 +2790,7 @@ class Pengadaan extends Component {
                                 Kode Area
                             </Col>
                             <Col md={9}>
-                            : {detailTrack[0] === undefined ? '' : detailTrack[0].kode_plant}
+                                : {detailTrack[0] === undefined ? '' : detailTrack[0].kode_plant}
                             </Col>
                         </Row>
                         <Row className='ml-4 trackSub'>
@@ -2678,7 +2798,7 @@ class Pengadaan extends Component {
                                 Area
                             </Col>
                             <Col md={9}>
-                            : {detailTrack[0] === undefined ? '' : detailTrack[0].area}
+                                : {detailTrack[0] === undefined ? '' : detailTrack[0].area}
                             </Col>
                         </Row>
                         <Row className='ml-4 trackSub'>
@@ -2686,15 +2806,15 @@ class Pengadaan extends Component {
                                 No Pengadaan
                             </Col>
                             <Col md={9}>
-                            : {detailTrack[0] === undefined ? '' : detailTrack[0].no_pengadaan}
+                                : {detailTrack[0] === undefined ? '' : detailTrack[0].no_pengadaan}
                             </Col>
                         </Row>
                         <Row className='ml-4 trackSub'>
                             <Col md={3}>
-                            Tanggal Pengajuan
+                                Tanggal Pengajuan
                             </Col>
                             <Col md={9}>
-                            : {detailTrack[0] === undefined ? '' : moment(detailTrack[0].createdAt === null ? detailTrack[0].createdAt : detailTrack[0].createdAt).locale('idn').format('DD MMMM YYYY ')}
+                                : {detailTrack[0] === undefined ? '' : moment(detailTrack[0].createdAt === null ? detailTrack[0].createdAt : detailTrack[0].createdAt).locale('idn').format('DD MMMM YYYY ')}
                             </Col>
                         </Row>
                         <Row className='ml-4 trackSub1'>
@@ -2705,23 +2825,41 @@ class Pengadaan extends Component {
                         <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
                             <div class="step completed">
                                 <div class="step-icon-wrap">
-                                <button class="step-icon" onClick={() => this.showCollap('Submit')} ><FiSend size={40} className="center1" /></button>
+                                    <button class="step-icon" onClick={() => this.showCollap('Submit')} ><FiSend size={40} className="center1" /></button>
                                 </div>
                                 <h4 class="step-title">Submit</h4>
                             </div>
-                            <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form > 1 ? "step completed" : 'step'}>
-                                <div class="step-icon-wrap">
-                                    <button class="step-icon" onClick={() => this.showCollap('Verifikasi Aset')}><FiSettings size={40} className="center" /></button>
+                            {/* {detailTrack[0] !== undefined && detailTrack[0].kategori !== 'return' && ( */}
+                            {detailTrack[0] !== undefined && (
+                                <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form > 1 ? "step completed" : 'step'}>
+                                    <div class="step-icon-wrap">
+                                        <button class="step-icon" onClick={() => this.showCollap('Verifikasi Aset')}><FiSettings size={40} className="center" /></button>
+                                    </div>
+                                    <h4 class="step-title">Verifikasi Aset</h4>
                                 </div>
-                                <h4 class="step-title">Verifikasi Aset</h4>
-                            </div>
+                            )}
                             <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form > 2 ? "step completed" : 'step'} >
                                 <div class="step-icon-wrap">
                                     <button class="step-icon" onClick={() => this.showCollap('Pengajuan')}><MdAssignment size={40} className="center" /></button>
                                 </div>
                                 <h4 class="step-title">Approval Form IO</h4>
                             </div>
-                            <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form > 3 ? "step completed" : 'step'}>
+                            {/* {detailTrack[0] !== undefined && detailTrack[0].kategori === 'return' && (
+                                <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form > 3 ? "step completed" : 'step'}>
+                                    <div class="step-icon-wrap">
+                                        <button class="step-icon" onClick={() => this.showCollap('Verifikasi Aset')}><FiSettings size={40} className="center" /></button>
+                                    </div>
+                                    <h4 class="step-title">Verifikasi Aset</h4>
+                                </div>
+                            )} */}
+                            <div
+                                // class={
+                                //     detailTrack[0] === undefined ? 'step' :
+                                //         (detailTrack[0].kategori !== 'return' && detailTrack[0].status_form > 3) || (detailTrack[0].kategori === 'return' && detailTrack[0].status_form > 4) ? "step completed"
+                                //             : 'step'
+                                // }
+                                class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form > 3 ? "step completed" : 'step'}
+                                >
                                 <div class="step-icon-wrap">
                                     <button class="step-icon" onClick={() => this.showCollap('Proses Budget')}><FiSettings size={40} className="center" /></button>
                                 </div>
@@ -2783,7 +2921,7 @@ class Pengadaan extends Component {
                                                         return (
                                                             <div class={item.status === 1 ? 'step completed' : item.status === 0 ? 'step reject' : 'step'}>
                                                                 <div class="step-icon-wrap">
-                                                                <button class="step-icon"><FaFileSignature size={30} className="center2" /></button>
+                                                                    <button class="step-icon"><FaFileSignature size={30} className="center2" /></button>
                                                                 </div>
                                                                 <h5 class="step-title">{item.status === null ? '' : moment(item.updatedAt).format('DD-MM-YYYY')} </h5>
                                                                 <h4 class="step-title">{item.status === null ? '' : item.nama}</h4>
@@ -2792,32 +2930,32 @@ class Pengadaan extends Component {
                                                         )
                                                     })}
                                                 </div>
-                                            ) :  this.state.tipeCol === 'Eksekusi' ? (
+                                            ) : this.state.tipeCol === 'Eksekusi' ? (
                                                 <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
                                                     <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form == 9 || detailTrack[0].status_form == 8 ? "step completed" : 'step'}>
                                                         <div class="step-icon-wrap">
-                                                        <button class="step-icon" ><FaFileSignature size={30} className="center2" /></button>
+                                                            <button class="step-icon" ><FaFileSignature size={30} className="center2" /></button>
                                                         </div>
                                                         <h4 class="step-title">Filling No Asset</h4>
                                                     </div>
                                                     <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form == 8 ? "step completed" : 'step'}>
                                                         <div class="step-icon-wrap">
-                                                        <button class="step-icon" ><AiOutlineCheck size={30} className="center2" /></button>
+                                                            <button class="step-icon" ><AiOutlineCheck size={30} className="center2" /></button>
                                                         </div>
                                                         <h4 class="step-title">Selesai</h4>
                                                     </div>
                                                 </div>
-                                            ) :  this.state.tipeCol === 'Verifikasi Aset' ? (
+                                            ) : this.state.tipeCol === 'Verifikasi Aset' ? (
                                                 <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
                                                     <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form === '1' || parseInt(detailTrack[0].status_form) > 1 ? "step completed" : 'step'}>
                                                         <div class="step-icon-wrap">
-                                                        <button class="step-icon" ><FaFileSignature size={30} className="center2" /></button>
+                                                            <button class="step-icon" ><FaFileSignature size={30} className="center2" /></button>
                                                         </div>
                                                         <h4 class="step-title">Verifikasi Aset atau Non Asset</h4>
                                                     </div>
                                                     <div class={detailTrack[0] === undefined ? 'step' : parseInt(detailTrack[0].status_form) > 1 ? "step completed" : 'step'}>
                                                         <div class="step-icon-wrap">
-                                                        <button class="step-icon" ><AiOutlineCheck size={30} className="center2" /></button>
+                                                            <button class="step-icon" ><AiOutlineCheck size={30} className="center2" /></button>
                                                         </div>
                                                         <h4 class="step-title">Selesai</h4>
                                                     </div>
@@ -2826,13 +2964,13 @@ class Pengadaan extends Component {
                                                 <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
                                                     <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form == 3 || parseInt(detailTrack[0].status_form) > 3 ? "step completed" : 'step'}>
                                                         <div class="step-icon-wrap">
-                                                        <button class="step-icon" ><FaFileSignature size={30} className="center2" /></button>
+                                                            <button class="step-icon" ><FaFileSignature size={30} className="center2" /></button>
                                                         </div>
                                                         <h4 class="step-title">Filling No Io</h4>
                                                     </div>
-                                                    <div class={detailTrack[0] === undefined ? 'step' : parseInt(detailTrack[0].status_form)  > 3 ? "step completed" : 'step'}>
+                                                    <div class={detailTrack[0] === undefined ? 'step' : parseInt(detailTrack[0].status_form) > 3 ? "step completed" : 'step'}>
                                                         <div class="step-icon-wrap">
-                                                        <button class="step-icon" ><AiOutlineCheck size={30} className="center2" /></button>
+                                                            <button class="step-icon" ><AiOutlineCheck size={30} className="center2" /></button>
                                                         </div>
                                                         <h4 class="step-title">Selesai</h4>
                                                     </div>
@@ -2849,7 +2987,7 @@ class Pengadaan extends Component {
                         {/* <Button color="primary" onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailTrack[0] !== undefined && detailTrack[0].no_pengadaan})}>Preview</Button> */}
                         <div></div>
                         <div className="btnFoot">
-                            <Button color="primary" onClick={() => {this.openModalTrack(); this.showCollap('close')}}>
+                            <Button color="primary" onClick={() => { this.openModalTrack(); this.showCollap('close') }}>
                                 Close
                             </Button>
                         </div>
@@ -2859,9 +2997,12 @@ class Pengadaan extends Component {
                     <ModalBody>
                         <div className='mb-4'>History Transaksi</div>
                         <div className='history'>
-                            {detailTrack.length > 0 && detailTrack[0].history.split(',').map(item => {
+                            {detailTrack === undefined || detailTrack.length === 0 || detailTrack[0].history === null ? (
+                                <div></div>   
+                            ) 
+                            : detailTrack[0].history.split(',').map(item => {
                                 return (
-                                    item !== null && item !== 'null' && 
+                                    item !== null && item !== 'null' &&
                                     <Button className='mb-2' color='info'>{item}</Button>
                                 )
                             })}
@@ -2869,212 +3010,212 @@ class Pengadaan extends Component {
                     </ModalBody>
                 </Modal>
                 <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="md">
-                <ModalBody>
-                    {this.state.confirm === 'submit' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                            <AiFillCheckCircle size={80} className={style.green} />
-                            <div className={[style.sucUpdate, style.green]}>Berhasil Submit</div>
-                        </div>
-                        </div>
-                    ) : this.state.confirm === 'submitnot' ? (
-                        <div>
-                            <div className={style.cekUpdate}>
-                            <AiFillCheckCircle size={80} className={style.green} />
-                            <div className={[style.sucUpdate, style.green]}>Berhasil Submit</div>
-                            {/* <div className="errApprove mt-2">Transaksi dibatalkan</div> */}
-                        </div>
-                        </div>
-                    ) : this.state.confirm === 'isupdate' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                                <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={[style.sucUpdate, style.green]}>Berhasil Update Nomor IO</div>
+                    <ModalBody>
+                        {this.state.confirm === 'submit' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Submit</div>
+                                </div>
                             </div>
-                        </div>
-                    ) : this.state.confirm === 'approve' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                                <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={[style.sucUpdate, style.green]}>Berhasil Approve</div>
+                        ) : this.state.confirm === 'submitnot' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Submit</div>
+                                    {/* <div className="errApprove mt-2">Transaksi dibatalkan</div> */}
+                                </div>
                             </div>
-                        </div>
-                    ) : this.state.confirm === 'upreason' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                                <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={[style.sucUpdate, style.green]}>Berhasil Update Alasan</div>
+                        ) : this.state.confirm === 'isupdate' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Update Nomor IO</div>
+                                </div>
                             </div>
-                        </div>
-                    ) : this.state.confirm === 'reject' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                                <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={[style.sucUpdate, style.green]}>Berhasil Reject</div>
+                        ) : this.state.confirm === 'approve' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Approve</div>
+                                </div>
                             </div>
-                        </div>
-                    ) : this.state.confirm === 'rejApprove' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Gagal Approve</div>
-                        </div>
-                        </div>
-                    ) : this.state.confirm === 'rejReject' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                                <AiOutlineClose size={80} className={style.red} />
-                                <div className={[style.sucUpdate, style.green]}>Gagal Reject</div>
+                        ) : this.state.confirm === 'upreason' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Update Alasan</div>
+                                </div>
                             </div>
-                        </div>
-                    ) : this.state.confirm === 'falseCancel' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                                <AiOutlineClose size={80} className={style.red} />
-                                <div className={[style.sucUpdate, style.green]}>Gagal Reject</div>
-                                <div className="errApprove mt-2">Reject pembatalan hanya bisa dilakukan jika semua data ajuan terceklis</div>
+                        ) : this.state.confirm === 'reject' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Reject</div>
+                                </div>
                             </div>
-                        </div>
-                    ) : this.state.confirm === 'rejSubmit' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                                <AiOutlineClose size={80} className={style.red} />
-                                <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
-                                <div className="errApprove mt-2">Mohon isi Nomor IO terlebih dahulu</div>
+                        ) : this.state.confirm === 'rejApprove' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green]}>Gagal Approve</div>
+                                </div>
                             </div>
-                        </div>
-                    ) : this.state.confirm === 'falseSubmit' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
-                            <div className="errApprove mt-2">Mohon identifikasi asset terlebih dahulu</div>
-                        </div>
-                        </div>
-                    ) : this.state.confirm === 'falseSubmitDok' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
-                            <div className="errApprove mt-2">Mohon approve dokumen terlebih dahulu</div>
-                        </div>
-                        </div>
-                    ) : this.state.confirm === 'falseAppDok' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Gagal Approve</div>
-                            <div className="errApprove mt-2">Mohon approve dokumen terlebih dahulu</div>
-                        </div>
-                        </div>
-                    ) : this.state.confirm === 'recent' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Permintaan gagal</div>
-                            <div className="errApprove mt-2">Mohon isi alasan terlebih dahulu</div>
-                        </div>
-                        </div>
-                    ) : this.state.confirm === 'apitrue' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                                <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={[style.sucUpdate, style.green]}>Connection Success</div>
+                        ) : this.state.confirm === 'rejReject' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green]}>Gagal Reject</div>
+                                </div>
                             </div>
-                        </div>
-                    ) : this.state.confirm === 'apifalse' ? (
-                        <div>
-                            <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Connection Failed</div>
-                        </div>
-                        </div>
-                    ) : this.state.confirm === 'appDocTrue' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                                <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={[style.sucUpdate, style.green]}>Berhasil Approve Dokumen</div>
+                        ) : this.state.confirm === 'falseCancel' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green]}>Gagal Reject</div>
+                                    <div className="errApprove mt-2">Reject pembatalan hanya bisa dilakukan jika semua data ajuan terceklis</div>
+                                </div>
                             </div>
-                        </div>
-                    ) : this.state.confirm === 'rejDocTrue' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                                <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={[style.sucUpdate, style.green]}>Berhasil Reject Dokumen</div>
+                        ) : this.state.confirm === 'rejSubmit' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                                    <div className="errApprove mt-2">Mohon isi Nomor IO terlebih dahulu</div>
+                                </div>
                             </div>
-                        </div>
-                    ) : this.state.confirm === 'appDocFalse' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Gagal Approve Dokumen</div>
-                        </div>
-                        </div>
-                    ) : this.state.confirm === 'rejDocFalse' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Gagal Reject Dokumen</div>
-                        </div>
-                        </div>
-                    ) : (
-                        <div></div>
-                    )}
-                </ModalBody>
-                <div className='row justify-content-md-center mb-4'>
-                    <Button size='lg' onClick={this.openConfirm} color='primary'>OK</Button>
-                </div>
-            </Modal>
-            <Modal isOpen={this.state.openDraft} size='xl'>
-                <ModalHeader>Email Pemberitahuan</ModalHeader>
-                <ModalBody>
-                    <Email handleData={this.getMessage}/>
-                    <div className={style.foot}>
-                        <div></div>
-                        <div>
-                            <Button
-                                disabled={this.state.message === '' ? true : false} 
-                                className="mr-2"
-                                onClick={tipeEmail === 'asset' ? () => this.submitAsset(detailIo[0].no_pengadaan) 
-                                    : tipeEmail === 'budget' ?  this.submitBudget
-                                    : tipeEmail === 'reject' ? () => this.rejectIo(this.state.dataRej)
-                                    : this.approveIo
-                                } 
-                                color="primary"
-                            >
-                                {tipeEmail === 'reject' ? 'Reject' : 'Approve'} & Send Email
-                            </Button>
-                            <Button className="mr-3" onClick={this.openDraftEmail}>Cancel</Button>
-                        </div>
+                        ) : this.state.confirm === 'falseSubmit' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                                    <div className="errApprove mt-2">Mohon identifikasi asset terlebih dahulu</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'falseSubmitDok' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                                    <div className="errApprove mt-2">Mohon approve dokumen terlebih dahulu</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'falseAppDok' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green]}>Gagal Approve</div>
+                                    <div className="errApprove mt-2">Mohon approve dokumen terlebih dahulu</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'recent' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green]}>Permintaan gagal</div>
+                                    <div className="errApprove mt-2">Mohon isi alasan terlebih dahulu</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'apitrue' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Connection Success</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'apifalse' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green]}>Connection Failed</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'appDocTrue' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Approve Dokumen</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'rejDocTrue' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Reject Dokumen</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'appDocFalse' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green]}>Gagal Approve Dokumen</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'rejDocFalse' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green]}>Gagal Reject Dokumen</div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div></div>
+                        )}
+                    </ModalBody>
+                    <div className='row justify-content-md-center mb-4'>
+                        <Button size='lg' onClick={this.openConfirm} color='primary'>OK</Button>
                     </div>
-                </ModalBody>
-            </Modal>
-            <Modal size="xl" isOpen={this.state.openFill} toggle={this.openFill}>
-                <ModalHeader>
-                    Filling No. Asset
-                </ModalHeader>
-                <ModalBody>
-                    {/* <Alert color="info" className="alertWrong" isOpen={false}>
+                </Modal>
+                <Modal isOpen={this.state.openDraft} size='xl'>
+                    <ModalHeader>Email Pemberitahuan</ModalHeader>
+                    <ModalBody>
+                        <Email handleData={this.getMessage} />
+                        <div className={style.foot}>
+                            <div></div>
+                            <div>
+                                <Button
+                                    disabled={this.state.message === '' ? true : false}
+                                    className="mr-2"
+                                    onClick={tipeEmail === 'asset' ? () => this.submitAsset(detailIo[0].no_pengadaan)
+                                        : tipeEmail === 'budget' ? this.submitBudget
+                                            : tipeEmail === 'reject' ? () => this.rejectIo(this.state.dataRej)
+                                                : this.approveIo
+                                    }
+                                    color="primary"
+                                >
+                                    {tipeEmail === 'reject' ? 'Reject' : 'Approve'} & Send Email
+                                </Button>
+                                <Button className="mr-3" onClick={this.openDraftEmail}>Cancel</Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                </Modal>
+                <Modal size="xl" isOpen={this.state.openFill} toggle={this.openFill}>
+                    <ModalHeader>
+                        Filling No. Asset
+                    </ModalHeader>
+                    <ModalBody>
+                        {/* <Alert color="info" className="alertWrong" isOpen={false}>
                         <div>Gunakan tanda koma (,) sebagai pemisah antara nomor asset satu dengan yang lainnya, ex: 1000876,20006784,1000756</div>
                     </Alert> */}
-                    <Table bordered stripped responsive id="table-to-xls">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>No Pengadaan</th>
-                                <th>Description</th>
-                                <th>Price/unit</th>
-                                <th>Total Amount</th>
-                                <th>No Asset</th>
-                                <th>ID Asset</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {dataTemp !== undefined && dataTemp.length > 0 && dataTemp.map(item => {
-                                return (
-                                    // item.isAsset === 'false' ? (
-                                    //     null
-                                    // ) : (
+                        <Table bordered stripped responsive id="table-to-xls">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>No Pengadaan</th>
+                                    <th>Description</th>
+                                    <th>Price/unit</th>
+                                    <th>Total Amount</th>
+                                    <th>No Asset</th>
+                                    <th>ID Asset</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {dataTemp !== undefined && dataTemp.length > 0 && dataTemp.map(item => {
+                                    return (
+                                        // item.isAsset === 'false' ? (
+                                        //     null
+                                        // ) : (
                                         <tr onClick={() => this.openModalRinci()}>
                                             <td>{dataTemp.indexOf(item) + 1}</td>
                                             <th>{item.no_pengadaan}</th>
@@ -3084,25 +3225,25 @@ class Pengadaan extends Component {
                                             <td>{item.no_asset}</td>
                                             <td>{item.id}</td>
                                         </tr>
-                                    // )
-                                )
-                            })}
-                        </tbody>
-                    </Table>
-                    <div className="mt-3 modalFoot">
-                        <div className="btnFoot">
+                                        // )
+                                    )
+                                })}
+                            </tbody>
+                        </Table>
+                        <div className="mt-3 modalFoot">
+                            <div className="btnFoot">
+                            </div>
+                            <div className="btnFoot">
+                                <Button className="mr-2" color="warning" onClick={() => this.downloadAjuan()}>
+                                    Download
+                                </Button>
+                                <Button color="secondary" onClick={this.openFill}>
+                                    Close
+                                </Button>
+                            </div>
                         </div>
-                        <div className="btnFoot">
-                            <Button className="mr-2" color="warning" onClick={() => this.downloadAjuan()}>
-                                Download
-                            </Button>
-                            <Button color="secondary" onClick={this.openFill}>
-                                Close
-                            </Button>
-                        </div>
-                    </div>
-                </ModalBody>
-            </Modal>
+                    </ModalBody>
+                </Modal>
             </>
         )
     }

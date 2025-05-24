@@ -25,7 +25,7 @@ import Select from 'react-select'
 import * as Yup from 'yup'
 import placeholder from  "../../assets/img/placeholder.png"
 import NavBar from '../../components/NavBar'
-import { MdUpload, MdDownload, MdEditSquare, MdAddCircle, MdDelete } from "react-icons/md";
+import { MdUpload, MdDownload, MdEditSquare, MdAddCircle, MdDelete } from "react-icons/md"
 import styleTrans from '../../assets/css/transaksi.module.css'
 import NewNavbar from '../../components/NewNavbar'
 import Email from '../../components/Pengadaan/Email'
@@ -109,10 +109,10 @@ class CartMutasi extends Component {
         this.setState({fileUpload: e.target.files[0]})
         if (size >= this.state.limImage) {
             this.setState({errMsg: "Maximum upload size 20 MB"})
-            this.uploadAlert()
+            // this.uploadAlert()
         } else if (type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && type !== 'application/vnd.ms-excel' && type !== 'application/pdf' && type !== 'application/x-7z-compressed' && type !== 'application/vnd.rar' && type !== 'application/zip' && type !== 'application/x-zip-compressed' && type !== 'application/octet-stream' && type !== 'multipart/x-zip' && type !== 'application/x-rar-compressed') {
             this.setState({errMsg: 'Invalid file type. Only excel, pdf, zip, and rar files are allowed.'})
-            this.uploadAlert()
+            // this.uploadAlert()
         } else {
             const {detail, dataRinci} = this.state
             const token = localStorage.getItem('token')
@@ -155,16 +155,6 @@ class CartMutasi extends Component {
         });
     }
 
-    submitMut = async () => {
-        const token = localStorage.getItem('token')
-        const data = {
-            alasan: this.state.alasan
-        }
-        await this.props.submitMutasi(token, data)
-        this.getDataApprove()
-        this.getDataCart()
-        this.openAgree()
-    }
 
     openDoc = async (val) => {
         const token = localStorage.getItem('token')
@@ -195,7 +185,8 @@ class CartMutasi extends Component {
     prepSendEmail = async () => {
         const {dataCart, noIo} = this.props.pengadaan
         const token = localStorage.getItem("token")
-        const tipe = dataCart[0].kategori === 'return' ? 'approve' : 'submit'
+        // const tipe = dataCart[0].kategori === 'return' ? 'approve' : 'submit'
+        const tipe = 'submit'
         const tempno = {
             no: noIo,
             kode: dataCart[0].kode_plant,
@@ -211,6 +202,31 @@ class CartMutasi extends Component {
 
     openDraftEmail = () => {
         this.setState({openDraft: !this.state.openDraft}) 
+    }
+
+    prosesCek = async () => {
+        const token = localStorage.getItem('token')
+        await this.props.getCart(token)
+        const { dataCart } = this.props.pengadaan
+        const cek = []
+        for (let i = 0; i < dataCart.length; i++) {
+            const doc = dataCart[i].doc
+            if (doc === null || doc === undefined || doc.length === 0) {
+                cek.push(1)
+            } else {
+                for (let j = 0; j < doc.length; j++) {
+                    if (doc[j].path === null || doc[j].path === '') {
+                        cek.push(1)
+                    }
+                }
+            }
+        }
+        if (cek.length > 0) {
+            this.setState({confirm: 'rejSubmit'})
+            this.openConfirm()
+        } else {
+            this.openModalSub()
+        }
     }
 
     submitCart = async () => {
@@ -241,9 +257,9 @@ class CartMutasi extends Component {
 
     submitFinal = async () => {
         const token = localStorage.getItem('token')
-        const { noIo } = this.props.pengadaan
+        const { noIo, dataCart } = this.props.pengadaan
         const { draftEmail } = this.props.tempmail
-        const { message, subject } = this.state
+        const { message, subject, alasan } = this.state
         const data = { 
             no: noIo
         }
@@ -265,14 +281,31 @@ class CartMutasi extends Component {
             proses: 'submit',
             route: 'pengadaan'
         }
-        await this.props.submitIoFinal(token, data)
-        await this.props.sendEmail(token, sendMail)
-        await this.props.addNewNotif(token, sendMail)
-        this.getDataCart()
-        this.openModalSub()
-        this.setState({confirm: 'submit'})
-        this.openDraftEmail()
-        this.openConfirm()
+        const dataReason = {
+            alasan: alasan
+        }
+        if (dataCart[0].kategori === 'return') {
+            await this.props.submitIoFinal(token, data)
+            await this.props.updateReason(token, noIo, dataReason)
+            await this.props.sendEmail(token, sendMail)
+            await this.props.addNewNotif(token, sendMail)
+            this.getDataCart()
+            this.openModalSub()
+            this.openAgree()
+            this.setState({confirm: 'submit'})
+            this.openDraftEmail()
+            this.openConfirm()
+        } else {
+            await this.props.submitIoFinal(token, data)
+            await this.props.sendEmail(token, sendMail)
+            await this.props.addNewNotif(token, sendMail)
+            this.getDataCart()
+            this.openModalSub()
+            this.setState({confirm: 'submit'})
+            this.openDraftEmail()
+            this.openConfirm()
+        }
+        
     }
 
     openConfirm = () => {
@@ -355,6 +388,8 @@ class CartMutasi extends Component {
 
     inputNoIo = (val) => {
         console.log(val)
+        const { noAjuan } = this.state
+        this.setState({noAjuan: noAjuan.length > 3 && val === '' ? noAjuan : val })
         if(val !== undefined && val.length > 10) {
             this.getDataIo(val)
         } else {
@@ -375,14 +410,14 @@ class CartMutasi extends Component {
             ]
 
             for (let i = 0; i < dataPeng.length; i++) {
-                if (dataPeng[i].no_pengadaan !== null) {
-                    listNoIo.push({value: dataPeng[i].no_pengadaan, label: dataPeng[i].no_pengadaan})
+                if (dataPeng[i].no_asset !== null) {
+                    listNoIo.push({value: dataPeng[i].no_asset, label: dataPeng[i].no_asset})
                 }
             }
             console.log(listNoIo)
-            this.setState({listNoIo: listNoIo, showOptions: true, noAjuan: val})
+            this.setState({listNoIo: listNoIo, showOptions: true})
         } else {
-            this.setState({listNoIo: [], showOptions: true, noAjuan: val})
+            this.setState({listNoIo: [], showOptions: true})
         }
     }
 
@@ -521,7 +556,7 @@ class CartMutasi extends Component {
 
                         <div className='rowGeneral mb-4'>
                             <Button className='mr-2' onClick={this.prosesAdd} color="primary" size="lg">Add</Button>
-                            <Button className='' disabled={dataCart.length === 0 ? true : false } onClick={() => this.openModalSub()} color="success" size="lg">Submit</Button>
+                            <Button className='' disabled={dataCart.length === 0 ? true : false } onClick={() => this.prosesCek()} color="success" size="lg">Submit</Button>
                         </div>
 
                         <table className={styleTrans.table}>
@@ -587,7 +622,7 @@ class CartMutasi extends Component {
                     </div>
                 </div>
                 
-                <Modal isOpen={this.state.add} toggle={this.prosesAdd} size='lg'>
+                <Modal isOpen={this.state.add} size='lg'>
                     <ModalHeader>Add Item</ModalHeader>
                     <Formik
                     initialValues={{
@@ -636,7 +671,7 @@ class CartMutasi extends Component {
                                 onBlur={handleBlur("tipe")}
                                 >   
                                     <option value="">---Pilih---</option>
-                                    <option value="gudang">Sewa Gudang</option>
+                                    {/* <option value="gudang">Sewa Gudang</option> */}
                                     <option value="barang">Barang</option>
                                 </Input>
                                 {errors.tipe ? (
@@ -729,7 +764,7 @@ class CartMutasi extends Component {
                         {values.kategori === 'return' && (
                             <div className={style.addModalDepo}>
                                 <text className="col-md-3">
-                                    No Referensi
+                                    No Ajuan Return
                                 </text>
                                 <div className="col-md-9">
                                     {/* <Input 
@@ -742,7 +777,7 @@ class CartMutasi extends Component {
                                     <Select
                                         // className="inputRinci2"
                                         options={this.state.showOptions ? this.state.listNoIo : []}
-                                        onChange={e => this.selectNoIo({val: e, type: 'noIo'})}
+                                        onClick={e => this.selectNoIo({val: e, type: 'noIo'})}
                                         onInputChange={e => this.inputNoIo(e)}
                                         isSearchable
                                         components={
@@ -823,7 +858,7 @@ class CartMutasi extends Component {
                         )}
                     </Formik>
                 </Modal>
-                <Modal isOpen={this.state.rinci} toggle={this.prosesRinci} size='lg'>
+                <Modal isOpen={this.state.rinci} size='lg'>
                     <ModalHeader toggle={this.openModalAdd}>Rincian item</ModalHeader>
                     <Formik
                     initialValues={{
@@ -872,7 +907,7 @@ class CartMutasi extends Component {
                                     onBlur={handleBlur("tipe")}
                                     >   
                                         <option value="">-Pilih Tipe-</option>
-                                        <option value="gudang">Sewa Gudang</option>
+                                        {/* <option value="gudang">Sewa Gudang</option> */}
                                         <option value="barang">Barang</option>
                                     </Input>
                                     {errors.tipe ? (
@@ -965,7 +1000,7 @@ class CartMutasi extends Component {
                             {values.kategori === 'return' && (
                                 <div className={style.addModalDepo}>
                                     <text className="col-md-3">
-                                        No Referensi
+                                        No Ajuan Return
                                     </text>
                                     <div className="col-md-9">
                                         {/* <Input 
@@ -978,7 +1013,7 @@ class CartMutasi extends Component {
                                         <Select
                                             // className="inputRinci2"
                                             options={this.state.showOptions ? this.state.listNoIo : []}
-                                            onChange={e => this.selectNoIo({val: e, type: 'noIo'})}
+                                            onClick={e => this.selectNoIo({val: e, type: 'noIo'})}
                                             onInputChange={e => this.inputNoIo(e)}
                                             isSearchable
                                             components={
@@ -1079,28 +1114,10 @@ class CartMutasi extends Component {
                                 </text>
                             </div>
                             <div className={style.btnApprove}>
-                                <Button color="primary" onClick={() => this.submitCart()}>Ya</Button>
+                                <Button color="primary" onClick={() => dataCart.length !== 0 && dataCart[0].kategori === 'return' ? this.openAgree() : this.submitCart()}>Ya</Button>
                                 <Button color="secondary" onClick={this.openModalSub}>Tidak</Button>
                             </div>
                         </div>
-                    </ModalBody>
-                </Modal>
-                <Modal isOpen={this.state.agree} toggle={this.openAgree} centered>
-                    <ModalBody>
-                        <div className="mb-3">
-                            Alasan Mutasi :
-                        </div>
-                        <div className="mb-1">
-                            <Input 
-                            type='textarea'
-                            name="alasan"
-                            onChange={this.inputAlasan}
-                            />
-                        </div>
-                        <div className="mb-5">
-                            <text className={style.txtError}>{this.state.alasan === '' ? "Must be filled" : ''}</text>
-                        </div>
-                        <button className="btnSum" disabled={this.state.alasan === '' ? true : false } onClick={() => this.submitMut()}>Submit</button>
                     </ModalBody>
                 </Modal>
                 <Modal isOpen={this.props.pengadaan.isLoading || this.props.tempmail.isLoading ? true: false} size="sm">
@@ -1260,6 +1277,24 @@ class CartMutasi extends Component {
                 <div className='row justify-content-md-center mb-4'>
                     <Button size='lg' onClick={this.openConfirm} color='primary'>OK</Button>
                 </div>
+            </Modal>
+            <Modal isOpen={this.state.agree} toggle={this.openAgree} centered>
+                <ModalBody>
+                    <div className="mb-3">
+                        Alasan Return :
+                    </div>
+                    <div className="mb-1">
+                        <Input 
+                        type='textarea'
+                        name="alasan"
+                        onChange={this.inputAlasan}
+                        />
+                    </div>
+                    <div className="mb-5">
+                        <text className={style.txtError}>{this.state.alasan === '' ? "Must be filled" : ''}</text>
+                    </div>
+                    <button className="btnSum" disabled={this.state.alasan === '' ? true : false } onClick={() => this.submitCart()}>Submit</button>
+                </ModalBody>
             </Modal>
             </>
         )

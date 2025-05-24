@@ -3,9 +3,9 @@ import http from '../../helpers/http'
 import qs from 'qs'
 
 export default {
-    submitSetDisposal: (token) => ({
+    submitSetDisposal: (token, data) => ({
         type: 'SUBMIT_SETDIS',
-        payload: http(token).get(`/disposal/setuju/submit`)
+        payload: http(token).patch(`/disposal/setuju/submit`, data)
     }),
     getSetDisposal: (token, limit, search, page, status, tipe) => ({
         type: 'GET_SETDIS',
@@ -13,31 +13,31 @@ export default {
     }),
     getApproveSetDisposal: (token, no, nama) => ({
         type: 'GET_APPSET',
-        payload: http(token).get(`/disposal/setuju/approve/${no}?nama=${nama}`)
+        payload: http(token).patch(`/disposal/setuju/getapp`, qs.stringify({no: no}))
     }),
-    approveSetDisposal: (token, no, data) => ({
+    approveSetDisposal: (token, type, data) => ({
         type: 'APPROVE_SETDIS',
-        payload: http(token).patch(`/disposal/setuju/app/${no}`, data)
+        payload: http(token).patch(`/disposal/setuju/approve?type=${type}`, data)
     }),
-    rejectSetDisposal: (token, no, data, tipe, status) => ({
+    rejectSetDisposal: (token, data) => ({
         type: 'REJECT_SETDIS',
-        payload: http(token).patch(`/disposal/setuju/rej/${no}?tipe=${tipe}&status=${status}`, qs.stringify(data))
+        payload: http(token).patch(`/disposal/setuju/reject`, qs.stringify(data))
     }),
-    submitEksDisposal: (token, no) => ({
+    submitEksDisposal: (token, data) => ({
         type: 'SUBMIT_EKSEKUSI',
-        payload: http(token).patch(`/disposal/eks/submit/${no}`)
+        payload: http(token).patch(`/disposal/eks/submit`, qs.stringify(data))
     }),
-    submitTaxFinDisposal: (token, no) => ({
+    submitTaxFinDisposal: (token, data) => ({
         type: 'SUBMIT_TAXFIN',
-        payload: http(token).patch(`/disposal/taxfin/submit/${no}`)
+        payload: http(token).patch(`/disposal/taxfin/submit`, qs.stringify(data))
     }),
-    submitFinalDisposal: (token, no) => ({
+    submitFinalDisposal: (token, data) => ({
         type: 'SUBMIT_FINAL',
-        payload: http(token).patch(`/disposal/final/submit/${no}`)
+        payload: http(token).patch(`/disposal/final/submit`, qs.stringify(data))
     }),
-    submitPurchDisposal: (token, no) => ({
+    submitPurchDisposal: (token, data) => ({
         type: 'SUBMIT_PURCH',
-        payload: http(token).patch(`/disposal/purch/submit/${no}`)
+        payload: http(token).patch(`/disposal/purch/submit`, qs.stringify(data))
     }),
     submitEditTaxFin: (token, no) => ({
         type: 'SUBMIT_EDIT_TAXFIN',
@@ -50,6 +50,10 @@ export default {
     getDataPurch: (token) => ({
         type: 'GET_PURCH',
         payload: http(token).get('/disposal/purch/get')
+    }),
+    genNoSetDisposal: (token) => ({
+        type: 'GENERATE_NOSET',
+        payload: http(token).patch(`/disposal/gennoset`)
     }),
     resetSetuju: () => ({
         type: 'RESET_SETUJU'

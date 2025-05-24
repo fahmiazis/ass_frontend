@@ -1,13 +1,15 @@
 /* eslint-disable jsx-a11y/no-distracting-elements */
 /* eslint-disable jsx-a11y/alt-text */
 import React, { Component } from 'react'
-import { Container, NavbarBrand, Table, Input, Button, Col,
-    Alert, Spinner, Row, Modal, ModalBody, ModalHeader, ModalFooter,
+import { Container, NavbarBrand, Table, Input, Button, Col, Card, CardBody,
+    Alert, Spinner, Row, Modal, ModalBody, ModalHeader, ModalFooter, Collapse,
     UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem} from 'reactstrap'
 import style from '../../assets/css/input.module.css'
 import {FaSearch, FaUserCircle, FaBars, FaCartPlus, FaFileSignature} from 'react-icons/fa'
 import {BsCircle, BsBell, BsFillCircleFill} from 'react-icons/bs'
-import { AiOutlineCheck, AiOutlineClose, AiFillCheckCircle} from 'react-icons/ai'
+import { FiSend, FiTruck, FiSettings, FiUpload } from 'react-icons/fi'
+import { MdAssignment } from 'react-icons/md'
+import { AiOutlineCheck, AiOutlineClose, AiFillCheckCircle, AiOutlineInbox} from 'react-icons/ai'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
 import Pdf from "../../components/Pdf"
@@ -27,12 +29,18 @@ import disposal from '../../redux/actions/disposal'
 import TablePeng from '../../components/TablePeng'
 import notif from '../../redux/actions/notif'
 import mutasi from '../../redux/actions/mutasi'
+import tempmail from '../../redux/actions/tempmail'
+import newnotif from '../../redux/actions/newnotif'
 import NavBar from '../../components/NavBar'
 import logo from '../../assets/img/logo.png'
+import styleTrans from '../../assets/css/transaksi.module.css'
+import NewNavbar from '../../components/NewNavbar'
+import Email from '../../components/Mutasi/Email'
+import TrackingMutasi from '../../components/Mutasi/TrackingMutasi'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const alasanSchema = Yup.object().shape({
-    alasan: Yup.string().required()
+    alasan: Yup.string()
 });
 
 const sapSchema = Yup.object().shape({
@@ -73,10 +81,123 @@ class BudgetMutasi extends Component {
             openApproveDis: false,
             openRejectDis: false,
             approve: false,
-            reject: false
+            reject: false,
+            confirm: '',
+            time: 'pilih',
+            time1: moment().subtract(1, 'month').startOf('month').format('YYYY-MM-DD'),
+            // time1: moment().startOf('month').format('YYYY-MM-DD'),
+            time2: moment().endOf('month').format('YYYY-MM-DD'),
+            search: '',
+            listStat: [],
+            typeReject: '',
+            menuRev: '',
+            tipeEmail: '',
+            userRev: '',
+            dataRej: {},
+            subject: '',
+            message: '',
+            collap: false,
+            formTrack: false,
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+    }
+
+    statusApp = (val) => {
+        const { listStat } = this.state
+        listStat.push(val)
+        this.setState({ listStat: listStat })
+    }
+
+    statusRej = (val) => {
+        const { listStat } = this.state
+        const data = []
+        for (let i = 0; i < listStat.length; i++) {
+            if (listStat[i] === val) {
+                data.push()
+            } else {
+                data.push(listStat[i])
+            }
+        }
+        this.setState({ listStat: data })
+    }
+
+    rejectApp = (val) => {
+        this.setState({ typeReject: val })
+    }
+
+    rejectRej = (val) => {
+        const { typeReject } = this.state
+        if (typeReject === val) {
+            this.setState({ typeReject: '' })
+        }
+    }
+
+    menuApp = (val) => {
+        this.setState({ menuRev: val })
+    }
+
+    menuRej = (val) => {
+        const { menuRev } = this.state
+        if (menuRev === val) {
+            this.setState({ menuRev: '' })
+        }
+    }
+
+    userApp = (val) => {
+        this.setState({ userRev: val })
+    }
+
+    userRej = (val) => {
+        const { userRev } = this.state
+        if (userRev === val) {
+            this.setState({ userRev: '' })
+        }
+    }
+
+    chekRej = (val) => {
+        const { listMut } = this.state
+        const data = []
+        if (val === 'all') {
+            this.setState({ listMut: data })
+        } else {
+            for (let i = 0; i < listMut.length; i++) {
+                if (listMut[i] === val) {
+                    data.push()
+                } else {
+                    data.push(listMut[i])
+                }
+            }
+            this.setState({ listMut: data })
+        }
+    }
+
+    chekApp = (val) => {
+        const { listMut } = this.state
+        const { detailMut } = this.props.mutasi
+        const data = []
+        if (val === 'all') {
+            for (let i = 0; i < detailMut.length; i++) {
+                data.push(detailMut[i].id)
+            }
+            this.setState({ listMut: data })
+        } else {
+            listMut.push(val)
+            this.setState({ listMut: listMut })
+        }
+    }
+
+    getMessage = (val) => {
+        this.setState({ message: val.message, subject: val.subject })
+        console.log(val)
+    }
+
+    prosesSidebar = (val) => {
+        this.setState({ sidebarOpen: val })
+    }
+
+    goRoute = (val) => {
+        this.props.history.push(`/${val}`)
     }
 
     menuButtonClick(ev) {
@@ -102,12 +223,6 @@ class BudgetMutasi extends Component {
         });
     }
 
-    chekRej = (val) => {
-        const { listMut } = this.state
-        listMut.push(val)
-        this.setState({listMut: listMut})
-    }
-
     approveDokumen = async () => {
         const {fileName} = this.state
         const token = localStorage.getItem('token')
@@ -122,19 +237,6 @@ class BudgetMutasi extends Component {
         this.setState({openRejectDis: !this.state.openRejectDis})
         await this.props.rejectDocMut(token, fileName.id, value, 'edit')
         this.openModalPdf()
-    }
-
-    chekApp = (val) => {
-        const { listMut } = this.state
-        const data = []
-        for (let i = 0; i < listMut.length; i++) {
-            if (listMut[i] === val) {
-                data.push()
-            } else {
-                data.push(listMut[i])
-            }
-        }
-        this.setState({listMut: data})
     }
 
     openModalRinci = () => {
@@ -171,31 +273,119 @@ class BudgetMutasi extends Component {
     getDataMutasi = async () => {
         const level = localStorage.getItem('level')
         const token = localStorage.getItem('token')
-        await this.props.getMutasi(token, level === '2' ? 4 : 3)
-        this.changeView()
+        this.changeFilter('available')
+    }
+
+    changeFilter = async (val) => {
+        const token = localStorage.getItem("token")
+        const role = localStorage.getItem('role')
+        const level = localStorage.getItem('level')
+        const { time1, time2, search, limit } = this.state
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        const status = val === 'selesai' ? 8 : val === 'available' ? 3 : 'all'
+
+        await this.props.getMutasi(token, status, cekTime1, cekTime2, search, 100)
+        const { dataMut } = this.props.mutasi
+        const newMut = []
+        console.log(val)
+        for (let i = 0; i < dataMut.length; i++) {
+            const cekBudget = dataMut[i].status_form === 3
+            const cekAsset = dataMut[i].status_form === 4
+            if (val === 'available') {
+                if (((level === '8' && cekBudget) || (level === '2' && cekAsset)) && dataMut[i].status_reject !== 1) {
+                    newMut.push(dataMut[i])
+                }
+            } else if (val === 'reject') {
+                if (dataMut[i].status_reject === 1) {
+                    newMut.push(dataMut[i])
+                }
+            } else if (val === 'selesai') {
+                if (dataMut[i].status_form === 8) {
+                    newMut.push(dataMut[i])
+                }
+            } else {
+                if (((level === '8' && cekBudget) || (level === '2' && cekAsset)) && dataMut[i].status_reject !== 1) {
+                    console.log('')
+                } else {
+                    newMut.push(dataMut[i])
+                }
+            }
+        }
+        this.setState({ filter: val, newMut: newMut })
+    }
+
+    selectTime = (val) => {
+        this.setState({ [val.type]: val.val })
+    }
+
+    changeTime = async (val) => {
+        const token = localStorage.getItem("token")
+        this.setState({ time: val })
+        if (val === 'all') {
+            this.setState({ time1: '', time2: '' })
+            setTimeout(() => {
+                this.getDataTime()
+            }, 500)
+        }
+    }
+
+    getDataTime = async () => {
+        const { time1, time2, filter, search, limit } = this.state
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        const token = localStorage.getItem("token")
+        const level = localStorage.getItem("level")
+        // const status = filter === 'selesai' ? '8' : filter === 'available' && level === '2' ? '1' : filter === 'available' && level === '8' ? '3' : 'all'
+        this.changeFilter(filter)
+    }
+
+    onSearch = async (e) => {
+        this.setState({ search: e.target.value })
+        const token = localStorage.getItem("token")
+        const { filter } = this.state
+        if (e.key === 'Enter') {
+            // await this.props.getAsset(token, 10, e.target.value, 1)
+            // this.getDataAsset({limit: 10, search: this.state.search})
+            this.changeFilter(filter)
+        }
     }
 
     openReject = () => {
         this.setState({reject: !this.state.reject})
     }
 
-    openDetailMut = async (value) => {
-        const { dataMut } = this.props.mutasi
+    openDetailMut = async (val) => {
         const level = localStorage.getItem('level')
         const token = localStorage.getItem('token')
-        await this.props.getDetailMutasi(token, value, level === '2' ? null : 'budget') 
-        const detail = []
-        for (let i = 0; i < dataMut.length; i++) {
-            if (dataMut[i].no_mutasi === value) {
-                detail.push(dataMut[i])
-            }
-        }
-        this.setState({detailMut: detail})
+        await this.props.getDetailMutasi(token, val.no_mutasi, 'budget')
+        await this.props.getApproveMut(token, val.no_mutasi, val.kode_plant.split('').length === 4 ? 'Mutasi' : 'Mutasi HO')
         this.openModalMut()
     }
 
+    getDetailTrack = async (val) => {
+        const token = localStorage.getItem("token")
+        await this.props.getDetailMutasi(token, val.no_mutasi)
+        this.openModalTrack()
+    }
+
+    openModalTrack = () => {
+        this.setState({ formTrack: !this.state.formTrack })
+    }
+
+    showCollap = (val) => {
+        if (val === 'close') {
+            this.setState({ collap: false })
+        } else {
+            this.setState({ collap: false })
+            setTimeout(() => {
+                this.setState({ collap: true, tipeCol: val })
+            }, 500)
+        }
+    }
+
     componentDidMount() {
-        this.getNotif()
+        // this.getNotif()
         this.getDataMutasi()
     }
 
@@ -204,32 +394,35 @@ class BudgetMutasi extends Component {
         const {isAppDoc} = this.props.disposal
         const token = localStorage.getItem('token')
         const level = localStorage.getItem('level')
-        const { detailMut } = this.state
+        const { detailMut } = this.props.mutasi
         if (errorAdd) {
             this.openConfirm(this.setState({confirm: 'addmutasi'}))
             this.props.resetAddMut()
-        } else if (isReject) {
-            this.setState({listMut: []})
-            this.openReject()
-            this.openConfirm(this.setState({confirm: 'reject'}))
-            this.openModalMut()
-            this.props.resetAppRej()
-        } else if (submitBud) {
-            this.openConfirm(this.setState({confirm: 'approve'}))
-            this.openApprove()
-            this.props.resetAppRej()
-        } else if (rejReject) {
+        } 
+        // else if (isReject) {
+        //     this.setState({listMut: []})
+        //     this.openReject()
+        //     this.openConfirm(this.setState({confirm: 'reject'}))
+        //     this.openModalMut()
+        //     this.props.resetMutasi()
+        // } 
+        // else if (submitBud) {
+        //     this.openConfirm(this.setState({confirm: 'approve'}))
+        //     this.openApprove()
+        //     this.props.resetMutasi()
+        // } 
+        else if (rejReject) {
             this.openReject()
             this.openConfirm(this.setState({confirm: 'rejReject'}))
-            this.props.resetAppRej()
+            this.props.resetMutasi()
         } else if (rejApprove) {
             this.openConfirm(this.setState({confirm: 'rejApprove'}))
             this.openApprove()
-            this.props.resetAppRej()
+            this.props.resetMutasi()
         } else if (isAppDoc === true || isRejDoc === true) {
             setTimeout(() => {
                 this.props.resetDis()
-                this.props.resetAppRej()
+                this.props.resetMutasi()
              }, 1000)
              setTimeout(() => {
                 this.props.getDocumentMut(token, detailMut[0].no_asset, detailMut[0].no_mutasi)
@@ -269,35 +462,147 @@ class BudgetMutasi extends Component {
 
     openProsesModalDoc = async (val) => {
         const token = localStorage.getItem('token')
-        const { detailMut } = this.state
+        const { detailMut } = this.props.mutasi
         await this.props.getDocumentMut(token, detailMut[0].no_asset, detailMut[0].no_mutasi)
         this.closeProsesModalDoc()
     }
 
-    approveMutasi = async () => {
-        const { detailMut } = this.state
+    
+
+    prepReject = async (val) => {
+        const { detailMut } = this.props.mutasi
+        const { listStat, listMut, typeReject, menuRev, userRev } = this.state
+        const token = localStorage.getItem("token")
+        const level = localStorage.getItem('level')
+        if (typeReject === 'pembatalan' && listMut.length !== detailMut.length) {
+            this.setState({ confirm: 'falseCancel' })
+            this.openConfirm()
+        } else {
+            const tipe = 'reject'
+            const menu = 'Pengajuan Mutasi Asset (Mutasi asset)'
+            const tempno = {
+                no: detailMut[0].no_mutasi,
+                kode: userRev,
+                jenis: 'mutasi',
+                tipe: tipe,
+                typeReject: typeReject,
+                menu: menu
+            }
+            this.setState({ tipeEmail: 'reject', dataRej: val })
+            await this.props.getDraftEmail(token, tempno)
+            this.openDraftEmail()
+        }
+
+    }
+
+    prepSendEmail = async () => {
+        const { detailMut } = this.props.mutasi
+        const token = localStorage.getItem("token")
+
+        const app = detailMut[0].appForm
+        const tempApp = []
+        for (let i = 0; i < app.length; i++) {
+            if (app[i].status === 1) {
+                tempApp.push(app[i])
+            }
+        }
+        const tipe = 'submit'
+
+        const tempno = {
+            no: detailMut[0].no_mutasi,
+            kode: detailMut[0].kode_plant,
+            jenis: 'mutasi',
+            tipe: tipe,
+            menu: 'Verifikasi Budget (Mutasi asset)'
+        }
+        this.setState({ tipeEmail: 'submit' })
+        await this.props.getDetailMutasi(token, detailMut[0].no_mutasi)
+        await this.props.getDraftEmail(token, tempno)
+        this.openDraftEmail()
+    }
+
+    submitMutasi = async () => {
+        const { detailMut } = this.props.mutasi
         const token = localStorage.getItem("token")
         await this.props.submitBudget(token, detailMut[0].no_mutasi)
+        this.prosesSendEmail('submit')
+        this.openDraftEmail()
+        this.openApprove()
+        this.openModalMut()
+        this.setState({ confirm: 'approve' })
+        this.openConfirm()
         this.getDataMutasi()
+    }
+
+    rejectMutasi = async (val) => {
+        const { listStat, listMut, typeReject, menuRev, userRev } = this.state
+        const { detailMut } = this.props.mutasi
+        const level = localStorage.getItem('level')
+        const token = localStorage.getItem("token")
+        let temp = ''
+        for (let i = 0; i < listStat.length; i++) {
+            temp += listStat[i] + '.'
+        }
+        const data = {
+            alasan: temp + val.alasan,
+            no: detailMut[0].no_mutasi,
+            menu: typeReject === 'pembatalan' ? 'Mutasi asset' : menuRev,
+            list: listMut,
+            type: 'verif',
+            type_reject: typeReject,
+            user_rev: userRev
+        }
+        console.log(data)
+        await this.props.rejectMut(token, data)
+        this.prosesSendEmail(`reject ${typeReject}`)
+        this.setState({ confirm: 'reject' })
+        this.openConfirm()
+        this.openReject()
+        this.openModalMut()
+        this.getDataMutasi()
+        this.openDraftEmail()
+    }
+
+    prosesSendEmail = async (val) => {
+        const token = localStorage.getItem('token')
+        const { draftEmail } = this.props.tempmail
+        const { detailMut } = this.props.mutasi
+        const { message, subject } = this.state
+        const cc = draftEmail.cc
+        const tempcc = []
+        for (let i = 0; i < cc.length; i++) {
+            tempcc.push(cc[i].email)
+        }
+        const sendMail = {
+            draft: draftEmail,
+            nameTo: draftEmail.to.fullname,
+            to: draftEmail.to.email,
+            cc: tempcc.toString(),
+            message: message,
+            subject: subject,
+            no: detailMut[0].no_mutasi,
+            tipe: 'mutasi',
+            menu: `mutasi asset`,
+            proses: val,
+            route: val === 'reject perbaikan' ? 'rev-mutasi' : val === 'submit' ? 'eks-mutasi' : 'mutasi'
+        }
+        await this.props.sendEmail(token, sendMail)
+        await this.props.addNewNotif(token, sendMail)
+    }
+
+    openDraftEmail = () => {
+        this.setState({ openDraft: !this.state.openDraft })
     }
 
     updateEksekusi = async (val) => {
         const token = localStorage.getItem('token')
-        const { dataRinci, detailMut } = this.state
+        const { detailMut } = this.props.mutasi
+        const { dataRinci } = this.state
         const level = localStorage.getItem('level')
         await this.props.updateStatus(token, dataRinci.id, val)
         await this.props.getDetailMutasi(token, detailMut[0].no_mutasi, level === '2' ? null : 'budget')
-    }
-
-    rejectMutasi = async (val) => {
-        const { detailMut, listMut } = this.state
-        const token = localStorage.getItem("token")
-        const data = {
-            alasan: val.alasan,
-            listMut: listMut
-        }
-        await this.props.rejectEks(token, detailMut[0].no_mutasi, data)
-        this.getDataMutasi()
+        this.setState({confirm: 'edit'})
+        this.openConfirm()
     }
 
     closeProsesModalDoc = () => {
@@ -306,7 +611,7 @@ class BudgetMutasi extends Component {
 
     updateStatus = async (val) => {
         const token = localStorage.getItem('token')
-        const { detailMut } = this.state
+        const { detailMut } = this.props.mutasi
         const level = localStorage.getItem('level')
         await this.props.updateBudget(token, val.no, val.stat)
         await this.props.getDetailMutasi(token, detailMut[0].no_mutasi, level === '2' ? null : 'budget') 
@@ -314,8 +619,8 @@ class BudgetMutasi extends Component {
 
     render() {
         const dataNotif = this.props.notif.data
-        const { dataRinci, newMut, listMut, fileName } = this.state
-        const { dataDoc, detailMut } = this.props.mutasi
+        const { dataRinci, newMut, listMut, fileName, listStat, tipeEmail, dataRej } = this.state
+        const { dataDoc, detailMut, mutApp } = this.props.mutasi
         const level = localStorage.getItem('level')
 
         const contentHeader =  (
@@ -347,7 +652,7 @@ class BudgetMutasi extends Component {
           };
         return (
             <>
-                <Sidebar {...sidebarProps}>
+                {/* <Sidebar {...sidebarProps}>
                     <MaterialTitlePanel title={contentHeader}>
                         <div className={style.backgroundLogo1}>
                             <div className={style.bodyDashboard}>
@@ -369,7 +674,7 @@ class BudgetMutasi extends Component {
                                         </Input>
                                     </div>
                                 </div>
-                                {/* <Row className="cartDisposal2">
+                                <Row className="cartDisposal2">
                                     {dataMut.length === 0 ? (
                                         <Col md={8} xl={8} sm={12}>
                                             <div className="txtDisposEmpty">Tidak ada data eksekusi mutasi</div>
@@ -401,7 +706,7 @@ class BudgetMutasi extends Component {
                                         })}
                                     </Col>
                                     )}
-                                </Row> */}
+                                </Row>
                                 <Row className="bodyDispos">
                                     {newMut.length !== 0 && newMut.map(item => {
                                         return (
@@ -457,7 +762,124 @@ class BudgetMutasi extends Component {
                             </div>
                         </div>
                     </MaterialTitlePanel>
-                </Sidebar>
+                </Sidebar> */}
+                <div className={styleTrans.app}>
+                    <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
+
+                    <div className={`${styleTrans.mainContent} ${this.state.sidebarOpen ? styleTrans.collapsedContent : ''}`}>
+                        <h2 className={styleTrans.pageTitle}>Verifikasi Budget Mutasi Asset</h2>
+
+                        <div className={styleTrans.searchContainer}>
+                            {(level === '5' || level === '9') ? (
+                                <Button size="lg" color='primary' onClick={this.goCartMut}>Create</Button>
+                            ) : (
+                                <div></div>
+                            )}
+                            <select value={this.state.filter} onChange={e => this.changeFilter(e.target.value)} className={styleTrans.searchInput}>
+                                <option value="all">All</option>
+                                <option value="available">Available To Approve</option>
+                                <option value="reject">Reject</option>
+                                <option value="selesai">Finished</option>
+                            </select>
+                        </div>
+
+                        <div className={styleTrans.searchContainer}>
+                            <div className='rowCenter'>
+                                <div className='rowCenter'>
+                                    <Input className={style.filter3} type="select" value={this.state.time} onChange={e => this.changeTime(e.target.value)}>
+                                        <option value="all">Time (All)</option>
+                                        <option value="pilih">Periode</option>
+                                    </Input>
+                                </div>
+                                {this.state.time === 'pilih' ? (
+                                    <>
+                                        <div className='rowCenter'>
+                                            <text className='bold'>:</text>
+                                            <Input
+                                                type="date"
+                                                className="inputRinci"
+                                                value={this.state.time1}
+                                                onChange={e => this.selectTime({ val: e.target.value, type: 'time1' })}
+                                            />
+                                            <text className='mr-1 ml-1'>To</text>
+                                            <Input
+                                                type="date"
+                                                className="inputRinci"
+                                                value={this.state.time2}
+                                                onChange={e => this.selectTime({ val: e.target.value, type: 'time2' })}
+                                            />
+                                            <Button
+                                                disabled={this.state.time1 === '' || this.state.time2 === '' ? true : false}
+                                                color='primary'
+                                                onClick={this.getDataTime}
+                                                className='ml-1'>
+                                                Go
+                                            </Button>
+                                        </div>
+                                    </>
+                                ) : null}
+                            </ div>
+                            <input
+                                type="text"
+                                placeholder="Search..."
+                                onChange={this.onSearch}
+                                value={this.state.search}
+                                onKeyPress={this.onSearch}
+                                className={styleTrans.searchInput}
+                            />
+                        </div>
+
+                        <table className={styleTrans.table}>
+                            <thead>
+                                <tr>
+                                    <th>NO</th>
+                                    <th>NO.AJUAN</th>
+                                    <th>AREA ASAL</th>
+                                    <th>AREA TUJUAN</th>
+                                    <th>TANGGAL AJUAN</th>
+                                    <th>APPROVED BY</th>
+                                    <th>TGL APPROVED</th>
+                                    <th>OPSI</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {newMut !== undefined && newMut.length > 0 && newMut.map(item => {
+                                    return (
+                                        <tr className={item.status_reject === 0 ? 'note' : item.status_form === 0 ? 'fail' : item.status_reject === 1 && 'bad'}>
+                                            <td>{newMut.indexOf(item) + 1}</td>
+                                            <td>{item.no_mutasi}</td>
+                                            <td>{item.area}</td>
+                                            <td>{item.area_rec}</td>
+                                            <td>{moment(item.tanggalMut).format('DD MMMM YYYY')}</td>
+                                            <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? item.appForm.find(item => item.status === 1).nama + ` (${item.appForm.find(item => item.status === 1).jabatan === 'area' ? 'AOS' : item.appForm.find(item => item.status === 1).jabatan})` : '-'}</td>
+                                            <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? moment(item.appForm.find(item => item.status === 1).updatedAt).format('DD/MM/YYYY HH:mm:ss') : '-'}</td>
+                                            {/* <td>
+                                            
+                                            <Button className="btnSell" color="primary" onClick={() => {this.openDetailMut(item.no_mutasi); this.getDataApproveMut(item)}}>Proses</Button>
+                                        </td> */}
+                                            <td>
+                                                <Button
+                                                    color='primary'
+                                                    className='mr-1 mt-1'
+                                                    onClick={() => this.openDetailMut(item)}
+                                                >
+                                                    {this.state.filter === 'available' ? 'Proses' : 'Detail'}
+                                                </Button>
+                                                <Button className='mt-1' color='warning' onClick={() => this.getDetailTrack(item)}>Tracking</Button>
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </table>
+                        {newMut.length === 0 && (
+                            <div className={style.spinCol}>
+                                <AiOutlineInbox size={50} className='secondary mb-4' />
+                                <div className='textInfo'>Data ajuan tidak ditemukan</div>
+                            </div>
+                        )}
+                    </div>
+                </div>
                 <Modal isOpen={this.state.rincian} toggle={this.openModalRinci} size="xl">
                     <ModalHeader>
                         Rincian
@@ -491,10 +913,10 @@ class BudgetMutasi extends Component {
                             </div>
                             <Formik
                             initialValues={{
-                            doc_sap: dataRinci.doc_sap,
-                            cost_centerawal: dataRinci.cost_centerawal
+                                // doc_sap: dataRinci.doc_sap,
+                                cost_centerawal: dataRinci.cost_centerawal
                             }}
-                            validationSchema={level === '2' ? sapSchema : budSchema}
+                            validationSchema={budSchema}
                             onSubmit={(values) => {this.updateEksekusi(values)}}
                             >
                             {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
@@ -555,7 +977,7 @@ class BudgetMutasi extends Component {
                                                 value={values.cost_centerawal} 
                                                 onBlur={handleBlur("cost_centerawal")}
                                                 onChange={handleChange("cost_centerawal")}
-                                                disabled={level === '2' || dataRinci.cost_centerawal !== null ? true : false}
+                                                disabled={level === '2' ? true : false}
                                                 // disabled={detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset) === undefined ? true : detailMut.find(({no_asset}) => no_asset === dataRinci.no_asset).isbudget === 'ya' ? false : true} 
                                                 />
                                             </Col>
@@ -563,7 +985,7 @@ class BudgetMutasi extends Component {
                                         {errors.cost_centerawal && level !== '2' ? (
                                             <text className={style.txtError}>Must be filled</text>
                                         ) : null}
-                                        {level === '2' && (
+                                        {/* {level === '2' && (
                                             <Row className="mb-2 rowRinci">
                                                 <Col md={3}>Nomor Doc SAP</Col>
                                                 <Col md={9} className="colRinci">:  <Input className="inputRinci" 
@@ -573,10 +995,10 @@ class BudgetMutasi extends Component {
                                                     />
                                                 </Col>
                                             </Row>
-                                        )}
-                                        {errors.doc_sap && level === '2' ? (
+                                        )} */}
+                                        {/* {errors.doc_sap && level === '2' ? (
                                             <text className={style.txtError}>Must be filled</text>
-                                        ) : null}
+                                        ) : null} */}
                                     </div>
                                     <div className="footRinci4 mt-4">
                                         <Button className="btnFootRinci1" size="lg" color="primary" onClick={handleSubmit}>Save</Button>
@@ -588,15 +1010,14 @@ class BudgetMutasi extends Component {
                         </div>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.state.formMut} toggle={this.openModalMut} size="xl">
-                    <Alert color="danger" className={style.alertWrong} isOpen={level === '2' && (detailMut.find(({doc_sap}) => doc_sap === null) !== undefined || detailMut.find(({doc_sap}) => doc_sap === '') !== undefined) ? true : false}>
+                <Modal isOpen={this.state.formMut} toggle={this.openModalMut} size="xl" className='xl'>
+                    {/* <Alert color="danger" className={style.alertWrong} isOpen={level === '2' && (detailMut.find(({doc_sap}) => doc_sap === null) !== undefined || detailMut.find(({doc_sap}) => doc_sap === '') !== undefined) ? true : false}>
                         <div>Mohon untuk isi no doc sap sebelum submit</div>
-                    </Alert>
-                    <Alert color="danger" className={style.alertWrong} isOpen={level !== '2' && (detailMut.find(({cost_centerawal}) => cost_centerawal === null) !== undefined || detailMut.find(({cost_centerawal}) => cost_centerawal === '') !== undefined) ? true : false}>
+                    </Alert> */}
+                    <Alert color="danger" className={style.alertWrong} isOpen={level !== '2' && (detailMut.find((item) => item.isbudget === 'ya' && (item.cost_centerawal === null || item.cost_centerawal === '')) !== undefined) ? true : false}>
                         <div>Mohon untuk isi cost center io sebelum submit</div>
                     </Alert>
-                    <ModalBody>
-                        {/* <div className="mb-2"><text className="txtTrans">{detailDis[0] !== undefined && detailDis[0].area}</text>, {moment(detailDis[0] !== undefined && detailDis[0].createdAt).locale('idn').format('DD MMMM YYYY ')}</div> */}
+                    {/* <ModalBody>
                         <Row className="mb-5">
                             <Col md={1}>
                                 <img src={logo} className="imgMut" />
@@ -640,16 +1061,16 @@ class BudgetMutasi extends Component {
                             <tbody>
                                 {detailMut.length !== 0 && detailMut.map(item => {
                                     return (
-                                        <tr>
-                                            <th onClick={() => this.openModalRinci(this.setState({dataRinci: item, kode: '', img: ''}))} scope="row">{detailMut.indexOf(item) + 1}</th>
-                                            <td onClick={() => this.openModalRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.no_asset}</td>
-                                            <td onClick={() => this.openModalRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.nama_asset}</td>
-                                            <td onClick={() => this.openModalRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.merk}</td>
-                                            <td onClick={() => this.openModalRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.kategori}</td>
-                                            <td onClick={() => this.openModalRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.area}</td>
-                                            <td onClick={() => this.openModalRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.cost_center}</td>
-                                            <td onClick={() => this.openModalRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.area_rec}</td>
-                                            <td onClick={() => this.openModalRinci(this.setState({dataRinci: item, kode: '', img: ''}))} >{item.cost_center_rec}</td>
+                                        <tr onClick={() => this.openModalRinci(this.setState({dataRinci: item, kode: '', img: ''}))}>
+                                            <td scope="row">{detailMut.indexOf(item) + 1}</td>
+                                            <td>{item.no_asset}</td>
+                                            <td>{item.nama_asset}</td>
+                                            <td>{item.merk}</td>
+                                            <td>{item.kategori}</td>
+                                            <td>{item.area}</td>
+                                            <td>{item.cost_center}</td>
+                                            <td>{item.area_rec}</td>
+                                            <td>{item.cost_center_rec}</td>
                                         </tr>
                                     )
                                 })}
@@ -661,6 +1082,266 @@ class BudgetMutasi extends Component {
                                 <text>{detailMut.length !== 0 ? detailMut[0].alasan : ''}</text>
                             </div>
                         </div>
+                    </ModalBody> */}
+                    <ModalBody>
+                        {/* <div className="mb-2"><text className="txtTrans">{detailDis[0] !== undefined && detailDis[0].area}</text>, {moment(detailDis[0] !== undefined && detailDis[0].createdAt).locale('idn').format('DD MMMM YYYY ')}</div> */}
+                        <Container className='xxl borderGen'>
+                            <Row className="mb-5">
+                                <Col md={1} className='borderGen colCenter'>
+                                    <img src={logo} className="imgMut" />
+                                </Col>
+                                <Col md={7} className='titMut borderGen'>
+                                    FORM MUTASI ASSET / INVENTARIS
+                                </Col>
+                                <Col md={4} className='borderGen'>
+                                    <Row className='ml-1'>
+                                        <Col className='noPad' md={4}>No</Col>
+                                        <Col className='noPad rowGeneral' md={8}>
+                                            <div className='mr-1'>:</div> {detailMut.length !== 0 ? detailMut[0].no_mutasi : ''}
+                                        </Col>
+                                    </Row>
+                                    <Row className='ml-1'>
+                                        <Col className='noPad' md={4}>Tanggal Form</Col>
+                                        <Col className='noPad rowGeneral' md={8}>
+                                            <div className='mr-1'>:</div> {detailMut.length !== 0 ? moment(detailMut[0].tanggalMut).format('DD MMMM YYYY') : ''}
+                                        </Col>
+                                    </Row>
+                                    <Row className='ml-1'>
+                                        <Col className='noPad' md={4}>Tanggal Mutasi Fisik</Col>
+                                        <Col className='noPad rowGeneral' md={8}>
+                                            <div className='mr-1'>:</div> {detailMut.length !== 0 ? moment(detailMut[0].tgl_mutasifisik).format('DD MMMM YYYY') : ''}
+                                        </Col>
+                                    </Row>
+                                    <Row className='ml-1'>
+                                        <Col className='noPad' md={4}>Cabang / Depo</Col>
+                                        <Col className='noPad rowGeneral' md={8}>
+                                            <div className='mr-1'>:</div> {detailMut.length !== 0 ? detailMut[0].area : ''}
+                                        </Col>
+                                    </Row>
+                                </Col>
+                            </Row>
+                            <Table bordered className="tableDis mb-3">
+                                <thead>
+                                    <tr>
+                                        <th rowSpan={2} className='noTh'></th>
+                                        <th rowSpan={2} className='noTh'>Opsi</th>
+                                        {/* <th className='noTh'>No</th> */}
+                                        <th rowSpan={2} className='thGen mutTableTitle'>No. Asset / No. Inventaris</th>
+                                        <th rowSpan={2} className='asetTh mutTableTitle'>Nama Asset / Inventaris</th>
+                                        <th rowSpan={2} className='thGen mutTableTitle'>Type / Merk</th>
+                                        <th rowSpan={2} className='thGen mutTableTitle'>
+                                            Kategori
+                                            <br />
+                                            (Aset / Inventaris)
+                                        </th>
+                                        <th className='thGen mutTableTitle' colSpan={2}>Cost Center Lama</th>
+                                        <th className='thGen mutTableTitle' colSpan={2}>Cost Center Baru</th>
+                                    </tr>
+                                    <tr>
+                                        <th className='thGen mutTableTitle'>Cabang / Depo</th>
+                                        <th className='thGen mutTableTitle'>Cost Center</th>
+                                        <th className='thGen mutTableTitle'>Cabang / Depo</th>
+                                        <th className='thGen mutTableTitle'>Cost Center</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {detailMut.length !== 0 && detailMut.map(item => {
+                                        return (
+                                            <tr >
+                                                <td>
+                                                    <Input
+                                                        addon
+                                                        disabled={item.status_app === 0 ? true : false}
+                                                        checked={item.status_app === 0 ? true : listMut.find(element => element === item.id) !== undefined ? true : false}
+                                                        type="checkbox"
+                                                        onClick={listMut.find(element => element === item.id) === undefined ? () => this.chekApp(item.id) : () => this.chekRej(item.id)}
+                                                        value={item.id} />
+                                                </td>
+                                                {/* <td scope="row">{detailMut.indexOf(item) + 1}</td> */}
+                                                <td>
+                                                    {item.isbudget === 'ya' && this.state.filter === 'available' ? (
+                                                        <Button color='success' size='md'  onClick={() => this.openModalRinci(this.setState({dataRinci: item, kode: '', img: ''}))}>
+                                                            Proses
+                                                        </Button>
+                                                    ) : (
+                                                        '-'
+                                                    )}
+                                                </td>
+                                                <td>{item.no_asset}</td>
+                                                <td>{item.nama_asset}</td>
+                                                <td>{item.merk}</td>
+                                                <td>{item.kategori}</td>
+                                                <td>{item.area}</td>
+                                                <td>{item.cost_center}</td>
+                                                <td>{item.area_rec}</td>
+                                                <td>{item.cost_center_rec}</td>
+                                                {/* <td onClick={() => this.openRinci(this.setState({ dataRinci: item, kode: '', img: '' }))} >{item.cost_center_rec}</td> */}
+                                            </tr>
+                                        )
+                                    })}
+                                </tbody>
+                            </Table>
+                            <div className="mb-3 mt-3 rowGeneral">
+                                <div className="mr-4 alasanMut">
+                                    <text className="titAlasan mb-3">Alasan Mutasi :</text>
+                                    <text className="contentReason" >{detailMut.length !== 0 ? detailMut[0].alasan : ''}</text>
+                                </div>
+                                <div className='colGeneral ml-4'>
+                                    <div className='bold underline otoSize'>Matrix Otorisasi, ditandatangani oleh :</div>
+                                    <div className='bold otoSize'>Area ke Area</div>
+                                    <div className='otoSize'>1. Dibuat : AOS</div>
+                                    <div className='otoSize'>2. Diperiksa : BM, ROM, GAAM/IT OSM (aset IT)</div>
+                                    <div className='otoSize'>3. Disetujui  : Head of Ops Excellence, Treasury Operation Senior Manager</div>
+                                </div>
+                                <div className='colGeneral ml-4'>
+                                    <br />
+                                    <div className='bold otoSize'>HO ke Area</div>
+                                    <div className='otoSize'>1. Dibuat : GA SPV/IT SPV (aset IT)</div>
+                                    <div className='otoSize'>2. Diperiksa : BM, ROM, NFAC, GAAM, IT OSM (aset IT)</div>
+                                    <div className='otoSize'>3. Disetujui : Head of Ops Excellence, Head of HC S&D Domestic, Treasury Operation Senior Manager</div>
+                                </div>
+                            </div>
+                            <Table borderless responsive className="tabPreview">
+                                <thead>
+                                    <tr>
+                                        <th className="buatPre">Dibuat oleh</th>
+                                        <th className="buatPre">Diterima oleh</th>
+                                        <th rowSpan={2} className="buatPre">Diperiksa oleh</th>
+                                        <th rowSpan={2} className="buatPre">Disetujui oleh</th>
+                                    </tr>
+                                    <tr>
+                                        <th className="buatPre">Pengirim</th>
+                                        <th className="buatPre">Penerima</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="tbodyPre">
+                                    <tr>
+                                        <td className="restTable">
+                                            <Table bordered responsive className="divPre">
+                                                <thead>
+                                                    <tr>
+                                                        {mutApp.pembuat !== undefined && mutApp.pembuat.map(item => {
+                                                            return (
+                                                                <th className="headPre">
+                                                                    <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
+                                                                    <div>{item.nama === null ? "-" : item.nama}</div>
+                                                                </th>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        {mutApp.pembuat !== undefined && mutApp.pembuat.map(item => {
+                                                            return (
+                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'HO' ? 'SPV' : item.jabatan}</td>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </tbody>
+                                            </Table>
+                                        </td>
+                                        <td className="restTable">
+                                            <Table bordered responsive className="divPre">
+                                                <thead>
+                                                    <tr>
+                                                        {mutApp.penerima !== undefined && mutApp.penerima.map(item => {
+                                                            return (
+                                                                <th className="headPre">
+                                                                    <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
+                                                                    <div>{item.nama === null ? "-" : item.nama}</div>
+                                                                </th>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        {mutApp.penerima !== undefined && mutApp.penerima.map(item => {
+                                                            return (
+                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'HO' ? 'SPV' : item.jabatan}</td>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </tbody>
+                                            </Table>
+                                        </td>
+                                        <td className="restTable">
+                                            <Table bordered responsive className="divPre">
+                                                <thead>
+                                                    <tr>
+                                                        {mutApp.pemeriksa !== undefined && mutApp.pemeriksa.map(item => {
+                                                            return (
+                                                                <th className="headPre">
+                                                                    <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
+                                                                    <div>{item.nama === null ? "-" : item.nama}</div>
+                                                                </th>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        {mutApp.pemeriksa !== undefined && mutApp.pemeriksa.map(item => {
+                                                            return (
+                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </tbody>
+                                            </Table>
+                                        </td>
+                                        <td className="restTable">
+                                            <Table bordered responsive className="divPre">
+                                                <thead>
+                                                    <tr>
+                                                        {mutApp.penyetuju !== undefined && mutApp.penyetuju.map(item => {
+                                                            return (
+                                                                <th className="headPre">
+                                                                    <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
+                                                                    <div>{item.nama === null ? "-" : item.nama}</div>
+                                                                </th>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        {mutApp.penyetuju !== undefined && mutApp.penyetuju.map(item => {
+                                                            return (
+                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </tbody>
+                                            </Table>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </Table>
+                        </Container>
+                        <Container className='xxl'>
+                            <div>FRM-HCD-104 REV 07</div>
+                            {(detailMut.length > 0 && detailMut[0].status_form === 8) && (
+                                <div className='justiceEnd mt-4 rowCenter'>
+                                    <div className='boxRec'>
+                                        <div className='mb-3'>DITERIMA ASSET PMA HO</div>
+                                        <br />
+                                        <div>{moment(detailMut[0].tgl_mutasisap).format('DD/MM/YYYY')}</div>
+                                        <div>PENERIMA: {detailMut[0].pic_aset}</div>
+                                    </div>
+                                    <div className='boxRec ml-4'>
+                                        <div className='mb-3'>EKSEKUSI DI SAP</div>
+                                        <div>{moment(detailMut[0].tgl_mutasisap).format('DD/MM/YYYY')}</div>
+                                        <div>NO. DOC: {detailMut.reduce((accumulator, object) => {
+                                            return accumulator + ` ${object.doc_sap},`
+                                            }, 0).slice(2, -1)}
+                                        </div>
+                                        <div>PENCATAT: {detailMut[0].pic_aset}</div>
+                                    </div>
+                                </div>
+                            )}
+                        </Container>
                     </ModalBody>
                     <hr />
                     <div className="modalFoot ml-3">
@@ -668,15 +1349,33 @@ class BudgetMutasi extends Component {
                         <div className="btnFoot">
                         </div>
                         <div className="btnFoot">
-                            {level === '2' ? (
-                                <Button color="success" disabled={level === '2' && (detailMut.find(({doc_sap}) => doc_sap === null) !== undefined || detailMut.find(({doc_sap}) => doc_sap === '') !== undefined) ? true : false} onClick={() => this.openApprove()}>
-                                    Submit
-                                </Button>
+                            {this.state.filter === 'available' ? (
+                                <>
+                                    <Button className="mr-2" disabled={listMut.length === 0 ? true : false} color="danger" onClick={() => this.openReject()}>
+                                        Reject
+                                    </Button>
+                                    <Button color="success" disabled={detailMut.find((item) => item.isbudget === 'ya' && (item.cost_centerawal === null || item.cost_centerawal === '')) !== undefined ? true : false} onClick={() => this.openApprove()}>
+                                        Submit
+                                    </Button>
+                                </>
                             ) : (
-                                <Button color="success" disabled={detailMut.find(({cost_centerawal}) => cost_centerawal === null) !== undefined || detailMut.find(({cost_centerawal}) => cost_centerawal === '') !== undefined ? true : false} onClick={() => this.openApprove()}>
-                                    Submit
+                                <Button onClick={this.openModalMut}>
+                                    Close
                                 </Button>
                             )}
+                        </div>
+                    </div>
+                </Modal>
+                <Modal isOpen={this.state.formTrack} toggle={() => this.openModalTrack()} size="xl">
+                    <TrackingMutasi />
+                    <hr />
+                    <div className="modalFoot ml-3">
+                        {/* <Button color="primary" onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailMut[0] !== undefined && detailMut[0].no_mutasi})}>Preview</Button> */}
+                        <div></div>
+                        <div className="btnFoot">
+                            <Button color="primary" onClick={() => this.openModalTrack()}>
+                                Close
+                            </Button>
                         </div>
                     </div>
                 </Modal>
@@ -750,14 +1449,14 @@ class BudgetMutasi extends Component {
                         <div>
                             <div className={style.cekUpdate}>
                             <AiFillCheckCircle size={80} className={style.green} />
-                            <div className={[style.sucUpdate, style.green]}>Berhasil Submit</div>
+                            <div className={[style.sucUpdate, style.green]}>Berhasil Submit Mutasi</div>
                         </div>
                         </div>
                     ) : this.state.confirm === 'reject' ?(
                         <div>
                             <div className={style.cekUpdate}>
                                 <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={[style.sucUpdate, style.green]}>Berhasil Reject Form Mutasi</div>
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Reject Mutasi</div>
                             </div>
                         </div>
                     ) : this.state.confirm === 'rejApprove' ?(
@@ -782,6 +1481,13 @@ class BudgetMutasi extends Component {
                             <AiOutlineClose size={80} className={style.red} />
                             <div className={[style.sucUpdate, style.green]}>Gagal Menambahkan Item Mutasi</div>
                             <div className="errApprove mt-2">{this.props.mutasi.alertM === undefined ? '' : this.props.mutasi.alertM}</div>
+                        </div>
+                        </div>
+                    ) : this.state.confirm === 'edit' ? (
+                        <div>
+                            <div className={style.cekUpdate}>
+                            <AiFillCheckCircle size={80} className={style.green} />
+                            <div className={[style.sucUpdate, style.green]}>Berhasil Update</div>
                         </div>
                         </div>
                     ) : (
@@ -819,7 +1525,7 @@ class BudgetMutasi extends Component {
                             </text>
                         </div>
                         <div className={style.btnApprove}>
-                            <Button color="primary" onClick={this.approveMutasi}>Ya</Button>
+                            <Button color="primary" onClick={this.prepSendEmail}>Ya</Button>
                             <Button color="secondary" onClick={this.openApprove}>Tidak</Button>
                         </div>
                     </div>
@@ -864,47 +1570,179 @@ class BudgetMutasi extends Component {
             </Modal>
             <Modal isOpen={this.state.reject} toggle={this.openReject} centered={true}>
                 <ModalBody>
-                <Formik
-                initialValues={{
-                alasan: "",
-                }}
-                validationSchema={alasanSchema}
-                onSubmit={(values) => {this.rejectMutasi(values)}}
-                >
-                    {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
-                        <div className={style.modalApprove}>
-                        <div className={style.quest}>Anda yakin untuk reject pengajuan mutasi ?</div>
-                        <div className={style.alasan}>
-                            <text className="col-md-3">
-                                Alasan
-                            </text>
-                            <Input 
-                            type="name" 
-                            name="select" 
-                            className="col-md-9"
-                            value={values.alasan}
-                            onChange={handleChange('alasan')}
-                            onBlur={handleBlur('alasan')}
-                            />
-                        </div>
-                        {errors.alasan ? (
-                                <text className={style.txtError}>{errors.alasan}</text>
-                            ) : null}
-                        <div className={style.btnApprove}>
-                            <Button color="primary" onClick={handleSubmit}>Ya</Button>
-                            <Button color="secondary" onClick={this.openReject}>Tidak</Button>
-                        </div>
-                    </div>
-                    )}
+                    <Formik
+                        initialValues={{
+                            alasan: "",
+                        }}
+                        validationSchema={alasanSchema}
+                        onSubmit={(values) => {
+                            // this.rejectMutasi(values)
+                            this.prepReject(values)
+                        }}
+                    >
+                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched, }) => (
+                            <div className={style.modalApprove}>
+                                <div className='mb-2 quest'>Anda yakin untuk reject ?</div>
+                                <div className='mb-2 titStatus'>Pilih reject :</div>
+                                <div className="ml-2">
+                                    <Input
+                                        addon
+                                        type="checkbox"
+                                        checked={this.state.typeReject === 'perbaikan' ? true : false}
+                                        onClick={this.state.typeReject === 'perbaikan' ? () => this.rejectRej('perbaikan') : () => this.rejectApp('perbaikan')}
+                                    />  Perbaikan
+                                </div>
+                                <div className="ml-2">
+                                    <Input
+                                        addon
+                                        type="checkbox"
+                                        checked={this.state.typeReject === 'pembatalan' ? true : false}
+                                        onClick={this.state.typeReject === 'pembatalan' ? () => this.rejectRej('pembatalan') : () => this.rejectApp('pembatalan')}
+                                    />  Pembatalan
+                                </div>
+                                <div className='ml-2'>
+                                    {this.state.typeReject === '' ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                                {this.state.typeReject === 'perbaikan' && (
+                                    <>
+                                        <div className='mb-2 mt-2 titStatus'>Pilih Menu Revisi :</div>
+                                        <div className="ml-2">
+                                            <Input
+                                                addon
+                                                type="checkbox"
+                                                checked={this.state.menuRev === 'Revisi Area' ? true : false}
+                                                onClick={this.state.menuRev === 'Revisi Area' ? () => this.menuRej('Revisi Area') : () => this.menuApp('Revisi Area')}
+                                            />  Revisi Area
+                                        </div>
+                                        {/* <div className="ml-2">
+                                        <Input
+                                        addon
+                                        type="checkbox"
+                                        checked= {this.state.menuRev === 'pembatalan' ? true : false}
+                                        onClick={this.state.menuRev === 'pembatalan' ? () => this.menuRej('pembatalan') : () => this.menuApp('pembatalan')}
+                                        />  Revisi Asset
+                                    </div> */}
+                                        <div className='ml-2'>
+                                            {this.state.menuRev === '' ? (
+                                                <text className={style.txtError}>Must be filled</text>
+                                            ) : null}
+                                        </div>
+                                    </>
+                                )}
+
+                                {this.state.typeReject === 'perbaikan' && detailMut.length > 0 && (
+                                    <>
+                                        <div className='mb-2 mt-2 titStatus'>Pilih User Revisi :</div>
+                                        <div className="ml-2">
+                                            <Input
+                                                addon
+                                                type="checkbox"
+                                                checked={this.state.userRev === `${detailMut[0].kode_plant}` ? true : false}
+                                                onClick={this.state.userRev === `${detailMut[0].kode_plant}` ? () => this.userRej(`${detailMut[0].kode_plant}`) : () => this.userApp(`${detailMut[0].kode_plant}`)}
+                                            />  {`${detailMut[0].kode_plant}-${detailMut[0].area}`} (Pengirim)
+                                        </div>
+                                        <div className="ml-2">
+                                            <Input
+                                                addon
+                                                type="checkbox"
+                                                checked={this.state.userRev === `${detailMut[0].kode_plant_rec}` ? true : false}
+                                                onClick={this.state.userRev === `${detailMut[0].kode_plant_rec}` ? () => this.userRej(`${detailMut[0].kode_plant_rec}`) : () => this.userApp(`${detailMut[0].kode_plant_rec}`)}
+                                            />  {`${detailMut[0].kode_plant_rec}-${detailMut[0].area_rec}`} (Penerima)
+                                        </div>
+                                        <div className='ml-2'>
+                                            {this.state.userRev === '' ? (
+                                                <text className={style.txtError}>Must be filled</text>
+                                            ) : null}
+                                        </div>
+                                    </>
+                                )}
+
+                                <div className='mb-2 mt-2 titStatus'>Pilih alasan :</div>
+                                <div className="ml-2">
+                                    <Input
+                                        addon
+                                        type="checkbox"
+                                        checked={listStat.find(element => element === 'Asset mutasi tidak sesuai') !== undefined ? true : false}
+                                        onClick={listStat.find(element => element === 'Asset mutasi tidak sesuai') === undefined ? () => this.statusApp('Asset mutasi tidak sesuai') : () => this.statusRej('Asset mutasi tidak sesuai')}
+                                    />  Asset mutasi tidak sesuai
+                                </div>
+                                <div className="ml-2">
+                                    <Input
+                                        addon
+                                        type="checkbox"
+                                        checked={listStat.find(element => element === 'Penerima mutasi tidak sesuai') !== undefined ? true : false}
+                                        onClick={listStat.find(element => element === 'Penerima mutasi tidak sesuai') === undefined ? () => this.statusApp('Penerima mutasi tidak sesuai') : () => this.statusRej('Penerima mutasi tidak sesuai')}
+                                    />  Penerima mutasi tidak sesuai
+                                </div>
+                                <div className="ml-2">
+                                    <Input
+                                        addon
+                                        type="checkbox"
+                                        checked={listStat.find(element => element === 'Alasan mutasi tidak sesuai') !== undefined ? true : false}
+                                        onClick={listStat.find(element => element === 'Alasan mutasi tidak sesuai') === undefined ? () => this.statusApp('Alasan mutasi tidak sesuai') : () => this.statusRej('Alasan mutasi tidak sesuai')}
+                                    />  Alasan mutasi tidak sesuai
+                                </div>
+                                <div className={style.alasan}>
+                                    <text className='ml-2'>
+                                        Lainnya
+                                    </text>
+                                </div>
+                                <Input
+                                    type="name"
+                                    name="select"
+                                    className="ml-2 inputRec"
+                                    value={values.alasan}
+                                    onChange={handleChange('alasan')}
+                                    onBlur={handleBlur('alasan')}
+                                />
+                                <div className='ml-2'>
+                                    {listStat.length === 0 && (values.alasan.length < 3) ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                                <div className={style.btnApprove}>
+                                    <Button color="primary" disabled={(((values.alasan === '.' || values.alasan === '') && listStat.length === 0) || this.state.typeReject === '' || (this.state.typeReject === 'perbaikan' && this.state.menuRev === '')) ? true : false} onClick={handleSubmit}>Submit</Button>
+                                    <Button className='ml-2' color="secondary" onClick={this.openReject}>Close</Button>
+                                </div>
+                            </div>
+                        )}
                     </Formik>
                 </ModalBody>
             </Modal>
-            <Modal isOpen={this.props.mutasi.isLoading ? true: false} size="sm">
+            <Modal isOpen={
+                this.props.mutasi.isLoading ||
+                this.props.tempmail.isLoading ||
+                this.props.newnotif.isLoading ? true: false} size="sm">
                 <ModalBody>
                     <div>
                         <div className={style.cekUpdate}>
                             <Spinner />
                             <div sucUpdate>Waiting....</div>
+                        </div>
+                    </div>
+                </ModalBody>
+            </Modal>
+            <Modal isOpen={this.state.openDraft} size='xl'>
+                <ModalHeader>Email Pemberitahuan</ModalHeader>
+                <ModalBody>
+                    <Email handleData={this.getMessage} />
+                    <div className={style.foot}>
+                        <div></div>
+                        <div>
+                            <Button
+                                disabled={this.state.message === '' ? true : false}
+                                className="mr-2"
+                                onClick={tipeEmail === 'reject' 
+                                    ? () => this.rejectMutasi(dataRej)
+                                    : () => this.submitMutasi()
+                                }
+                                color="primary"
+                            >
+                                {tipeEmail === 'reject' ? 'Reject' : 'Submit'} & Send Email
+                            </Button>
+                            <Button className="mr-3" onClick={this.openDraftEmail}>Cancel</Button>
                         </div>
                     </div>
                 </ModalBody>
@@ -920,7 +1758,9 @@ const mapStateToProps = state => ({
     mutasi: state.mutasi,
     notif: state.notif,
     disposal: state.disposal,
-    pengadaan: state.pengadaan
+    pengadaan: state.pengadaan,
+    tempmail: state.tempmail,
+    newnotif: state.newnotif,
 })
 
 const mapDispatchToProps = {
@@ -936,7 +1776,7 @@ const mapDispatchToProps = {
     getMutasiRec: mutasi.getMutasiRec,
     getDocumentMut: mutasi.getDocumentMut,
     resetAddMut: mutasi.resetAddMut,
-    resetAppRej: mutasi.resetAppRej,
+    resetMutasi: mutasi.resetMutasi,
     showDokumen: pengadaan.showDokumen,
     getNotif: notif.getNotif,
     rejectDocMut: mutasi.rejectDocMut,
@@ -947,7 +1787,10 @@ const mapDispatchToProps = {
     updateBudget: mutasi.updateBudget,
     submitEksekusi: mutasi.submitEksekusi,
     submitBudget: mutasi.submitBudget,
-    updateStatus: mutasi.updateStatus
+    updateStatus: mutasi.updateStatus,
+    addNewNotif: newnotif.addNewNotif,
+    getDraftEmail: tempmail.getDraftEmail,
+    sendEmail: tempmail.sendEmail,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(BudgetMutasi)

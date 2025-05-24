@@ -34,7 +34,12 @@ import ModalDokumen from '../../components/ModalDokumen'
 import ExcelJS from "exceljs";
 import fs from "file-saver";
 import * as path from 'path';
+import terbilang from '@develoka/angka-terbilang-js'
 const {REACT_APP_BACKEND_URL} = process.env
+
+const alasanSchema = Yup.object().shape({
+    alasan: Yup.string()
+});
 
 class FormIo extends Component {
     constructor(props) {
@@ -228,6 +233,10 @@ class FormIo extends Component {
             horizontal:'right'
         }
 
+        const wrapStyle = {
+            wrapText: true
+        }
+
         const alignStyle = {
             horizontal:'center',
             wrapText: true,
@@ -258,9 +267,9 @@ class FormIo extends Component {
           ext: { width: 60, height: 80 },
         });
 
-        ws.getCell(`${alphabet[lengthAll.length]}1`).value = ''
+        ws.getCell(`AM1`).value = ''
 
-        ws.mergeCells(`D4`, `L4`)
+        ws.mergeCells(`D4`, `T4`)
         ws.getCell(`D4`).value = 'FORM INTERNAL ORDER ASSET'
         ws.getCell(`D4`).alignment = { 
             ...alignStyle
@@ -269,15 +278,24 @@ class FormIo extends Component {
             ...titleStyle
         }
 
-        ws.getCell(`B8`).value = 'Io Type:'
+        ws.getCell(`B8`).value = 'IO Type:'
         ws.getCell(`B8`).alignment = { 
             ...leftStyle
         }
 
-        ws.getCell(`B10`).value = 'V     CB-20 IO Capex'
+        ws.getCell(`B10`).value = 'X'
         ws.getCell(`B10`).alignment = { 
-            ...leftStyle
+            ...alignStyle
         }
+
+        ws.getCell(`B10`).border = { 
+            ...borderStyles
+        }
+
+        ws.getCell(`C10`).value = '       CB-20 IO Capex'
+        // ws.getCell(`C10`).alignment = { 
+        //     ...leftStyle
+        // }
 
         // Nomor IO
         ws.getCell(`B12`).value = 'Nomor IO'
@@ -285,17 +303,17 @@ class FormIo extends Component {
             ...leftStyle
         }
 
-        ws.getCell(`C12`).value = ':'
-        ws.getCell(`C12`).alignment = { 
+        ws.getCell(`E12`).value = ':'
+        ws.getCell(`E12`).alignment = { 
             ...rightStyle
         }
 
         for (let i = 0; i < (detailIo.length > 0 && detailIo[0].no_io !== null ? detailIo[0].no_io.split('').length : lengthIo.length); i++) {
-            ws.getCell(`${alphabet[i + 3]}12`).value = detailIo.length > 0 && detailIo[0].no_io !== null ? detailIo[0].no_io.split('')[i] : ''
-            ws.getCell(`${alphabet[i + 3]}12`).alignment = { 
+            ws.getCell(`${alphabet[i + 5]}12`).value = detailIo.length > 0 && detailIo[0].no_io !== null ? detailIo[0].no_io.split('')[i] : ''
+            ws.getCell(`${alphabet[i + 5]}12`).alignment = { 
                 ...alignStyle
             }
-            ws.getCell(`${alphabet[i + 3]}12`).border = { 
+            ws.getCell(`${alphabet[i + 5]}12`).border = { 
                 ...borderStyles
             }
         }
@@ -306,26 +324,14 @@ class FormIo extends Component {
             ...leftStyle
         }
 
-        ws.getCell(`C14`).value = ':'
-        ws.getCell(`C14`).alignment = { 
+        ws.getCell(`E14`).value = ':'
+        ws.getCell(`E14`).alignment = { 
             ...rightStyle
         }
         
         // Table
-        ws.mergeCells(`D14`, `E14`)
-        ws.getCell(`D14`).value = 'Qty'
-        ws.getCell(`D14`).alignment = { 
-            ...alignStyle
-        }
-        ws.getCell(`D14`).border = { 
-            ...borderStyles
-        }
-        ws.getCell(`D14`).font = { 
-            ...boldStyle
-        }
-
-        ws.mergeCells(`F14`, `I14`)
-        ws.getCell(`F14`).value = 'Description'
+        ws.mergeCells(`F14`, `G14`)
+        ws.getCell(`F14`).value = 'Qty'
         ws.getCell(`F14`).alignment = { 
             ...alignStyle
         }
@@ -335,65 +341,77 @@ class FormIo extends Component {
         ws.getCell(`F14`).font = { 
             ...boldStyle
         }
-        
-        ws.mergeCells(`J14`, `L14`)
-        ws.getCell(`J14`).value = 'Price/unit'
-        ws.getCell(`J14`).alignment = { 
+
+        ws.mergeCells(`H14`, `K14`)
+        ws.getCell(`H14`).value = 'Description'
+        ws.getCell(`H14`).alignment = { 
             ...alignStyle
         }
-        ws.getCell(`J14`).border = { 
+        ws.getCell(`H14`).border = { 
             ...borderStyles
         }
-        ws.getCell(`J14`).font = { 
+        ws.getCell(`H14`).font = { 
+            ...boldStyle
+        }
+        
+        ws.mergeCells(`L14`, `N14`)
+        ws.getCell(`L14`).value = 'Price/unit'
+        ws.getCell(`L14`).alignment = { 
+            ...alignStyle
+        }
+        ws.getCell(`L14`).border = { 
+            ...borderStyles
+        }
+        ws.getCell(`L14`).font = { 
             ...boldStyle
         }
 
-        ws.mergeCells(`M14`, `O14`)
-        ws.getCell(`M14`).value = 'Total Amount'
-        ws.getCell(`M14`).alignment = { 
+        ws.mergeCells(`O14`, `Q14`)
+        ws.getCell(`O14`).value = 'Total Amount'
+        ws.getCell(`O14`).alignment = { 
             ...alignStyle
         }
-        ws.getCell(`M14`).border = { 
+        ws.getCell(`O14`).border = { 
             ...borderStyles
         }
-        ws.getCell(`M14`).font = { 
+        ws.getCell(`O14`).font = { 
             ...boldStyle
         }
 
         for (let i = 0; i < detailIo.length; i++) {
-            ws.mergeCells(`D${i + 15}`, `E${i + 15}`)
-            ws.getCell(`D${i + 15}`).value = detailIo[i].qty
-            ws.getCell(`D${i + 15}`).alignment = { 
-                ...alignStyle
-            }
-            ws.getCell(`D${i + 15}`).border = { 
-                ...borderStyles
-            }
-
-            ws.mergeCells(`F${i + 15}`, `I${i + 15}`)
-            ws.getCell(`F${i + 15}`).value = detailIo[i].nama
+            ws.mergeCells(`F${i + 15}`, `G${i + 15}`)
+            ws.getCell(`F${i + 15}`).value = detailIo[i].qty
             ws.getCell(`F${i + 15}`).alignment = { 
                 ...alignStyle
             }
             ws.getCell(`F${i + 15}`).border = { 
                 ...borderStyles
             }
-            
-            ws.mergeCells(`J${i + 15}`, `L${i + 15}`)
-            ws.getCell(`J${i + 15}`).value = `Rp.${detailIo[i].price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`
-            ws.getCell(`J${i + 15}`).alignment = { 
+
+            ws.mergeCells(`H${i + 15}`, `K${i + 15}`)
+            ws.getCell(`H${i + 15}`).value = detailIo[i].nama
+            ws.getCell(`H${i + 15}`).alignment = { 
                 ...alignStyle
             }
-            ws.getCell(`J${i + 15}`).border = { 
+            ws.getCell(`H${i + 15}`).border = { 
+                ...borderStyles
+            }
+            
+            ws.mergeCells(`L${i + 15}`, `N${i + 15}`)
+            ws.getCell(`L${i + 15}`).value = `Rp.${detailIo[i].price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`
+            ws.getCell(`L${i + 15}`).alignment = { 
+                ...alignStyle
+            }
+            ws.getCell(`L${i + 15}`).border = { 
                 ...borderStyles
             }
 
-            ws.mergeCells(`M${i + 15}`, `O${i + 15}`)
-            ws.getCell(`M${i + 15}`).value = `Rp.${((parseInt(detailIo[i].price) * parseInt(detailIo[i].qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."))}`
-            ws.getCell(`M${i + 15}`).alignment = { 
+            ws.mergeCells(`O${i + 15}`, `Q${i + 15}`)
+            ws.getCell(`O${i + 15}`).value = `Rp.${((parseInt(detailIo[i].price) * parseInt(detailIo[i].qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."))}`
+            ws.getCell(`O${i + 15}`).alignment = { 
                 ...alignStyle
             }
-            ws.getCell(`M${i + 15}`).border = { 
+            ws.getCell(`O${i + 15}`).border = { 
                 ...borderStyles
             }
         }
@@ -404,18 +422,18 @@ class FormIo extends Component {
             ...leftStyle
         }
 
-        ws.getCell(`C${colNum + 2}`).value = ':'
-        ws.getCell(`C${colNum + 2}`).alignment = { 
+        ws.getCell(`E${colNum + 2}`).value = ':'
+        ws.getCell(`E${colNum + 2}`).alignment = { 
             ...rightStyle
         }
 
         const cekCost = detailIo.length === 0 || detailIo[0].depo === undefined || detailIo[0].depo === null ? 'length' : 'cost'
         for (let i = 0; i < (cekCost === 'length' ? lengthCost.length : detailIo[0].depo.cost_center.split('').length); i++) {
-            ws.getCell(`${alphabet[i + 3]}${colNum + 2}`).value = cekCost === 'length' ? '' : detailIo[0].depo.cost_center.split('')[i]
-            ws.getCell(`${alphabet[i + 3]}${colNum + 2}`).alignment = { 
+            ws.getCell(`${alphabet[i + 5]}${colNum + 2}`).value = cekCost === 'length' ? '' : detailIo[0].depo.cost_center.split('')[i]
+            ws.getCell(`${alphabet[i + 5]}${colNum + 2}`).alignment = { 
                 ...alignStyle
             }
-            ws.getCell(`${alphabet[i + 3]}${colNum + 2}`).border = { 
+            ws.getCell(`${alphabet[i + 5]}${colNum + 2}`).border = { 
                 ...borderStyles
             }
         }
@@ -426,18 +444,18 @@ class FormIo extends Component {
             ...leftStyle
         }
 
-        ws.getCell(`C${colNum + 4}`).value = ':'
-        ws.getCell(`C${colNum + 4}`).alignment = { 
+        ws.getCell(`E${colNum + 4}`).value = ':'
+        ws.getCell(`E${colNum + 4}`).alignment = { 
             ...rightStyle
         }
 
         const cekProfit = detailIo.length === 0 || detailIo[0].depo === undefined || detailIo[0].depo === null ? 'length' : 'cost'
         for (let i = 0; i < (cekProfit === 'length' ? lengthProfit.length : detailIo[0].depo.profit_center.split('').length); i++) {
-            ws.getCell(`${alphabet[i + 3]}${colNum + 4}`).value = cekProfit === 'length' ? '' : detailIo[0].depo.profit_center.split('')[i]
-            ws.getCell(`${alphabet[i + 3]}${colNum + 4}`).alignment = { 
+            ws.getCell(`${alphabet[i + 5]}${colNum + 4}`).value = cekProfit === 'length' ? '' : detailIo[0].depo.profit_center.split('')[i]
+            ws.getCell(`${alphabet[i + 5]}${colNum + 4}`).alignment = { 
                 ...alignStyle
             }
-            ws.getCell(`${alphabet[i + 3]}${colNum + 4}`).border = { 
+            ws.getCell(`${alphabet[i + 5]}${colNum + 4}`).border = { 
                 ...borderStyles
             }
         }
@@ -448,47 +466,47 @@ class FormIo extends Component {
             ...leftStyle
         }
 
-        ws.getCell(`C${colNum + 6}`).value = ':'
-        ws.getCell(`C${colNum + 6}`).alignment = { 
+        ws.getCell(`E${colNum + 6}`).value = ':'
+        ws.getCell(`E${colNum + 6}`).alignment = { 
             ...rightStyle
         }
 
-        ws.getCell(`D${colNum + 6}`).value = detailIo[0] === undefined ? '' : detailIo[0].kategori === 'budget' ? 'V' : ''
-        ws.getCell(`D${colNum + 6}`).alignment = { 
+        ws.getCell(`F${colNum + 6}`).value = detailIo[0] === undefined ? '' : detailIo[0].kategori === 'budget' ? 'V' : ''
+        ws.getCell(`F${colNum + 6}`).alignment = { 
             ...alignStyle
         }
-        ws.getCell(`D${colNum + 6}`).border = { 
+        ws.getCell(`F${colNum + 6}`).border = { 
             ...borderStyles
         }
 
-        ws.getCell(`E${colNum + 6}`).value = 'Budget'
-        ws.getCell(`E${colNum + 6}`).alignment = { 
+        ws.getCell(`G${colNum + 6}`).value = 'Budget'
+        ws.getCell(`G${colNum + 6}`).alignment = { 
             ...leftStyle
         }
 
-        ws.getCell(`H${colNum + 6}`).value = detailIo[0] === undefined ? '' : detailIo[0].kategori === 'non-budget' ? 'V' : ''
-        ws.getCell(`H${colNum + 6}`).alignment = { 
+        ws.getCell(`J${colNum + 6}`).value = detailIo[0] === undefined ? '' : detailIo[0].kategori === 'non-budget' ? 'V' : ''
+        ws.getCell(`J${colNum + 6}`).alignment = { 
             ...alignStyle
         }
-        ws.getCell(`H${colNum + 6}`).border = { 
+        ws.getCell(`J${colNum + 6}`).border = { 
             ...borderStyles
         }
 
-        ws.getCell(`I${colNum + 6}`).value = 'Non Budgeted'
-        ws.getCell(`I${colNum + 6}`).alignment = { 
+        ws.getCell(`K${colNum + 6}`).value = 'Non Budgeted'
+        ws.getCell(`K${colNum + 6}`).alignment = { 
             ...leftStyle
         }
 
-        ws.getCell(`L${colNum + 6}`).value = detailIo[0] === undefined ? '' : detailIo[0].kategori === 'return' ? 'V' : ''
-        ws.getCell(`L${colNum + 6}`).alignment = { 
+        ws.getCell(`N${colNum + 6}`).value = detailIo[0] === undefined ? '' : detailIo[0].kategori === 'return' ? 'V' : ''
+        ws.getCell(`N${colNum + 6}`).alignment = { 
             ...alignStyle
         }
-        ws.getCell(`L${colNum + 6}`).border = { 
+        ws.getCell(`N${colNum + 6}`).border = { 
             ...borderStyles
         }
 
-        ws.getCell(`M${colNum + 6}`).value = 'Return'
-        ws.getCell(`M${colNum + 6}`).alignment = { 
+        ws.getCell(`O${colNum + 6}`).value = 'Return'
+        ws.getCell(`O${colNum + 6}`).alignment = { 
             ...leftStyle
         }
 
@@ -498,34 +516,39 @@ class FormIo extends Component {
             ...leftStyle
         }
 
-        ws.getCell(`C${colNum + 8}`).value = ':'
-        ws.getCell(`C${colNum + 8}`).alignment = { 
+        ws.getCell(`E${colNum + 8}`).value = ':'
+        ws.getCell(`E${colNum + 8}`).alignment = { 
             ...rightStyle
         }
 
-        ws.getCell(`D${colNum + 8}`).value = `Rp.${total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`
-        ws.getCell(`D${colNum + 8}`).alignment = { 
+        ws.getCell(`F${colNum + 8}`).value = `Rp.${total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`
+        ws.getCell(`F${colNum + 8}`).alignment = { 
+            ...leftStyle
+        }
+
+        ws.getCell(`F${colNum + 9}`).value = `Terbilang ( ${terbilang(total).split(' ').map(e => e.charAt(0).toUpperCase() + e.slice(1)).join(' ')} Rupiah )`
+        ws.getCell(`F${colNum + 9}`).alignment = { 
             ...leftStyle
         }
 
         //Alasan
-        ws.getCell(`B${colNum + 10}`).value = 'Alasan'
-        ws.getCell(`B${colNum + 10}`).alignment = { 
+        ws.getCell(`B${colNum + 11}`).value = 'Alasan'
+        ws.getCell(`B${colNum + 11}`).alignment = { 
             ...leftStyle
         }
 
-        ws.getCell(`C${colNum + 10}`).value = ':'
-        ws.getCell(`C${colNum + 10}`).alignment = { 
+        ws.getCell(`E${colNum + 11}`).value = ':'
+        ws.getCell(`E${colNum + 11}`).alignment = { 
             ...rightStyle
         }
 
-        ws.getCell(`D${colNum + 10}`).value = `${detailIo[0] === undefined || detailIo[0].alasan === null ? '-' : detailIo[0].alasan}`
-        ws.getCell(`D${colNum + 10}`).alignment = { 
+        ws.getCell(`F${colNum + 11}`).value = `${detailIo[0] === undefined || detailIo[0].alasan === null ? '-' : detailIo[0].alasan}`
+        ws.getCell(`F${colNum + 11}`).alignment = { 
             ...leftStyle
         }
 
         const dateRow = detailIo.length + 27
-        ws.getCell(`B${dateRow}`).value = `${detailIo[0].area}, ${moment(detailIo.tglIo).format('DD MMMM YYYY')}`
+        ws.getCell(`B${dateRow}`).value = `${detailIo[0].area}, ${moment(detailIo[0].tglIo).format('DD MMMM YYYY')}`
         ws.getCell(`B${dateRow}`).alignment = { 
             ...leftStyle
         }
@@ -536,7 +559,7 @@ class FormIo extends Component {
         const footRow = 5 + sumRow
 
         const cekApp = dataApp.pembuat.length + dataApp.pemeriksa.length + dataApp.penyetuju.length
-        const compCol = cekApp > 5 ? 'B' : 'C'
+        const compCol = 'D'
         const distCol = cekApp > 5 ? 3 : 4
         const botRow = 5 + sumRow
         console.log(sumRow)
@@ -696,10 +719,122 @@ class FormIo extends Component {
             }
         })
 
-        // width kolom B
-        ws.columns[1].width = 16
+        //keterangan Row
+        const topInfoRow = botRow + 3
+
+        ws.getCell(`B${topInfoRow}`).value = 'Keterangan :'
+        ws.getCell(`B${topInfoRow}`).alignment = { 
+            ...leftStyle
+        }
+        ws.getCell(`B${topInfoRow}`).font = { 
+            ...fontStyle,
+            ...boldStyle
+        }
+
+        ws.getCell(`B${topInfoRow + 1}`).value = 'No. IO dan Profit Center diisi oleh Budgeting Department'
+        ws.getCell(`B${topInfoRow + 1}`).alignment = { 
+            ...leftStyle
+        }
+        ws.getCell(`B${topInfoRow + 1}`).font = { 
+            ...fontStyle,
+        }
+
+        ws.getCell(`B${topInfoRow + 2}`).value = 'Cost Center diisi oleh Asset Department'
+        ws.getCell(`B${topInfoRow + 2}`).alignment = { 
+            ...leftStyle
+        }
+        ws.getCell(`B${topInfoRow + 2}`).font = { 
+            ...fontStyle,
+        }
+
+        ws.getCell(`B${topInfoRow + 3}`).value = `Untuk kategori Non Budgeted dan Return kolom alasan "Wajib" diisi`
+        ws.getCell(`B${topInfoRow + 3}`).alignment = { 
+            ...leftStyle
+        }
+        ws.getCell(`B${topInfoRow + 3}`).font = { 
+            ...fontStyle,
+        }
         
-        for (let i = 0; i < (cekLastRow < 16 ? 16 : cekLastRow - 1); i++) {
+        ws.getCell(`B${topInfoRow + 4}`).value = `* Sesuai Matriks Otorisasi, disetujui oleh :`
+        ws.getCell(`B${topInfoRow + 4}`).alignment = { 
+            ...leftStyle
+        }
+        ws.getCell(`B${topInfoRow + 4}`).font = { 
+            ...fontStyle,
+        }
+
+        ws.getCell(`C${topInfoRow + 5}`).value = `- Budgeted / Return : NFAM`
+        ws.getCell(`C${topInfoRow + 5}`).alignment = { 
+            ...leftStyle
+        }
+        ws.getCell(`C${topInfoRow + 5}`).font = { 
+            ...fontStyle,
+        }
+
+        ws.getCell(`C${topInfoRow + 6}`).value = `- Non Budgeted : DH OPS, NFAM, DH FA, DH HC, CM`
+        ws.getCell(`C${topInfoRow + 6}`).alignment = { 
+            ...leftStyle
+        }
+        ws.getCell(`C${topInfoRow + 6}`).font = { 
+            ...fontStyle,
+        }
+
+        //Outer border
+
+        const borderWidth = 'thin'
+
+        const borderStyle = {
+            style: borderWidth
+        };
+
+        const start = { row: 1, col: 1 }
+
+        const end = { row: topInfoRow + 7, col: cekLastRow < 20 ? 20 : cekLastRow + 2}
+
+        for (let i = start.row; i <= end.row; i++) {
+            const leftBorderCell = ws.getCell(i, start.col);
+            const rightBorderCell = ws.getCell(i, end.col);
+            leftBorderCell.border = {
+                ...leftBorderCell.border,
+                left: borderStyle
+            };
+            rightBorderCell.border = {
+                ...rightBorderCell.border,
+                right: borderStyle
+            };
+        }
+    
+        for (let i = start.col; i <= end.col; i++) {
+            const topBorderCell = ws.getCell(start.row, i);
+            const bottomBorderCell = ws.getCell(end.row, i);
+            topBorderCell.border = {
+                ...topBorderCell.border,
+                top: borderStyle
+            };
+            bottomBorderCell.border = {
+                ...bottomBorderCell.border,
+                bottom: borderStyle
+            };
+        }
+
+        // Nomor Form
+        const formRow = topInfoRow + 8
+
+        ws.getCell(`A${formRow}`).value = 'FRM-FAD-058 REV 06'
+        ws.getCell(`A${formRow}`).alignment = { 
+            ...leftStyle
+        }
+
+
+        // width kolom A
+        ws.columns[0].width = 5.5
+
+        // width kolom B
+        ws.columns[1].width = 5
+
+        //isi kosong untuk space
+
+        for (let i = 0; i < (cekLastRow < 16 ? 16 : cekLastRow + 1); i++) {
             console.log(i)
             ws.columns[2+i].width = 5.5
         }
@@ -780,7 +915,7 @@ class FormIo extends Component {
     return (
         <>
         <div className="backWhite mb-5">
-            <Container className='mb-4'>
+            <Container className='borderGen'>
                 <Row className="rowModal">
                     <Col md={3} lg={3}>
                         <img src={logo} className="imgModal" />
@@ -791,35 +926,37 @@ class FormIo extends Component {
                 </Row>
                 <div className="mt-4 mb-3">Io type:</div>
                 <div className="mb-4">
-                    <Form.Check 
-                        checked
+                    <Form.Check
                         type="checkbox"
+                        checked
                         label="CB-20 IO Capex"
                     />
                 </div>
                 <Row className="rowModal">
-                    <Col md={2} lg={2} sm={2} xl={2}>
+                    <Col md={2} lg={2}>
                         Nomor IO
                     </Col>
-                    <Col md={10} lg={10} sm={10} xl={10} className="colModal">
-                    <text className="">:</text>
-                    <OtpInput
-                        value={this.state.value}
-                        onChange={this.onChange}
-                        numInputs={11}
-                        inputStyle={style.otp}
-                        containerStyle={style.containerOtp}
-                        isDisabled
-                    />
+                    <Col md={10} lg={10} className="colModal">
+                        <text className="mr-3">:</text>
+                        <OtpInput
+                            value={this.state.value}
+                            onChange={this.onChange}
+                            numInputs={11}
+                            inputStyle={style.otp}
+                            containerStyle={style.containerOtp}
+                            isDisabled={level === '8' ? false : true}
+                        />
+                        {level === '8' && (
+                            <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo(detailIo[0].no_pengadaan)}>Save</Button>
+                        )}
                     </Col>
                 </Row>
-                
                 <Row className="mt-4">
-                    <Col md={2} lg={2} sm={2} xl={2}>
+                    <Col md={2} lg={2}>
                         Deskripsi
                     </Col>
-                    <Col md={10} lg={10} sm={10} xl={10} className="colModalTab">
-                        <text className="">:</text>
+                    <Col md={10} lg={10} className="colModalTab">
+                        <text className="mr-3">:</text>
                         <Table bordered stripped responsive>
                             <thead>
                                 <tr>
@@ -835,12 +972,12 @@ class FormIo extends Component {
                                         item.isAsset === 'false' && level !== '2' ? (
                                             null
                                         ) : (
-                                        <tr>
-                                            <td>{item.qty}</td>
-                                            <td>{item.nama}</td>
-                                            <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                            <td>Rp {((parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."))}</td>
-                                        </tr>
+                                            <tr >
+                                                <td>{item.qty}</td>
+                                                <td className='tdDesc'>{item.nama}</td>
+                                                <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                <td>Rp {(parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            </tr>
                                         )
                                     )
                                 })}
@@ -849,57 +986,57 @@ class FormIo extends Component {
                     </Col>
                 </Row>
                 <Row className="rowModal mt-4">
-                    <Col md={2} lg={2} sm={2} xl={2}>
+                    <Col md={2} lg={2}>
                         Cost Center
                     </Col>
-                    <Col md={10} lg={10} sm={10} xl={10} className="colModal">
-                    <text className="">:</text>
-                    <OtpInput
-                        value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.cost_center}
-                        isDisabled
-                        numInputs={10}
-                        inputStyle={style.otp}
-                        containerStyle={style.containerOtp}
-                    />
+                    <Col md={10} lg={10} className="colModal">
+                        <text className="mr-3">:</text>
+                        <OtpInput
+                            value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.cost_center}
+                            isDisabled
+                            numInputs={10}
+                            inputStyle={style.otp}
+                            containerStyle={style.containerOtp}
+                        />
                     </Col>
                 </Row>
                 <Row className="rowModal mt-2">
-                    <Col md={2} lg={2} sm={2} xl={2}>
+                    <Col md={2} lg={2}>
                         Profit Center
                     </Col>
-                    <Col md={10} lg={10} sm={10} xl={10} className="colModal">
-                    <text className="">:</text>
-                    <OtpInput
-                        value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.profit_center}
-                        isDisabled
-                        numInputs={10}
-                        inputStyle={style.otp}
-                        containerStyle={style.containerOtp}
-                    />
+                    <Col md={10} lg={10} className="colModal">
+                        <text className="mr-3">:</text>
+                        <OtpInput
+                            value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.profit_center}
+                            isDisabled
+                            numInputs={10}
+                            inputStyle={style.otp}
+                            containerStyle={style.containerOtp}
+                        />
                     </Col>
                 </Row>
                 <Row className="rowModal mt-4">
-                    <Col md={2} lg={2} sm={2} xl={2}>
+                    <Col md={2} lg={2}>
                         Kategori
                     </Col>
-                    <Col md={10} lg={10} sm={10} xl={10} className="colModal">
-                    <text className="">:</text>
+                    <Col md={10} lg={10} className="colModal">
+                        <text className="mr-3">:</text>
                         <Col md={4} lg={4}>
-                            <Form.Check 
+                            <Form.Check
                                 type="checkbox"
                                 label="Budget"
                                 checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'budget' ? true : false}
                             />
                         </Col>
                         <Col md={4} lg={4}>
-                            <Form.Check 
+                            <Form.Check
                                 type="checkbox"
                                 label="Non Budgeted"
                                 checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'non-budget' ? true : false}
                             />
                         </Col>
                         <Col md={4} lg={4}>
-                            <Form.Check 
+                            <Form.Check
                                 type="checkbox"
                                 label="Return"
                                 checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'return' ? true : false}
@@ -908,26 +1045,62 @@ class FormIo extends Component {
                     </Col>
                 </Row>
                 <Row className="rowModal mt-4">
-                    <Col md={2} lg={2} sm={2} xl={2}>
+                    <Col md={2} lg={2}>
                         Amount
                     </Col>
-                    <Col md={10} lg={10} sm={10} xl={10} className="colModal">
-                    <text className="">:</text>
-                    <text>Rp {total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</text>
+                    <Col md={10} lg={10} className="colModal">
+                        <text className="mr-3">:</text>
+                        <text>Rp {total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</text>
                     </Col>
                 </Row>
                 <Row className="rowModal mt-4">
-                    <Col md={2} lg={2} sm={2} xl={2}>
-                        Alasan
+                    <Col md={2} lg={2}>
                     </Col>
-                    <Col md={10} lg={10} sm={10} xl={10} className="colModal">
-                    <text className="">:</text>
-                    <text>{detailIo[0] === undefined || detailIo[0].alasan === null ? '-' : detailIo[0].alasan }</text>
+                    <Col md={10} lg={10} className="colModal">
+                        <text className="mr-3"> </text>
+                        <text className='text-capitalize'>Terbilang ( {terbilang(total)} Rupiah )</text>
                     </Col>
                 </Row>
-            </Container>
-            <Container>
-                <Table borderless responsive className="tabPreview">
+                <Formik
+                    initialValues={{
+                        alasan: detailIo[0] === undefined ? '' : detailIo[0].alasan === null || detailIo[0].alasan === '' || detailIo[0].alasan === '-' ? '' : detailIo[0].alasan,
+                    }}
+                    validationSchema={alasanSchema}
+                    onSubmit={(values) => { this.updateAlasan(values) }}
+                >
+                    {({ handleChange, handleBlur, handleSubmit, values, errors, touched, }) => (
+                        <div>
+                            <Row className="rowModal mt-4">
+                                <Col md={2} lg={2}>
+                                    Alasan
+                                </Col>
+                                <Col md={10} lg={10} className="colModal">
+                                    <text className="mr-3">:</text>
+                                    {level === '5' || level === '9' ? (
+                                        <>
+                                            <Input
+                                                type='textarea'
+                                                name='alasan'
+                                                className='inputRecent'
+                                                value={values.alasan}
+                                                onChange={handleChange('alasan')}
+                                                onBlur={handleBlur('alasan')}
+                                            />
+                                        </>
+                                    ) : (
+                                        <text>{detailIo[0] === undefined ? '-' : detailIo[0].alasan}</text>
+                                    )}
+                                </Col>
+                            </Row>
+                        </div>
+                    )}
+                </Formik>
+                <Row className="rowModal mt-4">
+                    <Col md={12} lg={12}>
+                        {detailIo[0] === undefined ? '' : `${detailIo[0].area}, ${moment(detailIo[0].tglIo).format('DD MMMM YYYY')}`}
+                    </Col>
+                </Row>
+                <Table borderless responsive className="tabPreview mt-4">
                     <thead>
                         <tr>
                             <th className="buatPre">Dibuat oleh,</th>
@@ -953,11 +1126,11 @@ class FormIo extends Component {
                                     </thead>
                                     <tbody>
                                         <tr>
-                                        {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
-                                            return (
-                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'area' ? 'AOS' : item.jabatan}</td>
-                                            )
-                                        })}
+                                            {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
+                                                return (
+                                                    <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'area' ? 'AOS' : item.jabatan}</td>
+                                                )
+                                            })}
                                         </tr>
                                     </tbody>
                                 </Table>
@@ -1015,6 +1188,16 @@ class FormIo extends Component {
                         </tr>
                     </tbody>
                 </Table>
+                <div className='mt-4 bold'>Keterangan:</div>
+                <div className=''>No. IO dan Profit Center diisi oleh Budgeting Department</div>
+                <div className=''>Cost Center diisi oleh Asset Department</div>
+                <div className=''>Untuk kategori Non Budgeted dan Return kolom alasan "Wajib" diisi</div>
+                <div className=''>* Sesuai Matriks Otorisasi, disetujui oleh :</div>
+                <div className='ml-4'>- Budgeted / Return : NFAM</div>
+                <div className='ml-4 mb-3'>- Non Budgeted : DH OPS, NFAM, DH FA, DH HC, CM</div>
+            </Container>
+            <Container>
+                <div className='mt-4'>FRM-FAD-058 REV 06</div>
             </Container>
         </div>
         <Modal isOpen={this.props.pengadaan.isLoading ? true: false} size="sm">

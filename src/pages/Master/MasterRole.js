@@ -630,6 +630,7 @@ class MasterUser extends Component {
                         <h2 className={styleTrans.pageTitle}>Master Role</h2>
                         
                         <div className={styleTrans.searchContainer}>
+                            <Button className='mr-1' onClick={this.openModalAdd} color="primary" size="lg">Add</Button>
                             <div className={style.searchEmail2}>
                                 <text>Search: </text>
                                 <Input 

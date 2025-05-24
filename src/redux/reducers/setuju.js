@@ -23,7 +23,8 @@ const setujuState = {
     page: {},
     disApp: {},
     dataPurch: [],
-    getPurch: false
+    getPurch: false,
+    no_setdis: ''
 };
 
 export default (state=setujuState, action) => {
@@ -31,7 +32,7 @@ export default (state=setujuState, action) => {
             case 'SUBMIT_SETDIS_PENDING': {
                 return {
                     ...state,
-                    isGet: false,
+                    isSubmitSet: false,
                     isLoading: true,
                     alertMsg: 'Waiting ...'
                 };
@@ -41,7 +42,7 @@ export default (state=setujuState, action) => {
                     ...state,
                     isLoading: false,
                     isError: false,
-                    isGet: true,
+                    isSubmitSet: true,
                     alertMsg: 'submit persetujuan disposal Succesfully',
                 };
             }
@@ -49,7 +50,7 @@ export default (state=setujuState, action) => {
                 return {
                     ...state,
                     isLoading: false,
-                    isGet: false,
+                    isSubmitSet: false,
                     isError: true,
                     alertMsg: "Unable connect to server"
                 };
@@ -324,6 +325,30 @@ export default (state=setujuState, action) => {
                     ...state,
                     isLoading: false,
                     isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'GENERATE_NOSET_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'GENERATE_NOSET_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    genPemb: true,
+                    no_setdis: action.payload.data.no_setdis,
+                    alertMsg: 'success submit bayar Succesfully',
+                };
+            }
+            case 'GENERATE_NOSET_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    genPemb: false,
                     alertMsg: "Unable connect to server"
                 };
             }

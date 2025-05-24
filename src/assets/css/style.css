@@ -7,6 +7,12 @@ html,body{
 .xl {
     max-width: 90% !important;
 }
+.xxl {
+    max-width: 95% !important;
+}
+.large {
+    max-width: 80% !important;
+}
 .img-back {
     width: 50%;
     height: "auto";
@@ -15,6 +21,12 @@ html,body{
 .body-Login {
     display: flex;
     flex-direction: row;
+}
+.bold {
+    font-weight: bold;
+}
+.underline {
+    text-decoration: underline;
 }
 .logoLogin {
     width: 15%;
@@ -406,6 +418,7 @@ html,body{
 
 .file-upload2[type="file"] {
     display: none;
+    cursor: pointer;
 }
 
 .file-upload1 {
@@ -570,6 +583,7 @@ html,body{
 .titleModDis {
     font-weight: bold;
     text-decoration: underline;
+    font-size: 20px;
 }
 .cart {
     display: flex;
@@ -862,7 +876,7 @@ html,body{
     justify-content: space-between;
 }
 .footRinci1 {
-    width: 90%;
+    width: 100%;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -917,6 +931,12 @@ html,body{
     border-radius: 5px;
     /* margin-left: 5px; */
 }
+.inputRinci3 {
+    border: 1px solid rgba(169, 169, 169, 0.6);
+    width: 100%;
+    margin-left: 2%;
+    border-radius: 5px;
+}
 .btnGoCart {
     border: 0;
     background-color: transparent;
@@ -946,11 +966,18 @@ html,body{
     padding-bottom: 0 !important;
     border: 0 !important;
 }
+.noPad {
+    padding: 0px 0px !important;
+    margin: 0px 0px !important;
+    font-size: 0.9vw;
+}
 .headPre {
     border: 1px solid black !important;
     padding-bottom: 40px !important;
     padding-top: 40px !important;
     text-align: center;
+    font-size: 0.9vw;
+    /* width: 100%; */
     /* display: flex;
     flex-direction: column;
     justify-content: space-between; */
@@ -958,6 +985,14 @@ html,body{
 .footPre {
     border: 1px solid black !important;
     text-align: center;
+    font-size: 0.9vw;
+    /* width: 100%; */
+}
+.sizeCh {
+    font-size: 1.2vw;
+}
+.sizeNote {
+    font-size: 1vw;
 }
 /* .divPre {
     border: 1px solid black !important;
@@ -968,6 +1003,8 @@ html,body{
 .buatPre {
     border: 1px solid black !important;
     text-align: center;
+    vertical-align: middle !important;
+    font-size: 0.9vw;
 }
 .bodyPer {
     padding-top: 5%;
@@ -1019,7 +1056,7 @@ html,body{
     align-items: center;
 }
 .imgMut {
-    width: 100%;
+    width: 50px;
     height: auto;
 }
 .titMut {
@@ -1032,23 +1069,44 @@ html,body{
 .alMut {
     display: flex;
     flex-direction: row;
-    border-radius: 15px;
+    /* border-radius: 15px; */
+}
+.noTh {
+    width: 10px !important;
+}
+.thGen {
+    width: 12% !important;
+}
+.asetTh {
+    width: 24% !important;
+}
+.mutTableTitle {
+    text-align: center !important;
+    vertical-align: middle !important;
+    font: 15px !important;
 }
 .alInput {
     width: 40% !important;
 }
 .alasanMut {
     border: 1px solid #9b9b9b;
-    width: 40%;
-    padding: 2%;
+    width: 20%;
+    padding: 10px;
     display: flex;
     flex-direction: column;
-    border-radius: 15px;
+    /* border-radius: 15px; */
+}
+.otoSize {
+    font-size: 12px;
 }
 .titAlasan {
     font-weight: bold;
     text-decoration: underline;
-    font-size: 120%;
+    font-size: 18px;
+}
+.contentReason {
+    font-size: 15px;
+    text-transform: capitalize;
 }
 .colDoc {
     display: flex;
@@ -1373,6 +1431,11 @@ html,body{
     display: flex;
     flex-direction: row;
 }
+.rowBetween {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
 .checkSize {
     transform: scale(1.5);
 }
@@ -1399,7 +1462,13 @@ html,body{
     flex-direction: column !important;
 }
 .indexStat {
+    z-index: 2 !important;
+}
+.indexToggle {
     z-index: 1 !important;
+}
+.indexMenu {
+    z-index: 3 !important;
 }
 .selfStart {
     align-self: flex-start !important;
@@ -1442,7 +1511,7 @@ html,body{
 .backWhite {
     background-color: white !important;
     border: 1px solid black;
-    height: 100vh;
+    height: relative;
     width: 100vw;
 }
 .addModalMenu {
@@ -1490,6 +1559,10 @@ html,body{
 .tdPlant {
     width: 6% !important;
 }
+.tdKat {
+    width: 6% !important;
+    text-transform: capitalize;
+}
 .tdArea {
     width: 10% !important;
 }
@@ -1501,4 +1574,22 @@ html,body{
 }
 .tdDesc {
     width: 23% !important;
+}
+.tdDate {
+    width: 10% !important;
+}
+.justiceCenter {
+    justify-content: center !important;
+}
+.statTb {
+    width: 15% !important;
+}
+.justiceEnd {
+    justify-content: end !important;
+}
+.boxRec {
+    width: 18%;
+    border: 1px solid blue;
+    padding: 10px;
+    font-size: 12px;
 }

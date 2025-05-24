@@ -129,7 +129,7 @@ class NavDisposal extends Component {
                                         <p className='mt-4'>Eksekusi disposal</p>
                                     </div>
                                 </div>
-                                <div onClick={() => this.goRoute('eksdis')} className="col-12 col-md-6 col-lg-3 mb-4">
+                                <div onClick={() => this.goRoute('rev-disposal')} className="col-12 col-md-6 col-lg-3 mb-4">
                                     <div className={styleHome.navCard}>
                                         <BiRevision size={150} className='mt-4 mb-4' />
                                         <p className='mt-4'>Revisi Disposal</p>

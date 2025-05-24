@@ -9,6 +9,8 @@ import { MdKeyboardArrowRight, MdKeyboardArrowDown } from 'react-icons/md'
 import { AiOutlineCheck, AiOutlineClose, AiFillCheckCircle, AiOutlineFileExcel} from 'react-icons/ai'
 import {BsCircle} from 'react-icons/bs'
 import pengadaan from '../redux/actions/pengadaan'
+import mutasi from '../redux/actions/mutasi'
+import disposal from '../redux/actions/disposal'
 import dokumen from '../redux/actions/dokumen'
 import {connect} from 'react-redux'
 import style from '../assets/css/input.module.css'
@@ -202,7 +204,7 @@ class ModalDokumen extends Component {
         }
         await this.props.approveDokumen(token, val.id)
         await this.props.getDokumen(token, tempno)
-        if (noDoc === noTrans) {
+        if (noDoc === noTrans && tipe === 'pengadaan') {
             await this.props.getDocumentIo(token, noDoc)
             if (val.type === 'show') {
                 // this.openModalPdf()
@@ -211,13 +213,30 @@ class ModalDokumen extends Component {
                 this.collDoc(val.id)
             }
         } else {
-            await this.props.getDocCart(token, noDoc)
-            if (val.type === 'show') {
-                // this.openModalPdf()
-                this.collDoc(val.id)
-            } else {
-                this.collDoc(val.id)
+            if (tipe === 'pengadaan') {
+                await this.props.getDocCart(token, noDoc)
+                if (val.type === 'show') {
+                    this.collDoc(val.id)
+                } else {
+                    this.collDoc(val.id)
+                }
+            } else if (tipe === 'mutasi') {
+                await this.props.getDetailMutasi(token, noDoc)
+                await this.props.getDocumentMut(token, noDoc, noDoc)
+                if (val.type === 'show') {
+                    this.collDoc(val.id)
+                } else {
+                    this.collDoc(val.id)
+                }
+            } else if (tipe === 'disposal') {
+                await this.props.getDocumentDis(token, noDoc, 'disposal', 'pengajuan')
+                if (val.type === 'show') {
+                    this.collDoc(val.id)
+                } else {
+                    this.collDoc(val.id)
+                }
             }
+            
         }
         
         // this.setState({confirm: 'isAppDoc'})
@@ -240,7 +259,13 @@ class ModalDokumen extends Component {
         await this.props.approveDokumen(token, idDoc, data)
         await this.props.getDokumen(token, tempno)
         if (noDoc === noTrans) {
-            await this.props.getDocumentIo(token, noDoc)
+            if (tipe === 'pengadaan') {
+                await this.props.getDocumentIo(token, noDoc)
+            } else {
+                await this.props.getDetailMutasi(token, noDoc)
+                await this.props.getDocumentMut(token, noDoc, noDoc)
+            }
+            
             // if (val.type === 'show') {
             //     this.openModalPdf()
             //     this.collDoc(val.id)
@@ -275,9 +300,20 @@ class ModalDokumen extends Component {
         await this.props.rejectDokumen(token, idDoc)
         await this.props.getDokumen(token, tempno)
         if (noDoc === noTrans) {
-            await this.props.getDocumentIo(token, noDoc)
+            if (tipe === 'pengadaan') {
+                await this.props.getDocumentIo(token, noDoc)
+            } else if (tipe === 'mutasi') {
+                await this.props.getDetailMutasi(token, noDoc)
+                await this.props.getDocumentMut(token, noDoc, noDoc)
+            }
         } else {
-            await this.props.getDocCart(token, noDoc)
+            if (tipe === 'disposal') {
+                // await this.props.getDocCart(token, noDoc)
+                await this.props.getDocumentDis(token, noDoc, 'disposal', 'pengajuan')
+            } else {
+                await this.props.getDocCart(token, noDoc)
+            }
+            
         }
         this.setState({confirm: 'isRejDoc'})
         this.openConfirm()
@@ -298,7 +334,12 @@ class ModalDokumen extends Component {
         await this.props.rejectDokumen(token, idDoc, data)
         await this.props.getDokumen(token, tempno)
         if (noDoc === noTrans) {
-            await this.props.getDocumentIo(token, noDoc)
+            if (tipe === 'pengadaan') {
+                await this.props.getDocumentIo(token, noDoc)
+            } else {
+                await this.props.getDetailMutasi(token, noDoc)
+                await this.props.getDocumentMut(token, noDoc, noDoc)
+            }
         } else {
             await this.props.getDocCart(token, noDoc)
         }
@@ -624,7 +665,7 @@ class ModalDokumen extends Component {
 
                                     <div className='colCenter borderGen'>
                                         {dataColl.find(e => e === x.id) === undefined ? (
-                                            <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${x.id}`} noTrans={noTrans} noDoc={noDoc} dataFile={x} detailForm={detailForm} />
+                                            <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${x.id}`} noTrans={noTrans} noDoc={noDoc} dataFile={x} detailForm={detailForm} tipe={tipe} />
                                         ) : (
                                             <div></div>
                                         )}
@@ -892,7 +933,10 @@ const mapDispatchToProps = {
     getDocCart: pengadaan.getDocCart,
     getDocumentIo: pengadaan.getDocumentIo,
     uploadDocument: pengadaan.uploadDocument,
-    resetError: pengadaan.resetError
+    resetError: pengadaan.resetError,
+    getDetailMutasi: mutasi.getDetailMutasi,
+    getDocumentMut: mutasi.getDocumentMut,
+    getDocumentDis: disposal.getDocumentDis
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(ModalDokumen)

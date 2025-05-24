@@ -4,7 +4,7 @@ import {  NavbarBrand, DropdownToggle, DropdownMenu,
     Modal, ModalHeader, ModalBody, Alert, Spinner} from 'reactstrap'
 import style from '../../assets/css/input.module.css'
 import {FaSearch, FaUserCircle, FaBars} from 'react-icons/fa'
-import {AiFillCheckCircle, AiOutlineFileExcel} from 'react-icons/ai'
+import {AiFillCheckCircle, AiOutlineFileExcel, AiOutlineInbox} from 'react-icons/ai'
 import depo from '../../redux/actions/depo'
 import report from '../../redux/actions/report'
 import disposal from '../../redux/actions/disposal'
@@ -20,6 +20,8 @@ import MaterialTitlePanel from "../../components/material_title_panel";
 import SidebarContent from "../../components/sidebar_content";
 import NavBar from '../../components/NavBar'
 import ReactHtmlToExcel from "react-html-table-to-excel"
+import styleTrans from '../../assets/css/transaksi.module.css'
+import NewNavbar from '../../components/NewNavbar'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const userSchema = Yup.object().shape({
@@ -70,12 +72,26 @@ class MasterUser extends Component {
             upload: false,
             errMsg: '',
             fileUpload: '',
-            limit: 10,
+            limit: 100,
             search: '',
-            tipe: 'transaksi'
+            tipe: 'transaksi',
+            time: 'pilih',
+            time1: moment().subtract(1, 'month').startOf('month').format('YYYY-MM-DD'),
+            // time1: moment().startOf('month').format('YYYY-MM-DD'),
+            time2: moment().endOf('month').format('YYYY-MM-DD'),
+            filter: '',
+            newReport: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+    }
+
+    prosesSidebar = (val) => {
+        this.setState({sidebarOpen: val})
+    }
+    
+    goRoute = (val) => {
+        this.props.history.push(`/${val}`)
     }
 
     showAlert = () => {
@@ -170,10 +186,11 @@ class MasterUser extends Component {
         this.setState({tipe: val})
     }
 
-    onSearch = (e) => {
+    onSearch = async (e) => {
         this.setState({search: e.target.value})
+        const token = localStorage.getItem("token")
         if(e.key === 'Enter'){
-            this.getDataUser({limit: 10, search: this.state.search})
+            this.changeFilter(this.state.filter)
         }
     }
 
@@ -226,12 +243,71 @@ class MasterUser extends Component {
     }
 
     getDataReportDisposal = async (val) => {
-        const limit = val === undefined || val.limit === undefined ? 10 : val.limit
-        const token = localStorage.getItem("token")
-        const search = this.props.location.state === undefined ? '' : this.props.location.state
-        this.setState({limit: limit === null ? 'All' : limit})
-        await this.props.getReportDis(token, limit, search, 1)
+        this.changeFilter('finish')
     }
+
+    changeFilter = async (val) => {
+        const token = localStorage.getItem('token')
+        const { time1, time2, search, limit } = this.state
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        const status = val === 'finish' ? '8' : 'all'
+        const tipe = 'disposal'
+
+        await this.props.getReportDis(token, limit, search, 1, status, tipe, cekTime1, cekTime2)
+
+        const { dataRep } = this.props.report
+        const role = localStorage.getItem('role')
+        if (val === 'reject' && dataRep.length > 0) {
+            const newReport = []
+            for (let i = 0; i < dataRep.length; i++) {
+                if (dataRep[i].status_reject === 1) {
+                    newReport.push(dataRep[i])
+                }
+            }
+            this.setState({ filter: val, newReport: newReport })
+        } else if (val === 'finish' && dataRep.length > 0) {
+            const newReport = []
+            for (let i = 0; i < dataRep.length; i++) {
+                if (dataRep[i].status_form === 8) {
+                    newReport.push(dataRep[i])
+                }
+            }
+            this.setState({ filter: val, newReport: newReport })
+        } else {
+            const newReport = []
+            for (let i = 0; i < dataRep.length; i++) {
+                newReport.push(dataRep[i])
+            }
+            this.setState({ filter: val, newReport: newReport })
+        }
+    }
+
+    selectTime = (val) => {
+        this.setState({ [val.type]: val.val })
+    }
+
+    changeTime = async (val) => {
+        const token = localStorage.getItem("token")
+        this.setState({ time: val })
+        if (val === 'all') {
+            this.setState({ time1: '', time2: '' })
+            setTimeout(() => {
+                this.getDataTime()
+            }, 500)
+        }
+    }
+
+    getDataTime = async () => {
+        const { time1, time2, filter, search, limit } = this.state
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        const token = localStorage.getItem("token")
+        const level = localStorage.getItem("level")
+        // const status = filter === 'selesai' ? '8' : filter === 'available' && level === '2' ? '1' : filter === 'available' && level === '8' ? '3' : 'all'
+        this.changeFilter(filter)
+    }
+
 
     menuButtonClick(ev) {
         ev.preventDefault();
@@ -243,7 +319,7 @@ class MasterUser extends Component {
     }
 
     render() {
-        const {isOpen, dropOpen, dropOpenNum, detail, level, upload, errMsg} = this.state
+        const {isOpen, dropOpen, dropOpenNum, detail, level, upload, errMsg, newReport} = this.state
         const {dataUser, isGet, alertM, alertMsg, alertUpload, page, dataRole} = this.props.user
         const { dataRep } = this.props.report
         const { dataDepo } = this.props.depo
@@ -279,7 +355,7 @@ class MasterUser extends Component {
           };
         return (
             <>
-                <Sidebar {...sidebarProps}>
+                {/* <Sidebar {...sidebarProps}>
                     <MaterialTitlePanel title={contentHeader}>
                         <div className={style.backgroundLogo}>
                             <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
@@ -327,7 +403,7 @@ class MasterUser extends Component {
                                             sheet="Report"
                                             buttonText="Download Report"
                                         />
-                                        {/* <Button onClick={this.ExportMaster} disabled color="success" size="lg">Download</Button> */}
+                                        <Button onClick={this.ExportMaster} disabled color="success" size="lg">Download</Button>
                                     </div>
                                     <div>
                                         <text>Tipe Report: </text>
@@ -529,13 +605,13 @@ class MasterUser extends Component {
                                 </div>  
                                 )}
                                 <div>
-                                    {/* <div className={style.infoPageEmail}>
+                                    <div className={style.infoPageEmail}>
                                         <text>Showing {page.currentPage} of {page.pages} pages</text>
                                         <div className={style.pageButton}>
                                             <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
                                             <button className={style.btnPrev} color="info" disabled={page.nextLink === null ? true : false} onClick={this.next}>Next</button>
                                         </div>
-                                    </div> */}
+                                    </div>
                                 </div>
                             </div>
                             ) : (
@@ -545,7 +621,210 @@ class MasterUser extends Component {
                             )}
                         </div>
                     </MaterialTitlePanel>
-                </Sidebar>
+                </Sidebar> */}
+                <div className={styleTrans.app}>
+                    <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
+
+                    <div className={`${styleTrans.mainContent} ${this.state.sidebarOpen ? styleTrans.collapsedContent : ''}`}>
+                        <h2 className={styleTrans.pageTitle}>Report Disposal</h2>
+                        <div className={styleTrans.searchContainer}>
+                            <ReactHtmlToExcel
+                                id="test-table-xls-button"
+                                className="btn btn-success"
+                                table="table-to-xls"
+                                filename={this.state.tipe === 'transaksi' ? "Report Disposal" : "Report History Disposal"}
+                                sheet="Report"
+                                buttonText="Download Report"
+                            />
+                            <div></div>
+                        </div>
+                        <div className={styleTrans.searchContainer}>
+                            <div>
+                                <ButtonDropdown className={style.drop} isOpen={dropOpenNum} toggle={this.dropOpen}>
+                                <DropdownToggle caret color="light">
+                                    Report {this.state.tipe}
+                                </DropdownToggle>
+                                <DropdownMenu>
+                                    <DropdownItem className={style.item} onClick={() => this.changeTipe("transaksi")}>Report transaksi</DropdownItem>
+                                    <DropdownItem className={style.item} onClick={() => this.changeTipe("history")}>Report history</DropdownItem>
+                                </DropdownMenu>
+                                </ButtonDropdown>
+                            </div>
+                            <select value={this.state.filter} onChange={e => this.changeFilter(e.target.value)} className={styleTrans.searchInput}>
+                                <option value="all">All</option>
+                                <option value="finish">Finished</option>
+                                <option value="reject">Reject</option>
+                            </select>
+                         </div>
+                        <div className={styleTrans.searchContainer}>
+                            <div className='rowCenter'>
+                                <div className='rowCenter'>
+                                    <Input className={style.filter3} type="select" value={this.state.time} onChange={e => this.changeTime(e.target.value)}>
+                                        <option value="all">Time (All)</option>
+                                        <option value="pilih">Periode</option>
+                                    </Input>
+                                </div>
+                                {this.state.time === 'pilih' ? (
+                                    <>
+                                        <div className='rowCenter'>
+                                            <text className='bold'>:</text>
+                                            <Input
+                                                type="date"
+                                                className="inputRinci"
+                                                value={this.state.time1}
+                                                onChange={e => this.selectTime({ val: e.target.value, type: 'time1' })}
+                                            />
+                                            <text className='mr-1 ml-1'>To</text>
+                                            <Input
+                                                type="date"
+                                                className="inputRinci"
+                                                value={this.state.time2}
+                                                onChange={e => this.selectTime({ val: e.target.value, type: 'time2' })}
+                                            />
+                                            <Button
+                                                disabled={this.state.time1 === '' || this.state.time2 === '' ? true : false}
+                                                color='primary'
+                                                onClick={this.getDataTime}
+                                                className='ml-1'>
+                                                Go
+                                            </Button>
+                                        </div>
+                                    </>
+                                ) : null}
+                            </ div>
+                            <input
+                                type="text"
+                                placeholder="Search..."
+                                onChange={this.onSearch}
+                                value={this.state.search}
+                                onKeyPress={this.onSearch}
+                                className={styleTrans.searchInput}
+                            />
+                        </div>
+
+                        <table className={styleTrans.table}>
+                            <thead>
+                                {this.state.tipe === 'transaksi' ? (
+                                    <tr>
+                                        <th>No</th>
+                                        <th>No Pengajuan Disposal</th>
+                                        <th>No Persetujuan Disposal</th>
+                                        <th>Nomor Asset</th>
+                                        <th>Nama Barang</th>
+                                        <th>Kategori</th>
+                                        <th>Cost Center</th>
+                                        <th>Cost Center Name</th>
+                                        <th>Tgl Perolehan</th>
+                                        <th>Nilai Akuisisi</th>
+                                        <th>Nilai Buku saat pengajuan Disposal aset</th>
+                                        <th>Nilai jual</th>
+                                        <th>Keterangan pengajuan disposal aset</th>
+                                        <th>Nilai Buku saat persetujuan Disposal</th>
+                                        <th>Keterangan persetujuan disposal aset</th>
+                                        <th>Grouping eksekusi</th>
+                                        <th>Akumulasi Aset</th>
+                                        <th>Nilai Buku Saat eksekusi</th>
+                                        <th>DPP</th>
+                                        <th>PPN</th>
+                                        <th>Profit/LOSS</th>
+                                        <th>Tanggal Eksekusi disposal di SAP</th>
+                                        <th>No Doc Jurnal Uang Masuk</th>
+                                        <th>Nomor Faktur Pajak</th>
+                                        <th>No Doc Disposal</th>
+                                        <th>No Doc Clearing</th>
+                                        <th>PIC ASET</th>
+                                    </tr>
+                                ) : (
+                                        <tr>
+                                            <th>No</th>
+                                            <th>No Pengajuan Disposal</th>
+                                            <th>Nomor Asset</th>
+                                            <th>Tgl dibuat Form  Disposal aset</th>
+                                            <th>Tgl App BM</th>
+                                            <th>Tgl app ISM</th>
+                                            <th>Tgl App IRM</th>
+                                            <th>Tgl App AM</th>
+                                            <th>Tgl App NFAM</th>
+                                            <th>Tgl App Head Of Ops</th>
+                                            <th>Tgl App Head Of HC</th>
+                                            <th>Tgl App CM</th>
+                                            <th>Tgl dibuat form Persetujuan</th>
+                                            <th>Tgl kirim Persetujuan disposal</th>
+                                            <th>Selesai App Form Persetujuan</th>
+                                            <th>Tgl area kirim kelengkapan eksekusi disposal</th>
+                                            <th>Tgl Jurnal uang masuk</th>
+                                            <th>Tgl Pembuatan Faktur Pajak</th>
+                                            <th>Tgl Aset Info eksekusi disposal aset</th>
+                                        </tr>
+                                )}
+                            </thead>
+                            <tbody>
+                                {newReport.length !== 0 && newReport.map(item => {
+                                    return (
+                                    this.state.tipe === 'transaksi' ? (
+                                        <tr>
+                                            <td scope="row">{newReport.indexOf(item) + 1}</td>
+                                            <td>{item.no_disposal === null ? '-' : `D${item.no_disposal}`}</td>
+                                            <td>{item.no_persetujuan}</td>
+                                            <td>{item.no_asset}</td>
+                                            <td>{item.nama_asset}</td>
+                                            <td>{item.dataAsset === null ? '-' : item.dataAsset.kategori}</td>
+                                            <td>{item.cost_center}</td>
+                                            <td>{item.area}</td>
+                                            <td>{item.dataAsset === null ? '-' : moment(item.dataAsset.tanggal).format('DD/MM/YYYY')}</td>
+                                            <td>{item.dataAsset === null ? '-' : item.dataAsset.nilai_acquis === null ? '-' : item.dataAsset.nilai_acquis.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.nilai_buku === null ? '-' : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.nilai_jual === null ? '-' : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.keterangan}</td>
+                                            <td>{item.nilai_buku === null ? '-' : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.keterangan}</td>
+                                            <td>{item.nilai_jual === '0' ? 'Dispose' : 'Sell'}</td>
+                                            <td>{item.dataAsset === null ? '-' : item.dataAsset.accum_dep === null ? '-' : item.dataAsset.accum_dep.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.nilai_buku_eks === null ? '-' : item.nilai_buku_eks.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) / (11/10)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) - Math.round(parseInt(item.nilai_jual) / (11/10))).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.nilai_jual === '0' ? '-' : Math.round(Math.round(parseInt(item.nilai_jual) / (11/10))-parseInt(item.dataAsset === null ? 0 : item.dataAsset.nilai_buku)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.tgl_eksekusi === null ? '-' : moment(item.tgl_eksekusi).format('DD/MM/YYYY')}</td>
+                                            <td>{item.no_sap}</td>
+                                            <td>{item.no_fp}</td>
+                                            <td>{item.doc_sap}</td>
+                                            <td>{item.doc_clearing}</td>
+                                            <td>{item.depo.nama_pic_1}</td>
+                                        </tr>
+                                    ) : (
+                                        <tr>
+                                            <th scope="row">{newReport.indexOf(item) + 1}</th>
+                                            <td>{item.no_disposal === null ? '-' : `D${item.no_disposal}`}</td>
+                                            <td>{item.no_asset}</td>
+                                            <td>{item.tanggalDis === null ? '-' : moment(item.tanggalDis).format('DD/MM/YYYY')}</td>
+                                            <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'BM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'BM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'BM').updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                            <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'IT OSM') !== undefined &&item.appForm.find(({jabatan}) => jabatan === 'IT OSM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'IT OSM').updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                            <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'IRM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'IRM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'IRM').updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                            <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'AM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'AM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'AM').updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                            <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'NFAM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'NFAM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'NFAM').updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                            <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'HEAD OF OPS') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'HEAD OF OPS').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'HEAD OF OPS').updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                            <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'HEAD OF HC') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'HEAD OF HC').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'HEAD OF HC').updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                            <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'CM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'CM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'CM').updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                            <td>{item.ttdSet.length > 0 && item.ttdSet.find(({jabatan}) => jabatan === 'NFAM') !== undefined && item.ttdSet.find(({jabatan}) => jabatan === 'NFAM').status === 1 ? moment(item.ttdSet.find(({jabatan}) => jabatan === 'NFAM').createdAt).format('DD/MM/YYYY') : '-'}</td>
+                                            <td>{item.ttdSet.length > 0 && item.ttdSet.find(({jabatan}) => jabatan === 'NFAM') !== undefined && item.ttdSet.find(({jabatan}) => jabatan === 'NFAM').status === 1 ? moment(item.ttdSet.find(({jabatan}) => jabatan === 'NFAM').createdAt).format('DD/MM/YYYY') : '-'}</td>
+                                            <td>{item.ttdSet.length > 0 && item.ttdSet.find(({jabatan}) => jabatan === 'CEO') !== undefined && item.ttdSet.find(({jabatan}) => jabatan === 'CEO').status === 1 ? moment(item.ttdSet.find(({jabatan}) => jabatan === 'CEO').updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                            <td>{item.docAsset.length > 0 && item.docAsset.find(({tipe}) => tipe === 'dispose') !== undefined ? moment(item.docAsset.find(({tipe}) => tipe === 'dispose').createdAt).format('DD/MM/YYYY') : item.docAsset.find(({tipe}) => tipe === 'sell') !== undefined ? moment(item.docAsset.find(({tipe}) => tipe === 'sell').createdAt).format('DD/MM/YYYY') : '-'}</td>
+                                            <td>{item.docAsset.length > 0 && item.docAsset.find(({tipe}) => tipe === 'finance') !== undefined ? moment(item.docAsset.find(({tipe}) => tipe === 'finance').createdAt).format('DD/MM/YYYY') : '-'}</td>
+                                            <td>{item.docAsset.length > 0 && item.docAsset.find(({tipe}) => tipe === 'tax') !== undefined ? moment(item.docAsset.find(({tipe}) => tipe === 'tax').createdAt).format('DD/MM/YYYY') : '-'}</td>
+                                            <td>{item.status_form === 8 ? moment(item.updatedAt).format('DD/MM/YYYY') : '-'}</td>
+                                        </tr>
+                                    )
+                                )})}
+                            </tbody>
+                        </table>
+                        {newReport.length === 0 && (
+                            <div className={style.spinCol}>
+                                <AiOutlineInbox size={50} className='secondary mb-4' />
+                                <div className='textInfo'>Data ajuan tidak ditemukan</div>
+                            </div>
+                        )}
+                    </div>
+                </div>
                 <Modal toggle={this.openModalAdd} isOpen={this.state.modalAdd}>
                     <ModalHeader toggle={this.openModalAdd}>Add Master User</ModalHeader>
                     <Formik

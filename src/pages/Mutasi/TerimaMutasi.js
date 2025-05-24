@@ -184,20 +184,20 @@ class TerimaMutasi extends Component {
             this.openConfirm(this.setState({confirm: 'reject'}))
             this.props.getDetailMutasi(token, detailMut[0].no_mutasi)
             this.openModalMut()
-            this.props.resetAppRej()
+            this.props.resetMutasi()
         } else if (isApprove) {
             this.openConfirm(this.setState({confirm: 'approve'}))
             this.props.getDetailMutasi(token, detailMut[0].no_mutasi)
             this.openApprove()
-            this.props.resetAppRej()
+            this.props.resetMutasi()
         } else if (rejReject) {
             this.openReject()
             this.openConfirm(this.setState({confirm: 'rejReject'}))
-            this.props.resetAppRej()
+            this.props.resetMutasi()
         } else if (rejApprove) {
             this.openConfirm(this.setState({confirm: 'rejApprove'}))
             this.openApprove()
-            this.props.resetAppRej()
+            this.props.resetMutasi()
         }
     }
 
@@ -1364,7 +1364,7 @@ const mapDispatchToProps = {
     uploadDocumentDis: disposal.uploadDocumentDis,
     resetAddMut: mutasi.resetAddMut,
     showDokumen: pengadaan.showDokumen,
-    resetAppRej: mutasi.resetAppRej,
+    resetMutasi: mutasi.resetMutasi,
     getDetailMutasi: mutasi.getDetailMutasi,
     changeDate: mutasi.changeDate,
     getRole: user.getRole

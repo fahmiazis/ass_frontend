@@ -30,7 +30,7 @@ import FormIo from './components/Pengadaan/FormIo'
 import Disposal from './pages/Disposal/Disposal'
 import FormPersetujuanDis from './pages/Disposal/FormPersetujuanDis'
 import PersetujuanDis from './pages/Disposal/PersetujuanDis'
-import Report from './pages/Disposal/ReportDis'
+import ReportDis from './pages/Disposal/ReportDis'
 import CartDisposal from './pages/Disposal/CartDisposal'
 import EditDisposal from './pages/Disposal/EditDisposal'
 import EksekusiDis from './pages/Disposal/EksekusiDis'
@@ -39,7 +39,6 @@ import MonitoringDisposal from './pages/Disposal/MonitoringDisposal'
 import PurchDisposal from './pages/Disposal/PurchDisposal'
 import NavDisposal from './pages/Disposal/NavDisposal'
 import EditEksekusi from './pages/Disposal/EditEksekusi'
-import TrackingDisposal from './pages/Disposal/TrackingDisposal'
 import EditTaxFin from './pages/Disposal/EditTaxFin'
 
 // Mutasi Asset
@@ -111,7 +110,7 @@ class App extends Component {
                     <MasterRole />
                 </PrivateRoute>
                 <PrivateRoute path='/email'>
-                    <MasterEmail />
+                    <MasterTempmail />
                 </PrivateRoute>
                 <PrivateRoute path='/menu'>
                     <MasterMenu />
@@ -134,28 +133,28 @@ class App extends Component {
                 <PrivateRoute path='/cartstock'>
                     <CartStock />
                 </PrivateRoute>
-                <PrivateRoute path='/report'>
-                    <Report />
+                <PrivateRoute path='/report-disposal'>
+                    <ReportDis />
                 </PrivateRoute>
                 <PrivateRoute path='/cart'>
                     <CartDisposal />
                 </PrivateRoute>
-                <PrivateRoute path='/editdis'>
+                <PrivateRoute path='/rev-disposal'>
                     <EditDisposal />
                 </PrivateRoute>
-                <PrivateRoute path='/approve'>
+                <PrivateRoute path='/approval'>
                     <Approve />
                 </PrivateRoute>
                 <PrivateRoute path='/formset'>
                     <FormPersetujuanDis />
                 </PrivateRoute>
-                <PrivateRoute path='/setdis'>
+                <PrivateRoute path='/persetujuan-disposal'>
                     <PersetujuanDis />
                 </PrivateRoute>
                 <PrivateRoute path='/eksdis'>
                     <EksekusiDis />
                 </PrivateRoute>
-                <PrivateRoute path='/taxfin'>
+                <PrivateRoute path='/taxfin-disposal'>
                     <TaxFinDisposal />
                 </PrivateRoute>
                 <PrivateRoute path='/mondis'>
@@ -164,19 +163,19 @@ class App extends Component {
                 <PrivateRoute path='/purchdis'>
                     <PurchDisposal />
                 </PrivateRoute>
-                <PrivateRoute path='/navmut'>
+                <PrivateRoute path='/nav-mutasi'>
                     <NavMut />
                 </PrivateRoute>
                 <PrivateRoute path='/mutasi'>
                     <Mutasi />
                 </PrivateRoute>
-                <PrivateRoute path='/termut'>
+                <PrivateRoute path='/ter-mutasi'>
                     <TerimaMutasi />
                 </PrivateRoute>
-                <PrivateRoute path='/trackmut'>
+                <PrivateRoute path='/track-mutasi'>
                     <TrackingMutasi />
                 </PrivateRoute>
-                <PrivateRoute path='/cartmut'>
+                <PrivateRoute path='/cart-mutasi'>
                     <CartMutasi />
                 </PrivateRoute>
                 <PrivateRoute path='/navstock'>
@@ -194,19 +193,16 @@ class App extends Component {
                 <PrivateRoute path='/editeks'>
                     <EditEksekusi />
                 </PrivateRoute>
-                <PrivateRoute path='/trackdis'>
-                    <TrackingDisposal />
-                </PrivateRoute>
-                <PrivateRoute path='/eksmut'>
+                <PrivateRoute path='/eks-mutasi'>
                     <EksekusiMut />
                 </PrivateRoute>
-                <PrivateRoute path='/budmut'>
+                <PrivateRoute path='/budget-mutasi'>
                     <BudgetMutasi />
                 </PrivateRoute>
-                <PrivateRoute path='/repmut'>
+                <PrivateRoute path='/report-mutasi'>
                     <ReportMut />
                 </PrivateRoute>
-                <PrivateRoute path='/editmut'>
+                <PrivateRoute path='/rev-mutasi'>
                     <EditMutasi />
                 </PrivateRoute>
                 <PrivateRoute path='/editstock'>

@@ -47,6 +47,10 @@ export default {
         type: 'REJECT_DOKUMEN',
         payload: http(token).patch(`/dokumen/reject/${id === undefined ? 0 : id}`, data === undefined ? { list: [] } : data),
     }),
+    showDokumen: (token, id, no) => ({
+        type: 'SHOW_DOK',
+        payload: http(token).get(`/show/doc/${id}?no=${no}`)
+    }),
     resetError: () => ({
         type: 'RESET'
     })

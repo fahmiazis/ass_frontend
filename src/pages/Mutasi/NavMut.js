@@ -198,6 +198,15 @@ class NavMut extends Component {
                                                 <p className='mt-4'>Tracking mutasi</p>
                                             </div>
                                         </div>
+                                        {level === '1' && (
+                                            <div onClick={() => this.goRoute('report-mutasi')} className="col-12 col-md-6 col-lg-3 mb-4">
+                                            <div className={styleHome.navCard}>
+                                                <HiOutlineDocumentReport size={150} className='mt-4 mb-4' />
+                                                <p className='mt-4'>Report mutasi</p>
+                                            </div>
+                                        </div>
+                                        )}
+                                        
                                     </>
                                 )}
                             </div>

@@ -211,44 +211,54 @@ class MasterDepo extends Component {
         ws.columns = [
             {header: 'Kode Area', key: 'c2'},
             {header: 'Home Town', key: 'c3'},
-            {header: 'Channel', key: 'c4'},
-            {header: 'Distribution', key: 'c5'},
-            {header: 'Status Depo', key: 'c6'},
-            {header: 'Profit Center', key: 'c7'},
-            {header: 'Cost Center', key: 'c8'},
-            {header: 'Kode SAP 1', key: 'c9'},
-            {header: 'Kode SAP 2', key: 'c10'},
-            {header: 'Nama NOM', key: 'c11'},
-            {header: 'Nama OM', key: 'c12'},
-            {header: 'Nama BM', key: 'c13'},
-            {header: 'Nama AOS', key: 'c14'},
-            {header: 'Nama PIC 1', key: 'c15'},
-            {header: 'Nama PIC 2', key: 'c16'},
-            {header: 'Nama PIC 3', key: 'c17'},
-            {header: 'Nama PIC 4', key: 'c18'},
-            {header: 'Nama Assistant Manager', key: 'c19'}
+            {header: 'Place Aset', key: 'c4'},
+            {header: 'Channel', key: 'c5'},
+            {header: 'Distribution', key: 'c6'},
+            {header: 'Status Depo', key: 'c7'},
+            {header: 'Profit Center', key: 'c8'},
+            {header: 'Cost Center', key: 'c9'},
+            {header: 'Kode SAP 1', key: 'c10'},
+            {header: 'Kode SAP 2', key: 'c11'},
+            {header: 'Nama NOM', key: 'c12'},
+            {header: 'Nama OM', key: 'c13'},
+            {header: 'Nama BM', key: 'c14'},
+            {header: 'Nama AOS', key: 'c15'},
+            {header: 'Nama PIC 1', key: 'c16'},
+            {header: 'Nama PIC 2', key: 'c17'},
+            {header: 'Nama PIC 3', key: 'c18'},
+            {header: 'Nama PIC 4', key: 'c19'},
+            {header: 'Nama Assistant Manager', key: 'c20'},
+            {header: 'PIC Budget', key: 'c21'},
+            {header: 'PIC Finance', key: 'c22'},
+            {header: 'PIC Tax', key: 'c23'},
+            {header: 'PIC Purchasing', key: 'c24'}
         ]
 
         dataDownload.map((item, index) => { return ( ws.addRow(
             {
                 c2: item.kode_plant,
                 c3: item.nama_area,
-                c4: item.channel,
-                c5: item.distribution,
-                c6: item.status_area,
-                c7: item.profit_center,
-                c8: item.cost_center,
-                c9: item.kode_sap_1,
-                c10: item.kode_sap_2,
-                c11: item.nama_nom,
-                c12: item.nama_om,
-                c13: item.nama_bm,
-                c14: item.nama_aos,
-                c15: item.nama_pic_1,
-                c16: item.nama_pic_2,
-                c17: item.nama_pic_3,
-                c18: item.nama_pic_4,
-                c19: item.nama_asman
+                c4: item.place_asset,
+                c5: item.channel,
+                c6: item.distribution,
+                c7: item.status_area,
+                c8: item.profit_center,
+                c9: item.cost_center,
+                c10: item.kode_sap_1,
+                c11: item.kode_sap_2,
+                c12: item.nama_nom,
+                c13: item.nama_om,
+                c14: item.nama_bm,
+                c15: item.nama_aos,
+                c16: item.nama_pic_1,
+                c17: item.nama_pic_2,
+                c18: item.nama_pic_3,
+                c19: item.nama_pic_4,
+                c20: item.nama_asman,
+                c21: item.pic_budget,
+                c22: item.pic_finance,
+                c23: item.pic_tax,
+                c24: item.pic_purchasing
             }
         )
         ) })
@@ -699,6 +709,7 @@ class MasterDepo extends Component {
                                     <th>No</th>
                                     <th>Kode Area</th>
                                     <th>Home Town</th>
+                                    <th>Place Aset</th>
                                     <th>Channel</th>
                                     <th>Distribution</th>
                                     <th>Status Depo</th>
@@ -715,6 +726,10 @@ class MasterDepo extends Component {
                                     <th>Nama PIC 3</th>
                                     <th>Nama PIC 4</th>
                                     <th>Nama Assistant Manager</th>
+                                    <th>PIC Budget</th>
+                                    <th>PIC Finance</th>
+                                    <th>PIC Tax</th>
+                                    <th>PIC Purchasing</th>
                                     <th>Opsi</th>
                                 </tr>
                             </thead>
@@ -732,6 +747,7 @@ class MasterDepo extends Component {
                                             <td scope="row">{(dataDepo.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</td>
                                             <td>{item.kode_plant}</td>
                                             <td>{item.nama_area}</td>
+                                            <td>{item.place_asset}</td>
                                             <td>{item.channel}</td>
                                             <td>{item.distribution}</td>
                                             <td>{item.status_area}</td>
@@ -748,6 +764,10 @@ class MasterDepo extends Component {
                                             <td>{item.nama_pic_3}</td>
                                             <td>{item.nama_pic_4}</td>
                                             <td>{item.nama_asman}</td>
+                                            <td>{item.pic_budget}</td>
+                                            <td>{item.pic_finance}</td>
+                                            <td>{item.pic_tax}</td>
+                                            <td>{item.pic_purchasing}</td>
                                             <td>
                                                 <Button onClick={() => this.openModalEdit(this.setState({detail: item}))} color='success'>
                                                     Detail
@@ -794,7 +814,12 @@ class MasterDepo extends Component {
                         nama_pic_1: "",
                         nama_pic_2: "",
                         nama_pic_3: "",
-                        nama_pic_4: ""
+                        nama_pic_4: "",
+                        nama_asman: "",
+                        pic_budget: "",
+                        pic_finance: "",
+                        pic_tax: "",
+                        pic_purchasing: ""
                     }}
                     validationSchema={depoSchema}
                     onSubmit={(values) => {this.addDepo(values)}}
@@ -1125,7 +1150,12 @@ class MasterDepo extends Component {
                         nama_pic_1: detail.nama_pic_1 === null ? '' : detail.nama_pic_1,
                         nama_pic_2: detail.nama_pic_2 === null ? '' : detail.nama_pic_2,
                         nama_pic_3: detail.nama_pic_3 === null ? '' : detail.nama_pic_3,
-                        nama_pic_4: detail.nama_pic_4 === null ? '' : detail.nama_pic_4
+                        nama_pic_4: detail.nama_pic_4 === null ? '' : detail.nama_pic_4,
+                        nama_asman: detail.nama_asman === null ? '' : detail.nama_asman,
+                        pic_budget: detail.pic_budget === null ? '' : detail.pic_budget,
+                        pic_finance: detail.pic_finance === null ? '' : detail.pic_finance,
+                        pic_tax: detail.pic_tax === null ? '' : detail.pic_tax,
+                        pic_purchasing: detail.pic_purchasing === null ? '' : detail.pic_purchasing
                     }}
                     validationSchema={depoSchema}
                     onSubmit={(values) => {this.editDepo(values, detail.id)}}

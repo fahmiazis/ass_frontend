@@ -3,17 +3,17 @@ import http from '../../helpers/http'
 import qs from 'qs'
 
 export default {
-    getDisposal: (token, limit, search, page, status, tipe) => ({
+    getDisposal: (token, limit, search, page, status, tipe, time1, time2) => ({
         type: 'GET_DISPOSAL',
-        payload: http(token).get(`/disposal/get?limit=${limit === undefined ? 10 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&status=${status === undefined ? 1 : status}&tipe=${tipe === undefined ? 'disposal' : tipe}`)
+        payload: http(token).get(`/disposal/get?limit=${limit === undefined ? 10 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&status=${status === undefined ? 1 : status}&tipe=${tipe === undefined ? 'disposal' : tipe}&time1=${time1}&time2=${time2}`)
     }),
     getCartDisposal: (token) => ({
         type: 'GET_CART',
         payload: http(token).get(`/disposal/cart`)
     }),
-    getNewDisposal: (token, form, limit, search, page, status, tipe) => ({
+    getNewDisposal: (token, form, limit, search, page, status, tipe, time1, time2) => ({
         type: 'GETNEW_DISPOSAL',
-        payload: http(token).get(`/disposal/get?limit=${limit === undefined ? 10 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&status=${status === undefined ? 1 : status}&tipe=${tipe === undefined ? 'disposal' : tipe}&form=${form}`)
+        payload: http(token).get(`/disposal/get?limit=${limit === undefined ? 10 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&status=${status === undefined ? 1 : status}&tipe=${tipe === undefined ? 'disposal' : tipe}&form=${form}&time1=${time1}&time2=${time2}`)
     }),
     getSubmitDisposal: (token, limit, search, page, status, tipe) => ({
         type: 'GET_SUBMIT_DISPOSAL',
@@ -24,8 +24,8 @@ export default {
         payload: http(token).patch(`/disposal/detail?tipe=${tipe === undefined ? 'pengajuan' : tipe}`, qs.stringify({nomor: no}))
     }),
     getNewDetailDisposal: (token, no, tipe) => ({
-        type: 'DETAIL_DISPOSAL',
-        payload: http(token).get(`/disposal/detail?tipe=${tipe === undefined ? 'pengajuan' : tipe}`, qs.stringify({nomor: no}))
+        type: 'NEWDETAIL_DISPOSAL',
+        payload: http(token).patch(`/disposal/detail?tipe=${tipe === undefined ? 'pengajuan' : tipe}`, qs.stringify({nomor: no}))
     }),
     addDisposal: (token, no) => ({
         type: 'ADD_DISPOSAL',
@@ -47,21 +47,25 @@ export default {
         type: 'SUBMIT_DISPOSAL',
         payload: http(token).post(`/disposal/submit`)
     }),
+    submitDisposalFinal: (token, data) => ({
+        type: 'SUBMIT_FINAL_DISPOSAL',
+        payload: http(token).patch(`/disposal/subfin`, qs.stringify(data))
+    }),
     getApproveDisposal: (token, no, nama) => ({
         type: 'GET_APPDIS',
-        payload: http(token).get(`/disposal/approve/${no}?nama=${nama}`)
+        payload: http(token).patch(`/disposal/approval?nama=${nama}`, qs.stringify({no: no}))
     }),
-    approveDisposal: (token, no) => ({
+    approveDisposal: (token, data) => ({
         type: 'APPROVE_DIS',
-        payload: http(token).patch(`/disposal/app/${no}`)
+        payload: http(token).patch(`/disposal/approve`, qs.stringify(data))
     }),
-    rejectDisposal: (token, no, data, tipe, status) => ({
+    rejectDisposal: (token, data) => ({
         type: 'REJECT_DIS',
-        payload: http(token).patch(`/disposal/rej/${no}?tipe=${tipe}&status=${status}`, qs.stringify(data))
+        payload: http(token).patch(`/disposal/reject`, data)
     }),
-    getDocumentDis: (token, no, tipeDokumen, tipe, npwp) => ({
+    getDocumentDis: (token, data, tipeDokumen, tipe, npwp) => ({
         type: 'GET_DOCDIS',
-        payload: http(token).get(`/disposal/doc/${no}?tipeDokumen=${tipeDokumen}&tipe=${tipe}&npwp=${npwp === undefined ? '' : npwp}`)
+        payload: http(token).patch(`/disposal/doc?tipeDokumen=${tipeDokumen}&tipe=${tipe}&npwp=${npwp === undefined ? '' : npwp}`, qs.stringify(data))
     }),
     uploadDocumentDis: (token, id, data, tipe, ket) => ({
         type: 'UPLOAD_DOCDIS',
@@ -90,6 +94,14 @@ export default {
     getKeterangan: (token, nilai) => ({
         type: 'GET_KET',
         payload: http(token).get(`/ket/get/${nilai}`)
+    }),
+    appRevisi: (token, id, type) => ({
+        type: 'APP_REVISI_DISPOSAL',
+        payload: http(token).patch(`/disposal/apprev/${id}/${type === undefined ? 'kode' : type}`)
+    }),
+    submitRevisi: (token, data) => ({
+        type: 'SUBMIT_REVISI_DISPOSAL',
+        payload: http(token).patch(`/disposal/subrev`, qs.stringify(data))
     }),
     reset: () => ({
         type: 'RESET_DISPOSAL'

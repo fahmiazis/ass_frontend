@@ -1,13 +1,15 @@
 /* eslint-disable jsx-a11y/no-distracting-elements */
 /* eslint-disable jsx-a11y/alt-text */
 import React, { Component } from 'react'
-import { Container, NavbarBrand, Table, Input, Button, Col,
-    Alert, Spinner, Row, Modal, ModalBody, ModalHeader, ModalFooter,
+import { Container, NavbarBrand, Table, Input, Button, Col, Collapse, Card,
+    Alert, Spinner, Row, Modal, ModalBody, ModalHeader, ModalFooter, CardBody,
     UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem} from 'reactstrap'
 import style from '../../assets/css/input.module.css'
 import {FaSearch, FaUserCircle, FaBars, FaCartPlus, FaFileSignature} from 'react-icons/fa'
 import {BsCircle, BsBell, BsFillCircleFill} from 'react-icons/bs'
 import { AiOutlineInfoCircle, AiOutlineCheck, AiOutlineClose, AiFillCheckCircle, AiOutlineFileExcel, AiOutlineInbox} from 'react-icons/ai'
+import { MdAssignment } from 'react-icons/md'
+import { FiSend, FiTruck, FiSettings, FiUpload } from 'react-icons/fi'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
 import Pdf from "../../components/Pdf"
@@ -131,7 +133,11 @@ class EksekusiTicket extends Component {
             subject: '',
             message: '',
             noDoc: '',
-            noTrans: ''
+            noTrans: '',
+            collap: false,
+            formTrack: false,
+            detailTrack: [],
+            history: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -428,7 +434,7 @@ class EksekusiTicket extends Component {
             }
         }
 
-        if (cek.length > 0 || temp.length > 0) {
+        if (cek.length > 0 || (temp.length > 0 && detailIo[0].kategori !== 'return' )) {
             this.setState({confirm: 'falseSubmit'})
             this.openConfirm()
         } else {
@@ -454,7 +460,7 @@ class EksekusiTicket extends Component {
             }
         }
 
-        if (cek.length > 0 || temp.length > 0) {
+        if (cek.length > 0 || (temp.length > 0 && detailIo[0].kategori !== 'return')) {
             this.setState({confirm: 'falseSubmit'})
             this.openConfirm()
         } else {
@@ -463,7 +469,7 @@ class EksekusiTicket extends Component {
             if (detailIo[0].ticket_code === null) {
                 this.prosesModalIo()
                 this.getDataAsset()
-                this.setState([{confirm: 'submit'}])
+                this.setState({confirm: 'submit'})
                 this.openConfirm()
                 this.openModalSubmit()
                 this.openDraftEmail()
@@ -471,7 +477,7 @@ class EksekusiTicket extends Component {
                 await this.props.podsSend(token, val)
                 this.prosesModalIo()
                 this.getDataAsset()
-                this.setState([{confirm: 'submit'}])
+                this.setState({confirm: 'submit'})
                 this.openConfirm()
                 this.openModalSubmit()
                 this.openDraftEmail()
@@ -545,7 +551,7 @@ class EksekusiTicket extends Component {
             tipe: 'pengadaan',
             menu: `pengadaan asset`,
             proses: val === 'asset' || val === 'budget' ? 'submit' : val,
-            route: val === 'budget' ? 'ekstick' : 'ticket'
+            route: 'pengadaan'
         }
         await this.props.sendEmail(token, sendMail)
         await this.props.addNewNotif(token, sendMail)
@@ -940,7 +946,6 @@ class EksekusiTicket extends Component {
     }
 
     componentDidMount() {
-        this.getNotif()
         this.getDataAsset()
     }
 
@@ -1014,8 +1019,46 @@ class EksekusiTicket extends Component {
         this.openRinciAdmin()
     }
 
+    getDetailTrack = async (value) => {
+        const token = localStorage.getItem('token')
+        const level = localStorage.getItem('level')
+        await this.props.getDetail(token, value)
+        await this.props.getApproveIo(token, value)
+        const data = this.props.pengadaan.detailIo
+        const detail = []
+        let num = 0
+        for (let i = 0; i < data.length; i++) {
+            const temp = parseInt(data[i].price) * parseInt(data[i].qty)
+            num += temp
+            detail.push(data[i])
+        }
+        this.setState({ total: num, value: data[0].no_io })
+        this.setState({ detailTrack: detail })
+        this.openModalTrack()
+    }
+
+    openModalTrack = () => {
+        this.setState({ formTrack: !this.state.formTrack })
+    }
+
+
+    showCollap = (val) => {
+        if (val === 'close') {
+            this.setState({ collap: false })
+        } else {
+            this.setState({ collap: false })
+            setTimeout(() => {
+                this.setState({ collap: true, tipeCol: val })
+            }, 500)
+        }
+    }
+
+    openHistory = () => {
+        this.setState({ history: !this.state.history })
+    }
+
     render() {
-        const {alert, upload, errMsg, rinciIo, total} = this.state
+        const {alert, upload, errMsg, rinciIo, total, detailTrack} = this.state
         const {dataAsset, alertM, alertMsg, alertUpload, page} = this.props.asset
         const pages = this.props.disposal.page 
         const {dataPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataTemp, dataDocCart} = this.props.pengadaan
@@ -1097,7 +1140,7 @@ class EksekusiTicket extends Component {
                                                     <td>{item.kode_plant}</td>
                                                     <td>{item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}</td>
                                                     <td>{moment(item.tglIo).format('DD MMMM YYYY')}</td>
-                                                    <td>{item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
+                                                    <td>{item.kategori === 'return' ? 'Pengajuan Return' : item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
                                                     <td>
                                                         <Button color='primary' className='mr-1 mb-1' onClick={() => this.openForm(item)}>{this.state.filter === 'available' ? 'Proses' : 'Detail'}</Button>
                                                         <Button color='warning' onClick={() => this.getDetailTrack(item.no_pengadaan)}>Tracking</Button>
@@ -1192,7 +1235,7 @@ class EksekusiTicket extends Component {
                                             <td>{item.kode_plant}</td>
                                             <td>{item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}</td>
                                             <td>{moment(item.tglIo).format('DD MMMM YYYY')}</td>
-                                            <td>{item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
+                                            <td>{item.kategori === 'return' ? 'Pengajuan Return' : item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
                                             <td>{item.history !== null && item.history.split(',').reverse()[0]}</td>
                                             <td>
                                                 <Button color='primary' className='mr-1 mb-1' onClick={() => this.openForm(item)}>{this.state.filter === 'available' ? 'Proses' : 'Detail'}</Button>
@@ -1211,9 +1254,9 @@ class EksekusiTicket extends Component {
                         )}
                     </div>
                 </div>
-                <Modal size="xl" isOpen={this.state.openModalIo} toggle={this.prosesModalIo}>
+                <Modal size="xl" isOpen={this.state.openModalIo} toggle={this.prosesModalIo} className='large'>
                 <ModalBody className="mb-5">
-                    <Container>
+                    <Container className='borderGen'>
                         <Row className="rowModal">
                             <Col md={3} lg={3}>
                                 <img src={logo} className="imgModal" />
@@ -1397,6 +1440,109 @@ class EksekusiTicket extends Component {
                             <text>{detailIo[0] === undefined ? '-' : detailIo[0].alasan}</text>
                             </Col>
                         </Row>
+                        <Row className="rowModal mt-4">
+                            <Col md={12} lg={12}>
+                                {detailIo[0] === undefined ? '' : `${detailIo[0].area}, ${moment(detailIo[0].tglIo).format('DD MMMM YYYY')}`}
+                            </Col>
+                        </Row>
+                        <Table borderless responsive className="tabPreview mt-4">
+                            <thead>
+                                <tr>
+                                    <th className="buatPre">Dibuat oleh,</th>
+                                    <th className="buatPre">Diperiksa oleh,</th>
+                                    <th className="buatPre">Disetujui oleh,</th>
+                                </tr>
+                            </thead>
+                            <tbody className="tbodyPre">
+                                <tr>
+                                    <td className="restTable">
+                                        <Table bordered responsive className="divPre">
+                                            <thead>
+                                                <tr>
+                                                    {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
+                                                        return (
+                                                            <th className="headPre">
+                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
+                                                                <div>{item.nama === null ? "-" : item.nama}</div>
+                                                            </th>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
+                                                        return (
+                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'area' ? 'AOS' : item.jabatan}</td>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </tbody>
+                                        </Table>
+                                    </td>
+                                    <td className="restTable">
+                                        <Table bordered responsive className="divPre">
+                                            <thead>
+                                                <tr>
+                                                    {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
+                                                        return (
+                                                            <th className="headPre">
+                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
+                                                                <div>{item.nama === null ? "-" : item.nama}</div>
+                                                            </th>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
+                                                        return (
+                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </tbody>
+                                        </Table>
+                                    </td>
+                                    <td className="restTable">
+                                        <Table bordered responsive className="divPre">
+                                            <thead>
+                                                <tr>
+                                                    {dataApp.penyetuju !== undefined && dataApp.penyetuju.map(item => {
+                                                        return (
+                                                            <th className="headPre">
+                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
+                                                                <div>{item.nama === null ? "-" : item.nama}</div>
+                                                            </th>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    {dataApp.penyetuju !== undefined && dataApp.penyetuju.map(item => {
+                                                        return (
+                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </tbody>
+                                        </Table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </Table>
+                        <div className='mt-4 bold'>Keterangan:</div>
+                        <div className=''>No. IO dan Profit Center diisi oleh Budgeting Department</div>
+                        <div className=''>Cost Center diisi oleh Asset Department</div>
+                        <div className=''>Untuk kategori Non Budgeted dan Return kolom alasan "Wajib" diisi</div>
+                        <div className=''>* Sesuai Matriks Otorisasi, disetujui oleh :</div>
+                        <div className='ml-4'>- Budgeted / Return : NFAM</div>
+                        <div className='ml-4 mb-3'>- Non Budgeted : DH OPS, NFAM, DH FA, DH HC, CM</div>
+                    </Container>
+                    <Container>
+                        <div className='mt-4'>FRM-FAD-058 REV 06</div>
                     </Container>
                 </ModalBody>
                 <hr />
@@ -1409,15 +1555,18 @@ class EksekusiTicket extends Component {
                                 Dokumen 
                             </Button>
                         )}
-                        <Button className="ml-2" color="warning" onClick={() => this.openModPreview(detailIo[0])}>
-                            Preview
+                        <Button className="ml-2" color="warning" onClick={() => this.goDownload('formio')}>
+                            Download Form
                         </Button>
                     </div>
                     {level === '2' ? (
                         <div className="btnFoot">
-                            <Button className="mr-2" color="primary" onClick={this.openTemp}>
-                                Fill No.Asset
-                            </Button>
+                            {detailIo.length > 0 && detailIo[0].kategori !== 'return' && (
+                                <Button className="mr-2" color="primary" onClick={this.openTemp}>
+                                    Fill No.Asset
+                                </Button>
+                            )}
+                            
                             <Button color="success" onClick={() => this.cekProsesApprove()}>
                                 Submit
                             </Button>
@@ -1893,6 +2042,240 @@ class EksekusiTicket extends Component {
                             Save 
                     </Button>
                 </ModalFooter>
+            </Modal>
+            <Modal isOpen={this.state.formTrack} toggle={() => { this.openModalTrack(); this.showCollap('close') }} size="xl">
+                {/* <Alert color="danger" className={style.alertWrong} isOpen={detailTrack.find(({status_form}) => status_form == 26) === undefined ? false : true}>
+                    <div>Data Penjualan Asset Sedang Dilengkapi oleh divisi purchasing</div>
+                </Alert> */}
+                <ModalBody>
+                    <Row className='trackTitle ml-4'>
+                        <Col>
+                            Tracking Pengadaan Asset
+                        </Col>
+                    </Row>
+                    <Row className='ml-4 trackSub'>
+                        <Col md={3}>
+                            Kode Area
+                        </Col>
+                        <Col md={9}>
+                            : {detailTrack[0] === undefined ? '' : detailTrack[0].kode_plant}
+                        </Col>
+                    </Row>
+                    <Row className='ml-4 trackSub'>
+                        <Col md={3}>
+                            Area
+                        </Col>
+                        <Col md={9}>
+                            : {detailTrack[0] === undefined ? '' : detailTrack[0].area}
+                        </Col>
+                    </Row>
+                    <Row className='ml-4 trackSub'>
+                        <Col md={3}>
+                            No Pengadaan
+                        </Col>
+                        <Col md={9}>
+                            : {detailTrack[0] === undefined ? '' : detailTrack[0].no_pengadaan}
+                        </Col>
+                    </Row>
+                    <Row className='ml-4 trackSub'>
+                        <Col md={3}>
+                            Tanggal Pengajuan
+                        </Col>
+                        <Col md={9}>
+                            : {detailTrack[0] === undefined ? '' : moment(detailTrack[0].createdAt === null ? detailTrack[0].createdAt : detailTrack[0].createdAt).locale('idn').format('DD MMMM YYYY ')}
+                        </Col>
+                    </Row>
+                    <Row className='mt-2 ml-4 trackSub1'>
+                        <Col md={12}>
+                            <Button color='success' size='md' onClick={this.openHistory}>Full History</Button>
+                        </Col>
+                    </Row>
+                    <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
+                        <div class="step completed">
+                            <div class="step-icon-wrap">
+                                <button class="step-icon" onClick={() => this.showCollap('Submit')} ><FiSend size={40} className="center1" /></button>
+                            </div>
+                            <h4 class="step-title">Submit</h4>
+                        </div>
+                        {/* {detailTrack[0] !== undefined && detailTrack[0].kategori !== 'return' && ( */}
+                        {detailTrack[0] !== undefined && (
+                            <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form > 1 ? "step completed" : 'step'}>
+                                <div class="step-icon-wrap">
+                                    <button class="step-icon" onClick={() => this.showCollap('Verifikasi Aset')}><FiSettings size={40} className="center" /></button>
+                                </div>
+                                <h4 class="step-title">Verifikasi Aset</h4>
+                            </div>
+                        )}
+                        <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form > 2 ? "step completed" : 'step'} >
+                            <div class="step-icon-wrap">
+                                <button class="step-icon" onClick={() => this.showCollap('Pengajuan')}><MdAssignment size={40} className="center" /></button>
+                            </div>
+                            <h4 class="step-title">Approval Form IO</h4>
+                        </div>
+                        {/* {detailTrack[0] !== undefined && detailTrack[0].kategori === 'return' && (
+                            <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form > 3 ? "step completed" : 'step'}>
+                                <div class="step-icon-wrap">
+                                    <button class="step-icon" onClick={() => this.showCollap('Verifikasi Aset')}><FiSettings size={40} className="center" /></button>
+                                </div>
+                                <h4 class="step-title">Verifikasi Aset</h4>
+                            </div>
+                        )} */}
+                        <div
+                            // class={
+                            //     detailTrack[0] === undefined ? 'step' :
+                            //         (detailTrack[0].kategori !== 'return' && detailTrack[0].status_form > 3) || (detailTrack[0].kategori === 'return' && detailTrack[0].status_form > 4) ? "step completed"
+                            //             : 'step'
+                            // }
+                            class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form > 3 ? "step completed" : 'step'}
+                            >
+                            <div class="step-icon-wrap">
+                                <button class="step-icon" onClick={() => this.showCollap('Proses Budget')}><FiSettings size={40} className="center" /></button>
+                            </div>
+                            <h4 class="step-title">Proses Budget</h4>
+                        </div>
+                        <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form == 8 ? "step completed" : 'step'}>
+                            <div class="step-icon-wrap">
+                                <button class="step-icon" onClick={() => this.showCollap('Eksekusi')}><FiTruck size={40} className="center" /></button>
+                            </div>
+                            <h4 class="step-title">Eksekusi Pengadaan Aset</h4>
+                        </div>
+                        <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form == 8 ? "step completed" : 'step'}>
+                            <div class="step-icon-wrap">
+                                <button class="step-icon"><AiOutlineCheck size={40} className="center" /></button>
+                            </div>
+                            <h4 class="step-title">Selesai</h4>
+                        </div>
+                    </div>
+                    <Collapse isOpen={this.state.collap} className="collapBody">
+                        <Card className="cardCollap">
+                            <CardBody>
+                                <div className='textCard1'>{this.state.tipeCol} Pengadaan Asset</div>
+                                {this.state.tipeCol === 'submit' ? (
+                                    <div>Tanggal submit : {detailTrack[0] === undefined ? '' : moment(detailTrack[0].createdAt === null ? detailTrack[0].createdAt : detailTrack[0].createdAt).locale('idn').format('DD MMMM YYYY ')}</div>
+                                ) : (
+                                    <div></div>
+                                )}
+                                <div>Rincian Item:</div>
+                                <Table striped bordered responsive hover className="tableDis mb-3">
+                                    <thead>
+                                        <tr>
+                                            <th>Qty</th>
+                                            <th>Description</th>
+                                            <th>Price/unit</th>
+                                            <th>Total Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {detailTrack.length !== 0 && detailTrack.map(item => {
+                                            return (
+                                                <tr>
+                                                    <td>{item.qty}</td>
+                                                    <td>{item.nama}</td>
+                                                    <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                    <td>Rp {(parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                </tr>
+                                            )
+                                        })}
+                                    </tbody>
+                                </Table>
+                                {detailTrack[0] === undefined || this.state.tipeCol === 'Submit' ? (
+                                    <div></div>
+                                ) : (
+                                    <div>
+                                        <div className="mb-4 mt-2">Tracking {this.state.tipeCol} :</div>
+                                        {this.state.tipeCol === 'Pengajuan' ? (
+                                            <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
+                                                {detailTrack[0] !== undefined && detailTrack[0].appForm.length && detailTrack[0].appForm.slice(0).reverse().map(item => {
+                                                    return (
+                                                        <div class={item.status === 1 ? 'step completed' : item.status === 0 ? 'step reject' : 'step'}>
+                                                            <div class="step-icon-wrap">
+                                                                <button class="step-icon"><FaFileSignature size={30} className="center2" /></button>
+                                                            </div>
+                                                            <h5 class="step-title">{item.status === null ? '' : moment(item.updatedAt).format('DD-MM-YYYY')} </h5>
+                                                            <h4 class="step-title">{item.status === null ? '' : item.nama}</h4>
+                                                            <h4 class="step-title">{item.jabatan}</h4>
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div>
+                                        ) : this.state.tipeCol === 'Eksekusi' ? (
+                                            <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
+                                                <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form == 9 || detailTrack[0].status_form == 8 ? "step completed" : 'step'}>
+                                                    <div class="step-icon-wrap">
+                                                        <button class="step-icon" ><FaFileSignature size={30} className="center2" /></button>
+                                                    </div>
+                                                    <h4 class="step-title">Filling No Asset</h4>
+                                                </div>
+                                                <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form == 8 ? "step completed" : 'step'}>
+                                                    <div class="step-icon-wrap">
+                                                        <button class="step-icon" ><AiOutlineCheck size={30} className="center2" /></button>
+                                                    </div>
+                                                    <h4 class="step-title">Selesai</h4>
+                                                </div>
+                                            </div>
+                                        ) : this.state.tipeCol === 'Verifikasi Aset' ? (
+                                            <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
+                                                <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form === '1' || parseInt(detailTrack[0].status_form) > 1 ? "step completed" : 'step'}>
+                                                    <div class="step-icon-wrap">
+                                                        <button class="step-icon" ><FaFileSignature size={30} className="center2" /></button>
+                                                    </div>
+                                                    <h4 class="step-title">Verifikasi Aset atau Non Asset</h4>
+                                                </div>
+                                                <div class={detailTrack[0] === undefined ? 'step' : parseInt(detailTrack[0].status_form) > 1 ? "step completed" : 'step'}>
+                                                    <div class="step-icon-wrap">
+                                                        <button class="step-icon" ><AiOutlineCheck size={30} className="center2" /></button>
+                                                    </div>
+                                                    <h4 class="step-title">Selesai</h4>
+                                                </div>
+                                            </div>
+                                        ) : this.state.tipeCol === 'Proses Budget' && (
+                                            <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
+                                                <div class={detailTrack[0] === undefined ? 'step' : detailTrack[0].status_form == 3 || parseInt(detailTrack[0].status_form) > 3 ? "step completed" : 'step'}>
+                                                    <div class="step-icon-wrap">
+                                                        <button class="step-icon" ><FaFileSignature size={30} className="center2" /></button>
+                                                    </div>
+                                                    <h4 class="step-title">Filling No Io</h4>
+                                                </div>
+                                                <div class={detailTrack[0] === undefined ? 'step' : parseInt(detailTrack[0].status_form) > 3 ? "step completed" : 'step'}>
+                                                    <div class="step-icon-wrap">
+                                                        <button class="step-icon" ><AiOutlineCheck size={30} className="center2" /></button>
+                                                    </div>
+                                                    <h4 class="step-title">Selesai</h4>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </CardBody>
+                        </Card>
+                    </Collapse>
+                </ModalBody>
+                <hr />
+                <div className="modalFoot ml-3">
+                    {/* <Button color="primary" onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailTrack[0] !== undefined && detailTrack[0].no_pengadaan})}>Preview</Button> */}
+                    <div></div>
+                    <div className="btnFoot">
+                        <Button color="primary" onClick={() => { this.openModalTrack(); this.showCollap('close') }}>
+                            Close
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+            <Modal isOpen={this.state.history} toggle={this.openHistory}>
+                <ModalBody>
+                    <div className='mb-4'>History Transaksi</div>
+                    <div className='history'>
+                        {detailTrack === undefined || detailTrack.length === 0 || detailTrack[0].history === null ? (
+                            <div></div>   
+                        ) 
+                        : detailTrack[0].history.split(',').map(item => {
+                            return (
+                                item !== null && item !== 'null' &&
+                                <Button className='mb-2' color='info'>{item}</Button>
+                            )
+                        })}
+                    </div>
+                </ModalBody>
             </Modal>
             <Modal isOpen={this.props.pengadaan.isLoading || this.props.dokumen.isLoading || this.props.tempmail.isLoading ? true: false} size="sm">
                 <ModalBody>

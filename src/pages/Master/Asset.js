@@ -1,13 +1,13 @@
 import React, { Component } from 'react'
 import { Container, Collapse, Nav, Navbar,
-    NavbarToggler, NavbarBrand, NavItem, NavLink,
+    NavbarToggler, NavbarBrand, NavItem, NavLink, Row, Col,
     UncontrolledDropdown, DropdownToggle, DropdownMenu, Dropdown,
     DropdownItem, Table, ButtonDropdown, Input, Button,
     Modal, ModalHeader, ModalBody, ModalFooter, Alert, Spinner} from 'reactstrap'
 import logo from "../../assets/img/logo.png"
 import style from '../../assets/css/input.module.css'
 import {FaSearch, FaUserCircle, FaBars} from 'react-icons/fa'
-import {AiOutlineFileExcel, AiFillCheckCircle, AiOutlineInbox} from 'react-icons/ai'
+import {AiOutlineFileExcel, AiFillCheckCircle, AiOutlineInbox, AiOutlineClose} from 'react-icons/ai'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
 import asset from '../../redux/actions/asset'
@@ -30,6 +30,11 @@ const dokumenSchema = Yup.object().shape({
     jenis_dokumen: Yup.string().required(),
     divisi: Yup.string().required(),
 });
+
+const filterSchema = Yup.object().shape({
+    no_asset:  Yup.string(),
+    date1: Yup.date()
+})
 
 class Asset extends Component {
     constructor(props) {
@@ -342,6 +347,20 @@ class Asset extends Component {
         });
     }
 
+    prosesSync = async (val) => {
+        const token = localStorage.getItem("token")
+        await this.props.syncAsset(token, val.type_sync, val.no_asset, val.date1)
+        this.setState({confirm: 'sync'})
+        this.openConfirm()
+        this.openModsync()
+        this.getDataAsset()
+    }
+
+    openModsync = () => {
+        this.setState({openSync: !this.state.openSync})
+    }
+
+
     ExportMaster = () => {
         const token = localStorage.getItem('token')
         this.props.exportMaster(token)
@@ -387,7 +406,7 @@ class Asset extends Component {
     }
 
     componentDidUpdate() {
-        const {isError, isUpload, isExport} = this.props.asset
+        const {isError, isUpload, isExport, isSync} = this.props.asset
         if (isError) {
             this.props.resetError()
             this.showAlert()
@@ -404,6 +423,10 @@ class Asset extends Component {
         else if (isExport) {
             this.props.resetError()
             this.DownloadMaster()
+        } else if (isSync === false) {
+            this.setState({confirm: 'syncfalse'})
+            this.openConfirm()
+            this.props.resetError()
         }
     }
 
@@ -614,7 +637,10 @@ class Asset extends Component {
                             <div className='rowGeneral'>
                                 <Button color="success" size="lg" onClick={this.downloadData}>Download</Button>
                                 {level === '1' && (
-                                    <Button className='ml-2' color="warning" size="lg" onClick={this.openModalUpload}>Upload</Button>
+                                    <>
+                                        <Button className='ml-1' color="warning" size="lg" onClick={this.openModalUpload}>Upload</Button>
+                                        <Button className='ml-1' onClick={this.openModsync} color="primary" size="lg">Synchronize</Button>
+                                    </>
                                 )}
                             </div>
                             <div className={style.searchEmail2}>
@@ -899,6 +925,90 @@ class Asset extends Component {
                     )}
                     </Formik>
                 </Modal>
+                <Modal toggle={this.openModsync} isOpen={this.state.openSync} size='lg'>
+                    <ModalHeader>Synchronize Data Asset</ModalHeader>
+                    <Formik
+                    initialValues={{
+                        type_sync: '',
+                        no_asset: '',
+                        date1: ''
+                    }}
+                    validationSchema={filterSchema}
+                    onSubmit={(values) => {this.prosesSync(values)}}
+                    >
+                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                        <ModalBody>
+                            <Row className="mb-2 rowRinci">
+                                <Col md={3}>Pilih Tipe Synchronize</Col>
+                                <Col md={9} className="colRinci">:  <Input
+                                    type="select"
+                                    className="inputRinci"
+                                    value={values.type_sync}
+                                    onBlur={handleBlur("type_sync")}
+                                    onChange={handleChange('type_sync')}
+                                >
+                                    <option value=''>Pilih</option>
+                                    <option value="no">No Asset</option>
+                                    <option value="time">Periode</option>
+                                </Input>
+                                </Col>
+                            </Row>
+                            <Row className="mb-2 rowRinci">
+                                <Col md={3}>No Asset</Col>
+                                <Col md={9} className="colRinci">:  <Input
+                                    type="text"
+                                    className="inputRinci"
+                                    disabled={values.type_sync === 'no' ? false : true}
+                                    value={values.no_asset}
+                                    onBlur={handleBlur("no_asset")}
+                                    onChange={handleChange("no_asset")}
+                                />
+                                </Col>
+                            </Row>
+                            <Row className="mb-2 rowRinci">
+                                <Col md={3}>Periode</Col>
+                                <Col md={9} className="colRinci">:
+                                    <Input
+                                        type="date"
+                                        className="inputRinci"
+                                        disabled={values.type_sync === 'time' ? false : true}
+                                        value={values.date1}
+                                        onBlur={handleBlur("date1")}
+                                        onChange={handleChange("date1")}
+                                    />
+                                    {/* <text className='mr-1 ml-1'>To</text>
+                                    <Input
+                                        type="date"
+                                        className="inputRinci"
+                                        disabled={values.type_sync === 'time' ? false : true}
+                                        value={values.date2}
+                                        onBlur={handleBlur("date2")}
+                                        onChange={handleChange("date2")}
+                                    /> */}
+                                </Col>
+                            </Row>
+                            <hr/>
+                            <div className={style.foot}>
+                                <div></div>
+                                <div>
+                                    <Button 
+                                    disabled={
+                                    // values.type_sync === 'time' && (values.date1 === '' || values.date2 === '') ? true 
+                                    values.type_sync === 'time' && (values.date1 === '') ? true 
+                                    : (values.type_sync === 'no' && values.no_asset === '') ? true 
+                                    : values.type_sync === '' ? true
+                                    : false}
+                                    className="mr-2" onClick={handleSubmit} 
+                                    color="primary">
+                                        Synchronize
+                                    </Button>
+                                    <Button className="mr-3" onClick={this.openModsync}>Cancel</Button>
+                                </div>
+                            </div>
+                        </ModalBody>
+                        )}
+                    </Formik>
+                </Modal>
                 <Modal isOpen={this.props.asset.isLoading ? true: false} size="sm">
                         <ModalBody>
                         <div>
@@ -935,6 +1045,21 @@ class Asset extends Component {
                                 <div className={style.sucUpdate}>Berhasil Mereset Password</div>
                             </div>
                             </div>
+                        ) : this.state.confirm === 'sync' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={style.sucUpdate}>Berhasil Synchronize Data Asset</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'syncfalse' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green]}>Gagal Synchronize Data</div>
+                                    <div className={[style.sucUpdate, style.green]}>Data Asset Tidak Ditemukan</div>
+                                </div>
+                            </div>
                         ) : (
                             <div></div>
                         )}
@@ -954,7 +1079,8 @@ const mapDispatchToProps = {
     getAsset: asset.getAsset,
     resetError: asset.resetError,
     uploadMasterAsset: asset.uploadMasterAsset,
-    nextPage: asset.nextPage
+    nextPage: asset.nextPage,
+    syncAsset: asset.syncAsset
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Asset)

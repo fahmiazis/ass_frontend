@@ -1,6 +1,6 @@
 /* eslint-disable import/no-anonymous-default-export */
 const approveState = {
-    isAdd: false,
+    isAdd: null,
     isAddDetail: false,
     isUpdate: false,
     isGet: false,
@@ -15,7 +15,13 @@ const approveState = {
     page: {},
     isExport: false,
     detailApp: [],
-    link: ''
+    link: '',
+    isEditName: null,
+    idName: {},
+    isDetailId: null,
+    isDeleteName: null,
+    isPlantApp: null,
+    plantApp: [],
 };
 
 export default (state=approveState, action) => {
@@ -72,6 +78,55 @@ export default (state=approveState, action) => {
                     isLoading: false,
                     isGet: false,
                     isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'GET_PLANTAPP_PENDING': {
+                return {
+                    ...state,
+                    isGet: false,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'GET_PLANTAPP_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isPlantApp: true,
+                    plantApp: action.payload.data.result,
+                    alertMsg: 'get detail approve Succesfully',
+                };
+            }
+            case 'GET_PLANTAPP_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isPlantApp: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'GET_DETAILID_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'GET_DETAILID_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    idName: action.payload.data.result,
+                    isDetailId: true,
+                    alertMsg: 'get detail approve Succesfully',
+                };
+            }
+            case 'GET_DETAILID_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isDetailId: false,
                     alertMsg: "Unable connect to server"
                 };
             }
@@ -138,7 +193,6 @@ export default (state=approveState, action) => {
                 return {
                     ...state,
                     isLoading: false,
-                    isError: false,
                     isAdd: true,
                     alertMsg: 'add approve Succesfully'
                 };
@@ -147,7 +201,30 @@ export default (state=approveState, action) => {
                 return {
                     ...state,
                     isLoading: false,
-                    isError: true,
+                    isAdd: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'UPDATE_NAMEAPP_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'UPDATE_NAMEAPP_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isEditName: true,
+                    alertMsg: 'edit name approve Succesfully'
+                };
+            }
+            case 'UPDATE_NAMEAPP_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isEditName: false,
                     alertMsg: "Unable connect to server"
                 };
             }
@@ -171,6 +248,30 @@ export default (state=approveState, action) => {
                 return {
                     ...state,
                     isError: true,
+                    isLoading: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'DELETE_NAMEAPPROVE_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'DELETE_NAMEAPPROVE_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isDeleteName: true,
+                    alertMsg: 'delete approve Succesfully',
+                };
+            }
+            case 'DELETE_NAMEAPPROVE_REJECTED': {
+                return {
+                    ...state,
+                    isDeleteName: false,
+                    isLoading: false,
                     alertMsg: "Unable connect to server"
                 };
             }
@@ -202,11 +303,15 @@ export default (state=approveState, action) => {
                     ...state,
                     isError: false,
                     isUpdate: false,
-                    isAdd: false,
+                    isAdd: null,
                     isDelete: false,
                     isGet: false,
                     isExport: false,
-                    isLoading: false
+                    isEditName: null,
+                    isDetailId: null,
+                    isLoading: false,
+                    isDeleteName: null,
+                    isPlantApp: null
                 }
             }
             default: {

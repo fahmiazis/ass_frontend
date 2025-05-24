@@ -514,9 +514,6 @@ class MonitoringDisposal extends Component {
                         </ModalBody>
                 </Modal>
                 <Modal isOpen={this.state.formDis} toggle={() => {this.openModalDis(); this.showCollap('close')}} size="xl">
-                    {/* <Alert color="danger" className={style.alertWrong} isOpen={detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true}>
-                        <div>Data Penjualan Asset Sedang Dilengkapi oleh divisi purchasing</div>
-                    </Alert> */}
                     <ModalBody>
                         <Row className='trackTitle ml-4'>
                             <Col>

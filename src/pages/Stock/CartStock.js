@@ -127,7 +127,8 @@ class Stock extends Component {
             oldPict: [],
             upPict: [],
             crashAsset: [],
-            openCrashDraft: false
+            openCrashDraft: false,
+            asetPart: 'all'
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -166,8 +167,12 @@ class Stock extends Component {
     }
 
     submitStock = async () => {
+        const {asetPart} = this.state
         const token = localStorage.getItem('token')
-        await this.props.submitStock(token)
+        const data = {
+            asetPart: asetPart
+        }
+        await this.props.submitStock(token, data)
         const { noStock } = this.props.stock
         await this.props.getDetailStock(token, noStock)
         const { detailStock } = this.props.stock
@@ -288,7 +293,7 @@ class Stock extends Component {
             const token = localStorage.getItem('token')
             const data = new FormData()
             data.append('document', e.target.files[0])
-            this.props.uploadDocumentDis(token, detail.id, data)
+            this.props.uploadDocument(token, detail.id, data)
         }
     }
 
@@ -404,9 +409,12 @@ class Stock extends Component {
             
             for (let i = 0; i < dataStock.length; i++) {
                 await this.props.getDetailStock(token, dataStock[i].no_stock)
-                const {detailStock} = this.props.stock
                 for (let j = 0; j < cekRusak.length; j++) {
-                    const cekData = detailStock.find(item => item.no_asset === cekRusak[i].no_asset && item.kondisi === cekRusak[i].kondisi && item.grouping === cekRusak[i].grouping)
+                    const {detailStock} = this.props.stock
+                    console.log('masuk for first')
+                    console.log(detailStock[0].no_asset)
+                    console.log(cekRusak)
+                    const cekData = detailStock.find(item => item.no_asset === cekRusak[j].no_asset && item.kondisi === cekRusak[j].kondisi && item.grouping === cekRusak[j].grouping)
                     if (cekData !== undefined) {
                         temp.push(cekData)
                     }
@@ -525,8 +533,10 @@ class Stock extends Component {
 
     componentDidMount() {
         const level = localStorage.getItem('level')
+        const name = localStorage.getItem('name')
         if (level === "5" || level === "9") {
-            this.getDataAsset()
+            this.setState({asetPart: name})
+            this.getDataAsset({asetPart: name})
         } else {
             this.getDataStock()
         }
@@ -551,10 +561,9 @@ class Stock extends Component {
     }
 
     async componentDidUpdate() {
-        const {isUpload, isError, isApprove, isReject, rejReject, rejApprove, isImage, isSubmit, isSubaset, isUpdateStock} = this.props.stock
+        const {isUpload, isError, isApprove, isReject, rejReject, rejApprove, isImage, isSubmit, isSubaset, isUpdateStock, isDocStock} = this.props.stock
         const {dataRinci, dataId, dataItem} = this.state
-        const { isUpdateNew } = this.props.asset
-        const errUpload = this.props.disposal.isUpload
+        const { isUpdateNew, detailAsset } = this.props.asset
         const token = localStorage.getItem('token')
         if (isUpload) {
             this.props.resetStock()
@@ -562,13 +571,12 @@ class Stock extends Component {
                 this.props.getDetailAsset(token, dataRinci.id)
                 this.getDataAsset()
              }, 100)
-        } else if (errUpload) {
-            setTimeout(() => {
-                this.props.resetDis()
-             }, 1000)
-             setTimeout(() => {
-                 this.cekStatus('DIPINJAM SEMENTARA')
-             }, 1100)
+        } else if (isDocStock === false) {
+            this.props.resetStock()
+            this.cekStatus('DIPINJAM SEMENTARA')
+        } else if (isDocStock === true) {
+            this.props.resetStock()
+            await this.props.getDocument(token, detailAsset.no_asset)
         } else if (isUpdateNew) {
             this.openConfirm(this.setState({confirm: 'approve'}))
             this.props.resetError()
@@ -659,11 +667,21 @@ class Stock extends Component {
     getDataAsset = async (value) => {
         const token = localStorage.getItem("token")
         const { page } = this.props.asset
-        const search = value === undefined ? '' : value.search
-        const limit = value === undefined ? this.state.limit : value.limit
-        await this.props.getAssetAll(token, limit, search, page.currentPage, 'asset')
+        const {asetPart} = this.state
+        const area = value === undefined ? asetPart : value.asetPart === undefined ? asetPart : value.asetPart
+        const search = value === undefined ? '' : value.search === undefined ? '' : value.search
+        const limit = value === undefined ? this.state.limit :  value.limit === undefined ? this.state.limit : value.limit
+        await this.props.getDepo(token, 1000, '')
+        await this.props.getAssetAll(token, limit, search, page.currentPage, 'asset', area)
         await this.props.getDetailDepo(token, 1)
-        this.setState({limit: value === undefined ? 10 : value.limit})
+        this.setState({limit: limit})
+    }
+
+    getAssetPart = async (val) => {
+        const token = localStorage.getItem("token")
+        const {search, limit} = this.state
+        await this.props.getAssetAll(token, limit, search, 1, 'asset', val)
+        this.setState({asetPart: val})
     }
 
     getDataStock = async (value) => {
@@ -777,7 +795,9 @@ class Stock extends Component {
 
     prosesSubmitPre = async () => {
         const token = localStorage.getItem("token")
-        await this.props.getAssetAll(token, 1000, '', 1, 'asset')
+        const {asetPart} = this.state
+        const area = asetPart
+        await this.props.getAssetAll(token, 1000, '', 1, 'asset', area)
         const dataAsset = this.props.asset.assetAll
         const upPict = []
         const oldPict = []
@@ -809,8 +829,10 @@ class Stock extends Component {
     onSearch = async (e) => {
         this.setState({search: e.target.value})
         const token = localStorage.getItem("token")
+        const {asetPart} = this.state
+        const area = asetPart
         if(e.key === 'Enter'){
-            await this.props.getAssetAll(token, 10, e.target.value, 1)
+            await this.props.getAssetAll(token, 10, e.target.value, 1, 'asset', area)
         }
     }
 
@@ -1289,6 +1311,18 @@ class Stock extends Component {
 
                         <div className={styleTrans.searchContainer}>
                             <Button size="lg" color='primary' onClick={this.prosesSubmitPre}>Submit</Button>
+                            {level == '9' && (
+                                <select value={this.state.asetPart} onChange={e => this.getAssetPart(e.target.value)} className={styleTrans.searchInput}>
+                                    <option value="all">All</option>
+                                    {dataDepo.length > 0 && dataDepo.map(item => {
+                                        return (
+                                            item.kode_plant.length > 4 && (
+                                                <option value={item.kode_plant}>{item.kode_plant} - {item.nama_area}</option>
+                                            )
+                                        )
+                                    })}
+                                </select>
+                            )}
                         </div>
                         <div className={styleTrans.searchContainer}>
                             <div>
@@ -1407,10 +1441,10 @@ class Stock extends Component {
                                             </td>
                                             <td>
                                                 <ButtonDropdown className={style.drop2} isOpen={this.state.dropOp && item.no_asset === this.state.noAsset} toggle={() => this.dropOpen(item)}>
-                                                    <DropdownToggle caret color="light">
+                                                    <DropdownToggle className='indexToggle' caret color="light">
                                                         {item.grouping === null || item.grouping === '' || item.grouping === undefined ? '-Pilih Status Aset-' : item.grouping }
                                                     </DropdownToggle>
-                                                    <DropdownMenu>
+                                                    <DropdownMenu className='indexMenu'>
                                                         {dataStatus.length > 0 && dataStatus.map(x => {
                                                             return (
                                                                 <DropdownItem onClick={() => this.updateGrouping({item: item, target: x.status})} className={style.item}>{x.status}</DropdownItem>
@@ -1933,7 +1967,7 @@ class Stock extends Component {
                             initialValues = {{
                                 merk: detRinci.merk === null ? '' : detRinci.merk,
                                 satuan: detRinci.satuan === null ? '' : detRinci.satuan,
-                                unit: 1,
+                                unit: detRinci.unit === null ? '' : detRinci.unit,
                                 lokasi: detRinci.lokasi === null ? '' : detRinci.lokasi,
                                 grouping: detRinci.grouping === null ? '' : detRinci.grouping,
                                 keterangan: detRinci.keterangan === null ? '' : detRinci.keterangan,
@@ -2674,7 +2708,7 @@ class Stock extends Component {
                         <div></div>
                         <div className="btnFoot">
                             <Button className="mr-2" color="success" onClick={this.cekStock}>
-                                Submitsss
+                                Submit
                             </Button>
                             <Button onClick={this.modalSubmitPre} color='secondary'>
                                 Close
@@ -2888,7 +2922,7 @@ class Stock extends Component {
                             )}
                             </div>
                             <div className="btnFoot">
-                                {this.state.stat === 'DIPINJAM SEMENTARA' && (dataDoc.length === 0 || dataDoc.find(({status}) => status === 1) === undefined) ? (
+                                {this.state.stat === 'DIPINJAM SEMENTARA' && (dataDoc.length === 0 || dataDoc.find(({path}) => path === null) !== undefined) ? (
                                     // <Button color="primary" disabled>Save</Button>
                                     <div></ div>
                                 ) : dataStatus.length === 0 ? (
@@ -3022,7 +3056,7 @@ class Stock extends Component {
                             >
                                 Submit & Send Email
                             </Button>
-                            <Button className="mr-3" onClick={this.openCrashEmail}>Cancel</Button>
+                            {/* <Button className="mr-3" onClick={this.openCrashEmail}>Cancel</Button> */}
                         </div>
                     </div>
                 </ModalBody>
@@ -3089,7 +3123,7 @@ class Stock extends Component {
                     <Button className="mr-2" color="secondary" onClick={this.openModalDoc}>
                         Close
                     </Button>
-                    {this.state.stat === 'DIPINJAM SEMENTARA' && (dataDoc.length === 0 || dataDoc.find(({status}) => status === 1) === undefined) ? (
+                    {this.state.stat === 'DIPINJAM SEMENTARA' && (dataDoc.length === 0 || dataDoc.find(({path}) => path === null) !== undefined) ? (
                         <Button color="primary" disabled onClick={this.updateStatus}>
                             Save 
                         </Button>
@@ -3147,8 +3181,7 @@ const mapDispatchToProps = {
     updateAssetNew: asset.updateAssetNew,
     resetError: asset.resetError,
     nextPage: asset.nextPage,
-    getDisposal: disposal.getDisposal,
-    uploadDocumentDis: disposal.uploadDocumentDis,
+    uploadDocument: stock.uploadDocument,
     getNameApprove: approve.getNameApprove,
     getDetailDepo: depo.getDetailDepo,
     getDepo: depo.getDepo,

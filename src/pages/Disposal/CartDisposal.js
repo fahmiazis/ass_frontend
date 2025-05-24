@@ -2,15 +2,18 @@
 /* eslint-disable jsx-a11y/no-distracting-elements */
 import React, { Component } from 'react'
 import {NavbarBrand, Input, Button, Row, Col,
-    Modal, ModalHeader, ModalBody, ModalFooter, Container, Alert, Spinner, Table} from 'reactstrap'
+    Modal, ModalHeader, ModalBody, ModalFooter, UncontrolledTooltip,
+    Container, Alert, Spinner, Table} from 'reactstrap'
 import style from '../../assets/css/input.module.css'
 import {FaUserCircle, FaBars, FaTrash} from 'react-icons/fa'
-import {AiOutlineCheck, AiOutlineClose} from 'react-icons/ai'
+import {AiOutlineCheck, AiOutlineClose, AiOutlineInbox, AiFillCheckCircle} from 'react-icons/ai'
 import {BsCircle} from 'react-icons/bs'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
 import disposal from '../../redux/actions/disposal'
 import pengadaan from '../../redux/actions/pengadaan'
+import tempmail from '../../redux/actions/tempmail'
+import newnotif from '../../redux/actions/newnotif'
 import {connect} from 'react-redux'
 import auth from '../../redux/actions/auth'
 import {default as axios} from 'axios'
@@ -22,6 +25,11 @@ import placeholder from  "../../assets/img/placeholder.png"
 import Pdf from "../../components/Pdf"
 import NavBar from '../../components/NavBar'
 import asset from '../../redux/actions/asset'
+import styleTrans from '../../assets/css/transaksi.module.css'
+import NewNavbar from '../../components/NewNavbar'
+import Email from '../../components/Disposal/Email'
+import { MdUpload, MdDownload, MdEditSquare, MdAddCircle, MdDelete } from "react-icons/md"
+import { IoDocumentTextOutline } from "react-icons/io5";
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -71,10 +79,27 @@ class CartDisposal extends Component {
             idDoc: 0,
             fileName: {},
             openPdf: false,
-            isAdd: false
+            isAdd: false,
+            modalSubmit: false,
+            openDraft: false,
+            subject: '',
+            message: '',
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+    }
+
+    getMessage = (val) => {
+        this.setState({ message: val.message, subject: val.subject })
+        console.log(val)
+    }
+
+    prosesSidebar = (val) => {
+        this.setState({sidebarOpen: val})
+    }
+    
+    goRoute = (val) => {
+        this.props.history.push(`/${val}`)
     }
 
     showAlert = () => {
@@ -109,10 +134,14 @@ class CartDisposal extends Component {
         this.setState({openModalDoc: !this.state.openModalDoc})
     }
 
-    openProsesModalDoc = async () => {
+    openProsesModalDoc = async (val) => {
         const token = localStorage.getItem('token')
-        const { dataRinci } = this.state
-        await this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'pengajuan')
+        this.setState({dataRinci: val})
+        const data = {
+            noId: val.id,
+            noAsset: val.no_asset
+        }
+        await this.props.getDocumentDis(token, data, 'disposal', 'pengajuan')
         this.closeProsesModalDoc()
     }
 
@@ -212,14 +241,29 @@ class CartDisposal extends Component {
 
     addDisposal = async (value) => {
         const token = localStorage.getItem("token")
-        await this.props.addDisposal(token, value)
-        this.getDataCart()
+        const {dataCart} = this.props.disposal
+        const cek = dataCart.find(item => item.nilai_jual !== '0' || item.nilai_jual !== 0)
+        if (cek !== undefined) {
+            this.setState({confirm: 'falseAdd'})
+            this.openConfirm()
+        } else {
+            await this.props.addDisposal(token, value)
+            this.getDataCart()
+        }
+        
     }
 
     addSell = async (value) => {
         const token = localStorage.getItem("token")
-        await this.props.addSell(token, value)
-        this.getDataCart()
+        const {dataCart} = this.props.disposal
+        const cek = dataCart.find(item => item.nilai_jual === '0' || item.nilai_jual === 0)
+        if (cek !== undefined) {
+            this.setState({confirm: 'falseAdd'})
+            this.openConfirm()
+        } else {
+            await this.props.addSell(token, value)
+            this.getDataCart()
+        }
     }
 
     getDataCart = async () => {
@@ -231,42 +275,43 @@ class CartDisposal extends Component {
         await this.props.getCartDisposal(token)
     }
 
-    componentDidUpdate() {
+    async componentDidUpdate() {
         const {isError, isUpload, isSubmit} = this.props.disposal
         const token = localStorage.getItem('token')
         const {dataRinci} = this.state
+        const data = {
+            noId: dataRinci.id,
+            noAsset: dataRinci.no_asset
+        }
         if (isError) {
             this.props.resetError()
             this.showAlert()
         } else if (isUpload) {
-            setTimeout(() => {
-                this.props.resetError()
-             }, 1000)
-             setTimeout(() => {
-                this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', 'pengajuan')
-             }, 1100)
-        } else if (isSubmit) {
             this.props.resetError()
-            setTimeout(() => {
-                this.getDataDisposal()
-             }, 1000)
+            await this.props.getDocumentDis(token, data, 'disposal', 'pengajuan')
         }
+        // else if (isSubmit) {
+        //     this.props.resetError()
+        //     setTimeout(() => {
+        //         this.getDataDisposal()
+        //      }, 1000)
+        // }
     }
 
-    submitDis = async () => {
-        const token = localStorage.getItem('token')
+    cekSubmit = async () => {
         const { dataCart } = this.props.disposal
         const cek = []
         for (let i = 0; i < dataCart.length; i++) {
+            console.log(dataCart[i].nilai_jual)
             if (dataCart[i].keterangan === null || dataCart[i].nilai_jual === null ) {
-                cek.push(dataCart[i].keterangan)              
+                cek.push(dataCart[i].keterangan)
             }
         }
         if (cek.length > 0) {
             this.setState({confirm: 'failSubmit'})
             this.openConfirm()
         } else {
-            await this.props.submitDisposal(token)
+            this.openModalSub()
         }
     }
 
@@ -296,11 +341,91 @@ class CartDisposal extends Component {
         this.setState({ open });
     }
 
+    submitDataDisposal = async () => {
+        const token = localStorage.getItem('token')
+        await this.props.submitDisposal(token)
+        this.prepSendEmail()
+    }
+
+    submitFinal = async () => {
+        const token = localStorage.getItem('token')
+        const { no_disposal, dataCart } = this.props.disposal
+        const { draftEmail } = this.props.tempmail
+        const { message, subject } = this.state
+        const data = { 
+            no: no_disposal
+        }
+        const cc = draftEmail.cc
+        const tempcc = []
+        for (let i = 0; i < cc.length; i++) {
+            tempcc.push(cc[i].email)
+        }
+
+        const cekJual = dataCart[0].nilai_jual === '0' || dataCart[0].nilai_jual === 0
+        const proses =  cekJual ? 'approve' : 'verifikasi'
+        const route =  cekJual ? 'disposal' : 'purchdis'
+
+        const sendMail = {
+            draft: draftEmail,
+            nameTo: draftEmail.to.fullname,
+            to: draftEmail.to.email,
+            cc: tempcc.toString(),
+            message: message,
+            subject: subject,
+            no: no_disposal,
+            tipe: 'disposal',
+            menu: `disposal asset`,
+            proses: proses,
+            route: route
+        }
+        await this.props.submitDisposalFinal(token, data)
+        await this.props.sendEmail(token, sendMail)
+        await this.props.addNewNotif(token, sendMail)
+        this.openModalSub()
+        this.getDataDisposal()
+        this.openDraftEmail()
+        this.setState({confirm: 'submit'})
+        this.openConfirm()
+    }
+
+    prepSendEmail = async () => {
+        const {dataCart, no_disposal} = this.props.disposal
+        const token = localStorage.getItem("token")
+        const cekJual = dataCart.find((item) => item.nilai_jual === '0' || item.nilai_jual === 0)
+        const tipe =  cekJual ? 'approve' : 'submit'
+         const tempno = {
+            no: no_disposal,
+            kode: dataCart[0].kode_plant,
+            jenis: 'disposal',
+            tipe: tipe,
+            menu: 'Pengajuan Disposal Asset (Disposal asset)'
+        }
+
+        const cekApp = {
+            nama: dataCart[0].kode_plant.split('').length === 4 ? 'disposal pengajuan' :  'disposal pengajuan HO',
+            no: no_disposal
+        }
+        await this.props.getDetailDisposal(token, no_disposal, 'pengajuan')
+        await this.props.getApproveDisposal(token, cekApp.no, cekApp.nama)
+        await this.props.getDraftEmail(token, tempno)
+        this.openDraftEmail()
+    }
+
+    openDraftEmail = () => {
+        this.setState({openDraft: !this.state.openDraft}) 
+    }
+
     updateDataDis = async (value) => {
         const token = localStorage.getItem('token')
         const { dataRinci } = this.state
         await this.props.updateDisposal(token, dataRinci.id, value, 'disposal')
         this.getDataDisposal()
+        this.setState({confirm: 'update'})
+        this.openConfirm()
+    }
+
+    openModalSub = () => {
+        this.setState({ modalSubmit: !this.state.modalSubmit })
     }
 
     render() {
@@ -339,19 +464,10 @@ class CartDisposal extends Component {
           };
         return (
             <>
-                <Sidebar {...sidebarProps}>
+                {/* <Sidebar {...sidebarProps}>
                     <MaterialTitlePanel title={contentHeader}>
                         <div className={style.backgroundLogo}>
                             <div className={style.bodyDashboard}>
-                                {/* <Alert color="danger" className={style.alertWrong} isOpen={alert}>
-                                    <div>{alertMsg}</div>
-                                    <div>{alertM}</div>
-                                    {alertUpload !== undefined && alertUpload.map(item => {
-                                        return (
-                                            <div>{item}</div>
-                                        )
-                                    })}
-                                </Alert> */}
                                 <div className={style.headMaster}> 
                                     <div className={style.titleDashboard}>Draft Pengajuan Disposal</div>
                                 </div>
@@ -399,46 +515,6 @@ class CartDisposal extends Component {
                                         </div>
                                     )}
                                 </div>
-                                {/* <Row className="cartDisposal">
-                                    {dataCart.length === 0 ? (
-                                        <Col md={8} xl={8} sm={12}>
-                                            <div className="txtDisposEmpty">Disposal Data is empty</div>
-                                        </Col>
-                                    ) : (
-                                        <Col md={8} xl={8} sm={12} className="mb-5 mt-5">
-                                        {dataCart.length !== 0 && dataCart.map(item => {
-                                            return (
-                                                <div className="cart">
-                                                    <div className="navCart">
-                                                        <img src={item.pict.length > 0 ? `${REACT_APP_BACKEND_URL}/${item.pict[0].path}` : placeholder} className="cartImg" />
-                                                        <Button className="labelBut" color="warning" size="sm">{item.nilai_jual === '0' ? 'Pemusnahan' : 'Penjualan'}</Button>
-                                                        <div className="txtCart">
-                                                            <div>
-                                                                <div className="nameCart">{item.nama_asset}</div>
-                                                                <div className="noCart">No asset {item.no_asset}</div>
-                                                            </div>
-                                                            <Button color="primary" onClick={() => this.prosesRinci(item)}>Rincian</Button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="footCart">
-                                                        <div><FaTrash size={20} onClick={() => this.deleteItem(item.no_asset)} className="txtError"/></div>
-                                                    </div>
-                                                </div>
-                                            )
-                                        })}
-                                    </Col>
-                                    )}
-                                    <Col md={4} xl={4} sm={12} className="mt-5">
-                                        <div className="sideSum">
-                                            <div className="titSum">Disposal summary</div>
-                                            <div className="txtSum">
-                                                <div className="totalSum">Total Item</div>
-                                                <div className="angkaSum">{dataCart.length}</div>
-                                            </div>
-                                            <button className="btnSum" disabled={dataCart.length === 0 ? true : false } onClick={() => this.submitDis()}>Submit</button>
-                                        </div>
-                                    </Col>
-                                </Row> */}
                                 <div className='mt-4'>
                                     <div className={style.infoPageEmail1}>
                                         <text>Showing 1 of 1 pages</text>
@@ -451,7 +527,109 @@ class CartDisposal extends Component {
                             </div>
                         </div>
                     </MaterialTitlePanel>
-                </Sidebar>
+                </Sidebar> */}
+                <div className={styleTrans.app}>
+                    <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
+
+                    <div className={`${styleTrans.mainContent} ${this.state.sidebarOpen ? styleTrans.collapsedContent : ''}`}>
+                        <h2 className={styleTrans.pageTitle}>Draft Disposal Aset</h2>
+
+                        <div className='rowGeneral mb-4'>
+                            <Button 
+                            size='lg' 
+                            color="primary" 
+                            onClick={this.prosesOpenAdd}
+                            >
+                                Add
+                            </Button>
+                            <Button 
+                            size='lg' 
+                            className='ml-2' color="success" 
+                            disabled={dataCart.length === 0 ? true : false } 
+                            onClick={() => this.cekSubmit()}>
+                                Submit
+                            </Button>
+                        </div>
+
+                        <table className={styleTrans.table}>
+                            <thead>
+                                <tr>
+                                    <th>NO</th>
+                                    <th>NAMA ASET</th>
+                                    <th>NOMOR ASET</th>
+                                    <th>NILAI BUKU</th>
+                                    <th>KATEGORI</th>
+                                    <th>TIPE</th>
+                                    <th>OPSI</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {dataCart.length !== 0 && dataCart.map((item, index) => {
+                                return (
+                                    <tr>
+                                        <td>{dataCart.indexOf(item) + 1}</td>
+                                        <td>{item.nama_asset}</td>
+                                        <td>{item.no_asset}</td>
+                                        <td>{item.nilai_buku}</td>
+                                        <td>{item.kategori}</td>
+                                        <td>{item.nilai_jual === 0 || item.nilai_jual === '0' ? 'Pemusnahan' : 'Penjualan'}</td>
+                                        <td>
+                                            {/* <Button color="primary" onClick={() => this.prosesRinci(item)}>Rincian</Button>
+                                            <Button color="danger" className='ml-2' onClick={() => this.deleteItem(item.no_asset)}>Delete</Button> */}
+
+                                            <Button id={`tool${index}`} onClick={() => this.openProsesModalDoc(item)} className='mt-1 mr-1' color='primary'><IoDocumentTextOutline size={25}/></Button>
+                                            <Button id={`toolEdit${index}`} onClick={() => this.prosesRinci(item)} className='mt-1 mr-1' color='success'><MdEditSquare size={25}/></Button>
+                                            <Button id={`toolDelete${index}`} onClick={() => this.deleteItem(item.no_asset)} className='mt-1' color='danger'><MdDelete size={25}/></Button>
+                                            <UncontrolledTooltip
+                                                    placement="top"
+                                                    target={`tool${index}`}
+                                                >
+                                                    Dokumen
+                                            </UncontrolledTooltip>
+                                            <UncontrolledTooltip
+                                                placement="top"
+                                                target={`toolEdit${index}`}
+                                            >
+                                                Update
+                                            </UncontrolledTooltip>
+                                            <UncontrolledTooltip
+                                                placement="top"
+                                                target={`toolDelete${index}`}
+                                            >
+                                                Delete
+                                            </UncontrolledTooltip>
+                                        </td>
+                                    </tr>
+                                )
+                            })}
+                            </tbody>
+                        </table>
+                        {dataCart.length === 0 && (
+                            <div className={style.spinCol}>
+                                <AiOutlineInbox size={50} className='mb-4' />
+                                <div className='textInfo'>Data ajuan tidak ditemukan</div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+                <Modal isOpen={this.state.modalSubmit} toggle={this.openModalSub} centered={true}>
+                    <ModalBody>
+                        <div className={style.modalApprove}>
+                            <div>
+                                <text>
+                                    Anda yakin untuk submit
+                                    <text className={style.verif}> </text>
+                                    pada tanggal
+                                    <text className={style.verif}> {moment().format('LL')}</text> ?
+                                </text>
+                            </div>
+                            <div className={style.btnApprove}>
+                                <Button color="primary" onClick={() => this.submitDataDisposal()}>Ya</Button>
+                                <Button color="secondary" onClick={this.openModalSub}>Tidak</Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                </Modal>
                 <Modal isOpen={this.state.modalRinci} toggle={this.openModalRinci} size="xl">
                     <ModalHeader>
                         Rincian {dataRinci.nilai_jual === '0' ? 'Pemusnahan' : 'Penjualan'} Asset
@@ -577,7 +755,7 @@ class CartDisposal extends Component {
                                     </div>
                                     <div className="footRinci1">
                                         <Button className="btnFootRinci1" size="lg" color="primary" onClick={handleSubmit}>Save</Button>
-                                        <Button className="btnFootRinci1" size="lg" color="success" onClick={this.openProsesModalDoc}>Upload Doc</Button>
+                                        <Button className="btnFootRinci1" size="lg" color="success" onClick={() => this.openProsesModalDoc(this.state.dataRinci)}>Upload Doc</Button>
                                         <Button className="btnFootRinci1" size="lg" color="secondary" onClick={() => this.openModalRinci()}>Close</Button>
                                     </div>
                                 </div>
@@ -723,89 +901,54 @@ class CartDisposal extends Component {
                                 <div className={[style.sucUpdate, style.green]}>Lengkapi rincian data asset yang ingin diajukan</div>
                             </div>
                         </div>
+                    ) : this.state.confirm === 'update' ?(
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Update</div>
+                            </div>
+                        </div>
+                    ) : this.state.confirm === 'submit' ?(
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Submit</div>
+                            </div>
+                        </div>
+                    ) : this.state.confirm === 'falseAdd' ? (
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Menambahkan Data</div>
+                                <div className={[style.sucUpdate, style.green]}>Pastikan data yang ditambahkan memiliki tipe yang sama</div>
+                            </div>
+                        </div>
                     ) : (
                         <div></div>
                     ) 
                     }
                 </ModalBody>
             </Modal>
-            {/* <Modal isOpen={this.state.preview} toggle={this.modalPeng} size="xl">
+            <Modal isOpen={this.state.openDraft} size='xl'>
+                <ModalHeader>Email Pemberitahuan</ModalHeader>
                 <ModalBody>
-                    <div>PT. Pinus Merah Abadi</div>
-                    <div className="modalDis">
-                        <text className="titleModDis">Form Pengajuan Disposal Asset</text>
+                    <Email handleData={this.getMessage}/>
+                    <div className={style.foot}>
+                        <div></div>
+                        <div>
+                            <Button
+                                disabled={this.state.message === '' ? true : false} 
+                                className="mr-2"
+                                onClick={() => this.submitFinal()} 
+                                color="primary"
+                            >
+                                Approve & Send Email
+                            </Button>
+                            <Button className="mr-3" onClick={this.openDraftEmail}>Cancel</Button>
+                        </div>
                     </div>
-                    <div className="mb-2"><text className="txtTrans">{dataCart[0] !== undefined && dataCart[0].area}</text>, {moment(dataCart[0] !== undefined && dataCart[0].createdAt).locale('idn').format('DD MMMM YYYY ')}</div>
-                    <Row>
-                        <Col md={2}>
-                        Hal
-                        </Col>
-                        <Col md={10}>
-                        : Pengajuan Disposal Asset
-                        </Col>
-                    </Row>
-                    <Row className="mb-2">
-                        <Col md={2}>
-                        {dataCart[0] === undefined ? "" :
-                        dataCart[0].status_depo === "Cabang Scylla" || dataCart[0].status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
-                        </Col>
-                        <Col md={10} className="txtTrans">
-                        : {dataCart[0] !== undefined && dataCart[0].area}
-                        </Col>
-                    </Row>
-                    <div>Kepada Yth.</div>
-                    <div>Bpk/Ibu Pimpinan</div>
-                    <div className="mb-2">Di tempat</div>
-                    <div>Dengan Hormat,</div>
-                    <div className="mb-3">Dengan surat ini kami mengajukan permohonan disposal aset dengan perincian sbb :</div>
-                    <Table striped bordered responsive hover className="tableDis mb-3">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Nomor Asset</th>
-                                <th>Nama Barang</th>
-                                <th>Merk/Type</th>
-                                <th>Kategori</th>
-                                <th>Status Depo</th>
-                                <th>Cost Center</th>
-                                <th>Nilai Buku</th>
-                                <th>Nilai Jual</th>
-                                <th>Keterangan</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {dataCart.length !== 0 && dataCart.map(item => {
-                                return (
-                                    <tr>
-                                        <th scope="row">{dataCart.indexOf(item) + 1}</th>
-                                        <td>{item.no_asset}</td>
-                                        <td>{item.nama_asset}</td>
-                                        <td>{item.merk}</td>
-                                        <td>{item.kategori}</td>
-                                        <td>{item.status_depo}</td>
-                                        <td>{item.cost_center}</td>
-                                        <td>{item.nilai_buku}</td>
-                                        <td>{item.nilai_jual}</td>
-                                        <td>{item.keterangan}</td>
-                                    </tr>
-                                )
-                            })}
-                        </tbody>
-                    </Table>
                 </ModalBody>
-                <hr />
-                <div className="modalFoot ml-3">
-                    <div></div>
-                    <div className="btnFoot">
-                        <Button className="mr-2" color="primary">
-                            Submit
-                        </Button>
-                        <Button color="success" onClick={this.modalPeng}>
-                            Close
-                        </Button>
-                    </div>
-                </div>
-            </Modal> */}
+            </Modal>
             </>
         )
     }
@@ -814,13 +957,16 @@ class CartDisposal extends Component {
 const mapStateToProps = state => ({
     disposal: state.disposal,
     pengadaan: state.pengadaan,
-    asset: state.asset
+    asset: state.asset,
+    tempmail: state.tempmail,
+    newnnotif: state.newnnotif
 })
 
 const mapDispatchToProps = {
     logout: auth.logout,
     getCartDisposal: disposal.getCartDisposal,
     submitDisposal: disposal.submitDisposal,
+    submitDisposalFinal: disposal.submitDisposalFinal,
     resetError: disposal.reset,
     deleteDisposal: disposal.deleteDisposal,
     updateDisposal: disposal.updateDisposal,
@@ -831,6 +977,11 @@ const mapDispatchToProps = {
     getAsset: asset.getAsset,
     addSell: disposal.addSell,
     addDisposal: disposal.addDisposal,
+    getDetailDisposal: disposal.getDetailDisposal,
+    getDraftEmail: tempmail.getDraftEmail,
+    sendEmail: tempmail.sendEmail,
+    addNewNotif: newnotif.addNewNotif,
+    getApproveDisposal: disposal.getApproveDisposal,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(CartDisposal)
