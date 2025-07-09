@@ -49,7 +49,8 @@ const stockState = {
     noStock: '',
     isApprev: null,
     dataDepo: [],
-    isDocStock: null
+    isDocStock: null,
+    dataSearch: []
 };
 
 export default (state=stockState, action) => {
@@ -75,6 +76,32 @@ export default (state=stockState, action) => {
             };
         }
         case 'GET_STOCK_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                getStock: false,
+                isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'SEARCH_STOCK_PENDING': {
+            return {
+                ...state,
+                getStock: false,
+                isLoading: false,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'SEARCH_STOCK_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: false,
+                dataSearch: action.payload.data.result.rows,
+                alertMsg: 'get stock Succesfully'
+            };
+        }
+        case 'SEARCH_STOCK_REJECTED': {
             return {
                 ...state,
                 isLoading: false,

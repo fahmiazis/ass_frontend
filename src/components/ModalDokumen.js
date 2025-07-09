@@ -196,7 +196,7 @@ class ModalDokumen extends Component {
 
     approveDoc = async (val) => {
         const token = localStorage.getItem('token')
-        const {noDoc, tipe, noTrans, filter} = this.props.parDoc
+        const {noDoc, tipe, noTrans, filter, detailForm} = this.props.parDoc
         const {idDoc} = this.state
         const tempno = {
             no: noDoc,
@@ -229,7 +229,45 @@ class ModalDokumen extends Component {
                     this.collDoc(val.id)
                 }
             } else if (tipe === 'disposal') {
-                await this.props.getDocumentDis(token, noDoc, 'disposal', 'pengajuan')
+                const data = {
+                    noId: detailForm.id,
+                    noAsset: detailForm.no_asset
+                }
+                await this.props.getDocumentDis(token, data, 'disposal', 'pengajuan')
+                if (val.type === 'show') {
+                    this.collDoc(val.id)
+                } else {
+                    this.collDoc(val.id)
+                }
+            } else if (tipe === 'eksekusi disposal') {
+                const data = {
+                    noId: detailForm.id,
+                    noAsset: detailForm.no_asset
+                }
+                const tipeDis = detailForm.nilai_jual === "0" ? 'dispose' : 'sell'
+                this.props.getDocumentDis(token, data, 'disposal', tipeDis, detailForm.npwp)
+                if (val.type === 'show') {
+                    this.collDoc(val.id)
+                } else {
+                    this.collDoc(val.id)
+                }
+            } else if (tipe === 'tax disposal') {
+                const data = {
+                    noId: detailForm.id,
+                    noAsset: detailForm.no_asset
+                }
+                await this.props.getDocumentDis(token, data, 'disposal', 'tax')
+                if (val.type === 'show') {
+                    this.collDoc(val.id)
+                } else {
+                    this.collDoc(val.id)
+                }
+            } else if (tipe === 'finance disposal') {
+                const data = {
+                    noId: detailForm.id,
+                    noAsset: detailForm.no_asset
+                }
+                await this.props.getDocumentDis(token, data, 'disposal', 'finance')
                 if (val.type === 'show') {
                     this.collDoc(val.id)
                 } else {
@@ -250,7 +288,7 @@ class ModalDokumen extends Component {
         const data = {
             list: this.state.dataZip
         }
-        const {noDoc, tipe, noTrans, filter} = this.props.parDoc
+        const {noDoc, tipe, noTrans, filter, detailForm} = this.props.parDoc
         const {idDoc} = this.state
         const tempno = {
             no: noDoc,
@@ -272,6 +310,31 @@ class ModalDokumen extends Component {
             // } else {
             //     this.collDoc(val.id)
             // }
+        } else if (tipe === 'disposal') {
+            const data = {
+                noId: detailForm.id,
+                noAsset: detailForm.no_asset
+            }
+            await this.props.getDocumentDis(token, data, 'disposal', 'pengajuan')
+        } else if (tipe === 'eksekusi disposal') {
+            const data = {
+                noId: detailForm.id,
+                noAsset: detailForm.no_asset
+            }
+            const tipeDis = detailForm.nilai_jual === "0" ? 'dispose' : 'sell'
+            await this.props.getDocumentDis(token, data, 'disposal', tipeDis, detailForm.npwp)
+        }  else if (tipe === 'tax disposal') {
+            const data = {
+                noId: detailForm.id,
+                noAsset: detailForm.no_asset
+            }
+            await this.props.getDocumentDis(token, data, 'disposal', 'tax')
+        } else if (tipe === 'finance disposal') {
+            const data = {
+                noId: detailForm.id,
+                noAsset: detailForm.no_asset
+            }
+            await this.props.getDocumentDis(token, data, 'disposal', 'finance')
         } else {
             await this.props.getDocCart(token, noDoc)
             // if (val.type === 'show') {
@@ -292,7 +355,7 @@ class ModalDokumen extends Component {
     rejectDoc = async () => {
         const token = localStorage.getItem('token')
         const {idDoc} = this.state
-        const {noDoc, tipe, noTrans, filter} = this.props.parDoc
+        const {noDoc, tipe, noTrans, filter, detailForm} = this.props.parDoc
         const tempno = {
             no: noDoc,
             jenis: tipe
@@ -308,8 +371,31 @@ class ModalDokumen extends Component {
             }
         } else {
             if (tipe === 'disposal') {
+                const data = {
+                    noId: detailForm.id,
+                    noAsset: detailForm.no_asset
+                }
                 // await this.props.getDocCart(token, noDoc)
-                await this.props.getDocumentDis(token, noDoc, 'disposal', 'pengajuan')
+                await this.props.getDocumentDis(token, data, 'disposal', 'pengajuan')
+            } else if (tipe === 'eksekusi disposal') {
+                const data = {
+                    noId: detailForm.id,
+                    noAsset: detailForm.no_asset
+                }
+                const tipeDis = detailForm.nilai_jual === "0" ? 'dispose' : 'sell'
+                this.props.getDocumentDis(token, data, 'disposal', tipeDis, detailForm.npwp)
+            }  else if (tipe === 'tax disposal') {
+                const data = {
+                    noId: detailForm.id,
+                    noAsset: detailForm.no_asset
+                }
+                await this.props.getDocumentDis(token, data, 'disposal', 'tax')
+            } else if (tipe === 'finance disposal') {
+                const data = {
+                    noId: detailForm.id,
+                    noAsset: detailForm.no_asset
+                }
+                await this.props.getDocumentDis(token, data, 'disposal', 'finance')
             } else {
                 await this.props.getDocCart(token, noDoc)
             }

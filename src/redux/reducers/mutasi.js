@@ -40,7 +40,8 @@ const mutasiState = {
     dataCart: [],
     subRevisi: null,
     appRevisi: null,
-    upReason: null
+    upReason: null,
+    dataSearch: []
 };
 
 export default (state=mutasiState, action) => {
@@ -272,6 +273,29 @@ export default (state=mutasiState, action) => {
                 };
             }
             case 'GET_MUTASI_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'SEARCH_MUTASI_PENDING': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'SEARCH_MUTASI_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    dataSearch: action.payload.data.result.rows,
+                    alertMsg: 'get mutasi Succesfully'
+                };
+            }
+            case 'SEARCH_MUTASI_REJECTED': {
                 return {
                     ...state,
                     isLoading: false,

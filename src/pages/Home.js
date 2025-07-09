@@ -243,7 +243,7 @@ class Home extends Component {
         const id = localStorage.getItem('id')
         const { alertM, alertMsg } = this.props.user
         const dataNotif = this.props.notif.data
-        const allowSet = ['1','17','20', '21', '22', '23', '24', '25']
+        const allowSet = ['1','17','20', '21', '22', '23', '24', '25', '32']
         const disposalRoute = level === '6' ? 'purchdis' : level === '3' || level === '4' ? 'taxfin-disposal' : 'disposal'
         const mutasiRoute = level === '2' ? 'eks-mutasi' : level === '8' ? 'budget-mutasi' : 'mutasi'
         
@@ -376,23 +376,18 @@ class Home extends Component {
                                     Persetujuan Disposal
                                 </li>
                             )}
-                            {(level === '5' || level === '9') && (
-                                <li onClick={() => this.goRoute('rev-disposal')} className={styleHome.alignCenter}>
-                                    <BiRevision className="mr-2"/>
-                                    Revisi Disposal Asset
-                                </li>
-                            )}
                             {(level === '6') && (
                                 <li onClick={() => this.goRoute('purchdis')} className={styleHome.alignCenter}>
                                     <MdMonetizationOn className="mr-2"/>
                                     Verifikasi Purchasing
                                 </li>
                             )}
+                            {/* {(level === '2' || level === '5' || level === '9') && ( */}
                             {(level === '2') && (
                                 <>
                                     <li onClick={() => this.goRoute('eksdis')} className={styleHome.alignCenter}>
                                         <FiTruck className="mr-2"/>
-                                        Eksekusi Disposal Asset
+                                        Eksekusi Disposal
                                     </li>
                                 </>
                             )}
@@ -418,6 +413,12 @@ class Home extends Component {
                                 <li onClick={() => this.goRoute('report-disposal')} className={styleHome.alignCenter}>
                                     <HiOutlineDocumentReport className="mr-2"/>
                                     Report Disposal Asset
+                                </li>
+                            )}
+                            {(level === '5' || level === '9') && (
+                                <li onClick={() => this.goRoute('rev-disposal')} className={styleHome.alignCenter}>
+                                    <BiRevision className="mr-2"/>
+                                    Revisi Disposal Asset
                                 </li>
                             )}
                             {/* <li onClick={() => this.goRoute('navdis')} className={styleHome.alignCenter}>

@@ -366,10 +366,9 @@ class ReportTicket extends Component {
         } else {
             const data = []
             for (let i = 0; i < listIo.length; i++) {
-                for (let j = 0; j < newIo.length; j++) {
-                    if (`${newIo[j].no_asset_temp === undefined ? '-' : newIo[j].no_asset_temp}${newIo[j].id}` === listIo[i]) {
-                        data.push(newIo[j])
-                    }
+                const cekData = newIo.find(x => `${x.no_asset_temp === undefined ? '-' : x.no_asset_temp}${x.id}` === listIo[i])
+                if (cekData !== undefined) {
+                    data.push(cekData)
                 }
             }
             this.setState({dataDownload: data})
@@ -435,8 +434,8 @@ class ReportTicket extends Component {
                 c3: 1,
                 c4: item.nama,
                 c5: item.tipe,
-                c6: item.price,
-                c7: parseInt(item.price),
+                c6: item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                c7: parseInt(item.price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
                 c8: moment(item.tglIo).format('DD/MM/YYYY'),
                 c9: moment(item.tglIo).format('h:mm a'),
                 c10: '-',
@@ -890,8 +889,8 @@ class ReportTicket extends Component {
                                             <td>1</td>
                                             <td>{item.nama}</td>
                                             <td>{item.tipe}</td>
-                                            <td>{item.price}</td>
-                                            <td>{item.price}</td>
+                                            <td>{item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             {/* <td>{parseInt(item.price) * parseInt(item.qty)}</td> */}
                                             <td>{moment(item.tglIo).format('DD/MM/YYYY')}</td>
                                             <td>{moment(item.tglIo).format('h:mm a')}</td>

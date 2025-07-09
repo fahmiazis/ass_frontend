@@ -41,6 +41,8 @@ import NewNavbar from '../../components/NewNavbar'
 import ModalDokumen from '../../components/ModalDokumen'
 import FormMutasi from '../../components/Mutasi/FormMutasi'
 import TrackingMutasi from '../../components/Mutasi/TrackingMutasi'
+import debounce from 'lodash.debounce';
+import Select from 'react-select/creatable';
 const { REACT_APP_BACKEND_URL } = process.env
 
 const alasanSchema = Yup.object().shape({
@@ -107,9 +109,76 @@ class EksekusiMut extends Component {
             tipeEmail: '',
             userRev: '',
             dataRej: {},
+            options: [],
+            limit: 100
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+        this.debouncedLoadOptions = debounce(this.prosesSearch, 500)
+    }
+
+    prosesSearch = async (val) => {
+        const token = localStorage.getItem("token")
+        const level = localStorage.getItem('level')
+        const { time1, time2, search, limit, filter } = this.state
+        
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        
+        const status = val === 'selesai' ? 8 : val === 'available' ? 4 : 'all'
+
+        if (val === null || val === undefined || val.length === 0) {
+            this.setState({ options: [] })
+        } else {
+            await this.props.searchMutasi(token, status, cekTime1, cekTime2, val, limit)
+
+            const { dataSearch } = this.props.mutasi
+            const firstOption = [
+                {value: val, label: val}
+            ]
+            const secondOption = [
+                {value: '', label: ''}
+            ]
+            
+    
+            for (let i = 0; i < dataSearch.length; i++) {
+                const dataArea = dataSearch[i].area
+                const dataNo = dataSearch[i].no_mutasi
+                const dataItem = dataSearch[i].nama_asset
+    
+                const cekSecond = secondOption.find(item => item.value === dataNo)
+                if (cekSecond === undefined) {
+                    const data = {
+                        value: dataNo, label: dataNo
+                    }
+                    secondOption.push(data)
+                }
+            }
+    
+            const dataOption = [
+                ...firstOption,
+                ...secondOption
+            ]
+    
+            this.setState({ options: dataOption })
+        }
+    }
+    
+    handleInputChange = (val) => {
+        this.debouncedLoadOptions(val)
+        return val
+    }
+
+    goSearch = async (e) => {
+        if (e === null || e === undefined) {
+            console.log(e)
+        } else {
+            this.setState({ search: e.value })
+            const { filter } = this.state
+            setTimeout(() => {
+                this.changeFilter(filter)
+            }, 100)
+        }
     }
 
     statusApp = (val) => {
@@ -430,7 +499,7 @@ class EksekusiMut extends Component {
         const cekTime2 = time2 === '' ? 'undefined' : time2
         const status = val === 'selesai' ? 8 : val === 'available' ? 4 : 'all'
 
-        await this.props.getMutasi(token, status, cekTime1, cekTime2, search, 100)
+        await this.props.getMutasi(token, status, cekTime1, cekTime2, search, limit)
         const { dataMut } = this.props.mutasi
         const newMut = []
         console.log(val)
@@ -519,7 +588,8 @@ class EksekusiMut extends Component {
             tipe: 'mutasi',
             menu: `mutasi asset`,
             proses: val,
-            route: val === 'reject perbaikan' ? 'rev-mutasi' : 'mutasi'
+            route: val === 'reject perbaikan' ? 'rev-mutasi' : 'mutasi',
+            filter: 'finish'
         }
         await this.props.sendEmail(token, sendMail)
         await this.props.addNewNotif(token, sendMail)
@@ -827,14 +897,22 @@ class EksekusiMut extends Component {
                                     </>
                                 ) : null}
                             </ div>
-                            <input
+                            <Select
+                                className={styleTrans.searchSelect}
+                                options={this.state.options}
+                                onInputChange={this.handleInputChange}
+                                onChange={e => this.goSearch(e)}
+                                formatCreateLabel={(inputValue) => `"${inputValue}"`}
+                                isClearable
+                            />
+                            {/* <input
                                 type="text"
                                 placeholder="Search..."
                                 onChange={this.onSearch}
                                 value={this.state.search}
                                 onKeyPress={this.onSearch}
                                 className={styleTrans.searchInput}
-                            />
+                            /> */}
                         </div>
 
                         <table className={styleTrans.table}>
@@ -1845,6 +1923,7 @@ const mapDispatchToProps = {
     addNewNotif: newnotif.addNewNotif,
     getDraftEmail: tempmail.getDraftEmail,
     sendEmail: tempmail.sendEmail,
+    searchMutasi: mutasi.searchMutasi
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EksekusiMut)

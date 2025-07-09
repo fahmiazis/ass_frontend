@@ -47,6 +47,8 @@ import NewNavbar from '../../components/NewNavbar'
 import Email from '../../components/Stock/Email'
 import ExcelJS from "exceljs";
 import fs from "file-saver";
+import debounce from 'lodash.debounce';
+import Select from 'react-select/creatable';
 const {REACT_APP_BACKEND_URL} = process.env
 
 const stockSchema = Yup.object().shape({
@@ -84,7 +86,7 @@ class Stock extends Component {
             pullRight: false,
             touchHandleWidth: 20,
             dragToggleDistance: 30,
-            limit: 10,
+            limit: 100,
             search: '',
             time1: moment().subtract(1, 'month').startOf('month').format('YYYY-MM-DD'),
             // time1: moment().startOf('month').format('YYYY-MM-DD'),
@@ -137,10 +139,76 @@ class Stock extends Component {
             dataRej: {},
             listStat: [],
             history: false,
-            isLoading: false
+            isLoading: false,
+            options: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+        this.debouncedLoadOptions = debounce(this.prosesSearch, 500)
+    }
+
+    prosesSearch = async (val) => {
+        const token = localStorage.getItem("token")
+        const level = localStorage.getItem('level')
+        const { time1, time2, search, limit, filter } = this.state
+        
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        
+        const status = filter
+
+        if (val === null || val === undefined || val.length === 0) {
+            this.setState({ options: [] })
+        } else {
+            await this.props.searchStock(token, val, limit, 1, '', status, cekTime1, cekTime2)
+
+            const { dataSearch } = this.props.stock
+            const firstOption = [
+                {value: val, label: val}
+            ]
+            const secondOption = [
+                {value: '', label: ''}
+            ]
+            
+    
+            for (let i = 0; i < dataSearch.length; i++) {
+                const dataArea = dataSearch[i].area
+                const dataNo = dataSearch[i].no_stock
+                const dataItem = dataSearch[i].deskripsi
+    
+                const cekSecond = secondOption.find(item => item.value === dataNo)
+                if (cekSecond === undefined) {
+                    const data = {
+                        value: dataNo, label: dataNo
+                    }
+                    secondOption.push(data)
+                }
+            }
+    
+            const dataOption = [
+                ...firstOption,
+                ...secondOption
+            ]
+    
+            this.setState({ options: dataOption })
+        }
+    }
+    
+    handleInputChange = (val) => {
+        this.debouncedLoadOptions(val)
+        return val
+    }
+
+    goSearch = async (e) => {
+        if (e === null || e === undefined) {
+            console.log(e)
+        } else {
+            this.setState({ search: e.value })
+            const { filter } = this.state
+            setTimeout(() => {
+                this.changeFilter(filter)
+            }, 100)
+        }
     }
     
     openHistory = () => {
@@ -1219,7 +1287,7 @@ class Stock extends Component {
         const limit = value === undefined ? this.state.limit : value.limit
         await this.props.getAssetAll(token, limit, search, page.currentPage, 'asset')
         await this.props.getDetailDepo(token, 1)
-        this.setState({limit: value === undefined ? 10 : value.limit})
+        // this.setState({limit: value === undefined ? 10 : value.limit})
     }
 
     getDataStock = async (value) => {
@@ -1229,7 +1297,7 @@ class Stock extends Component {
         // const search = value === undefined ? '' : this.state.search
         // const limit = value === undefined ? this.state.limit : value.limit
         await this.props.getRole(token)
-        this.setState({limit: value === undefined ? 10 : value.limit})
+        // this.setState({limit: value === undefined ? 10 : value.limit})
         const filter = (level === '5' || level === '9' ) ? 'all' : 'available'
         this.changeFilter(filter)
     }
@@ -1323,7 +1391,7 @@ class Stock extends Component {
         const cekTime1 = time1 === '' ? 'undefined' : time1
         const cekTime2 = time2 === '' ? 'undefined' : time2
 
-        await this.props.getStockAll(token, search, 100, 1, '', val, cekTime1, cekTime2)
+        await this.props.getStockAll(token, search, limit, 1, '', val, cekTime1, cekTime2)
 
         const {dataStock} = this.props.stock
         const {dataRole} = this.props.user
@@ -2223,14 +2291,22 @@ class Stock extends Component {
                                     </>
                                 ) : null}
                             </ div>
-                            <input
+                            <Select
+                                className={styleTrans.searchSelect}
+                                options={this.state.options}
+                                onInputChange={this.handleInputChange}
+                                onChange={e => this.goSearch(e)}
+                                formatCreateLabel={(inputValue) => `"${inputValue}"`}
+                                isClearable
+                            />
+                            {/* <input
                                 type="text"
                                 placeholder="Search..."
                                 onChange={this.onSearch}
                                 value={this.state.search}
                                 onKeyPress={this.onSearch}
                                 className={styleTrans.searchInput}
-                            />
+                            /> */}
                         </div>
 
                         <table className={`${styleTrans.table} ${newStock.length > 0 ? styleTrans.tableFull : ''}`}>
@@ -3964,6 +4040,7 @@ const mapDispatchToProps = {
     sendEmail: tempmail.sendEmail,
     notifStock: notif.notifStock,
     addNewNotif: newnotif.addNewNotif,
+    searchStock: stock.searchStock
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Stock)

@@ -684,12 +684,13 @@ class Asset extends Component {
                                     <th>JUMLAH</th>
                                     <th>LOKASI</th>
                                     <th>KATEGORI</th>
+                                    <th>STATUS</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {dataAsset.length !== 0 && dataAsset.map((item, index) => {
                                     return (
-                                        <tr>
+                                        <tr className={item.status === '100' ? 'yellow' : item.status === '0' && 'fail'}>
                                             <td>
                                                 <input 
                                                 type='checkbox'
@@ -702,9 +703,9 @@ class Asset extends Component {
                                             <td>{item.no_doc}</td>
                                             <td>{moment(item.tanggal).format('DD/MM/YYYY')}</td>
                                             <td>{item.nama_asset}</td>
-                                            <td>{item.nilai_acquis}</td>
-                                            <td>{item.accum_dep}</td>
-                                            <td>{item.nilai_buku}</td>
+                                            <td>{item.nilai_acquis === null || item.nilai_acquis === undefined ? 0 : item.nilai_acquis.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") }</td>
+                                            <td>{item.accum_dep === null || item.accum_dep === undefined ? 0 : item.accum_dep.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             <td>{item.kode_plant}</td>
                                             <td>{item.cost_center}</td>
                                             <td>{item.area}</td>
@@ -713,6 +714,7 @@ class Asset extends Component {
                                             <td>{item.unit}</td>
                                             <td>{item.lokasi}</td>
                                             <td>{item.kategori}</td>
+                                            <td>{item.status === '100' ? 'Asset belum di GR' : item.status === '0' ? 'Asset telah didisposal' : 'available'}</td>
                                         </tr>
                                     )
                                 })}

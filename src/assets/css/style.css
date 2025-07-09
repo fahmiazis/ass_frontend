@@ -39,7 +39,7 @@ html,body{
     align-items: center;
 }
 .fillAset {
-    width: 300px !important;
+    width: 30% !important;
 }
 .filterUser {
     display: flex;
@@ -914,7 +914,7 @@ html,body{
 }
 .inputRinci {
     border: 1px solid rgba(169, 169, 169, 0.6);
-    width: 80%;
+    width: 100%;
     margin-left: 2%;
 }
 .inputRinci1 {
@@ -960,16 +960,62 @@ html,body{
     flex-direction: row;
     justify-content: space-between;
 }
-.restTable {
-    padding: 0 !important;
-    margin: 0 !important;
-    padding-bottom: 0 !important;
-    border: 0 !important;
-}
+
 .noPad {
     padding: 0px 0px !important;
     margin: 0px 0px !important;
     font-size: 0.9vw;
+}
+
+.tabPreview {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.buatPreFirst {
+    width: calc(100% / 10);
+}
+
+.divPre {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.buatPre {
+    border: 1px solid black !important;
+    text-align: center;
+    vertical-align: middle !important;
+    font-size: 0.9vw;
+}
+
+.restTable {
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+}
+
+.headPre {
+    border: 1px solid black !important;
+    padding: 40px 0 !important;
+    text-align: center;
+    font-size: 0.9vw;
+    word-break: break-word;
+}
+
+.footPre {
+    border: 1px solid black !important;
+    text-align: center;
+    font-size: 0.9vw;
+    word-break: break-word;
+}
+
+/* .restTable {
+    padding: 0 !important;
+    margin: 0 !important;
+    padding-bottom: 0 !important;
+    border: 0 !important;
 }
 .headPre {
     border: 1px solid black !important;
@@ -977,39 +1023,40 @@ html,body{
     padding-top: 40px !important;
     text-align: center;
     font-size: 0.9vw;
-    /* width: 100%; */
-    /* display: flex;
-    flex-direction: column;
-    justify-content: space-between; */
 }
 .footPre {
     border: 1px solid black !important;
     text-align: center;
     font-size: 0.9vw;
-    /* width: 100%; */
-}
-.sizeCh {
-    font-size: 1.2vw;
-}
-.sizeNote {
-    font-size: 1vw;
-}
+} */
+
+/* .buatPre {
+    border: 1px solid black !important;
+    text-align: center;
+    vertical-align: middle !important;
+    font-size: 0.9vw;
+} */
+
 /* .divPre {
     border: 1px solid black !important;
 } */
 /* .tbodyPre {
     border: 1px solid black !important;
 } */
-.buatPre {
-    border: 1px solid black !important;
-    text-align: center;
-    vertical-align: middle !important;
-    font-size: 0.9vw;
-}
+
+
+
 .bodyPer {
     padding-top: 5%;
     padding-left: 2%;
     padding-right: 2%;
+}
+
+.sizeCh {
+    font-size: 1.2vw;
+}
+.sizeNote {
+    font-size: 1vw;
 }
 .labelBut {
     position: absolute;
@@ -1539,6 +1586,9 @@ html,body{
 .fail {
     background-color: #686a74;
 }
+.yellow {
+    background-color: yellow;
+}
 .otp1 {
     width: 60px !important;
     height: 60px;
@@ -1592,4 +1642,19 @@ html,body{
     border: 1px solid blue;
     padding: 10px;
     font-size: 12px;
+}
+.star {
+    font-size: larger;
+}
+/* .largeTh {
+    width: 300px !important;
+} */
+.noTb {
+    width: 1% !important;
+}
+.tdNo {
+    width: 1% !important;
+}
+.tdIo {
+    width: 10% !important;
 }

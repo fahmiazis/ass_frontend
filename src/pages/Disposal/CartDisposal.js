@@ -84,6 +84,9 @@ class CartDisposal extends Component {
             openDraft: false,
             subject: '',
             message: '',
+            modalNpwp: false,
+            selAset: '',
+            typeNpwp: ''
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -202,8 +205,8 @@ class CartDisposal extends Component {
         this.setState({isOpen: !this.state.isOpen})
     }
 
-    openConfirm = () => {
-        this.setState({modalConfirm: !this.state.modalConfirm})
+    openConfirm = (val) => {
+        this.setState({modalConfirm: val === undefined || val === null || val === '' ? !this.state.modalConfirm : val})
     }
 
     dropDown = () => {
@@ -242,18 +245,47 @@ class CartDisposal extends Component {
     addDisposal = async (value) => {
         const token = localStorage.getItem("token")
         const {dataCart} = this.props.disposal
-        const cek = dataCart.find(item => item.nilai_jual !== '0' || item.nilai_jual !== 0)
+        const cek = dataCart.find(item => item.nilai_jual !== '0' && item.nilai_jual !== 0)
         if (cek !== undefined) {
             this.setState({confirm: 'falseAdd'})
             this.openConfirm()
         } else {
             await this.props.addDisposal(token, value)
+            this.setState({confirm: 'add'})
+            this.openConfirm()
             this.getDataCart()
         }
         
     }
 
-    addSell = async (value) => {
+    prosesOpenNpwp = (val) => {
+        this.setState({selAset: val})
+        this.openModalNpwp()
+    }
+
+    openModalNpwp = () => {
+        this.setState({modalNpwp: !this.state.modalNpwp})
+    }
+    
+    npwpApp = (val) => {
+        this.setState({ typeNpwp: val })
+    }
+
+    npwpRej = (val) => {
+        const { typeNpwp } = this.state
+        if (typeNpwp === val) {
+            this.setState({ typeNpwp: '' })
+        }
+    }
+
+    prosesAddSell = (val) => {
+        this.setState({selAset: val})
+        setTimeout(() => {
+            this.addSell()
+        }, 100)
+    }
+
+    addSell = async () => {
         const token = localStorage.getItem("token")
         const {dataCart} = this.props.disposal
         const cek = dataCart.find(item => item.nilai_jual === '0' || item.nilai_jual === 0)
@@ -261,7 +293,15 @@ class CartDisposal extends Component {
             this.setState({confirm: 'falseAdd'})
             this.openConfirm()
         } else {
-            await this.props.addSell(token, value)
+            const {typeNpwp, selAset} = this.state
+            const data = {
+                no: selAset
+                // tipeNpwp: typeNpwp
+            }
+            await this.props.addSell(token, data)
+            this.setState({confirm: 'add', selAset: ''})
+            this.openConfirm()
+            // this.openModalNpwp()
             this.getDataCart()
         }
     }
@@ -497,7 +537,7 @@ class CartDisposal extends Component {
                                                     <td>{dataCart.indexOf(item) + 1}</td>
                                                     <td>{item.nama_asset}</td>
                                                     <td>{item.no_asset}</td>
-                                                    <td>{item.nilai_buku}</td>
+                                                    <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                     <td>{item.kategori}</td>
                                                     <td>{item.status === '1' ? 'On Proses Disposal' : item.status === '11' ? 'On Proses Mutasi' : 'available'}</td>
                                                     <td>
@@ -570,7 +610,7 @@ class CartDisposal extends Component {
                                         <td>{dataCart.indexOf(item) + 1}</td>
                                         <td>{item.nama_asset}</td>
                                         <td>{item.no_asset}</td>
-                                        <td>{item.nilai_buku}</td>
+                                        <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                         <td>{item.kategori}</td>
                                         <td>{item.nilai_jual === 0 || item.nilai_jual === '0' ? 'Pemusnahan' : 'Penjualan'}</td>
                                         <td>
@@ -626,6 +666,37 @@ class CartDisposal extends Component {
                             <div className={style.btnApprove}>
                                 <Button color="primary" onClick={() => this.submitDataDisposal()}>Ya</Button>
                                 <Button color="secondary" onClick={this.openModalSub}>Tidak</Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.modalNpwp} toggle={this.openModalNpwp} centered={true}>
+                    <ModalBody>
+                        <div className={style.modalApprove}>
+                            <div>
+                                <text>
+                                    Apakah asset yg dijual memiliki Npwp ?
+                                    <div className="ml-1 mt-2">
+                                        <Input
+                                            addon
+                                            type="checkbox"
+                                            checked={this.state.typeNpwp === 'ya' ? true : false}
+                                            onClick={this.state.typeNpwp === 'ya' ? () => this.npwpRej('ya') : () => this.npwpApp('ya')}
+                                        />  Ya
+                                    </div>
+                                    <div className="ml-1">
+                                        <Input
+                                            addon
+                                            type="checkbox"
+                                            checked={this.state.typeNpwp === 'tidak' ? true : false}
+                                            onClick={this.state.typeNpwp === 'tidak' ? () => this.npwpRej('tidak') : () => this.npwpApp('tidak')}
+                                        />  Tidak
+                                    </div>
+                                </text>
+                            </div>
+                            <div className={style.btnApprove}>
+                                <Button disabled={this.state.typeNpwp === '' ? true : false} color="primary" onClick={() => this.addSell()}>Save</Button>
+                                <Button color="secondary" onClick={this.openModalNpwp}>Close</Button>
                             </div>
                         </div>
                     </ModalBody>
@@ -754,9 +825,12 @@ class CartDisposal extends Component {
                                         ) : null}
                                     </div>
                                     <div className="footRinci1">
-                                        <Button className="btnFootRinci1" size="lg" color="primary" onClick={handleSubmit}>Save</Button>
-                                        <Button className="btnFootRinci1" size="lg" color="success" onClick={() => this.openProsesModalDoc(this.state.dataRinci)}>Upload Doc</Button>
-                                        <Button className="btnFootRinci1" size="lg" color="secondary" onClick={() => this.openModalRinci()}>Close</Button>
+                                        {/* <Button className="btnFootRinci1" size="md" color="success" onClick={() => this.openProsesModalDoc(this.state.dataRinci)}>Upload Doc</Button> */}
+                                        <div></div>
+                                        <div>
+                                            <Button className="mr-2" size="md" color="primary" onClick={handleSubmit}>Save</Button>
+                                            <Button className="" size="md" color="secondary" onClick={() => this.openModalRinci()}>Close</Button>
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -764,7 +838,7 @@ class CartDisposal extends Component {
                         </div>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.state.isAdd} toggle={this.openAdd} size='xl'>
+                <Modal isOpen={this.state.isAdd} toggle={this.openAdd} size='xl' className='xl'>
                     <ModalHeader>List Asset</ModalHeader>
                     <ModalBody>
                         <Table bordered striped responsive hover className={style.tab}>
@@ -780,21 +854,27 @@ class CartDisposal extends Component {
                                 </tr>
                             </thead>
                             <tbody>
-                            {dataAsset.length !== 0 && dataAsset.map(item => {
+                            {dataAsset.length !== 0 && dataAsset.filter(x => (x.status === null)).map((item, index) => {
                                 return (
                                     <tr>
-                                        <td>{dataAsset.indexOf(item) + 1}</td>
+                                        <td>{index + 1}</td>
                                         <td>{item.nama_asset}</td>
                                         <td>{item.no_asset}</td>
-                                        <td>{item.nilai_buku}</td>
+                                        <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                         <td>{item.kategori}</td>
                                         <td>{item.status === '1' ? 'On Proses Disposal' : item.status === '11' ? 'On Proses Mutasi' : 'available'}</td>
                                         <td>
                                             {item.status === '1' || item.status === '11' ? '-' :
                                             (
                                                 <>
-                                                    <Button color="warning" onClick={() => this.addSell(item.no_asset)}>Jual</Button>
-                                                    <Button className='ml-1' color="info" onClick={() => this.addDisposal(item.no_asset)}>Pemusnahan</Button>
+                                                    <Button 
+                                                    className='ml-1 mt-1' 
+                                                    color="warning" 
+                                                    // onClick={() => this.prosesOpenNpwp(item.no_asset)}
+                                                    onClick={() => this.prosesAddSell(item.no_asset)}
+                                                    >Jual
+                                                    </Button>
+                                                    <Button className='ml-1 mt-1' color="info" onClick={() => this.addDisposal(item.no_asset)}>Pemusnahan</Button>
                                                 </>
                                             )
                                             }
@@ -809,15 +889,22 @@ class CartDisposal extends Component {
                         <Button onClick={this.openAdd}>Close</Button>
                     </ModalFooter>
                 </Modal>
-                <Modal isOpen={this.props.disposal.isLoading ? true: false} size="sm">
-                        <ModalBody>
+                <Modal isOpen={
+                    this.props.disposal.isLoading ||
+                    this.props.asset.isLoading || 
+                    this.props.tempmail.isLoading || 
+                    this.props.newnotif.isLoading
+                    ? true: false
+                    } 
+                size="sm">
+                    <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>
                                 <Spinner />
                                 <div sucUpdate>Waiting....</div>
                             </div>
                         </div>
-                        </ModalBody>
+                    </ModalBody>
                 </Modal>
                 <Modal size="xl" isOpen={this.state.openModalDoc} toggle={this.closeProsesModalDoc}>
                 <ModalHeader>
@@ -915,6 +1002,13 @@ class CartDisposal extends Component {
                                 <div className={[style.sucUpdate, style.green]}>Berhasil Submit</div>
                             </div>
                         </div>
+                    ) : this.state.confirm === 'add' ?(
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Menambahkan Data</div>
+                            </div>
+                        </div>
                     ) : this.state.confirm === 'falseAdd' ? (
                         <div>
                             <div className={style.cekUpdate}>
@@ -928,6 +1022,9 @@ class CartDisposal extends Component {
                     ) 
                     }
                 </ModalBody>
+                <div className='row justify-content-md-center mb-4'>
+                    <Button size='lg' onClick={() => this.openConfirm(false)} color='primary'>OK</Button>
+                </div>
             </Modal>
             <Modal isOpen={this.state.openDraft} size='xl'>
                 <ModalHeader>Email Pemberitahuan</ModalHeader>
@@ -959,7 +1056,7 @@ const mapStateToProps = state => ({
     pengadaan: state.pengadaan,
     asset: state.asset,
     tempmail: state.tempmail,
-    newnnotif: state.newnnotif
+    newnotif: state.newnotif
 })
 
 const mapDispatchToProps = {

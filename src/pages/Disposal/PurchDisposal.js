@@ -39,6 +39,9 @@ import tempmail from '../../redux/actions/tempmail'
 import newnotif from '../../redux/actions/newnotif'
 import FormDisposal from '../../components/Disposal/FormDisposal'
 import FormPersetujuan from '../../components/Disposal/FormPersetujuan'
+import ModalDokumen from '../../components/ModalDokumen'
+import debounce from 'lodash.debounce';
+import Select from 'react-select/creatable';
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -82,7 +85,7 @@ class PurchDisposal extends Component {
             upload: false,
             errMsg: '',
             fileUpload: '',
-            limit: 10,
+            limit: 100,
             search: '',
             modalRinci: false,
             dataRinci: {},
@@ -108,9 +111,79 @@ class PurchDisposal extends Component {
             time1: moment().subtract(1, 'month').startOf('month').format('YYYY-MM-DD'),
             // time1: moment().startOf('month').format('YYYY-MM-DD'),
             time2: moment().endOf('month').format('YYYY-MM-DD'),
+            openDoc: false,
+            noDoc: '',
+            noTrans: '',
+            valdoc: {},
+            options: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+        this.debouncedLoadOptions = debounce(this.prosesSearch, 500)
+    }
+
+    prosesSearch = async (val) => {
+        const token = localStorage.getItem("token")
+        const level = localStorage.getItem('level')
+        const { time1, time2, search, limit, filter } = this.state
+        
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        
+        const status = filter === 'available' ? 26 : 'all'
+
+        if (val === null || val === undefined || val.length === 0) {
+            this.setState({ options: [] })
+        } else {
+            await this.props.searchDisposal(token, limit, search, 1, status, undefined, cekTime1, cekTime2)
+
+            const { dataSearch } = this.props.disposal
+            const firstOption = [
+                {value: val, label: val}
+            ]
+            const secondOption = [
+                {value: '', label: ''}
+            ]
+            
+    
+            for (let i = 0; i < dataSearch.length; i++) {
+                const dataArea = dataSearch[i].area
+                const dataNo = dataSearch[i].no_disposal
+                const dataItem = dataSearch[i].nama_asset
+    
+                const cekSecond = secondOption.find(item => item.value === dataNo)
+                if (cekSecond === undefined) {
+                    const data = {
+                        value: dataNo, label: dataNo
+                    }
+                    secondOption.push(data)
+                }
+            }
+    
+            const dataOption = [
+                ...firstOption,
+                ...secondOption
+            ]
+    
+            this.setState({ options: dataOption })
+        }
+    }
+    
+    handleInputChange = (val) => {
+        this.debouncedLoadOptions(val)
+        return val
+    }
+
+    goSearch = async (e) => {
+        if (e === null || e === undefined) {
+            console.log(e)
+        } else {
+            this.setState({ search: e.value })
+            const { filter } = this.state
+            setTimeout(() => {
+                this.changeFilter(filter)
+            }, 100)
+        }
     }
 
     statusApp = (val) => {
@@ -404,6 +477,11 @@ class PurchDisposal extends Component {
         // this.setState({modalRinci: !this.state.modalRinci})
     }
 
+    modalNewDoc = () => {
+        this.setState({openDoc: !this.state.openDoc})
+        // this.setState({modalRinci: !this.state.modalRinci})
+    }
+
     openProsesModalDoc = async () => {
         const token = localStorage.getItem('token')
         const { dataRinci } = this.state
@@ -411,8 +489,9 @@ class PurchDisposal extends Component {
             noId: dataRinci.id,
             noAsset: dataRinci.no_asset
         }
+        this.setState({ noDoc: dataRinci.no_asset, noTrans: dataRinci.no_disposal, valdoc: dataRinci })
         await this.props.getDocumentDis(token, data, 'disposal', 'pengajuan')
-        this.closeProsesModalDoc()
+        this.modalNewDoc()
     }
 
     openProsesDoc = async () => {
@@ -464,8 +543,8 @@ class PurchDisposal extends Component {
         this.setState({isOpen: !this.state.isOpen})
     }
 
-    openConfirm = () => {
-        this.setState({modalConfirm: !this.state.modalConfirm})
+    openConfirm = (val) => {
+        this.setState({modalConfirm: val === undefined || val === null || val === '' ? !this.state.modalConfirm : val})
     }
 
     dropDown = () => {
@@ -607,16 +686,19 @@ class PurchDisposal extends Component {
         const role = localStorage.getItem('role')
         const level = localStorage.getItem('level')
 
-        await this.props.getDisposal(token, 10, '',  1, 26)
+        const { time1, time2, search, limit } = this.state
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        const status = val === 'available' ? 26 : 'all'
+        await this.props.getDisposal(token, limit, search, 1, status, undefined, cekTime1, cekTime2)
         const { dataDis, noDis } = this.props.disposal
         const dataTemp =  dataDis
         const noTemp = noDis
         if (val === 'available') {
             const newDis = []
-            for (let i = 0; i < noTemp.length; i++) {
-                const index = dataTemp.indexOf(dataTemp.find(({no_disposal}) => no_disposal === noTemp[i]))
-                if (dataTemp[index] !== undefined && dataTemp[index].status_form === 26 && dataTemp[index].status_reject !== 1) {
-                    newDis.push(dataTemp[index])
+            for (let i = 0; i < dataDis.length; i++) {
+                if (dataDis[i].status_form === 26 && dataDis[i].status_reject !== 1) {
+                    newDis.push(dataDis[i])
                 }
             }
             this.setState({filter: val, newDis: newDis, baseData: newDis})
@@ -648,6 +730,30 @@ class PurchDisposal extends Component {
             }
             this.setState({filter: val, newDis: newDis, baseData: newDis})
         }
+    }
+
+    selectTime = (val) => {
+        this.setState({ [val.type]: val.val })
+    }
+
+    changeTime = async (val) => {
+        const token = localStorage.getItem("token")
+        this.setState({ time: val })
+        if (val === 'all') {
+            this.setState({ time1: '', time2: '' })
+            setTimeout(() => {
+                this.getDataTime()
+            }, 500)
+        }
+    }
+
+    getDataTime = async () => {
+        const { time1, time2, filter, search, limit } = this.state
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        const token = localStorage.getItem("token")
+        const level = localStorage.getItem("level")
+        this.changeFilter(filter)
     }
 
     prosesOpenTracking = async (val) => {
@@ -810,14 +916,22 @@ class PurchDisposal extends Component {
                                     </>
                                 ) : null}
                             </ div>
-                            <input
+                            <Select
+                                className={styleTrans.searchSelect}
+                                options={this.state.options}
+                                onInputChange={this.handleInputChange}
+                                onChange={e => this.goSearch(e)}
+                                formatCreateLabel={(inputValue) => `"${inputValue}"`}
+                                isClearable
+                            />
+                            {/* <input
                                 type="text"
                                 placeholder="Search..."
                                 onChange={this.onSearch}
                                 value={this.state.search}
                                 onKeyPress={this.onSearch}
                                 className={styleTrans.searchInput}
-                            />
+                            /> */}
                         </div>
 
                         <table className={styleTrans.table}>
@@ -898,6 +1012,12 @@ class PurchDisposal extends Component {
                             </div>
                         </div>
                         </ModalBody>
+                </Modal>
+                <Modal size="xl" isOpen={this.state.openDoc} toggle={this.modalNewDoc}>
+                    <ModalDokumen
+                        parDoc={{ noDoc: this.state.noDoc, noTrans: this.state.noTrans, tipe: 'disposal', filter: this.state.filter, detailForm: this.state.valdoc }}
+                        dataDoc={dataDoc}
+                    />
                 </Modal>
                 <Modal size="xl" isOpen={this.state.openModalDoc} toggle={this.closeProsesModalDoc}>
                 <ModalHeader>
@@ -1041,99 +1161,47 @@ class PurchDisposal extends Component {
                         </tbody>
                     </Table>
                     <div className="mb-3">Demikianlah hal yang kami sampaikan, atas perhatiannya kami mengucapkan terima kasih</div>
-                    <Table borderless responsive className="tabPreview">
+                    <Table bordered responsive className="tabPreview">
                         <thead>
                             <tr>
-                                <th className="buatPre">Dibuat oleh,</th>
-                                <th className="buatPre">Diperiksa oleh,</th>
-                                <th className="buatPre">Disetujui oleh,</th>
+                                <th className="buatPre" colSpan={disApp.pembuat?.length || 1}>Dibuat oleh,</th>
+                                <th className="buatPre" colSpan={
+                                    disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').length || 1
+                                }>Diperiksa oleh,</th>
+                                <th className="buatPre" colSpan={disApp.penyetuju?.length || 1}>Disetujui oleh,</th>
+                            </tr>
+                            <tr>
+                                {disApp.pembuat?.map(item => (
+                                    <th className="headPre">
+                                        <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                        <div>{item.nama ?? '-'}</div>
+                                    </th>
+                                ))}
+                                {disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                    <th className="headPre">
+                                        <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                        <div>{item.nama ?? '-'}</div>
+                                    </th>
+                                ))}
+                                {disApp.penyetuju?.map(item => (
+                                    <th className="headPre">
+                                        <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                        <div>{item.nama ?? '-'}</div>
+                                    </th>
+                                ))}
                             </tr>
                         </thead>
-                        <tbody className="tbodyPre">
+                        <tbody>
                             <tr>
-                                <td className="restTable">
-                                    <Table bordered responsive className="divPre">
-                                        <thead>
-                                            <tr>
-                                                {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
-                                                    return (
-                                                        <th className="headPre">
-                                                            <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                            <div>{item.nama === null ? "-" : item.nama}</div>
-                                                        </th>
-                                                    )
-                                                })}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                            {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
-                                                return (
-                                                    <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                )
-                                            })}
-                                            </tr>
-                                        </tbody>
-                                    </Table>
-                                </td>
-                                <td className="restTable">
-                                    <Table bordered responsive className="divPre">
-                                        <thead>
-                                            <tr>
-                                                {disApp.pemeriksa !== undefined && disApp.pemeriksa.map(item => {
-                                                    return (
-                                                        item.jabatan === 'asset' ? (
-                                                            null
-                                                        ) : (
-                                                        <th className="headPre">
-                                                            <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                            <div>{item.nama === null ? "-" : item.nama}</div>
-                                                        </th>
-                                                        )
-                                                    )
-                                                })}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                {disApp.pemeriksa !== undefined && disApp.pemeriksa.map(item => {
-                                                    return (
-                                                        item.jabatan === 'asset' ? (
-                                                            null
-                                                        ) : (
-                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                        )
-                                                    )
-                                                })}
-                                            </tr>
-                                        </tbody>
-                                    </Table>
-                                </td>
-                                <td className="restTable">
-                                    <Table bordered responsive className="divPre">
-                                        <thead>
-                                            <tr>
-                                                {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
-                                                    return (
-                                                        <th className="headPre">
-                                                            <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                            <div>{item.nama === null ? "-" : item.nama}</div>
-                                                        </th>
-                                                    )
-                                                })}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
-                                                    return (
-                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                    )
-                                                })}
-                                            </tr>
-                                        </tbody>
-                                    </Table>
-                                </td>
+                                {disApp.pembuat?.map(item => (
+                                    <td className="footPre">{item.jabatan ?? '-'}</td>
+                                ))}
+                                {disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                    <td className="footPre">{item.jabatan ?? '-'}</td>
+                                ))}
+                                {disApp.penyetuju?.map(item => (
+                                    <td className="footPre">{item.jabatan ?? '-'}</td>
+                                ))}
                             </tr>
                         </tbody>
                     </Table>
@@ -1587,6 +1655,9 @@ class PurchDisposal extends Component {
                         <div></div>
                     )}
                 </ModalBody>
+                <div className='row justify-content-md-center mb-4'>
+                    <Button size='lg' onClick={() => this.openConfirm(false)} color='primary'>OK</Button>
+                </div>
             </Modal>
             <Modal isOpen={this.state.openDraft} size='xl'>
                 <ModalHeader>Email Pemberitahuan</ModalHeader>
@@ -1646,6 +1717,7 @@ const mapDispatchToProps = {
     getDraftEmail: tempmail.getDraftEmail,
     sendEmail: tempmail.sendEmail,
     addNewNotif: newnotif.addNewNotif,
+    searchDisposal: disposal.searchDisposal
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(PurchDisposal)

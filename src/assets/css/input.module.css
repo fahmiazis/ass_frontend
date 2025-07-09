@@ -501,7 +501,7 @@ html,body{
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  margin-top: 5%;
+  margin-top: 3%;
 }
 .addModalDepo {
   display: flex;

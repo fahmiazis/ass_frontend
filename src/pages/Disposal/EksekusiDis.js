@@ -39,6 +39,9 @@ import newnotif from '../../redux/actions/newnotif'
 import Email from '../../components/Disposal/Email'
 import FormDisposal from '../../components/Disposal/FormDisposal'
 import FormPersetujuan from '../../components/Disposal/FormPersetujuan'
+import ModalDokumen from '../../components/ModalDokumen'
+import debounce from 'lodash.debounce';
+import Select from 'react-select/creatable';
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -118,10 +121,79 @@ class EksekusiDisposal extends Component {
             tipeEmail: '',
             dataRej: {},
             openApprove: false,
-            openReject: false
+            openReject: false,
+            noDoc: '',
+            noTrans: '',
+            valdoc: {},
+            options: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+        this.debouncedLoadOptions = debounce(this.prosesSearch, 500)
+    }
+
+    prosesSearch = async (val) => {
+        const token = localStorage.getItem("token")
+        const level = localStorage.getItem('level')
+        const { time1, time2, search, limit, filter } = this.state
+        
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        
+        const status = (filter === 'available' && level === '2') ? 4 : (filter === 'available' && (level === '5' || level === '9')) ? 15 : 'all'
+
+        if (val === null || val === undefined || val.length === 0) {
+            this.setState({ options: [] })
+        } else {
+            await this.props.searchDisposal(token, limit, search, 1, status, undefined, cekTime1, cekTime2)
+
+            const { dataSearch } = this.props.disposal
+            const firstOption = [
+                {value: val, label: val}
+            ]
+            const secondOption = [
+                {value: '', label: ''}
+            ]
+            
+    
+            for (let i = 0; i < dataSearch.length; i++) {
+                const dataArea = dataSearch[i].area
+                const dataNo = dataSearch[i].no_disposal
+                const dataItem = dataSearch[i].nama_asset
+    
+                const cekSecond = secondOption.find(item => item.value === dataNo)
+                if (cekSecond === undefined) {
+                    const data = {
+                        value: dataNo, label: dataNo
+                    }
+                    secondOption.push(data)
+                }
+            }
+    
+            const dataOption = [
+                ...firstOption,
+                ...secondOption
+            ]
+    
+            this.setState({ options: dataOption })
+        }
+    }
+    
+    handleInputChange = (val) => {
+        this.debouncedLoadOptions(val)
+        return val
+    }
+
+    goSearch = async (e) => {
+        if (e === null || e === undefined) {
+            console.log(e)
+        } else {
+            this.setState({ search: e.value })
+            const { filter } = this.state
+            setTimeout(() => {
+                this.changeFilter(filter)
+            }, 100)
+        }
     }
 
     statusApp = (val) => {
@@ -233,10 +305,34 @@ class EksekusiDisposal extends Component {
         this.setState({openModalDoc: !this.state.openModalDoc})
     }
 
-    openProsesModalDoc = async (value) => {
+    prosesOpenDokumen = (val) => {
+        this.setState({dataRinci: val})
+        this.setState({ noDoc: val.no_asset, noTrans: val.no_disposal, valdoc: val })
+        setTimeout(() => {
+            // this.openProsesDocPeng(val)
+            this.openProsesDocEks(val)
+         }, 100)
+    }
+
+    openProsesDocPeng = async (val) => {
+        const token = localStorage.getItem('token')
+        const data = {
+            noId: val.id,
+            noAsset: val.no_asset
+        }
+        await this.props.getDocumentDis(token, data, 'disposal', 'pengajuan')
+        this.closeProsesModalDoc()
+    }
+
+    openProsesDocEks = async (value) => {
         const token = localStorage.getItem('token')
         this.setState({dataRinci: value})
-        await this.props.getDocumentDis(token, value.no_asset, 'disposal', value.nilai_jual === "0" ? 'dispose' : 'sell', 'ada')
+        const data = {
+            noId: value.id,
+            noAsset: value.no_asset
+        }
+        const tipeDis = value.nilai_jual === "0" ? 'dispose' : 'sell'
+        this.props.getDocumentDis(token, data, 'disposal', tipeDis, value.npwp)
         this.closeProsesModalDoc()
     }
 
@@ -272,8 +368,8 @@ class EksekusiDisposal extends Component {
         await this.props.rejectEks(token, dataEks.id, data)
     }
 
-    openConfirm = () => {
-        this.setState({modalConfirm: !this.state.modalConfirm})
+    openConfirm = (val) => {
+        this.setState({modalConfirm: val === undefined || val === null || val === '' ? !this.state.modalConfirm : val})
     }
 
     dropDown = () => {
@@ -297,16 +393,6 @@ class EksekusiDisposal extends Component {
         await this.props.rejectDocDis(token, fileName.id, value, 'edit', 'eks')
         await this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', dataRinci.nilai_jual === "0" ? 'dispose' : 'sell', 'ada')
         this.openModalPdf()
-    }
-
-    openProsesDocPeng = async (val) => {
-        const token = localStorage.getItem('token')
-        const data = {
-            noId: val.id,
-            noAsset: val.no_asset
-        }
-        await this.props.getDocumentDis(token, data, 'disposal', 'pengajuan')
-        this.closeProsesModalDoc()
     }
 
     openModalRejEks = () => {
@@ -362,10 +448,45 @@ class EksekusiDisposal extends Component {
         console.log(val)
     }
 
-    cekSubmit = () => {
+    cekSubmit = async () => {
+        const level = localStorage.getItem('level')
+        const token = localStorage.getItem('token')
         const {detailDis} = this.props.disposal
-        if (detailDis.find(item => item.doc_sap === null || item.doc_sap === '')) {
+        const cekSap = []
+        const tempdoc = []
+        const arrDoc = []
+        for (let i = 0; i < detailDis.length; i++) {
+            if (detailDis[i].doc_sap === null || detailDis[i].doc_sap === '') {
+                cekSap.push(detailDis[i])
+            } else {
+                const tipeDis = detailDis[i].nilai_jual === "0" ? 'dispose' : 'sell'
+                const data = {
+                    noId: detailDis[i].id,
+                    noAsset: detailDis[i].no_asset
+                }
+                await this.props.getDocumentDis(token, data, 'disposal', tipeDis, detailDis[i].npwp)
+                const {dataDoc} = this.props.disposal
+                for (let j = 0; j < dataDoc.length; j++) {
+                    if (dataDoc[j].path !== null) {
+                        const arr = dataDoc[j]
+                        const stat = arr.status_dokumen
+                        const cekLevel = stat !== null && stat !== '1' ? stat.split(',').reverse()[0].split(';')[0] : ''
+                        const cekStat = stat !== null && stat !== '1' ? stat.split(',').reverse()[0].split(';')[1] : ''
+                        if (cekLevel === ` level ${level}` && cekStat === ` status approve`) {
+                            tempdoc.push(arr)
+                            arrDoc.push(arr)
+                        } else {
+                            arrDoc.push(arr)
+                        }
+                    }
+                }
+            }
+        }
+        if (cekSap.length > 0) {
             this.setState({confirm: 'falseNodoc'})
+            this.openConfirm()
+        } else if (tempdoc.length !== arrDoc.length) {
+            this.setState({ confirm: 'falsubmit' })
             this.openConfirm()
         } else {
             this.openModalApprove()
@@ -530,13 +651,13 @@ class EksekusiDisposal extends Component {
             this.props.resetError()
             this.showAlert()
         } else if (isUpload) {
-            setTimeout(() => {
-                this.props.resetError()
-                this.setState({modalUpload: false})
-             }, 1000)
-             setTimeout(() => {
-                this.props.getDocumentDis(token, dataRinci.no_asset, 'disposal', dataRinci.nilai_jual === "0" ? 'dispose' : 'sell', 'ada')
-             }, 1100)
+            this.props.resetError()
+            const data = {
+                noId: dataRinci.id,
+                noAsset: dataRinci.no_asset
+            }
+            const tipeDis = dataRinci.nilai_jual === "0" ? 'dispose' : 'sell'
+            this.props.getDocumentDis(token, data, 'disposal', tipeDis, dataRinci.npwp)
         } else if (isSubmit) {
             this.props.resetError()
             setTimeout(() => {
@@ -638,7 +759,7 @@ class EksekusiDisposal extends Component {
         const { time1, time2, search, limit } = this.state
         const cekTime1 = time1 === '' ? 'undefined' : time1
         const cekTime2 = time2 === '' ? 'undefined' : time2
-        const status = val === 'available' ? 4 : 'all'
+        const status = (val === 'available' && level === '2') ? 4 : (val === 'available' && (level === '5' || level === '9')) ? 15 : 'all'
         await this.props.getDisposal(token, limit, search, 1, status, undefined, cekTime1, cekTime2)
 
         const { dataDis, noDis } = this.props.disposal
@@ -646,6 +767,8 @@ class EksekusiDisposal extends Component {
             const newDis = []
             for (let i = 0; i < dataDis.length; i++) {
                 if (dataDis[i].status_form === 4 && level === '2' && dataDis[i].status_reject !== 1) {
+                    newDis.push(dataDis[i])
+                } else if (dataDis[i].status_form === 15 && (level === '5' || level === '9') && dataDis[i].status_reject !== 1) {
                     newDis.push(dataDis[i])
                 }
             }
@@ -927,14 +1050,22 @@ class EksekusiDisposal extends Component {
                                     </>
                                 ) : null}
                             </ div>
-                            <input
+                            <Select
+                                className={styleTrans.searchSelect}
+                                options={this.state.options}
+                                onInputChange={this.handleInputChange}
+                                onChange={e => this.goSearch(e)}
+                                formatCreateLabel={(inputValue) => `"${inputValue}"`}
+                                isClearable
+                            />
+                            {/* <input
                                 type="text"
                                 placeholder="Search..."
                                 onChange={this.onSearch}
                                 value={this.state.search}
                                 onKeyPress={this.onSearch}
                                 className={styleTrans.searchInput}
-                            />
+                            /> */}
                         </div>
 
                         <table className={styleTrans.table}>
@@ -981,7 +1112,7 @@ class EksekusiDisposal extends Component {
                                                     {this.state.filter === 'available' ? 'Proses' : 'Detail'}
                                                 </Button>
                                                 <Button
-                                                className='mt-1'
+                                                className="mt-1"
                                                 color='warning'
                                                 onClick={() => this.prosesOpenTracking(item)}
                                                 >
@@ -1017,6 +1148,15 @@ class EksekusiDisposal extends Component {
                         </ModalBody>
                 </Modal>
                 <Modal size="xl" isOpen={this.state.openModalDoc} toggle={this.closeProsesModalDoc}>
+                    <ModalDokumen
+                        parDoc={{ noDoc: this.state.noDoc, noTrans: this.state.noTrans, tipe: 'eksekusi disposal', filter: this.state.filter, detailForm: this.state.valdoc }}
+                        dataDoc={dataDoc}
+                    />
+                </Modal>
+                <Modal size="xl" 
+                // isOpen={this.state.openModalDoc} 
+                // toggle={this.closeProsesModalDoc}
+                >
                 <ModalHeader>
                    Kelengkapan Dokumen
                 </ModalHeader>
@@ -1104,171 +1244,171 @@ class EksekusiDisposal extends Component {
                     </ModalBody>
                 </Modal>
                 <Modal isOpen={this.state.modalRinci} toggle={this.openModalRinci} size="xl">
-                <ModalHeader>
-                    Rincian
-                </ModalHeader>
-                <ModalBody>
-                    <div className="mainRinci">
-                        <div className="leftRinci">
-                            <img src={placeholder} className="imgRinci" />
-                            <div className="secImgSmall">
-                                <button className="btnSmallImg">
-                                    <img src={placeholder} className="imgSmallRinci" />
-                                </button>
-                            </div>
-                        </div>
-                        <Formik
-                        initialValues = {{
-                            doc_sap: dataRinci.doc_sap === null ? '' : dataRinci.doc_sap,
-                            keterangan: dataRinci.keterangan,
-                            nilai_jual: dataRinci.nilai_jual
-                        }}
-                        validationSchema = {disposalSchema}
-                        onSubmit={(values) => {this.updateDataDis(values)}}
-                        >
-                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
-                            <div className="rightRinci">
-                                <div>
-                                    <div className="titRinci">{dataRinci.nama_asset}</div>
-                                    <Row className="mb-2 rowRinci">
-                                        <Col md={3}>Area</Col>
-                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.kode_plant + '-' + dataRinci.area} disabled /></Col>
-                                    </Row>
-                                    <Row className="mb-2 rowRinci">
-                                        <Col md={3}>No Asset</Col>
-                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
-                                    </Row>
-                                    <Row className="mb-2 rowRinci">
-                                        <Col md={3}>Merk / Type</Col>
-                                        <Col md={9} className="colRinci">:  <Input
-                                            type= "text" 
-                                            className="inputRinci"
-                                            value={dataRinci.merk}
-                                            disabled
-                                            />
-                                        </Col>
-                                    </Row>
-                                    <Row className="mb-2 rowRinci">
-                                        <Col md={3}>Kategori</Col>
-                                        <Col md={9} className="katCheck">: 
-                                            <div className="katCheck">
-                                                <div className="ml-2"><input type="checkbox" checked={dataRinci.kategori === 'IT' ? true : false} /> IT</div>
-                                                <div className="ml-3"><input type="checkbox" checked={dataRinci.kategori === 'NON IT' ? true : false} /> Non IT</div>
-                                            </div>
-                                        </Col>
-                                    </Row>
-                                    <Row className="mb-2 rowRinci">
-                                        <Col md={3}>Status Area</Col>
-                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.status_depo} disabled /></Col>
-                                    </Row>
-                                    <Row className="mb-2 rowRinci">
-                                        <Col md={3}>Cost Center</Col>
-                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
-                                    </Row>
-                                    <Row className="mb-2 rowRinci">
-                                        <Col md={3}>Nilai Buku</Col>
-                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null || dataRinci.nilai_buku === undefined ? 0 : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
-                                    </Row>
-                                    {level === '2' && dataRinci.nilai_jual === '0' ? (
-                                        <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Nilai Buku Eksekusi</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku_eks === null || dataRinci.nilai_buku_eks === undefined ? 0 : dataRinci.nilai_buku_eks.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
-                                        </Row>
-                                    ) : (
-                                        <div></div>
-                                    )}
-                                    <Row className="mb-2 rowRinci">
-                                        <Col md={3}>Nilai Jual</Col>
-                                        <Col md={9} className="colRinci">:  <Input 
-                                            className="inputRinci" 
-                                            value={dataRinci.nilai_jual === null || dataRinci.nilai_jual === undefined ? 0 : dataRinci.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} 
-                                            disabled
-                                            />
-                                        </Col>
-                                    </Row>
-                                    <Row className="mb-2 rowRinci">
-                                        <Col md={3}>Keterangan</Col>
-                                        <Col md={9} className="colRinci">:  <Input
-                                            className="inputRinci" 
-                                            type="textarea" 
-                                            value={dataRinci.keterangan} 
-                                            disabled
-                                            />
-                                        </Col>
-                                    </Row>
-                                    {dataRinci.nilai_jual !== '0' ? (
-                                        <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Status NPWP</Col>
-                                            <Col md={9} className="colRinci">:
-                                            <Input 
-                                            type="select"
-                                            className="inputRinci"
-                                            name="npwp"
-                                            disabled
-                                            value={this.state.npwp === '' ? dataRinci.npwp : this.state.npwp} 
-                                            onChange={e => {this.updateNpwp(e.target.value)} }
-                                            >
-                                                <option value={null}>-Pilih Status NPWP-</option>
-                                                <option value="ada">Ada</option>
-                                                <option value="tidak">Tidak Ada</option>
-                                            </Input>
-                                            </Col>
-                                        </Row>
-                                    ) : (
-                                        <Row></Row>
-                                    )}
-                                    {/* {level === '2' && dataRinci.nilai_jual === '0' ? ( */}
-                                    <div>
-                                        <Row className="mb-2">
-                                            <Col md={3}>No Doc SAP</Col>
-                                            <Col md={9} className="colRinci">:  <Input 
-                                            className="inputRinci"
-                                            type="text"
-                                            value={values.doc_sap}
-                                            onChange={handleChange("doc_sap")}
-                                            onBlur={handleBlur("doc_sap")}
-                                            />
-                                            </Col>
-                                        </Row>
-                                        {errors.doc_sap ? (
-                                            <text className={style.txtError}>{errors.doc_sap}</text>
-                                        ) : null}
-                                    </div>
-                                    {/* ) : (
-                                        <Row></Row>
-                                    )} */}
+                    <ModalHeader>
+                        Rincian
+                    </ModalHeader>
+                    <ModalBody>
+                        <div className="mainRinci">
+                            <div className="leftRinci">
+                                <img src={placeholder} className="imgRinci" />
+                                <div className="secImgSmall">
+                                    <button className="btnSmallImg">
+                                        <img src={placeholder} className="imgSmallRinci" />
+                                    </button>
                                 </div>
-                                <Row className="footRinci1 mt-4">
-                                    {/* <Button className="btnFootRinci3" size="md" color="primary" outline onClick={handleSubmit}>Save</Button> */}
-                                    {/* <Button className="btnFootRinci3" size="md" color="warning" outline onClick={() => this.openProsesModalDoc(dataRinci)}>Doc Eksekusi</Button>
-                                    <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocPeng()}>Doc Pengajuan</Button>
-                                    <Button className="btnFootRinci3" size="md" color="danger" outline onClick={() => this.pengajuanDisposal(dataRinci.no_disposal)}>Form Pengajuan</Button>
-                                    <Button className="btnFootRinci3" size="md" color="info" outline onClick={() => this.persetujuanDisposal(dataRinci.no_persetujuan)}>Form Persetujuan</Button>
-                                    {level === '2' ? (
-                                        <>
-                                            <Button className="btnFootRinci3 mb-5" size="md" color="danger" outline onClick={() => this.goReport(dataRinci.no_asset)}>Show Report</Button>
-                                            <Button className="btnFootRinci3 mb-5" size="md" color="secondary" outline onClick={() => this.openModalRinci()}>Close</Button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Button className="btnFootRinci3 mb-5" size="md" color="secondary" outline onClick={() => this.openModalRinci()}>Close</Button>
-                                            <div className="btnFootRinci3" size="md"></div>
-                                        </>
-                                    )} */}
-                                    <div className='rowGeneral'>
-                                    </div>
-                                    <div className='rowGeneral'>
-                                        <Button disabled={values.doc_sap === ''} onClick={handleSubmit} className='mr-1' color='primary'>Save</Button>
-                                        <Button onClick={this.openModalRinci}>Close</Button>
-                                    </div>
-                                </Row>
                             </div>
-                        )}
-                        </Formik>
-                    </div>
-                </ModalBody>
-            </Modal>
-            <Modal isOpen={this.state.openRejectDis} toggle={this.openModalRejectDis} centered={true}>
+                            <Formik
+                            initialValues = {{
+                                doc_sap: dataRinci.doc_sap === null ? '' : dataRinci.doc_sap,
+                                keterangan: dataRinci.keterangan,
+                                nilai_jual: dataRinci.nilai_jual
+                            }}
+                            validationSchema = {disposalSchema}
+                            onSubmit={(values) => {this.updateDataDis(values)}}
+                            >
+                            {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                                <div className="rightRinci">
+                                    <div>
+                                        <div className="titRinci">{dataRinci.nama_asset}</div>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Area</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.kode_plant + '-' + dataRinci.area} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>No Asset</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Merk / Type</Col>
+                                            <Col md={9} className="colRinci">:  <Input
+                                                type= "text" 
+                                                className="inputRinci"
+                                                value={dataRinci.merk}
+                                                disabled
+                                                />
+                                            </Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Kategori</Col>
+                                            <Col md={9} className="katCheck">: 
+                                                <div className="katCheck">
+                                                    <div className="ml-2"><input type="checkbox" checked={dataRinci.kategori === 'IT' ? true : false} /> IT</div>
+                                                    <div className="ml-3"><input type="checkbox" checked={dataRinci.kategori === 'NON IT' ? true : false} /> Non IT</div>
+                                                </div>
+                                            </Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Status Area</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.status_depo} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Cost Center</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Nilai Buku</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null || dataRinci.nilai_buku === undefined ? 0 : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
+                                        </Row>
+                                        {level === '2' && dataRinci.nilai_jual === '0' ? (
+                                            <Row className="mb-2 rowRinci">
+                                                <Col md={3}>Nilai Buku Eksekusi</Col>
+                                                <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku_eks === null || dataRinci.nilai_buku_eks === undefined ? 0 : dataRinci.nilai_buku_eks.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
+                                            </Row>
+                                        ) : (
+                                            <div></div>
+                                        )}
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Nilai Jual</Col>
+                                            <Col md={9} className="colRinci">:  <Input 
+                                                className="inputRinci" 
+                                                value={dataRinci.nilai_jual === null || dataRinci.nilai_jual === undefined ? 0 : dataRinci.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} 
+                                                disabled
+                                                />
+                                            </Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Keterangan</Col>
+                                            <Col md={9} className="colRinci">:  <Input
+                                                className="inputRinci" 
+                                                type="textarea" 
+                                                value={dataRinci.keterangan} 
+                                                disabled
+                                                />
+                                            </Col>
+                                        </Row>
+                                        {dataRinci.nilai_jual !== '0' ? (
+                                            <Row className="mb-2 rowRinci">
+                                                <Col md={3}>Status NPWP</Col>
+                                                <Col md={9} className="colRinci">:
+                                                <Input 
+                                                type="select"
+                                                className="inputRinci"
+                                                name="npwp"
+                                                disabled
+                                                value={this.state.npwp === '' ? dataRinci.npwp : this.state.npwp} 
+                                                onChange={e => {this.updateNpwp(e.target.value)} }
+                                                >
+                                                    <option value={null}>-Pilih Status NPWP-</option>
+                                                    <option value="ada">Ada</option>
+                                                    <option value="tidak">Tidak Ada</option>
+                                                </Input>
+                                                </Col>
+                                            </Row>
+                                        ) : (
+                                            <Row></Row>
+                                        )}
+                                        {/* {level === '2' && dataRinci.nilai_jual === '0' ? ( */}
+                                        <div>
+                                            <Row className="mb-2">
+                                                <Col md={3}>No Doc SAP</Col>
+                                                <Col md={9} className="colRinci">:  <Input 
+                                                className="inputRinci"
+                                                type="text"
+                                                value={values.doc_sap}
+                                                onChange={handleChange("doc_sap")}
+                                                onBlur={handleBlur("doc_sap")}
+                                                />
+                                                </Col>
+                                            </Row>
+                                            {errors.doc_sap ? (
+                                                <text className={style.txtError}>{errors.doc_sap}</text>
+                                            ) : null}
+                                        </div>
+                                        {/* ) : (
+                                            <Row></Row>
+                                        )} */}
+                                    </div>
+                                    <Row className="footRinci1 mt-4">
+                                        {/* <Button className="btnFootRinci3" size="md" color="primary" outline onClick={handleSubmit}>Save</Button> */}
+                                        {/* <Button className="btnFootRinci3" size="md" color="warning" outline onClick={() => this.openProsesDocEks(dataRinci)}>Doc Eksekusi</Button>
+                                        <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocPeng()}>Doc Pengajuan</Button>
+                                        <Button className="btnFootRinci3" size="md" color="danger" outline onClick={() => this.pengajuanDisposal(dataRinci.no_disposal)}>Form Pengajuan</Button>
+                                        <Button className="btnFootRinci3" size="md" color="info" outline onClick={() => this.persetujuanDisposal(dataRinci.no_persetujuan)}>Form Persetujuan</Button>
+                                        {level === '2' ? (
+                                            <>
+                                                <Button className="btnFootRinci3 mb-5" size="md" color="danger" outline onClick={() => this.goReport(dataRinci.no_asset)}>Show Report</Button>
+                                                <Button className="btnFootRinci3 mb-5" size="md" color="secondary" outline onClick={() => this.openModalRinci()}>Close</Button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Button className="btnFootRinci3 mb-5" size="md" color="secondary" outline onClick={() => this.openModalRinci()}>Close</Button>
+                                                <div className="btnFootRinci3" size="md"></div>
+                                            </>
+                                        )} */}
+                                        <div className='rowGeneral'>
+                                        </div>
+                                        <div className='rowGeneral'>
+                                            <Button disabled={values.doc_sap === ''} onClick={handleSubmit} className='mr-1' color='primary'>Save</Button>
+                                            <Button onClick={this.openModalRinci}>Close</Button>
+                                        </div>
+                                    </Row>
+                                </div>
+                            )}
+                            </Formik>
+                        </div>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.openRejectDis} toggle={this.openModalRejectDis} centered={true}>
                     <ModalBody>
                     <Formik
                     initialValues={{
@@ -1360,7 +1500,7 @@ class EksekusiDisposal extends Component {
                         </div>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="sm">
+                <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="md">
                     <ModalBody>
                         {this.state.confirm === 'reject' ? (
                             <div className={style.cekUpdate}>
@@ -1412,6 +1552,9 @@ class EksekusiDisposal extends Component {
                             <div></div>
                         )}
                     </ModalBody>
+                    <div className='row justify-content-md-center mb-4'>
+                        <Button size='lg' onClick={() => this.openConfirm(false)} color='primary'>OK</Button>
+                    </div>
                 </Modal>
                 <Modal isOpen={this.state.formDis} toggle={this.openModalDis} size="xl" className='xl'>
                     {/* <Alert color="danger" className={style.alertWrong} isOpen={detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true}>
@@ -1494,7 +1637,7 @@ class EksekusiDisposal extends Component {
                                                 {this.state.filter === 'available' && (
                                                     <Button className='ml-1 mt-1' color='warning' onClick={() => this.prosesOpenRinci(item)}>Proses</Button>
                                                 )}
-                                                <Button className='ml-1 mt-1' color='success' onClick={() => this.openProsesDocPeng(item)}>Dokumen</Button>
+                                                <Button className='ml-1 mt-1' color='success' onClick={() => this.prosesOpenDokumen(item)}>Dokumen</Button>
                                             </td>
                                         </tr>
                                     )
@@ -1502,102 +1645,50 @@ class EksekusiDisposal extends Component {
                             </tbody>
                         </Table>
                         <div className="mb-3">Demikianlah hal yang kami sampaikan, atas perhatiannya kami mengucapkan terima kasih</div>
-                        <Table borderless responsive className="tabPreview">
-                           <thead>
-                               <tr>
-                                   <th className="buatPre">Dibuat oleh,</th>
-                                   <th className="buatPre">Diperiksa oleh,</th>
-                                   <th className="buatPre">Disetujui oleh,</th>
-                               </tr>
-                           </thead>
-                           <tbody className="tbodyPre">
-                               <tr>
-                                   <td className="restTable">
-                                       <Table bordered responsive className="divPre">
-                                            <thead>
-                                                <tr>
-                                                    {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
-                                                        return (
-                                                            <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                <div>{item.nama === null ? "-" : item.nama}</div>
-                                                            </th>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
-                                                    return (
-                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                    )
-                                                })}
-                                                </tr>
-                                            </tbody>
-                                       </Table>
-                                   </td>
-                                   <td className="restTable">
-                                       <Table bordered responsive className="divPre">
-                                            <thead>
-                                                <tr>
-                                                    {disApp.pemeriksa !== undefined && disApp.pemeriksa.map(item => {
-                                                        return (
-                                                            (item.id_role === 2 || item.jabatan === 'asset') ? (
-                                                                null
-                                                            ) : (
-                                                            <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                <div>{item.nama === null ? "-" : item.nama}</div>
-                                                            </th>
-                                                            )
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    {disApp.pemeriksa !== undefined && disApp.pemeriksa.map(item => {
-                                                        return (
-                                                            (item.id_role === 2 || item.jabatan === 'asset') ? (
-                                                                null
-                                                            ) : (
-                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                            )
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </tbody>
-                                       </Table>
-                                   </td>
-                                   <td className="restTable">
-                                       <Table bordered responsive className="divPre">
-                                            <thead>
-                                                <tr>
-                                                    {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
-                                                        return (
-                                                            <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                <div>{item.nama === null ? "-" : item.nama}</div>
-                                                            </th>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
-                                                        return (
-                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </tbody>
-                                       </Table>
-                                   </td>
-                               </tr>
-                           </tbody>
-                       </Table>
+                        <Table bordered responsive className="tabPreview">
+                            <thead>
+                                <tr>
+                                    <th className="buatPre" colSpan={disApp.pembuat?.length || 1}>Dibuat oleh,</th>
+                                    <th className="buatPre" colSpan={
+                                        disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').length || 1
+                                    }>Diperiksa oleh,</th>
+                                    <th className="buatPre" colSpan={disApp.penyetuju?.length || 1}>Disetujui oleh,</th>
+                                </tr>
+                                <tr>
+                                    {disApp.pembuat?.map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
+                                    {disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
+                                    {disApp.penyetuju?.map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    {disApp.pembuat?.map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
+                                    {disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
+                                    {disApp.penyetuju?.map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
+                                </tr>
+                            </tbody>
+                        </Table>
                     </ModalBody>
                     <hr />
                     <div className="modalFoot ml-3">
@@ -1772,7 +1863,7 @@ class EksekusiDisposal extends Component {
                 <Modal isOpen={this.state.openDraft} size='xl'>
                     <ModalHeader>Email Pemberitahuan</ModalHeader>
                     <ModalBody>
-                        <Email handleData={this.getMessage} tipe={tipeEmail === 'submit' ? 'persetujuan' : 'pengajuan'}/>
+                        <Email handleData={this.getMessage} tipe={'pengajuan'}/>
                         <div className={style.foot}>
                             <div></div>
                             <div>
@@ -1830,6 +1921,7 @@ const mapDispatchToProps = {
     getDraftEmail: tempmail.getDraftEmail,
     sendEmail: tempmail.sendEmail,
     addNewNotif: newnotif.addNewNotif,
+    searchDisposal: disposal.searchDisposal
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EksekusiDisposal)

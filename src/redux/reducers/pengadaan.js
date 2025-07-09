@@ -7,6 +7,7 @@ const pengState = {
     isUpdate: false,
     alertMsg: '',
     dataPeng: [],
+    dataSearch: [],
     dataApp: [],
     dataCart: [],
     dataDoc: [],
@@ -98,7 +99,7 @@ export default (state=pengState, action) => {
                 ...state,
                 isError: false,
                 isGet: true,
-                dataPeng: action.payload.data.result,
+                dataSearch: action.payload.data.result,
                 alertMsg: 'get pengadaan Succesfully',
             };
         }

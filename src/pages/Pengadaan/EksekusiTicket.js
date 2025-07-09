@@ -5,9 +5,10 @@ import { Container, NavbarBrand, Table, Input, Button, Col, Collapse, Card,
     Alert, Spinner, Row, Modal, ModalBody, ModalHeader, ModalFooter, CardBody,
     UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem} from 'reactstrap'
 import style from '../../assets/css/input.module.css'
-import {FaSearch, FaUserCircle, FaBars, FaCartPlus, FaFileSignature} from 'react-icons/fa'
+import {FaSearch, FaUserCircle, FaBars, FaCartPlus, FaFileSignature, FaCheck} from 'react-icons/fa'
 import {BsCircle, BsBell, BsFillCircleFill} from 'react-icons/bs'
 import { AiOutlineInfoCircle, AiOutlineCheck, AiOutlineClose, AiFillCheckCircle, AiOutlineFileExcel, AiOutlineInbox} from 'react-icons/ai'
+import { CiWarning } from "react-icons/ci"
 import { MdAssignment } from 'react-icons/md'
 import { FiSend, FiTruck, FiSettings, FiUpload } from 'react-icons/fi'
 import {Formik} from 'formik'
@@ -38,6 +39,8 @@ import fs from "file-saver"
 import styleTrans from '../../assets/css/transaksi.module.css'
 import NewNavbar from '../../components/NewNavbar'
 import Email from '../../components/Pengadaan/Email'
+import debounce from 'lodash.debounce';
+import Select from 'react-select/creatable';
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -137,10 +140,79 @@ class EksekusiTicket extends Component {
             collap: false,
             formTrack: false,
             detailTrack: [],
-            history: false
+            history: false,
+            options: [],
+            newIo: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+        this.debouncedLoadOptions = debounce(this.prosesSearch, 500)
+    }
+
+    prosesSearch = async (val) => {
+        const token = localStorage.getItem("token")
+        const level = localStorage.getItem('level')
+        const { time1, time2, search, limit, filter } = this.state
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+       
+        const statusAset = level === '2' && val === 'available' ? '9' : 'all'
+        const status = val === 'finish' ? '8' : level === '2' ? statusAset : 'all'
+
+        if (val === null || val === undefined || val.length === 0) {
+            this.setState({ options: [] })
+        } else {
+            await this.props.searchIo(token, status, cekTime1, cekTime2, val, limit)
+
+            const { dataSearch } = this.props.pengadaan
+            const firstOption = [
+                {value: val, label: val}
+            ]
+            const secondOption = [
+                {value: '', label: ''}
+            ]
+            
+    
+            for (let i = 0; i < dataSearch.length; i++) {
+                const dataArea = dataSearch[i].area
+                const dataNo = dataSearch[i].no_pengadaan
+                const dataItem = dataSearch[i].nama
+    
+                const cekSecond = secondOption.find(item => item.value === dataNo)
+                if (cekSecond === undefined) {
+                    const data = {
+                        value: dataNo, label: dataNo
+                    }
+                    secondOption.push(data)
+                }
+                // }
+            }
+    
+            const dataOption = [
+                ...firstOption,
+                ...secondOption
+            ]
+    
+            this.setState({ options: dataOption })
+        }
+    }
+    
+    handleInputChange = (val) => {
+        this.debouncedLoadOptions(val)
+        return val
+    }
+
+    goSearch = async (e) => {
+        if (e === null || e === undefined) {
+            console.log(e)
+        } else {
+            this.setState({ search: e.value })
+            const { filter } = this.state
+            setTimeout(() => {
+                this.changeFilter(filter)
+            }, 100)
+        }
+        
     }
 
     getMessage = (val) => {
@@ -551,7 +623,8 @@ class EksekusiTicket extends Component {
             tipe: 'pengadaan',
             menu: `pengadaan asset`,
             proses: val === 'asset' || val === 'budget' ? 'submit' : val,
-            route: 'pengadaan'
+            route: 'pengadaan',
+            filter: 'finish'
         }
         await this.props.sendEmail(token, sendMail)
         await this.props.addNewNotif(token, sendMail)
@@ -951,35 +1024,77 @@ class EksekusiTicket extends Component {
 
     getDataAsset = async (value) => {
         const token = localStorage.getItem("token")
-        const {time1, time2, search, limit} = this.state
+        const {time1, time2, search, limit, filter} = this.state
         const cekTime1 = time1 === '' ? 'undefined' : time1
         const cekTime2 = time2 === '' ? 'undefined' : time2
-        this.props.getPengadaan(token, '9', cekTime1, cekTime2, search, limit)
+        // this.props.getPengadaan(token, '9', cekTime1, cekTime2, search, limit)
+        this.changeFilter(filter)
+    }
+
+    changeFilter = async (val) => {
+        const token = localStorage.getItem("token")
+        const role = localStorage.getItem('role')
+        const level = localStorage.getItem('level')
+
+        const { time1, time2, search, limit } = this.state
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+
+        const statusAset = level === '2' && val === 'available' ? '9' : 'all'
+        const status = val === 'finish' ? '8' : level === '2' ? statusAset : 'all'
+
+        await this.props.getPengadaan(token, status, cekTime1, cekTime2, search, limit)
+
+        const { dataPeng } = this.props.pengadaan
+        const newIo = []
+        console.log(val)
+        for (let i = 0; i < dataPeng.length; i++) {
+            const cekBudget = dataPeng[i].status_form === '3'
+            const cekAsset = dataPeng[i].status_form === '9'
+            if (val === 'available') {
+                if ((level === '2' && cekAsset) && dataPeng[i].status_reject !== 1) {
+                    newIo.push(dataPeng[i])
+                }
+            } else if (val === 'reject') {
+                if (dataPeng[i].status_reject === 1) {
+                    newIo.push(dataPeng[i])
+                }
+            } else if (val === 'finish') {
+                if (dataPeng[i].status_form === '8') {
+                    newIo.push(dataPeng[i])
+                }
+            } else {
+                if ((!cekAsset && level === '2')) {
+                    newIo.push(dataPeng[i])
+                }
+            }
+        }
+        this.setState({ filter: val, newIo: newIo })
     }
 
     selectTime = (val) => {
-        this.setState({[val.type]: val.val})
+        this.setState({ [val.type]: val.val })
     }
 
     changeTime = async (val) => {
         const token = localStorage.getItem("token")
-        this.setState({time: val})
+        this.setState({ time: val })
         if (val === 'all') {
-            this.setState({time1: '', time2: ''})
+            this.setState({ time1: '', time2: '' })
             setTimeout(() => {
                 this.getDataTime()
-             }, 500)
+            }, 500)
         }
     }
 
     getDataTime = async () => {
-        const {time1, time2, filter, search, limit} = this.state
+        const { time1, time2, filter, search, limit } = this.state
         const cekTime1 = time1 === '' ? 'undefined' : time1
         const cekTime2 = time2 === '' ? 'undefined' : time2
         const token = localStorage.getItem("token")
         const level = localStorage.getItem("level")
-        // const status = filter === 'selesai' ? '8' : filter === 'available' && level === '2' ? '1' : filter === 'available' && level === '8' ? '3' : 'all'
-        this.getDataAsset()
+        // const status = filter === 'finish' ? '8' : filter === 'available' && level === '2' ? '1' : filter === 'available' && level === '8' ? '3' : 'all'
+        this.changeFilter(filter)
     }
 
     getSubmitDisposal = async (value) => {
@@ -1167,6 +1282,15 @@ class EksekusiTicket extends Component {
 
                     <div className={`${styleTrans.mainContent} ${this.state.sidebarOpen ? styleTrans.collapsedContent : ''}`}>
                         <h2 className={styleTrans.pageTitle}>Eksekusi Pengadaan Asset</h2>
+                        <div  className={styleTrans.searchContainer}>
+                            <div></div>
+                            <select value={this.state.filter} onChange={e => this.changeFilter(e.target.value)} className={styleTrans.searchInput}>
+                                <option value="all">All</option>
+                                <option value="available">Available To Approve</option>
+                                <option value="reject">Reject</option>
+                                <option value="finish">Finished</option>
+                            </select>
+                        </div>
                         <div className={styleTrans.searchContainer}>
                             <div className='rowCenter'>
                                 <div className='rowCenter'>
@@ -1203,14 +1327,22 @@ class EksekusiTicket extends Component {
                                     </>
                                 ) : null}
                             </ div>
-                            <input
+                            <Select
+                                className={styleTrans.searchSelect}
+                                options={this.state.options}
+                                onInputChange={this.handleInputChange}
+                                onChange={e => this.goSearch(e)}
+                                formatCreateLabel={(inputValue) => `"${inputValue}"`}
+                                isClearable
+                            />
+                            {/* <input
                                 type="text"
                                 placeholder="Search..."
                                 onChange={this.onSearch}
                                 value={this.state.search}
                                 onKeyPress={this.onSearch}
                                 className={styleTrans.searchInput}
-                            />
+                            /> */}
                         </div>
 
                         <table className={`${styleTrans.table} ${dataPeng.length > 0 ? styleTrans.tableFull : ''}`}>
@@ -1238,8 +1370,8 @@ class EksekusiTicket extends Component {
                                             <td>{item.kategori === 'return' ? 'Pengajuan Return' : item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
                                             <td>{item.history !== null && item.history.split(',').reverse()[0]}</td>
                                             <td>
-                                                <Button color='primary' className='mr-1 mb-1' onClick={() => this.openForm(item)}>{this.state.filter === 'available' ? 'Proses' : 'Detail'}</Button>
-                                                <Button color='warning' onClick={() => this.getDetailTrack(item.no_pengadaan)}>Tracking</Button>
+                                                <Button color='primary' className='mr-1 mt-1' onClick={() => this.openForm(item)}>{this.state.filter === 'available' ? 'Proses' : 'Detail'}</Button>
+                                                <Button color='warning' className='mt-1' onClick={() => this.getDetailTrack(item.no_pengadaan)}>Tracking</Button>
                                             </td>
                                         </tr>
                                     )
@@ -1445,91 +1577,47 @@ class EksekusiTicket extends Component {
                                 {detailIo[0] === undefined ? '' : `${detailIo[0].area}, ${moment(detailIo[0].tglIo).format('DD MMMM YYYY')}`}
                             </Col>
                         </Row>
-                        <Table borderless responsive className="tabPreview mt-4">
+                        <Table bordered responsive className="tabPreview mt-4">
                             <thead>
                                 <tr>
-                                    <th className="buatPre">Dibuat oleh,</th>
-                                    <th className="buatPre">Diperiksa oleh,</th>
-                                    <th className="buatPre">Disetujui oleh,</th>
+                                    <th className="buatPre" colSpan={dataApp.pembuat?.length || 1}>Dibuat oleh,</th>
+                                    <th className="buatPre" colSpan={
+                                        dataApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').length || 1
+                                    }>Diperiksa oleh,</th>
+                                    <th className="buatPre" colSpan={dataApp.penyetuju?.length || 1}>Disetujui oleh,</th>
+                                </tr>
+                                <tr>
+                                    {dataApp.pembuat?.map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
+                                    {dataApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
+                                    {dataApp.penyetuju?.map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
                                 </tr>
                             </thead>
-                            <tbody className="tbodyPre">
+                            <tbody>
                                 <tr>
-                                    <td className="restTable">
-                                        <Table bordered responsive className="divPre">
-                                            <thead>
-                                                <tr>
-                                                    {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
-                                                        return (
-                                                            <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                <div>{item.nama === null ? "-" : item.nama}</div>
-                                                            </th>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
-                                                        return (
-                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'area' ? 'AOS' : item.jabatan}</td>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </tbody>
-                                        </Table>
-                                    </td>
-                                    <td className="restTable">
-                                        <Table bordered responsive className="divPre">
-                                            <thead>
-                                                <tr>
-                                                    {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
-                                                        return (
-                                                            <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                <div>{item.nama === null ? "-" : item.nama}</div>
-                                                            </th>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
-                                                        return (
-                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </tbody>
-                                        </Table>
-                                    </td>
-                                    <td className="restTable">
-                                        <Table bordered responsive className="divPre">
-                                            <thead>
-                                                <tr>
-                                                    {dataApp.penyetuju !== undefined && dataApp.penyetuju.map(item => {
-                                                        return (
-                                                            <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                <div>{item.nama === null ? "-" : item.nama}</div>
-                                                            </th>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    {dataApp.penyetuju !== undefined && dataApp.penyetuju.map(item => {
-                                                        return (
-                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </tbody>
-                                        </Table>
-                                    </td>
+                                    {dataApp.pembuat?.map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
+                                    {dataApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
+                                    {dataApp.penyetuju?.map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
                                 </tr>
                             </tbody>
                         </Table>
@@ -1576,7 +1664,7 @@ class EksekusiTicket extends Component {
                     )}
                 </div>
             </Modal>
-            <Modal size="xl" isOpen={this.state.openFill} toggle={this.openFill}>
+            <Modal size="xl" isOpen={this.state.openFill} toggle={this.openFill} className='xl'>
                 <ModalHeader>
                     Filling No. Asset
                 </ModalHeader>
@@ -1603,7 +1691,7 @@ class EksekusiTicket extends Component {
                                     //     null
                                     // ) : (
                                         <tr onClick={() => this.openModalRinci()}>
-                                            <td>{dataTemp.indexOf(item) + 1}</td>
+                                            <td className='tdNo'>{dataTemp.indexOf(item) + 1}</td>
                                             <td>{item.no_pengadaan}</td>
                                             <td>{item.nama}</td>
                                             <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
@@ -1636,6 +1724,11 @@ class EksekusiTicket extends Component {
                                                                             // onKeyPress={e => this.updateNoAsset({item: item, target: e.target, key: e.key})}
                                                                             />
                                                                             <Button className='ml-2' color='success' onClick={handleSubmit} disabled={errors.no_asset ? true : false}>Update</Button>
+                                                                            {item.no_asset !== null && item.no_asset.length > 0 ? (
+                                                                                <FaCheck size={45} className='green ml-2' />
+                                                                            ) : (
+                                                                                <CiWarning size={45} className='red ml-2' />
+                                                                            )}
                                                                     </div>
                                                                     {errors.no_asset ? (
                                                                         <text className='colred mr-4'>{errors.no_asset}</text>
@@ -1646,7 +1739,7 @@ class EksekusiTicket extends Component {
                                                     
                                                 )}
                                             </td>
-                                            <td>{item.id}</td>
+                                            <td className='tdNo'>{item.id}</td>
                                         </tr>
                                     // )
                                 )
@@ -2649,6 +2742,7 @@ const mapDispatchToProps = {
     getDraftEmail: tempmail.getDraftEmail,
     sendEmail: tempmail.sendEmail,
     addNewNotif: newnotif.addNewNotif,
+    searchIo: pengadaan.searchIo,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EksekusiTicket)

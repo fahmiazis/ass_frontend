@@ -135,7 +135,7 @@ class NewNavbar extends Component {
     const level = localStorage.getItem('level')
     const { sidebarOpen, mobileSidebarVisible, isMobile, searchQuery, isOpen } = this.state;
 
-    const allowSet = ['1','17','20', '21', '22', '23', '24', '25']
+    const allowSet = ['1','17','20', '21', '22', '23', '24', '25', '32']
     return (
       <>
         <div
@@ -232,7 +232,7 @@ class NewNavbar extends Component {
                     {(!sidebarOpen || isMobile) &&  <span>Verifikasi Purchasing</span>}
                 </div>
               )}
-              {level === '2' && (
+              {(level === '2') && (
                 <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('eksdis')} >
                     <FiTruck className={styleTrans.icon} size={sidebarOpen && 20} /> 
                     {(!sidebarOpen || isMobile) &&  <span>Eksekusi Disposal</span>}
@@ -261,6 +261,12 @@ class NewNavbar extends Component {
                 <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('report-disposal')} >
                   <HiOutlineDocumentReport className={styleTrans.icon} size={sidebarOpen && 20} /> 
                   {(!sidebarOpen || isMobile) &&  <span>Report Disposal Asset</span>}
+                </div>
+              )}
+              {(level === '5' || level === '9') && (
+                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('rev-disposal')} >
+                    <BiRevision className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                    {(!sidebarOpen || isMobile) &&  <span>Revisi Disposal Asset</span>}
                 </div>
               )}
               {/* <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('navdis')} >

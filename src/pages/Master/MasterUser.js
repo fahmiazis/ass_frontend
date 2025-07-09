@@ -3,7 +3,7 @@ import {  NavbarBrand, DropdownToggle, DropdownMenu,
     DropdownItem, Table, ButtonDropdown, Input, Button,
     Modal, ModalHeader, ModalBody, Alert, Spinner, UncontrolledDropdown} from 'reactstrap'
 import style from '../../assets/css/input.module.css'
-import {FaSearch, FaUserCircle, FaBars} from 'react-icons/fa'
+import {FaSearch, FaUserCircle, FaBars, FaSortAlphaDown, FaSortAlphaUpAlt} from 'react-icons/fa'
 import {AiFillCheckCircle, AiOutlineFileExcel, AiOutlineInbox} from 'react-icons/ai'
 import depo from '../../redux/actions/depo'
 import user from '../../redux/actions/user'
@@ -85,7 +85,9 @@ class MasterUser extends Component {
             filter: null,
             filterName: 'All',
             listUser: [],
-            listRole: []
+            listRole: [],
+            sortType: 'asc',
+            sortName: 'username'
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -164,7 +166,6 @@ class MasterUser extends Component {
         this.setState({modalAdd: !this.state.modalAdd})
     }
     openModalEdit = () => {
-        console.log(this.state.listRole)
         this.setState({modalEdit: !this.state.modalEdit})
     }
     openModalUpload = () => {
@@ -332,14 +333,19 @@ class MasterUser extends Component {
         const search = value === undefined ? '' : this.state.search
         const limit = value === undefined ? this.state.limit : value.limit
         const filter = value === undefined || value.filter === undefined ? this.state.filter : value.filter
-        console.log(this.state.filter)
-        await this.props.getUser(token, limit, search, page.currentPage, filter)
+        const {sortName, sortType} = this.state
+        await this.props.getUser(token, limit, search, page.currentPage, filter, sortName, sortType)
         this.setState({limit: value === undefined ? 10 : value.limit, search: search, filter: filter})
     }
 
     changeFilter = async (val) => {
         this.setState({filter: val.nomor, filterName: val.name})
         this.getDataUser({limit: this.state.limit, search: this.state.search, filter: val.nomor})
+    }
+
+    changeSort = async (val) => {
+        this.setState({sortType: val.type, sortName: val.name})
+        this.getDataUser({limit: this.state.limit, search: this.state.search})
     }
 
     getDataDepo = async () => {
@@ -772,6 +778,7 @@ class MasterUser extends Component {
                                         },
                                     }}
                                     >
+                                        <DropdownItem onClick={() => {this.setState({filter: 'All', filterName: 'All'}); this.changeFilter({name: 'All', nomor: 'All'})}}>All</DropdownItem>
                                         {dataRole !== undefined && dataRole.map(item => {
                                             return (
                                                 <DropdownItem onClick={() => {this.setState({filter: item.id, filterName: item.name}); this.changeFilter({name: item.name, nomor: item.nomor})}}>{item.name}</DropdownItem>
@@ -813,7 +820,14 @@ class MasterUser extends Component {
                                         {/* Select */}
                                     </th>
                                     <th>No</th>
-                                    <th>User Name</th>
+                                    <th>
+                                        {this.state.sortType === 'desc' ? (
+                                            <FaSortAlphaDown onClick={() => this.changeSort({name: 'username', type: 'asc'})} className='mr-1' size={20} />
+                                        ) : (
+                                            <FaSortAlphaUpAlt onClick={() => this.changeSort({name: 'username', type: 'desc'})} className='mr-1' size={20} />
+                                        )}
+                                        User Name
+                                    </th>
                                     <th>Full Name</th>
                                     <th>Kode Area</th>
                                     <th>Email</th>

@@ -974,8 +974,10 @@ class EditMutasi extends Component {
                                             <td className='colGeneral'>
                                             {detailMut.length !== 0 && (kode === detailMut[0].user_rev || detailMut[0].user_rev === null) && (kode === detailMut[0].kode_plant) ? 
                                                 <>
-                                                    {item.isreject === 1 ? 'Perlu Diperbaiki' : 'Telah diperbaiki'}
-                                                    <Button className='mt-2' color="info" size='sm' onClick={() => this.prosesOpenRinci(item)}>Update</Button>
+                                                    {item.isreject === 1 ? 'Perlu Diperbaiki' : item.isreject === null ? 'Data tidak direject' : 'Telah diperbaiki'}
+                                                    {item.isreject === 1 && (
+                                                        <Button className='mt-2' color="info" size='sm' onClick={() => this.prosesOpenRinci(item)}>Update</Button>
+                                                    )}
                                                 </>
                                                 :
                                             '-'}

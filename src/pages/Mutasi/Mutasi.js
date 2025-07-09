@@ -37,6 +37,8 @@ import dokumen from '../../redux/actions/dokumen'
 import Pdf from "../../components/Pdf"
 import FormMutasi from '../../components/Mutasi/FormMutasi'
 import TrackingMutasi from '../../components/Mutasi/TrackingMutasi'
+import debounce from 'lodash.debounce';
+import SelectCreate from 'react-select/creatable';
 const { REACT_APP_BACKEND_URL } = process.env
 
 
@@ -65,7 +67,7 @@ class Mutasi extends Component {
             pullRight: false,
             touchHandleWidth: 20,
             dragToggleDistance: 30,
-            limit: 12,
+            limit: 100,
             dataRinci: {},
             rinci: false,
             img: '',
@@ -76,7 +78,7 @@ class Mutasi extends Component {
             reject: false,
             approve: false,
             previtew: false,
-            filter: '',
+            filter: 'available',
             rincian: false,
             openModalDoc: false,
             confirm: '',
@@ -104,10 +106,76 @@ class Mutasi extends Component {
             dataRej: {},
             loading: false,
             arrApp: [],
-            selApp: {}
+            selApp: {},
+            options: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+        this.debouncedLoadOptions = debounce(this.prosesSearch, 500)
+    }
+
+    prosesSearch = async (val) => {
+        const token = localStorage.getItem("token")
+        const level = localStorage.getItem('level')
+        const { time1, time2, search, limit, filter } = this.state
+        
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        
+        const status = filter === 'finish' ? '8' : 'all'
+
+        if (val === null || val === undefined || val.length === 0) {
+            this.setState({ options: [] })
+        } else {
+            await this.props.searchMutasi(token, status, cekTime1, cekTime2, val, limit)
+
+            const { dataSearch } = this.props.mutasi
+            const firstOption = [
+                {value: val, label: val}
+            ]
+            const secondOption = [
+                {value: '', label: ''}
+            ]
+            
+    
+            for (let i = 0; i < dataSearch.length; i++) {
+                const dataArea = dataSearch[i].area
+                const dataNo = dataSearch[i].no_mutasi
+                const dataItem = dataSearch[i].nama_asset
+    
+                const cekSecond = secondOption.find(item => item.value === dataNo)
+                if (cekSecond === undefined) {
+                    const data = {
+                        value: dataNo, label: dataNo
+                    }
+                    secondOption.push(data)
+                }
+            }
+    
+            const dataOption = [
+                ...firstOption,
+                ...secondOption
+            ]
+    
+            this.setState({ options: dataOption })
+        }
+    }
+    
+    handleInputChange = (val) => {
+        this.debouncedLoadOptions(val)
+        return val
+    }
+
+    goSearch = async (e) => {
+        if (e === null || e === undefined) {
+            console.log(e)
+        } else {
+            this.setState({ search: e.value })
+            const { filter } = this.state
+            setTimeout(() => {
+                this.changeFilter(filter)
+            }, 100)
+        }
     }
 
     statusApp = (val) => {
@@ -239,6 +307,10 @@ class Mutasi extends Component {
         const level = localStorage.getItem('level')
         const token = localStorage.getItem('token')
         const id = localStorage.getItem('id')
+        const filter = this.props.location.state === undefined ? '' : this.props.location.state.filter
+        if (filter === 'finish' || filter === 'all') {
+            this.setState({filter: filter})
+        }
         await this.props.getRole(token)
         await this.props.getDepo(token, 1000, '')
         await this.props.getDetailUser(token, id)
@@ -374,9 +446,6 @@ class Mutasi extends Component {
             this.setState({confirm: 'docFirst'})
             this.openConfirm()
         } else {
-            const { arrApp } = this.state
-            const cekApp = arrApp.find(item => item.noMut === detailMut[0].no_mutasi)
-            this.setState({selApp: cekApp})
             this.openApprove()
         }
     }
@@ -384,9 +453,8 @@ class Mutasi extends Component {
     getDataMutasi = async () => {
         const level = localStorage.getItem('level')
         const token = localStorage.getItem('token')
-        // const status = level === '5' || level === '9' ? 'all' : 'available'
-        const status = 'available'
-        this.changeFilter(status)
+        const { filter } = this.state
+        this.changeFilter(filter)
     }
 
     getDataAsset = async (value) => {
@@ -430,7 +498,7 @@ class Mutasi extends Component {
         const { time1, time2, search, limit } = this.state
         const cekTime1 = time1 === '' ? 'undefined' : time1
         const cekTime2 = time2 === '' ? 'undefined' : time2
-        const status = val === 'selesai' ? '8' : 'all'
+        const status = val === 'finish' ? '8' : 'all'
 
         await this.props.getMutasi(token, status, cekTime1, cekTime2, search, 100)
 
@@ -445,10 +513,14 @@ class Mutasi extends Component {
                 listRole.push(data)
             } else if (i === arrRole.length) {
                 const cek = dataRole.find(item => parseInt(item.nomor) === detailUser.user_level)
-                listRole.push(cek)
+                if (cek !== undefined) {
+                    listRole.push(cek)
+                }
             } else {
                 const cek = dataRole.find(item => parseInt(item.nomor) === arrRole[i].id_role)
-                listRole.push(cek)
+                if (cek !== undefined) {
+                    listRole.push(cek)
+                }
             }
         }
         console.log(dataMut)
@@ -547,7 +619,7 @@ class Mutasi extends Component {
                 }
             }
             this.setState({ filter: val, newMut: newMut })
-        } else if (val === 'selesai' && dataMut.length > 0) {
+        } else if (val === 'finish' && dataMut.length > 0) {
             const newMut = []
             for (let i = 0; i < dataMut.length; i++) {
                 if (dataMut[i].status_form === 8) {
@@ -602,7 +674,7 @@ class Mutasi extends Component {
         const cekTime2 = time2 === '' ? 'undefined' : time2
         const token = localStorage.getItem("token")
         const level = localStorage.getItem("level")
-        // const status = filter === 'selesai' ? '8' : filter === 'available' && level === '2' ? '1' : filter === 'available' && level === '8' ? '3' : 'all'
+        // const status = filter === 'finish' ? '8' : filter === 'available' && level === '2' ? '1' : filter === 'available' && level === '8' ? '3' : 'all'
         this.changeFilter(filter)
     }
 
@@ -826,6 +898,9 @@ class Mutasi extends Component {
         await this.props.getDetailMutasi(token, val.no_mutasi)
         if (filter === 'available') {
             const {detailMut} = this.props.mutasi
+            const { arrApp } = this.state
+            const cekApp = arrApp.find(item => item.noMut === detailMut[0].no_mutasi)
+            this.setState({selApp: cekApp})
             if ((level === '5' || level === '9') && (detailMut[0].tgl_mutasifisik === null || detailMut[0].tgl_mutasifisik === 'null' || detailMut[0].tgl_mutasifisik === '')) {
                 this.openModalMut()
                 this.openModalDate()
@@ -919,7 +994,7 @@ class Mutasi extends Component {
                                 <option value="all">All</option>
                                 <option value="available">Available To Approve</option>
                                 <option value="reject">Reject</option>
-                                <option value="selesai">Finished</option>
+                                <option value="finish">Finished</option>
                             </select>
                         </div>
 
@@ -959,14 +1034,22 @@ class Mutasi extends Component {
                                     </>
                                 ) : null}
                             </ div>
-                            <input
+                            <SelectCreate
+                                className={styleTrans.searchSelect}
+                                options={this.state.options}
+                                onInputChange={this.handleInputChange}
+                                onChange={e => this.goSearch(e)}
+                                formatCreateLabel={(inputValue) => `"${inputValue}"`}
+                                isClearable
+                            />
+                            {/* <input
                                 type="text"
                                 placeholder="Search..."
                                 onChange={this.onSearch}
                                 value={this.state.search}
                                 onKeyPress={this.onSearch}
                                 className={styleTrans.searchInput}
-                            />
+                            /> */}
                         </div>
 
                         <table className={styleTrans.table}>
@@ -1340,7 +1423,7 @@ class Mutasi extends Component {
                         <Table borderless responsive className="tabPreview">
                             <thead>
                                 <tr>
-                                    <th className="buatPre">Dibuat oleh</th>
+                                    <th className="buatPre buatPreFirst">Dibuat oleh</th>
                                     <th className="buatPre">Diterima oleh</th>
                                     <th rowSpan={2} className="buatPre">Diperiksa oleh</th>
                                     <th rowSpan={2} className="buatPre">Disetujui oleh</th>
@@ -2164,7 +2247,8 @@ const mapDispatchToProps = {
     uploadDocument: mutasi.uploadDocument,
     showDokumen: dokumen.showDokumen,
     changeDate: mutasi.changeDate,
-    getDetailUser: user.getDetailUser
+    getDetailUser: user.getDetailUser,
+    searchMutasi: mutasi.searchMutasi
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Mutasi)

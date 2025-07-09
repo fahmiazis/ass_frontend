@@ -1350,7 +1350,7 @@ class Stock extends Component {
                                 className={styleTrans.searchInput}
                             />
                         </div>
-
+                        <div className={styleTrans.tableContainer2}>
                         <table className={`${styleTrans.tableStock} ${dataAsset.length > 0 ? styleTrans.tableFull : ''}`}>
                             <thead>
                                 <tr>
@@ -1375,7 +1375,7 @@ class Stock extends Component {
                                             <td onClick={() => this.getRincian(item)} scope="row">{(dataAsset.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</td>
                                             <td>{item.no_asset}</td>
                                             <td>{item.nama_asset}</td>
-                                            <td>
+                                            <td className='largeTh'>
                                                 <Input
                                                 type= "text"
                                                 name="merk"
@@ -1400,7 +1400,7 @@ class Stock extends Component {
                                                 </Input>
                                             </td>
                                             <td>{item.unit}</td>
-                                            <td>
+                                            <td className='largeTh'>
                                                 <Input
                                                 type= "text"
                                                 name="lokasi"
@@ -1453,7 +1453,7 @@ class Stock extends Component {
                                                     </DropdownMenu>
                                                 </ButtonDropdown>
                                             </td>
-                                            <td>
+                                            <td className='largeTh'>
                                                 <Input
                                                 type= "text"
                                                 name="keterangan"
@@ -1500,6 +1500,7 @@ class Stock extends Component {
                                 })}
                             </tbody>
                         </table>
+                        </div>
                         {dataAsset.length === 0 && (
                             <div className={style.spinCol}>
                                 <AiOutlineInbox size={50} className='secondary mb-4' />

@@ -375,12 +375,13 @@ class CartMutasi extends Component {
     }
 
     selectNoIo = async (e) => {
+        console.log('masuk ke select')
         console.log(e)
-        const { dataPeng } = this.props.pengadaan
+        const { dataSearch } = this.props.pengadaan
         const idVal = e.val.value
-        const data = dataPeng.find((item) => item.no_pengadaan === idVal)
+        const data = dataSearch.find((item) => item.no_pengadaan === idVal)
         if (data === undefined) {
-            console.log()
+            console.log('undefined')
         } else {
             this.setState({noAjuan: data.no_pengadaan})
         }
@@ -389,7 +390,7 @@ class CartMutasi extends Component {
     inputNoIo = (val) => {
         console.log(val)
         const { noAjuan } = this.state
-        this.setState({noAjuan: noAjuan.length > 3 && val === '' ? noAjuan : val })
+        // this.setState({noAjuan: noAjuan.length > 3 && val === '' ? noAjuan : val })
         if(val !== undefined && val.length > 10) {
             this.getDataIo(val)
         } else {
@@ -402,17 +403,17 @@ class CartMutasi extends Component {
         const token = localStorage.getItem("token")
         const search = val
         await this.props.searchIo(token, '8', 'all', 'all', search, 100)
-        const {dataPeng} = this.props.pengadaan
-        console.log(dataPeng)
-        if (dataPeng.length > 0) {
+        const {dataSearch} = this.props.pengadaan
+        console.log(dataSearch)
+        if (dataSearch.length > 0) {
             const listNoIo = [
                 {value: '', label: '-Pilih-'}
             ]
 
-            for (let i = 0; i < dataPeng.length; i++) {
-                if (dataPeng[i].no_asset !== null) {
-                    listNoIo.push({value: dataPeng[i].no_asset, label: dataPeng[i].no_asset})
-                }
+            for (let i = 0; i < dataSearch.length; i++) {
+                // if (dataSearch[i].no_asset !== null) {
+                    listNoIo.push({value: dataSearch[i].no_pengadaan, label: dataSearch[i].no_pengadaan})
+                // }
             }
             console.log(listNoIo)
             this.setState({listNoIo: listNoIo, showOptions: true})
@@ -777,7 +778,7 @@ class CartMutasi extends Component {
                                     <Select
                                         // className="inputRinci2"
                                         options={this.state.showOptions ? this.state.listNoIo : []}
-                                        onClick={e => this.selectNoIo({val: e, type: 'noIo'})}
+                                        onChange={e => this.selectNoIo({val: e, type: 'noIo'})}
                                         onInputChange={e => this.inputNoIo(e)}
                                         isSearchable
                                         components={
@@ -850,7 +851,18 @@ class CartMutasi extends Component {
                         <div className={style.foot}>
                             <div></div>
                             <div>
-                                <Button className="mr-2" disabled={values.tipe === 'gudang' && (values.akta === null || values.akta === "null" || values.start === null || values.end === null)  ? true : false} onClick={handleSubmit} color="primary">Save</Button>
+                                <Button 
+                                className="mr-2" 
+                                disabled={
+                                    (values.tipe === 'gudang' && 
+                                    (values.akta === null || values.akta === "null" || values.start === null || values.end === null)) ||
+                                    (values.kategori === 'return' && (this.state.noAjuan === '' || this.state.noAjuan === null))  
+                                    ? true : false
+                                } 
+                                onClick={handleSubmit} 
+                                color="primary">
+                                    Save
+                                </Button>
                                 <Button className="mr-3" onClick={this.prosesAdd}>Cancel</Button>
                             </div>
                         </div>
@@ -859,7 +871,7 @@ class CartMutasi extends Component {
                     </Formik>
                 </Modal>
                 <Modal isOpen={this.state.rinci} size='lg'>
-                    <ModalHeader toggle={this.openModalAdd}>Rincian item</ModalHeader>
+                    <ModalHeader>Rincian item</ModalHeader>
                     <Formik
                     initialValues={{
                         nama: dataRinci.nama,
@@ -1013,7 +1025,7 @@ class CartMutasi extends Component {
                                         <Select
                                             // className="inputRinci2"
                                             options={this.state.showOptions ? this.state.listNoIo : []}
-                                            onClick={e => this.selectNoIo({val: e, type: 'noIo'})}
+                                            onChange={e => this.selectNoIo({val: e, type: 'noIo'})}
                                             onInputChange={e => this.inputNoIo(e)}
                                             isSearchable
                                             components={
@@ -1090,7 +1102,12 @@ class CartMutasi extends Component {
                                 <div>
                                     <Button 
                                         className="mr-2" 
-                                        disabled={values.tipe === 'gudang' && (values.akta === null || values.akta === "null" || values.start === null || values.end === null)  ? true : false} 
+                                        disabled={
+                                            (values.tipe === 'gudang' && 
+                                            (values.akta === null || values.akta === "null" || values.start === null || values.end === null)) ||
+                                            (values.kategori === 'return' && (this.state.noAjuan === '' || this.state.noAjuan === null))  
+                                            ? true : false
+                                        } 
                                         onClick={handleSubmit} color="primary"
                                     >
                                         Save

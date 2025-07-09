@@ -17,9 +17,9 @@ export default function AllPages(props) {
   const genData = dataFile === undefined ? ['file.pdf'] : dataFile.path.split('/')
   const cekDoc = genData[genData.length - 1].split('.')
   const cekPr = genData.find(item => item === 'printPR')
-  console.log(cekDoc)
-  console.log(cekDoc[cekDoc.length - 1])
-  console.log(pdf)
+  // console.log(cekDoc)
+  // console.log(cekDoc[cekDoc.length - 1])
+  // console.log(pdf)
   return (
     cekDoc.length !== 0 && filePict.find(item => item === cekDoc[cekDoc.length - 1].toString().toLowerCase()) !== undefined ? 
     <div>

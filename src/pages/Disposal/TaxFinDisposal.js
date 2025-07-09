@@ -42,6 +42,9 @@ import newnotif from '../../redux/actions/newnotif'
 import Email from '../../components/Disposal/Email'
 import FormDisposal from '../../components/Disposal/FormDisposal'
 import FormPersetujuan from '../../components/Disposal/FormPersetujuan'
+import ModalDokumen from '../../components/ModalDokumen'
+import debounce from 'lodash.debounce';
+import Select from 'react-select/creatable';
 
 const {REACT_APP_BACKEND_URL} = process.env
 
@@ -132,10 +135,80 @@ class TaxFinDisposal extends Component {
             tipeEmail: '',
             dataRej: {},
             openApprove: false,
-            openReject: false
+            openReject: false,
+            openDoc: false,
+            noDoc: '',
+            noTrans: '',
+            valdoc: {},
+            options: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+        this.debouncedLoadOptions = debounce(this.prosesSearch, 500)
+    }
+
+    prosesSearch = async (val) => {
+        const token = localStorage.getItem("token")
+        const level = localStorage.getItem('level')
+        const { time1, time2, search, limit, filter } = this.state
+        
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        
+        const status = filter === 'available' && level === '3' ? 5 : filter === 'available' && level === '4' ? 6 : filter === 'available' && level === '4' ? 7 : 'all'
+
+        if (val === null || val === undefined || val.length === 0) {
+            this.setState({ options: [] })
+        } else {
+            await this.props.searchDisposal(token, limit, search, 1, status, undefined, cekTime1, cekTime2)
+
+            const { dataSearch } = this.props.disposal
+            const firstOption = [
+                {value: val, label: val}
+            ]
+            const secondOption = [
+                {value: '', label: ''}
+            ]
+            
+    
+            for (let i = 0; i < dataSearch.length; i++) {
+                const dataArea = dataSearch[i].area
+                const dataNo = dataSearch[i].no_disposal
+                const dataItem = dataSearch[i].nama_asset
+    
+                const cekSecond = secondOption.find(item => item.value === dataNo)
+                if (cekSecond === undefined) {
+                    const data = {
+                        value: dataNo, label: dataNo
+                    }
+                    secondOption.push(data)
+                }
+            }
+    
+            const dataOption = [
+                ...firstOption,
+                ...secondOption
+            ]
+    
+            this.setState({ options: dataOption })
+        }
+    }
+    
+    handleInputChange = (val) => {
+        this.debouncedLoadOptions(val)
+        return val
+    }
+
+    goSearch = async (e) => {
+        if (e === null || e === undefined) {
+            console.log(e)
+        } else {
+            this.setState({ search: e.value })
+            const { filter } = this.state
+            setTimeout(() => {
+                this.changeFilter(filter)
+            }, 100)
+        }
     }
 
     chekApp = (val) => {
@@ -263,21 +336,128 @@ class TaxFinDisposal extends Component {
         this.setState({openPdf: !this.state.openPdf})
     }
 
-    cekSubmit = () => {
+    cekSubmit = async () => {
+        const token = localStorage.getItem('token')
         const {detailDis} = this.props.disposal
         const level = localStorage.getItem('level')
-        if (level === '2' && detailDis.find(item => (item.doc_sap === null || item.doc_sap === '') || (item.doc_clearing === null || item.doc_clearing === ''))) {
-            this.setState({confirm: 'falseNodoc'})
-            this.openConfirm()
-        } else if (level === '3' && detailDis.find(item => (item.no_fp === null || item.no_fp === ''))) {
-            this.setState({confirm: 'falseTax'})
-            this.openConfirm()
-        } else if (level === '4' && detailDis.find(item => (item.no_sap === null || item.no_sap === '') || (item.nominal === null || item.nominal === ''))) {
-            this.setState({confirm: 'falseFinance'})
-            this.openConfirm()
-        } else {
-            this.openModalApprove()
-        }
+        const cekDoc = []
+        const tempdocTax = []
+        const arrdocTax = []
+        const tempdocFin = []
+        const arrdocFin = []
+        if (level === '2') {
+            if (detailDis.find(item => (item.doc_sap === null || item.doc_sap === '') || (item.doc_clearing === null || item.doc_clearing === ''))) {
+                this.setState({confirm: 'falseNodoc'})
+                this.openConfirm()
+            } else {
+                for (let i = 0; i < detailDis.length; i++) {
+                    const data = {
+                        noId: detailDis[i].id,
+                        noAsset: detailDis[i].no_asset
+                    }
+
+                    await this.props.getDocumentDis(token, data, 'disposal', 'tax')
+                    const {dataDoc} = this.props.disposal
+                    for (let j = 0; j < dataDoc.length; j++) {
+                        if (dataDoc[j].path !== null) {
+                            const arr = dataDoc[j]
+                            const stat = arr.status_dokumen
+                            const cekLevel = stat !== null && stat !== '1' ? stat.split(',').reverse()[0].split(';')[0] : ''
+                            const cekStat = stat !== null && stat !== '1' ? stat.split(',').reverse()[0].split(';')[1] : ''
+                            if (cekLevel === ` level ${level}` && cekStat === ` status approve`) {
+                                tempdocTax.push(arr)
+                                arrdocTax.push(arr)
+                            } else {
+                                arrdocTax.push(arr)
+                            }
+                        }
+                    }
+                }
+                if (tempdocTax.length !== arrdocTax.length) {
+                    this.setState({confirm: 'falseDoc'})
+                    this.openConfirm()
+                } else {
+                    for (let i = 0; i < detailDis.length; i++) {
+                        const data = {
+                            noId: detailDis[i].id,
+                            noAsset: detailDis[i].no_asset
+                        }
+                        await this.props.getDocumentDis(token, data, 'disposal', 'finance')
+                        const {dataDoc} = this.props.disposal
+                        for (let j = 0; j < dataDoc.length; j++) {
+                            if (dataDoc[j].path !== null) {
+                                const arr = dataDoc[j]
+                                const stat = arr.status_dokumen
+                                const cekLevel = stat !== null && stat !== '1' ? stat.split(',').reverse()[0].split(';')[0] : ''
+                                const cekStat = stat !== null && stat !== '1' ? stat.split(',').reverse()[0].split(';')[1] : ''
+                                if (cekLevel === ` level ${level}` && cekStat === ` status approve`) {
+                                    tempdocFin.push(arr)
+                                    arrdocFin.push(arr)
+                                } else {
+                                    arrdocFin.push(arr)
+                                }
+                            }
+                        }
+                    }
+                    if (tempdocTax.length !== arrdocTax.length) {
+                        this.setState({confirm: 'falseDoc'})
+                        this.openConfirm()
+                    } else {
+                        this.openModalApprove()
+                    }
+                }
+            }
+        } else if (level === '3') {
+            if (detailDis.find(item => (item.no_fp === null || item.no_fp === ''))) {
+                this.setState({confirm: 'falseTax'})
+                this.openConfirm()
+            } else {
+                for (let i = 0; i < detailDis.length; i++) {
+                    const data = {
+                        noId: detailDis[i].id,
+                        noAsset: detailDis[i].no_asset
+                    }
+                    await this.props.getDocumentDis(token, data, 'disposal', 'tax')
+                    const {dataDoc} = this.props.disposal
+                    for (let j = 0; j < dataDoc.length; j++) {
+                        if (dataDoc[j].path === null) {
+                            cekDoc.push(dataDoc[j])
+                        }
+                    }
+                }
+                if (cekDoc.length > 0) {
+                    this.setState({confirm: 'falseDoc'})
+                    this.openConfirm()
+                } else {
+                    this.openModalApprove()
+                }
+            }
+        } else if (level === '4') {
+            if (detailDis.find(item => (item.no_sap === null || item.no_sap === '') || (item.nominal === null || item.nominal === ''))) {
+                this.setState({confirm: 'falseFinance'})
+                this.openConfirm()
+            } else {
+                for (let i = 0; i < detailDis.length; i++) {
+                    const data = {
+                        noId: detailDis[i].id,
+                        noAsset: detailDis[i].no_asset
+                    }
+                    await this.props.getDocumentDis(token, data, 'disposal', 'finance')
+                    const {dataDoc} = this.props.disposal
+                    for (let j = 0; j < dataDoc.length; j++) {
+                        if (dataDoc[j].path === null) {
+                            cekDoc.push(dataDoc[j])
+                        }
+                    }
+                }
+                if (cekDoc.length > 0) {
+                    this.setState({confirm: 'falseDoc'})
+                    this.openConfirm()
+                } else {
+                    this.openModalApprove()
+                }
+            }
+        } 
     }
 
     openModalApprove = () => {
@@ -419,6 +599,7 @@ class TaxFinDisposal extends Component {
 
     prosesSendEmail = async (val) => {
         const token = localStorage.getItem('token')
+        const level = localStorage.getItem('level')
         const { draftEmail } = this.props.tempmail
         const { detailDis } = this.props.disposal
         const { message, subject } = this.state
@@ -439,7 +620,8 @@ class TaxFinDisposal extends Component {
             tipe: 'disposal',
             menu: `disposal asset`,
             proses: val,
-            route: val === 'reject perbaikan' ? 'rev-disposal' : detailDis[0].status_form === 7 ? 'disposal' : 'taxfin-disposal'
+            route: val === 'reject perbaikan' ? 'rev-disposal' : detailDis[0].status_form === 7 ? 'disposal' : 'taxfin-disposal',
+            filter: detailDis[0].status_form === 7 ? 'finish' : 'available'
         }
         await this.props.sendEmail(token, sendMail)
         await this.props.addNewNotif(token, sendMail)
@@ -517,6 +699,41 @@ class TaxFinDisposal extends Component {
         this.closeProsesModalDoc()
     }
 
+    prosesOpenDokumen = (val) => {
+        const {item, tipe} = val
+        this.setState({dataRinci: item})
+        this.setState({ noDoc: item.no_asset, noTrans: item.no_disposal, valdoc: item, tipeDoc: tipe })
+        setTimeout(() => {
+            // this.openProsesDocPeng(val)
+            // this.openDocEksekusi(item)
+            if (tipe === 'tax') {
+                this.openDocTax(item)
+            } else if (tipe === 'finance') {
+                this.openDocFinance(item)
+            }
+         }, 100)
+    }
+
+    openDocTax = async (val) => {
+        const token = localStorage.getItem('token')
+        const data = {
+            noId: val.id,
+            noAsset: val.no_asset
+        }
+        await this.props.getDocumentDis(token, data, 'disposal', 'tax')
+        this.modalDocEks()
+    }
+
+    openDocFinance = async (val) => {
+        const token = localStorage.getItem('token')
+        const data = {
+            noId: val.id,
+            noAsset: val.no_asset
+        }
+        await this.props.getDocumentDis(token, data, 'disposal', 'finance')
+        this.modalDocEks()
+    }
+
     openDocEksekusi = async (val) => {
         const token = localStorage.getItem('token')
         this.setState({tipeDoc: 'sell'})
@@ -525,8 +742,13 @@ class TaxFinDisposal extends Component {
             noId: val.id,
             noAsset: val.no_asset
         }
-        await this.props.getDocumentDis(token, data, 'disposal', 'sell', 'ada')
-        this.closeProsesModalDoc()
+        const tipeDis = val.nilai_jual === "0" ? 'dispose' : 'sell'
+        await this.props.getDocumentDis(token, data, 'disposal', tipeDis, val.npwp)
+        this.modalDocEks()
+    }
+
+    modalDocEks = () => {
+        this.setState({openDoc: !this.state.openDoc})
     }
 
     openProsesDocTax = async (val) => {
@@ -574,8 +796,8 @@ class TaxFinDisposal extends Component {
         this.setState({isOpen: !this.state.isOpen})
     }
 
-    openConfirm = () => {
-        this.setState({modalConfirm: !this.state.modalConfirm})
+    openConfirm = (val) => {
+        this.setState({modalConfirm: val === undefined || val === null || val === '' ? !this.state.modalConfirm : val})
     }
 
     dropDown = () => {
@@ -795,10 +1017,16 @@ class TaxFinDisposal extends Component {
         const level = localStorage.getItem('level')
         const { dataRinci } = this.state
         const statusDoc = level === '3' ? 'taxDis' : level === '4' ? 'financeDis' : undefined
-        await this.props.updateDisposal(token, dataRinci.id, value, statusDoc)
-        await this.props.getDetailDisposal(token, dataRinci.no_disposal, 'pengajuan')
-        this.setState({confirm: 'update'})
-        this.openConfirm()
+        if (level === '4' && parseInt(value.nominal) < parseInt(dataRinci.nilai_jual)) {
+            this.setState({confirm: 'falseNominal'})
+            this.openConfirm()
+        } else {
+            await this.props.updateDisposal(token, dataRinci.id, value, statusDoc)
+            await this.props.getDetailDisposal(token, dataRinci.no_disposal, 'pengajuan')
+            this.setState({confirm: 'update'})
+            this.openConfirm()
+        }
+        
     }
 
     render() {
@@ -1026,7 +1254,7 @@ class TaxFinDisposal extends Component {
                             <select value={this.state.filter} onChange={e => this.changeFilter(e.target.value)} className={styleTrans.searchInput}>
                                 <option value="all">All</option>
                                 <option value="available">Available Approve</option>
-                                <option value="full">Full Approve</option>
+                                <option value="finish">Finished</option>
                                 <option value="reject">Reject</option>
                             </select>
                          </div>
@@ -1066,14 +1294,22 @@ class TaxFinDisposal extends Component {
                                     </>
                                 ) : null}
                             </ div>
-                            <input
+                            <Select
+                                className={styleTrans.searchSelect}
+                                options={this.state.options}
+                                onInputChange={this.handleInputChange}
+                                onChange={e => this.goSearch(e)}
+                                formatCreateLabel={(inputValue) => `"${inputValue}"`}
+                                isClearable
+                            />
+                            {/* <input
                                 type="text"
                                 placeholder="Search..."
                                 onChange={this.onSearch}
                                 value={this.state.search}
                                 onKeyPress={this.onSearch}
                                 className={styleTrans.searchInput}
-                            />
+                            /> */}
                         </div>
 
                         <table className={styleTrans.table}>
@@ -1100,8 +1336,18 @@ class TaxFinDisposal extends Component {
                                             <td>{item.kode_plant}</td>
                                             <td>{item.cost_center}</td>
                                             <td>{moment(item.tanggalDis).format('DD MMMM YYYY')}</td>
-                                            <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? item.appForm.find(item => item.status === 1).nama + ` (${item.appForm.find(item => item.status === 1).jabatan === 'area' ? 'AOS' : item.appForm.find(item => item.status === 1).jabatan})` : '-'}</td>
-                                            <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? moment(item.appForm.find(item => item.status === 1).updatedAt).format('DD/MM/YYYY HH:mm:ss') : '-'}</td>
+                                            <td>
+                                                {(item.ttdSet !== null && item.ttdSet.length > 0 && item.ttdSet.find(item => item.status === 1) !== undefined )
+                                                ? (item.ttdSet.find(item => item.status === 1).nama + ` (${item.ttdSet.find(item => item.status === 1).jabatan === 'area' ? 'AOS' : item.ttdSet.find(item => item.status === 1).jabatan})`)
+                                                : (item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? item.appForm.find(item => item.status === 1).nama + ` (${item.appForm.find(item => item.status === 1).jabatan === 'area' ? 'AOS' : item.appForm.find(item => item.status === 1).jabatan})` : '-')
+                                                }
+                                            </td>
+                                            <td>
+                                                {(item.ttdSet !== null && item.ttdSet.length > 0 && item.ttdSet.find(item => item.status === 1) !== undefined )
+                                                 ? (moment(item.ttdSet.find(item => item.status === 1).updatedAt).format('DD/MM/YYYY HH:mm:ss'))
+                                                 : (item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? moment(item.appForm.find(item => item.status === 1).updatedAt).format('DD/MM/YYYY HH:mm:ss') : '-')
+                                                }
+                                            </td>
                                             <td>
                                                 <Button 
                                                 className="mr-1 mt-1" 
@@ -1145,773 +1391,749 @@ class TaxFinDisposal extends Component {
                         </div>
                         </ModalBody>
                 </Modal>
+                <Modal size="xl" isOpen={this.state.openDoc} toggle={this.modalDocEks}>
+                    <ModalDokumen
+                        parDoc={{ 
+                            noDoc: this.state.noDoc, 
+                            noTrans: this.state.noTrans, 
+                            tipe: `${this.state.tipeDoc} disposal`, 
+                            filter: this.state.filter, 
+                            detailForm: this.state.valdoc 
+                        }}
+                        dataDoc={dataDoc}
+                    />
+                </Modal>
                 <Modal size="xl" isOpen={this.state.openModalDoc} toggle={this.closeProsesModalDoc}>
-                <ModalHeader>
-                Kelengkapan Dokumen
-                </ModalHeader>
-                <ModalBody>
-                    <Container>
-                        <Alert color="danger" className="alertWrong" isOpen={this.state.upload}>
-                            <div>{this.state.errMsg}</div>
-                        </Alert>
-                        {dataDoc !== undefined && dataDoc.map(x => {
-                            return (
-                                <Row className="mt-3 mb-4">
-                                    <Col md={6} lg={6} >
-                                        <text>{x.nama_dokumen}</text>
-                                    </Col>
-                                    {x.path !== null ? (
-                                        <Col md={6} lg={6}>
-                                        <div className="lsDoc">
-                                            {/* {x.status === 0 ? (
-                                                <AiOutlineClose size={20} />
-                                            ) : x.status === 3 ? (
-                                                <AiOutlineCheck size={20} />
-                                            ) : (
-                                                <BsCircle size={20} />
-                                            )} */}
-                                            {x.divisi === '0' ? (
-                                                <AiOutlineClose size={20} />
-                                            ) : x.divisi === '3' ? (
-                                                <AiOutlineCheck size={20} />
-                                            ) : (
-                                                <BsCircle size={20} />
-                                            )}
-                                            <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
-                                        </div>
-                                        <div>
-                                            <input
-                                            className="ml-4"
-                                            type="file"
-                                            onClick={() => this.setState({detail: x})}
-                                            onChange={this.onChangeUpload}
-                                            />
-                                        </div>
-                                    </Col>
-                                    ) : (
+                    <ModalHeader>
+                    Kelengkapan Dokumen
+                    </ModalHeader>
+                    <ModalBody>
+                        <Container>
+                            <Alert color="danger" className="alertWrong" isOpen={this.state.upload}>
+                                <div>{this.state.errMsg}</div>
+                            </Alert>
+                            {dataDoc !== undefined && dataDoc.map(x => {
+                                return (
+                                    <Row className="mt-3 mb-4">
                                         <Col md={6} lg={6} >
-                                            {level === '2' ? (
-                                                <text>-</text>
-                                            ) : (
+                                            <text>{x.nama_dokumen}</text>
+                                        </Col>
+                                        {x.path !== null ? (
+                                            <Col md={6} lg={6}>
+                                            <div className="lsDoc">
+                                                {/* {x.status === 0 ? (
+                                                    <AiOutlineClose size={20} />
+                                                ) : x.status === 3 ? (
+                                                    <AiOutlineCheck size={20} />
+                                                ) : (
+                                                    <BsCircle size={20} />
+                                                )} */}
+                                                {x.divisi === '0' ? (
+                                                    <AiOutlineClose size={20} />
+                                                ) : x.divisi === '3' ? (
+                                                    <AiOutlineCheck size={20} />
+                                                ) : (
+                                                    <BsCircle size={20} />
+                                                )}
+                                                <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
+                                            </div>
+                                            <div>
                                                 <input
                                                 className="ml-4"
                                                 type="file"
                                                 onClick={() => this.setState({detail: x})}
                                                 onChange={this.onChangeUpload}
                                                 />
-                                            )}
-                                        </Col>
-                                    )}
-                                </Row>
-                            )
-                        })}
-                    </Container>
-                </ModalBody>
-                <ModalFooter>
-                    <Button className="mr-2" color="secondary" onClick={this.closeProsesModalDoc}>
-                            Close
-                        </Button>
-                        <Button color="primary" onClick={this.closeProsesModalDoc}>
-                            Save 
-                    </Button>
-                </ModalFooter>
-            </Modal>
-            <Modal isOpen={this.state.modalRinci} toggle={this.openModalRinci} size="xl">
-                <ModalHeader>
-                    Rincian
-                </ModalHeader>
-                <ModalBody>
-                    <Alert color="danger" className={style.alertWrong} isOpen={alert}>
-                        <div>{alertM}</div>
-                    </Alert>
-                    <div className="mainRinci">
-                        <div className="leftRinci">
-                            <img src={placeholder} className="imgRinci" />
-                            <div className="secImgSmall">
-                                <button className="btnSmallImg">
-                                    <img src={placeholder} className="imgSmallRinci" />
-                                </button>
-                            </div>
-                        </div>
-                        <Formik
-                        initialValues = {{
-                            keterangan: dataRinci.keterangan === null ? '' : dataRinci.keterangan,
-                            nilai_jual: dataRinci.nilai_jual,
-                            merk: dataRinci.merk,
-                            no_sap: dataRinci.no_sap === null ? '' : dataRinci.no_sap,
-                            nominal: dataRinci.nominal === null ? '' : dataRinci.nominal,
-                            doc_sap: dataRinci.doc_sap === null ? '' : dataRinci.doc_sap,
-                            doc_clearing: dataRinci.doc_clearing === null ? '' : dataRinci.doc_clearing,
-                            no_fp: dataRinci.no_fp === null ? '' : dataRinci.no_fp
-                        }}
-                        validationSchema = {level === '2' ? assetSchema : level === '3' ? taxSchema : level === '4' ? finSchema : disposalSchema}
-                        onSubmit={(values) => {this.updateDataDis(values)}}
-                        >
-                        {({ setFieldValue, handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
-                            <div className="rightRinci">
-                                <div>
-                                    <div className="titRinci">{dataRinci.nama_asset}</div>
-                                    <Row className="mb-2 rowRinci">
-                                        <Col md={3}>Area</Col>
-                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.area} disabled /></Col>
-                                    </Row>
-                                    <Row className="mb-2 rowRinci">
-                                        <Col md={3}>No Asset</Col>
-                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
-                                    </Row>
-                                    <Row className="mb-2 rowRinci">
-                                        <Col md={3}>Merk / Type</Col>
-                                        <Col md={9} className="colRinci">:  <Input
-                                            type= "text" 
-                                            className="inputRinci"
-                                            value={values.merk}
-                                            onBlur={handleBlur("merk")}
-                                            onChange={handleChange("merk")}
-                                            disabled
-                                            />
-                                        </Col>
-                                    </Row>
-                                    {errors.merk ? (
-                                        <text className={`${style.txtError} ml-3`}>{errors.merk}</text>
-                                    ) : null}
-                                    <Row className="mb-2 rowRinci">
-                                        <Col md={3}>Kategori</Col>
-                                        <Col md={9} className="katCheck">: 
-                                            <div className="katCheck">
-                                                <div className="ml-2"><input type="checkbox" checked={dataRinci.kategori === 'IT' ? true : false}/> IT</div>
-                                                <div className="ml-3"><input type="checkbox" checked={dataRinci.kategori === 'NON IT' ? true : false}/> Non IT</div>
                                             </div>
                                         </Col>
-                                    </Row>
-                                    <Row className="mb-2 rowRinci">
-                                        <Col md={3}>Status Area</Col>
-                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.status_depo} disabled /></Col>
-                                    </Row>
-                                    <Row className="mb-2 rowRinci">
-                                        <Col md={3}>Cost Center</Col>
-                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
-                                    </Row>
-                                    <Row className="mb-2 rowRinci">
-                                        <Col md={3}>Nilai Buku</Col>
-                                        <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null || dataRinci.nilai_buku === undefined ? 0 : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
-                                    </Row>
-                                    <Row className="mb-2 rowRinci">
-                                            <Col md={3}>Nilai Buku Eksekusi</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku_eks === null || dataRinci.nilai_buku_eks === undefined ? 0 : dataRinci.nilai_buku_eks.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
-                                        </Row>
-                                    <Row className="mb-2 rowRinci">
-                                        <Col md={3}>Nilai Jual</Col>
-                                        <Col md={9} className="colRinci">:  <Input 
-                                            className="inputRinci" 
-                                            value={values.nilai_jual === null ? values.nilai_jual : values.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} 
-                                            onBlur={handleBlur("nilai_jual")}
-                                            onChange={handleChange("nilai_jual")}
-                                            disabled
-                                            />
-                                        </Col>
-                                    </Row>
-                                    {errors.nilai_jual ? (
-                                        <text className={`${style.txtError} ml-3`}>{errors.nilai_jual}</text>
-                                    ) : null}
-                                    <Row className="mb-2 rowRinci">
-                                        <Col md={3}>Keterangan</Col>
-                                        <Col md={9} className="colRinci">:  <Input
-                                            className="inputRinci" 
-                                            type="text" 
-                                            value={values.keterangan} 
-                                            onBlur={handleBlur("keterangan")}
-                                            onChange={handleChange("keterangan")}
-                                            disabled
-                                            />
-                                        </Col>
-                                    </Row>
-                                    {errors.keterangan ? (
-                                        <text className={`${style.txtError} ml-3`}>{errors.keterangan}</text>
-                                    ) : null}
-                                    {level === '2' ? (
-                                        <div>
-                                            <Row className="mb-2 rowRinci">
-                                                <Col md={3}>No Doc Finance</Col>
-                                                <Col md={9} className="colRinci">:  <Input 
-                                                    className="inputRinci" 
-                                                    value = {dataRinci.no_sap}
-                                                    disabled/>
-                                                </Col>
-                                            </Row>
-                                            <Row className="mb-2 rowRinci">
-                                                <Col md={3}>Nominal uang masuk</Col>
-                                                <Col md={9} className="colRinci">:  <Input 
-                                                    className="inputRinci" 
-                                                    value = {dataRinci.nominal === null ? dataRinci.nominal : dataRinci.nominal.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} 
-                                                    disabled/>
-                                                </Col>
-                                            </Row>
-                                            <Row className="mb-2 rowRinci">
-                                                <Col md={3}>Faktur Pajak</Col>
-                                                <Col md={9} className="colRinci">:  <Input 
-                                                    className="inputRinci"
-                                                    value = {dataRinci.no_fp} 
-                                                    disabled/>
-                                                 </Col>
-                                            </Row>
-                                            <Row className="mb-2 rowRinci">
-                                                <Col md={3}>No Doc SAP</Col>
-                                                <Col md={9} className="colRinci">:  <Input
-                                                    type="text" 
-                                                    className="inputRinci" 
-                                                    value={values.doc_sap} 
-                                                    onBlur={handleBlur("doc_sap")}
-                                                    onChange={handleChange("doc_sap")}
+                                        ) : (
+                                            <Col md={6} lg={6} >
+                                                {level === '2' ? (
+                                                    <text>-</text>
+                                                ) : (
+                                                    <input
+                                                    className="ml-4"
+                                                    type="file"
+                                                    onClick={() => this.setState({detail: x})}
+                                                    onChange={this.onChangeUpload}
                                                     />
-                                                </Col>
-                                            </Row>
-                                            {errors.doc_sap ? (
-                                                <text className={`${style.txtError} ml-3`}>{errors.doc_sap}</text>
-                                            ) : null}
-                                            <Row className="mb-5 rowRinci">
-                                                <Col md={3}>No Doc Clearing</Col>
-                                                <Col md={9} className="colRinci">:  <Input
-                                                    type="text" 
-                                                    className="inputRinci" 
-                                                    value={values.doc_clearing} 
-                                                    onBlur={handleBlur("doc_clearing")}
-                                                    onChange={handleChange("doc_clearing")}
-                                                    />
-                                                </Col>
-                                            </Row>
-                                            {errors.doc_clearing ? (
-                                                <text className={`${style.txtError} ml-3`}>{errors.doc_clearing}</text>
-                                            ) : null}
-                                        </div>
-                                    ) : level === '3' ? (
-                                        <div>
-                                            <Row className="mb-5 rowRinci">
-                                                <Col md={3}>Faktur Pajak</Col>
-                                                <Col md={9} className="colRinci">:  <Input 
-                                                    type="text" 
-                                                    className="inputRinci" 
-                                                    value={values.no_fp} 
-                                                    onBlur={handleBlur("no_fp")}
-                                                    onChange={handleChange("no_fp")}
-                                                    />
-                                                </Col>
-                                                {errors.no_fp ? (
-                                                    <text className={`${style.txtError} ml-3`}>{errors.no_fp}</text>
-                                                ) : null}
-                                            </Row>
-                                        </div>
-                                    ) : level === '4' ? (
-                                        <div>
-                                            <Row className="mb-2 rowRinci">
-                                                <Col md={3}>No Doc Finance</Col>
-                                                <Col md={9} className="colRinci">:  <Input 
-                                                    type="text" 
-                                                    className="inputRinci" 
-                                                    value={values.no_sap} 
-                                                    onBlur={handleBlur("no_sap")}
-                                                    onChange={handleChange("no_sap")}
-                                                    />
-                                                </Col>
-                                            </Row>
-                                            {errors.no_sap ? (
-                                                <text className={`${style.txtError} ml-3`}>{errors.no_sap}</text>
-                                            ) : null}
-                                            <Row className="mb-2 rowRinci">
-                                                <Col md={3}>Nominal uang masuk</Col>
-                                                <Col md={9} className="colRinci">:  <NumberInput 
-                                                    value={values.nominal}
-                                                    className="inputRinci1"
-                                                    onValueChange={val => setFieldValue("nominal", val.floatValue)}
-                                                />
-                                                </Col>
-                                            </Row>
-                                            {errors.nominal ? (
-                                                <text className='txtError mb-2 ml-3'>{errors.nominal}</text>
-                                            ) : null}
-                                        </div>
-                                    ) : (
-                                        <Row></Row>
-                                    )}
-                                </div>
-                                <Row className="footRinci1 mt-1">
-                                    <div className='rowGeneral'>
-                                        {level === "3" ? (
-                                            <Button size="md" color="success" onClick={() => this.openProsesDocTax(dataRinci)}>Upload Doc</Button>
-                                        ) : level === '4' && (
-                                            <Button size="md" color="success" onClick={() => this.openProsesDocFinance(dataRinci)}>Upload Doc</Button>
+                                                )}
+                                            </Col>
                                         )}
-                                    </div>
-                                    <div className='rowGeneral'>
-                                        <Button className="mr-1" size="md" color="primary" onClick={handleSubmit}>Save</Button>
-                                        <Button size="md" color="secondary" onClick={() => this.openModalRinci()}>Close</Button>
-                                    </div>
-                                </Row>
-                                {/* {level === '2' ? (
-                                    <Row className="footRinci1 ml-2 mb-2">
-                                        <Button className="btnFootRinci3" size="md" color="primary" outline onClick={handleSubmit}>Save</Button>
-                                        <Button className="btnFootRinci3" size="md" color="warning" outline onClick={() => this.openProsesDocFinance(dataRinci)}>Doc Finance</Button>
-                                        <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocTax(dataRinci)}>Doc Tax</Button>
-                                        <Button className="btnFootRinci3" size="md" color="danger" outline onClick={() => this.pengajuanDisposal(dataRinci.no_disposal)}>Form Pengajuan</Button>
-                                        <Button className="btnFootRinci3" size="md" color="info" outline onClick={() => this.persetujuanDisposal(dataRinci.status_app)}>Form Persetujuan</Button>
-                                        <Button className="btnFootRinci3" size="md" color="primary" outline onClick={() => this.openDocEksekusi()}>Doc Eksekusi</Button>
-                                        <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocPeng()}>Doc Pengajuan</Button>
-                                        <Button className="btnFootRinci3 mb-5" size="md" color="danger" outline onClick={() => this.goReport(dataRinci.no_asset)}>Show Report</Button>
-                                        <Button className="btnFootRinci3 mb-5" size="md" color="secondary" outline onClick={() => this.openModalRinci()}>Close</Button>
                                     </Row>
-                                ) : (
-                                    <Row className="footRinci1 ml-2">
-                                        <Button className="btnFootRinci3" size="md" color="primary" outline onClick={handleSubmit}>Save</Button>
-                                        {level === "3" ? (
-                                            <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocTax(dataRinci)}>Upload Doc</Button>
-                                        ) : level === '4' && (
-                                            <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocFinance(dataRinci)}>Upload Doc</Button>
-                                        )}
-                                        <Button className="btnFootRinci3" size="md" color="warning" outline onClick={() => this.pengajuanDisposal(dataRinci.no_disposal)}>Form Pengajuan</Button>
-                                        <Button className="btnFootRinci3" size="md" color="info" outline onClick={() => this.persetujuanDisposal(dataRinci.status_app)}>Form Persetujuan</Button>
-                                        <Button className="btnFootRinci3" size="md" color="danger" outline onClick={() => this.openDocEksekusi()}>Doc Eksekusi</Button>
-                                        <Button className="btnFootRinci3" size="md" color="primary" outline onClick={() => this.openProsesDocPeng()}>Doc Pengajuan</Button>
-                                    </Row>
-                                )} */}
-                            </div>
-                        )}
-                        </Formik>
-                    </div>
-                </ModalBody>
-            </Modal>
-            <Modal isOpen={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
-                <ModalHeader>Dokumen</ModalHeader>
-                <ModalBody>
-                    <div className={style.readPdf}>
-                        <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
-                    </div>
-                    <hr/>
-                    <div className={style.foot}>
-                        <div>
-                            <Button color="success" onClick={() => this.downloadData()}>Download</Button>
-                        </div> 
-                        {level === '2' ? (
-                            <div>
-                                <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
-                                <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
-                            </div>
-                        ) : (
-                            <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>  
-                        )}
-                    </div>
-                </ModalBody>
-            </Modal>
-            <Modal isOpen={this.state.formDis} toggle={this.openModalDis} size="xl" className='xl'>
-                {/* <Alert color="danger" className={style.alertWrong} isOpen={detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true}>
-                    <div>Data Penjualan Asset Sedang Dilengkapi oleh divisi purchasing</div>
-                </Alert> */}
-                <ModalBody>
-                    <div className="preDis">
-                        <text className='bold'>PT. Pinus Merah Abadi</text>
-                        <text></text>
-                    </div>
-                    <div className="modalDis">
-                        <text className="titleModDis">FORM PENGAJUAN DISPOSAL ASET</text>
-                    </div>
-                    <div className="mb-2 bold">
-                        <text className="txtTrans">
-                            {detailDis[0] !== undefined && detailDis[0].area}
-                        </text>, 
-                        {moment(detailDis[0] !== undefined && detailDis[0].tanggalDis).locale('idn').format('DD MMMM YYYY ')}
-                    </div>
-                    <Row>
-                        <Col md={2} className='bold'>
-                        Hal
-                        </Col>
-                        <Col md={10} className='bold'>
-                        : Pengajuan Disposal Asset
-                        </Col>
-                    </Row>
-                    <Row className="mb-2 bold">
-                        <Col md={2}>
-                        {detailDis[0] === undefined ? "" :
-                        detailDis[0].status_depo === "Cabang Scylla" || detailDis[0].status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
-                        </Col>
-                        <Col md={10} className="txtTrans">
-                        : {detailDis[0] !== undefined && detailDis[0].area + ' - ' + detailDis[0].cost_center} 
-                        </Col>
-                    </Row>
-                    <div>Kepada Yth.</div>
-                    <div>Bpk/Ibu Pimpinan</div>
-                    <div className="mb-2">Di tempat</div>
-                    <div>Dengan Hormat,</div>
-                    <div className="mb-3">Dengan surat ini kami mengajukan permohonan disposal aset dengan perincian sbb :</div>
-                    <Table striped bordered responsive hover className="tableDis mb-3">
-                        <thead>
-                            <tr>
-                                <th></th>
-                                <th>No</th>
-                                <th>Nomor Asset</th>
-                                <th>Nama Barang</th>
-                                <th>Merk/Type</th>
-                                <th>Kategori</th>
-                                <th>Nilai Buku</th>
-                                <th>Nilai Jual</th>
-                                <th>Keterangan</th>
-                                <th>Opsi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {detailDis.length !== 0 && detailDis.map(item => {
-                                return (
-                                    <tr>
-                                        <td> 
-                                            <Input
-                                            addon
-                                            disabled={this.state.filter !== 'available' && this.state.filter !== 'revisi' ? true : false}
-                                            checked={listMut.find(element => element === item.id) !== undefined ? true : false}
-                                            type="checkbox"
-                                            onClick={listMut.find(element => element === item.id) === undefined ? () => this.chekApp(item.id) : () => this.chekRej(item.id)}
-                                            value={item.id} />
-                                        </td>
-                                        <th scope="row" >{detailDis.indexOf(item) + 1}</th>
-                                        {/* <td onClick={() => this.openDataRinci(item)}>{item.no_asset}</td> */}
-                                        <td>{item.no_asset}</td>
-                                        <td>{item.nama_asset}</td>
-                                        <td>{item.merk}</td>
-                                        <td>{item.kategori}</td>
-                                        <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                        <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                        <td>{item.keterangan}</td>
-                                        <td >
-                                            {this.state.filter === 'available' && (
-                                                <Button className='ml-1 mt-1' color='warning' onClick={() => this.prosesOpenRinci(item)}>Proses</Button>
-                                            )}
-                                            <Button className='ml-1 mt-1' color='success' onClick={() => this.openProsesDocPeng(item)}>Dokumen</Button>
-                                        </td>
-                                    </tr>
                                 )
                             })}
-                        </tbody>
-                    </Table>
-                    <div className="mb-3">Demikianlah hal yang kami sampaikan, atas perhatiannya kami mengucapkan terima kasih</div>
-                    <Table borderless responsive className="tabPreview">
-                        <thead>
-                            <tr>
-                                <th className="buatPre">Dibuat oleh,</th>
-                                <th className="buatPre">Diperiksa oleh,</th>
-                                <th className="buatPre">Disetujui oleh,</th>
-                            </tr>
-                        </thead>
-                        <tbody className="tbodyPre">
-                            <tr>
-                                <td className="restTable">
-                                    <Table bordered responsive className="divPre">
-                                        <thead>
-                                            <tr>
-                                                {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
-                                                    return (
-                                                        <th className="headPre">
-                                                            <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                            <div>{item.nama === null ? "-" : item.nama}</div>
-                                                        </th>
-                                                    )
-                                                })}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                            {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
-                                                return (
-                                                    <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                )
-                                            })}
-                                            </tr>
-                                        </tbody>
-                                    </Table>
-                                </td>
-                                <td className="restTable">
-                                    <Table bordered responsive className="divPre">
-                                        <thead>
-                                            <tr>
-                                                {disApp.pemeriksa !== undefined && disApp.pemeriksa.map(item => {
-                                                    return (
-                                                        (item.id_role === 2 || item.jabatan === 'asset') ? (
-                                                            null
-                                                        ) : (
-                                                        <th className="headPre">
-                                                            <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                            <div>{item.nama === null ? "-" : item.nama}</div>
-                                                        </th>
-                                                        )
-                                                    )
-                                                })}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                {disApp.pemeriksa !== undefined && disApp.pemeriksa.map(item => {
-                                                    return (
-                                                        (item.id_role === 2 || item.jabatan === 'asset') ? (
-                                                            null
-                                                        ) : (
-                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                        )
-                                                    )
-                                                })}
-                                            </tr>
-                                        </tbody>
-                                    </Table>
-                                </td>
-                                <td className="restTable">
-                                    <Table bordered responsive className="divPre">
-                                        <thead>
-                                            <tr>
-                                                {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
-                                                    return (
-                                                        <th className="headPre">
-                                                            <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                            <div>{item.nama === null ? "-" : item.nama}</div>
-                                                        </th>
-                                                    )
-                                                })}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                {disApp.penyetuju !== undefined && disApp.penyetuju.map(item => {
-                                                    return (
-                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                    )
-                                                })}
-                                            </tr>
-                                        </tbody>
-                                    </Table>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </Table>
-                </ModalBody>
-                <hr />
-                <div className="modalFoot ml-3">
-                    <div className="btnFoot">
-                        <FormDisposal />
-                        {detailDis.length > 0 && detailDis[0].status_form !== 26 && detailDis[0].status_form !== 9 && detailDis[0].status_form >= 3 && (
-                            <FormPersetujuan />
+                        </Container>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button className="mr-2" color="secondary" onClick={this.closeProsesModalDoc}>
+                                Close
+                            </Button>
+                            <Button color="primary" onClick={this.closeProsesModalDoc}>
+                                Save 
+                        </Button>
+                    </ModalFooter>
+                </Modal>
+                <Modal isOpen={this.state.modalRinci} toggle={this.openModalRinci} size="xl">
+                    <ModalHeader>
+                        Rincian
+                    </ModalHeader>
+                    <ModalBody>
+                        <Alert color="danger" className={style.alertWrong} isOpen={alert}>
+                            <div>{alertM}</div>
+                        </Alert>
+                        <div className="mainRinci">
+                            <div className="leftRinci">
+                                <img src={placeholder} className="imgRinci" />
+                                <div className="secImgSmall">
+                                    <button className="btnSmallImg">
+                                        <img src={placeholder} className="imgSmallRinci" />
+                                    </button>
+                                </div>
+                            </div>
+                            <Formik
+                            initialValues = {{
+                                keterangan: dataRinci.keterangan === null ? '' : dataRinci.keterangan,
+                                nilai_jual: dataRinci.nilai_jual,
+                                merk: dataRinci.merk,
+                                no_sap: dataRinci.no_sap === null ? '' : dataRinci.no_sap,
+                                nominal: dataRinci.nominal === null ? '' : dataRinci.nominal,
+                                doc_sap: dataRinci.doc_sap === null ? '' : dataRinci.doc_sap,
+                                doc_clearing: dataRinci.doc_clearing === null ? '' : dataRinci.doc_clearing,
+                                no_fp: dataRinci.no_fp === null ? '' : dataRinci.no_fp
+                            }}
+                            validationSchema = {level === '2' ? assetSchema : level === '3' ? taxSchema : level === '4' ? finSchema : disposalSchema}
+                            onSubmit={(values) => {this.updateDataDis(values)}}
+                            >
+                            {({ setFieldValue, handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                                <div className="rightRinci">
+                                    <div>
+                                        <div className="titRinci">{dataRinci.nama_asset}</div>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Area</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.area} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>No Asset</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Merk / Type</Col>
+                                            <Col md={9} className="colRinci">:  <Input
+                                                type= "text" 
+                                                className="inputRinci"
+                                                value={values.merk}
+                                                onBlur={handleBlur("merk")}
+                                                onChange={handleChange("merk")}
+                                                disabled
+                                                />
+                                            </Col>
+                                        </Row>
+                                        {errors.merk ? (
+                                            <text className={`${style.txtError} ml-3`}>{errors.merk}</text>
+                                        ) : null}
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Kategori</Col>
+                                            <Col md={9} className="katCheck">: 
+                                                <div className="katCheck">
+                                                    <div className="ml-2"><input type="checkbox" checked={dataRinci.kategori === 'IT' ? true : false}/> IT</div>
+                                                    <div className="ml-3"><input type="checkbox" checked={dataRinci.kategori === 'NON IT' ? true : false}/> Non IT</div>
+                                                </div>
+                                            </Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Status Area</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.status_depo} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Cost Center</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.cost_center} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Nilai Buku</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null || dataRinci.nilai_buku === undefined ? 0 : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                                <Col md={3}>Nilai Buku Eksekusi</Col>
+                                                <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku_eks === null || dataRinci.nilai_buku_eks === undefined ? 0 : dataRinci.nilai_buku_eks.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
+                                            </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Nilai Jual</Col>
+                                            <Col md={9} className="colRinci">:  <Input 
+                                                className="inputRinci" 
+                                                value={values.nilai_jual === null ? values.nilai_jual : values.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} 
+                                                onBlur={handleBlur("nilai_jual")}
+                                                onChange={handleChange("nilai_jual")}
+                                                disabled
+                                                />
+                                            </Col>
+                                        </Row>
+                                        {errors.nilai_jual ? (
+                                            <text className={`${style.txtError} ml-3`}>{errors.nilai_jual}</text>
+                                        ) : null}
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Keterangan</Col>
+                                            <Col md={9} className="colRinci">:  <Input
+                                                className="inputRinci" 
+                                                type="text" 
+                                                value={values.keterangan} 
+                                                onBlur={handleBlur("keterangan")}
+                                                onChange={handleChange("keterangan")}
+                                                disabled
+                                                />
+                                            </Col>
+                                        </Row>
+                                        {errors.keterangan ? (
+                                            <text className={`${style.txtError} ml-3`}>{errors.keterangan}</text>
+                                        ) : null}
+                                        {level === '2' ? (
+                                            <div>
+                                                <Row className="mb-2 rowRinci">
+                                                    <Col md={3}>No Doc Finance</Col>
+                                                    <Col md={9} className="colRinci">:  <Input 
+                                                        className="inputRinci" 
+                                                        value = {dataRinci.no_sap}
+                                                        disabled/>
+                                                    </Col>
+                                                </Row>
+                                                <Row className="mb-2 rowRinci">
+                                                    <Col md={3}>Nominal uang masuk</Col>
+                                                    <Col md={9} className="colRinci">:  <Input 
+                                                        className="inputRinci" 
+                                                        value = {dataRinci.nominal === null ? dataRinci.nominal : dataRinci.nominal.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} 
+                                                        disabled/>
+                                                    </Col>
+                                                </Row>
+                                                <Row className="mb-2 rowRinci">
+                                                    <Col md={3}>Faktur Pajak</Col>
+                                                    <Col md={9} className="colRinci">:  <Input 
+                                                        className="inputRinci"
+                                                        value = {dataRinci.no_fp} 
+                                                        disabled/>
+                                                    </Col>
+                                                </Row>
+                                                <Row className="mb-2 rowRinci">
+                                                    <Col md={3}>No Doc SAP</Col>
+                                                    <Col md={9} className="colRinci">:  <Input
+                                                        type="text" 
+                                                        className="inputRinci" 
+                                                        value={values.doc_sap} 
+                                                        onBlur={handleBlur("doc_sap")}
+                                                        onChange={handleChange("doc_sap")}
+                                                        />
+                                                    </Col>
+                                                    {errors.doc_sap ? (
+                                                        <text className={`${style.txtError} mb-2 ml-3`}>{errors.doc_sap}</text>
+                                                    ) : null}
+                                                </Row>
+                                                <Row className="mb-5 rowRinci">
+                                                    <Col md={3}>No Doc Clearing</Col>
+                                                    <Col md={9} className="colRinci">:  <Input
+                                                        type="text" 
+                                                        className="inputRinci" 
+                                                        value={values.doc_clearing} 
+                                                        onBlur={handleBlur("doc_clearing")}
+                                                        onChange={handleChange("doc_clearing")}
+                                                        />
+                                                    </Col>
+                                                    {errors.doc_clearing ? (
+                                                        <text className={`${style.txtError} mb-2 ml-3`}>{errors.doc_clearing}</text>
+                                                    ) : null}
+                                                </Row>
+                                            </div>
+                                        ) : level === '3' ? (
+                                            <div>
+                                                <Row className="mb-5 rowRinci">
+                                                    <Col md={3}>Faktur Pajak</Col>
+                                                    <Col md={9} className="colRinci">:  <Input 
+                                                        type="text" 
+                                                        className="inputRinci" 
+                                                        value={values.no_fp} 
+                                                        onBlur={handleBlur("no_fp")}
+                                                        onChange={handleChange("no_fp")}
+                                                        />
+                                                    </Col>
+                                                    {errors.no_fp ? (
+                                                        <text className={`${style.txtError} mb-2 ml-3`}>{errors.no_fp}</text>
+                                                    ) : null}
+                                                </Row>
+                                            </div>
+                                        ) : level === '4' ? (
+                                            <div>
+                                                <Row className="mb-2 rowRinci">
+                                                    <Col md={3}>No Doc Finance</Col>
+                                                    <Col md={9} className="colRinci">:  <Input 
+                                                        type="text" 
+                                                        className="inputRinci" 
+                                                        value={values.no_sap} 
+                                                        onBlur={handleBlur("no_sap")}
+                                                        onChange={handleChange("no_sap")}
+                                                        />
+                                                    </Col>
+                                                    {errors.no_sap ? (
+                                                        <text className={`${style.txtError} mb-2 ml-3`}>{errors.no_sap}</text>
+                                                    ) : null}
+                                                </Row>
+                                                <Row className="mb-5 rowRinci">
+                                                    <Col md={3}>Nominal uang masuk</Col>
+                                                    <Col md={9} className="colRinci">:  <NumberInput 
+                                                        value={values.nominal}
+                                                        className="inputRinci1"
+                                                        onValueChange={val => setFieldValue("nominal", val.floatValue)}
+                                                    />
+                                                    </Col>
+                                                    {errors.nominal ? (
+                                                        <text className='txtError mb-2 ml-3'>{errors.nominal}</text>
+                                                    ) : null}
+                                                </Row>
+                                            </div>
+                                        ) : (
+                                            <Row></Row>
+                                        )}
+                                    </div>
+                                    <Row className="footRinci1 mt-1">
+                                        <div className='rowGeneral ml-2'>
+                                            {level === "3" ? (
+                                                <Button size="md" color="success" onClick={() => this.openProsesDocTax(dataRinci)}>Upload Doc</Button>
+                                            ) : level === '4' ? (
+                                                <Button size="md" color="success" onClick={() => this.openProsesDocFinance(dataRinci)}>Upload Doc</Button>
+                                            ) : (
+                                                <>
+                                                    <Button 
+                                                    className='ml-1' 
+                                                    color='success' 
+                                                    size="md"
+                                                    onClick={() => this.prosesOpenDokumen({item: dataRinci, tipe: 'tax'})}>
+                                                        Dokumen Tax
+                                                    </Button>
+                                                    <Button 
+                                                    className='ml-1' 
+                                                    color='warning' 
+                                                    size="md"
+                                                    onClick={() => this.prosesOpenDokumen({item: dataRinci, tipe: 'finance'})}>
+                                                        Dokumen Finance
+                                                    </Button>
+                                                </>
+                                            )}
+                                        </div>
+                                        <div className='rowGeneral'>
+                                            <Button className="mr-1" size="md" color="primary" onClick={handleSubmit}>Save</Button>
+                                            <Button size="md" color="secondary" onClick={() => this.openModalRinci()}>Close</Button>
+                                        </div>
+                                    </Row>
+                                    {/* {level === '2' ? (
+                                        <Row className="footRinci1 ml-2 mb-2">
+                                            <Button className="btnFootRinci3" size="md" color="primary" outline onClick={handleSubmit}>Save</Button>
+                                            <Button className="btnFootRinci3" size="md" color="warning" outline onClick={() => this.openProsesDocFinance(dataRinci)}>Doc Finance</Button>
+                                            <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocTax(dataRinci)}>Doc Tax</Button>
+                                            <Button className="btnFootRinci3" size="md" color="danger" outline onClick={() => this.pengajuanDisposal(dataRinci.no_disposal)}>Form Pengajuan</Button>
+                                            <Button className="btnFootRinci3" size="md" color="info" outline onClick={() => this.persetujuanDisposal(dataRinci.status_app)}>Form Persetujuan</Button>
+                                            <Button className="btnFootRinci3" size="md" color="primary" outline onClick={() => this.openDocEksekusi()}>Doc Eksekusi</Button>
+                                            <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocPeng()}>Doc Pengajuan</Button>
+                                            <Button className="btnFootRinci3 mb-5" size="md" color="danger" outline onClick={() => this.goReport(dataRinci.no_asset)}>Show Report</Button>
+                                            <Button className="btnFootRinci3 mb-5" size="md" color="secondary" outline onClick={() => this.openModalRinci()}>Close</Button>
+                                        </Row>
+                                    ) : (
+                                        <Row className="footRinci1 ml-2">
+                                            <Button className="btnFootRinci3" size="md" color="primary" outline onClick={handleSubmit}>Save</Button>
+                                            {level === "3" ? (
+                                                <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocTax(dataRinci)}>Upload Doc</Button>
+                                            ) : level === '4' && (
+                                                <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocFinance(dataRinci)}>Upload Doc</Button>
+                                            )}
+                                            <Button className="btnFootRinci3" size="md" color="warning" outline onClick={() => this.pengajuanDisposal(dataRinci.no_disposal)}>Form Pengajuan</Button>
+                                            <Button className="btnFootRinci3" size="md" color="info" outline onClick={() => this.persetujuanDisposal(dataRinci.status_app)}>Form Persetujuan</Button>
+                                            <Button className="btnFootRinci3" size="md" color="danger" outline onClick={() => this.openDocEksekusi()}>Doc Eksekusi</Button>
+                                            <Button className="btnFootRinci3" size="md" color="primary" outline onClick={() => this.openProsesDocPeng()}>Doc Pengajuan</Button>
+                                        </Row>
+                                    )} */}
+                                </div>
+                            )}
+                            </Formik>
+                        </div>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
+                    <ModalHeader>Dokumen</ModalHeader>
+                    <ModalBody>
+                        <div className={style.readPdf}>
+                            <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
+                        </div>
+                        <hr/>
+                        <div className={style.foot}>
+                            <div>
+                                <Button color="success" onClick={() => this.downloadData()}>Download</Button>
+                            </div> 
+                            {level === '2' ? (
+                                <div>
+                                    <Button color="danger" className="mr-3" onClick={this.openModalRejectDis}>Reject</Button>
+                                    <Button color="primary" onClick={this.openModalApproveDis}>Approve</Button>
+                                </div>
+                            ) : (
+                                <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>  
+                            )}
+                        </div>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.formDis} toggle={this.openModalDis} size="xl" className='xl'>
+                    {/* <Alert color="danger" className={style.alertWrong} isOpen={detailDis.find(({status_form}) => status_form === 26) === undefined ? false : true}>
+                        <div>Data Penjualan Asset Sedang Dilengkapi oleh divisi purchasing</div>
+                    </Alert> */}
+                    <ModalBody>
+                        <div className="preDis">
+                            <text className='bold'>PT. Pinus Merah Abadi</text>
+                            <text></text>
+                        </div>
+                        <div className="modalDis">
+                            <text className="titleModDis">FORM PENGAJUAN DISPOSAL ASET</text>
+                        </div>
+                        <div className="mb-2 bold">
+                            <text className="txtTrans">
+                                {detailDis[0] !== undefined && detailDis[0].area}
+                            </text>, 
+                            {moment(detailDis[0] !== undefined && detailDis[0].tanggalDis).locale('idn').format('DD MMMM YYYY ')}
+                        </div>
+                        <Row>
+                            <Col md={2} className='bold'>
+                            Hal
+                            </Col>
+                            <Col md={10} className='bold'>
+                            : Pengajuan Disposal Asset
+                            </Col>
+                        </Row>
+                        <Row className="mb-2 bold">
+                            <Col md={2}>
+                            {detailDis[0] === undefined ? "" :
+                            detailDis[0].status_depo === "Cabang Scylla" || detailDis[0].status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
+                            </Col>
+                            <Col md={10} className="txtTrans">
+                            : {detailDis[0] !== undefined && detailDis[0].area + ' - ' + detailDis[0].cost_center} 
+                            </Col>
+                        </Row>
+                        <div>Kepada Yth.</div>
+                        <div>Bpk/Ibu Pimpinan</div>
+                        <div className="mb-2">Di tempat</div>
+                        <div>Dengan Hormat,</div>
+                        <div className="mb-3">Dengan surat ini kami mengajukan permohonan disposal aset dengan perincian sbb :</div>
+                        <Table striped bordered responsive hover className="tableDis mb-3">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>No</th>
+                                    <th>Nomor Asset</th>
+                                    <th>Nama Barang</th>
+                                    <th>Merk/Type</th>
+                                    <th>Kategori</th>
+                                    <th>Nilai Buku</th>
+                                    <th>Nilai Jual</th>
+                                    <th>Keterangan</th>
+                                    <th>Opsi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {detailDis.length !== 0 && detailDis.map(item => {
+                                    return (
+                                        <tr>
+                                            <td> 
+                                                <Input
+                                                addon
+                                                disabled={this.state.filter !== 'available' && this.state.filter !== 'revisi' ? true : false}
+                                                checked={listMut.find(element => element === item.id) !== undefined ? true : false}
+                                                type="checkbox"
+                                                onClick={listMut.find(element => element === item.id) === undefined ? () => this.chekApp(item.id) : () => this.chekRej(item.id)}
+                                                value={item.id} />
+                                            </td>
+                                            <th scope="row" >{detailDis.indexOf(item) + 1}</th>
+                                            {/* <td onClick={() => this.openDataRinci(item)}>{item.no_asset}</td> */}
+                                            <td>{item.no_asset}</td>
+                                            <td>{item.nama_asset}</td>
+                                            <td>{item.merk}</td>
+                                            <td>{item.kategori}</td>
+                                            <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.keterangan}</td>
+                                            <td >
+                                                {this.state.filter === 'available' && (
+                                                    <Button className='ml-1 mt-1' color='warning' onClick={() => this.prosesOpenRinci(item)}>Proses</Button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </Table>
+                        <div className="mb-3">Demikianlah hal yang kami sampaikan, atas perhatiannya kami mengucapkan terima kasih</div>
+                        <Table bordered responsive className="tabPreview">
+                            <thead>
+                                <tr>
+                                    <th className="buatPre" colSpan={disApp.pembuat?.length || 1}>Dibuat oleh,</th>
+                                    <th className="buatPre" colSpan={
+                                        disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').length || 1
+                                    }>Diperiksa oleh,</th>
+                                    <th className="buatPre" colSpan={disApp.penyetuju?.length || 1}>Disetujui oleh,</th>
+                                </tr>
+                                <tr>
+                                    {disApp.pembuat?.map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
+                                    {disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
+                                    {disApp.penyetuju?.map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    {disApp.pembuat?.map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
+                                    {disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
+                                    {disApp.penyetuju?.map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
+                                </tr>
+                            </tbody>
+                        </Table>
+                    </ModalBody>
+                    <hr />
+                    <div className="modalFoot ml-3">
+                        <div className="btnFoot">
+                            <FormDisposal />
+                            {detailDis.length > 0 && detailDis[0].status_form !== 26 && detailDis[0].status_form !== 9 && detailDis[0].status_form >= 3 && (
+                                <FormPersetujuan />
+                            )}
+                        </div>
+                        {this.state.filter !== 'available' ? (
+                            <div className="btnFoot">
+                            </div>
+                        ) : (
+                        <div className="btnFoot">
+                            <Button className="mr-2" onClick={this.openModalReject} color="danger" disabled={this.state.filter !== 'available' ? true : listMut.length === 0 ? true : false}>
+                                Reject
+                            </Button>
+                            <Button color="success" onClick={this.cekSubmit} disabled={this.state.filter === 'available' ? false : true}>
+                                Submit
+                            </Button>
+                        </div>
                         )}
                     </div>
-                    {this.state.filter !== 'available' ? (
-                        <div className="btnFoot">
-                        </div>
-                    ) : (
-                    <div className="btnFoot">
-                        <Button className="mr-2" onClick={this.openModalReject} color="danger" disabled={this.state.filter !== 'available' ? true : listMut.length === 0 ? true : false}>
-                            Reject
-                        </Button>
-                        <Button color="success" onClick={this.cekSubmit} disabled={this.state.filter === 'available' ? false : true}>
-                            Submit
-                        </Button>
-                    </div>
-                    )}
-                </div>
-            </Modal>
-            <Modal isOpen={this.state.openApprove} toggle={this.openModalApprove} centered={true}>
-                <ModalBody>
-                    <div className={style.modalApprove}>
-                        <div>
-                            <text>
-                                Anda yakin untuk submit disposal    
-                                <text className={style.verif}> </text>
-                                pada tanggal
-                                <text className={style.verif}> {moment().format('LL')}</text> ?
-                            </text>
-                        </div>
-                        <div className={style.btnApprove}>
-                            <Button color="primary" onClick={() => this.prepSendEmail('submit')}>Ya</Button>
-                            <Button color="secondary" onClick={this.openModalApprove}>Tidak</Button>
-                        </div>
-                    </div>
-                </ModalBody>
-            </Modal>
-            <Modal isOpen={this.state.openReject} toggle={this.openModalReject} centered={true}>
-                <ModalBody>
-                    <Formik
-                        initialValues={{
-                            alasan: "",
-                        }}
-                        validationSchema={alasanSchema}
-                        onSubmit={(values) => {
-                            // this.rejectMutasi(values)
-                            this.prepReject(values)
-                        }}
-                    >
-                    {({ handleChange, handleBlur, handleSubmit, values, errors, touched, }) => (
+                </Modal>
+                <Modal isOpen={this.state.openApprove} toggle={this.openModalApprove} centered={true}>
+                    <ModalBody>
                         <div className={style.modalApprove}>
-                            <div className='mb-2 quest'>Anda yakin untuk reject ?</div>
-                            <div className='mb-2 titStatus'>Pilih reject :</div>
-                            <div className="ml-2">
-                                <Input
-                                    addon
-                                    type="checkbox"
-                                    checked={this.state.typeReject === 'perbaikan' ? true : false}
-                                    onClick={this.state.typeReject === 'perbaikan' ? () => this.rejectRej('perbaikan') : () => this.rejectApp('perbaikan')}
-                                />  Perbaikan
+                            <div>
+                                <text>
+                                    Anda yakin untuk submit disposal    
+                                    <text className={style.verif}> </text>
+                                    pada tanggal
+                                    <text className={style.verif}> {moment().format('LL')}</text> ?
+                                </text>
                             </div>
-                            <div className="ml-2">
-                                <Input
-                                    addon
-                                    type="checkbox"
-                                    checked={this.state.typeReject === 'pembatalan' ? true : false}
-                                    onClick={this.state.typeReject === 'pembatalan' ? () => this.rejectRej('pembatalan') : () => this.rejectApp('pembatalan')}
-                                />  Pembatalan
+                            <div className={style.btnApprove}>
+                                <Button color="primary" onClick={() => this.prepSendEmail('submit')}>Ya</Button>
+                                <Button color="secondary" onClick={this.openModalApprove}>Tidak</Button>
                             </div>
-                            <div className='ml-2'>
-                                {this.state.typeReject === '' ? (
-                                    <text className={style.txtError}>Must be filled</text>
-                                ) : null}
-                            </div>
-                            {this.state.typeReject === 'perbaikan' && (
-                                <>
-                                    <div className='mb-2 mt-2 titStatus'>Pilih Menu Revisi :</div>
+                        </div>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.openReject} toggle={this.openModalReject} centered={true}>
+                    <ModalBody>
+                        <Formik
+                            initialValues={{
+                                alasan: "",
+                            }}
+                            validationSchema={alasanSchema}
+                            onSubmit={(values) => {
+                                // this.rejectMutasi(values)
+                                this.prepReject(values)
+                            }}
+                        >
+                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched, }) => (
+                            <div className={style.modalApprove}>
+                                <div className='mb-2 quest'>Anda yakin untuk reject ?</div>
+                                <div className='mb-2 titStatus'>Pilih reject :</div>
+                                <div className="ml-2">
+                                    <Input
+                                        addon
+                                        type="checkbox"
+                                        checked={this.state.typeReject === 'perbaikan' ? true : false}
+                                        onClick={this.state.typeReject === 'perbaikan' ? () => this.rejectRej('perbaikan') : () => this.rejectApp('perbaikan')}
+                                    />  Perbaikan
+                                </div>
+                                <div className="ml-2">
+                                    <Input
+                                        addon
+                                        type="checkbox"
+                                        checked={this.state.typeReject === 'pembatalan' ? true : false}
+                                        onClick={this.state.typeReject === 'pembatalan' ? () => this.rejectRej('pembatalan') : () => this.rejectApp('pembatalan')}
+                                    />  Pembatalan
+                                </div>
+                                <div className='ml-2'>
+                                    {this.state.typeReject === '' ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                                {this.state.typeReject === 'perbaikan' && (
+                                    <>
+                                        <div className='mb-2 mt-2 titStatus'>Pilih Menu Revisi :</div>
+                                        <div className="ml-2">
+                                            <Input
+                                                addon
+                                                type="checkbox"
+                                                checked={this.state.menuRev === 'Revisi Area' ? true : false}
+                                                onClick={this.state.menuRev === 'Revisi Area' ? () => this.menuRej('Revisi Area') : () => this.menuApp('Revisi Area')}
+                                            />  Revisi Area
+                                        </div>
+                                        {/* <div className="ml-2">
+                                        <Input
+                                        addon
+                                        type="checkbox"
+                                        checked= {this.state.menuRev === 'pembatalan' ? true : false}
+                                        onClick={this.state.menuRev === 'pembatalan' ? () => this.menuRej('pembatalan') : () => this.menuApp('pembatalan')}
+                                        />  Revisi Asset
+                                    </div> */}
+                                        <div className='ml-2'>
+                                            {this.state.menuRev === '' ? (
+                                                <text className={style.txtError}>Must be filled</text>
+                                            ) : null}
+                                        </div>
+                                    </>
+                                )}
+
+                                <div className='mb-2 mt-2 titStatus'>Pilih alasan :</div>
                                     <div className="ml-2">
                                         <Input
                                             addon
                                             type="checkbox"
-                                            checked={this.state.menuRev === 'Revisi Area' ? true : false}
-                                            onClick={this.state.menuRev === 'Revisi Area' ? () => this.menuRej('Revisi Area') : () => this.menuApp('Revisi Area')}
-                                        />  Revisi Area
+                                            checked={listStat.find(element => element === 'Nilai jual tidak sesuai') !== undefined ? true : false}
+                                            onClick={listStat.find(element => element === 'Nilai jual tidak sesuai') === undefined ? () => this.statusApp('Nilai jual tidak sesuai') : () => this.statusRej('Nilai jual tidak sesuai')}
+                                        />  Nilai jual tidak sesuai
                                     </div>
-                                    {/* <div className="ml-2">
+                                    <div className="ml-2">
+                                        <Input
+                                            addon
+                                            type="checkbox"
+                                            checked={listStat.find(element => element === 'Keterangan tidak sesuai') !== undefined ? true : false}
+                                            onClick={listStat.find(element => element === 'Keterangan tidak sesuai') === undefined ? () => this.statusApp('Keterangan tidak sesuai') : () => this.statusRej('Keterangan tidak sesuai')}
+                                        />  Keterangan tidak sesuai
+                                    </div>
+                                    <div className="ml-2">
+                                        <Input
+                                            addon
+                                            type="checkbox"
+                                            checked={listStat.find(element => element === 'Dokumen lampiran tidak sesuai') !== undefined ? true : false}
+                                            onClick={listStat.find(element => element === 'Dokumen lampiran tidak sesuai') === undefined ? () => this.statusApp('Dokumen lampiran tidak sesuai') : () => this.statusRej('Dokumen lampiran tidak sesuai')}
+                                        />  Dokumen lampiran tidak sesuai
+                                    </div>
+                                    <div className={style.alasan}>
+                                        <text className='ml-2'>
+                                            Lainnya
+                                        </text>
+                                    </div>
                                     <Input
-                                    addon
-                                    type="checkbox"
-                                    checked= {this.state.menuRev === 'pembatalan' ? true : false}
-                                    onClick={this.state.menuRev === 'pembatalan' ? () => this.menuRej('pembatalan') : () => this.menuApp('pembatalan')}
-                                    />  Revisi Asset
-                                </div> */}
+                                        type="name"
+                                        name="select"
+                                        className="ml-2 inputRec"
+                                        value={values.alasan}
+                                        onChange={handleChange('alasan')}
+                                        onBlur={handleBlur('alasan')}
+                                    />
                                     <div className='ml-2'>
-                                        {this.state.menuRev === '' ? (
+                                        {listStat.length === 0 && (values.alasan.length < 3) ? (
                                             <text className={style.txtError}>Must be filled</text>
                                         ) : null}
                                     </div>
-                                </>
+                                    <div className={style.btnApprove}>
+                                        <Button color="primary" disabled={(((values.alasan === '.' || values.alasan === '') && listStat.length === 0) || this.state.typeReject === '' || (this.state.typeReject === 'perbaikan' && this.state.menuRev === '')) ? true : false} onClick={handleSubmit}>Submit</Button>
+                                        <Button className='ml-2' color="secondary" onClick={this.openModalReject}>Close</Button>
+                                    </div>
+                                </div>
                             )}
-
-                            <div className='mb-2 mt-2 titStatus'>Pilih alasan :</div>
-                                <div className="ml-2">
-                                    <Input
-                                        addon
-                                        type="checkbox"
-                                        checked={listStat.find(element => element === 'Nilai jual tidak sesuai') !== undefined ? true : false}
-                                        onClick={listStat.find(element => element === 'Nilai jual tidak sesuai') === undefined ? () => this.statusApp('Nilai jual tidak sesuai') : () => this.statusRej('Nilai jual tidak sesuai')}
-                                    />  Nilai jual tidak sesuai
-                                </div>
-                                <div className="ml-2">
-                                    <Input
-                                        addon
-                                        type="checkbox"
-                                        checked={listStat.find(element => element === 'Keterangan tidak sesuai') !== undefined ? true : false}
-                                        onClick={listStat.find(element => element === 'Keterangan tidak sesuai') === undefined ? () => this.statusApp('Keterangan tidak sesuai') : () => this.statusRej('Keterangan tidak sesuai')}
-                                    />  Keterangan tidak sesuai
-                                </div>
-                                <div className="ml-2">
-                                    <Input
-                                        addon
-                                        type="checkbox"
-                                        checked={listStat.find(element => element === 'Dokumen lampiran tidak sesuai') !== undefined ? true : false}
-                                        onClick={listStat.find(element => element === 'Dokumen lampiran tidak sesuai') === undefined ? () => this.statusApp('Dokumen lampiran tidak sesuai') : () => this.statusRej('Dokumen lampiran tidak sesuai')}
-                                    />  Dokumen lampiran tidak sesuai
-                                </div>
-                                <div className={style.alasan}>
-                                    <text className='ml-2'>
-                                        Lainnya
-                                    </text>
-                                </div>
-                                <Input
-                                    type="name"
-                                    name="select"
-                                    className="ml-2 inputRec"
-                                    value={values.alasan}
-                                    onChange={handleChange('alasan')}
-                                    onBlur={handleBlur('alasan')}
-                                />
-                                <div className='ml-2'>
-                                    {listStat.length === 0 && (values.alasan.length < 3) ? (
-                                        <text className={style.txtError}>Must be filled</text>
-                                    ) : null}
-                                </div>
-                                <div className={style.btnApprove}>
-                                    <Button color="primary" disabled={(((values.alasan === '.' || values.alasan === '') && listStat.length === 0) || this.state.typeReject === '' || (this.state.typeReject === 'perbaikan' && this.state.menuRev === '')) ? true : false} onClick={handleSubmit}>Submit</Button>
-                                    <Button className='ml-2' color="secondary" onClick={this.openModalReject}>Close</Button>
-                                </div>
-                            </div>
-                        )}
-                    </Formik>
-                </ModalBody>
-            </Modal>
-            <Modal isOpen={this.state.modalTrack} toggle={() => {this.openModalTrack()}} size="xl" className='xl'>
-                <TrackingDisposal />
-                <hr />
-                <div className="modalFoot ml-3">
-                    {/* <Button color="primary" onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})}>Preview</Button> */}
-                    <div></div>
-                    <div className="btnFoot">
-                        <Button color="primary" onClick={() => {this.openModalTrack()}}>
-                            Close
-                        </Button>
-                    </div>
-                </div>
-            </Modal>
-            <Modal isOpen={this.state.openApproveDis} toggle={this.openModalApproveDis} centered={true}>
-                <ModalBody>
-                    <div className={style.modalApprove}>
-                        <div>
-                            <text>
-                                Anda yakin untuk approve 
-                                <text className={style.verif}>  </text>
-                                pada tanggal
-                                <text className={style.verif}> {moment().format('LL')}</text> ?
-                            </text>
-                        </div>
-                        <div className={style.btnApprove}>
-                            <Button color="primary" onClick={this.approveDokumen}>Ya</Button>
-                            <Button color="secondary" onClick={this.openModalApproveDis}>Tidak</Button>
-                        </div>
-                    </div>
-                </ModalBody>
-            </Modal>
-            <Modal isOpen={this.state.openRejectDis} toggle={this.openModalRejectDis} centered={true}>
-                    <ModalBody>
-                    <Formik
-                    initialValues={{
-                    alasan: "",
-                    }}
-                    validationSchema={alasanSchema}
-                    onSubmit={(values) => {this.rejectDokumen(values)}}
-                    >
-                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
-                            <div className={style.modalApprove}>
-                            <div className={style.quest}>Anda yakin untuk reject {this.state.fileName.nama_dokumen} ?</div>
-                            <div className={style.alasan}>
-                                <text className="col-md-3">
-                                    Alasan
-                                </text>
-                                <Input 
-                                type="name" 
-                                name="select" 
-                                className="col-md-9"
-                                value={values.alasan}
-                                onChange={handleChange('alasan')}
-                                onBlur={handleBlur('alasan')}
-                                />
-                            </div>
-                            {errors.alasan ? (
-                                    <text className={`${style.txtError} ml-3`}>{errors.alasan}</text>
-                                ) : null}
-                            <div className={style.btnApprove}>
-                                <Button color="primary" onClick={handleSubmit}>Ya</Button>
-                                <Button color="secondary" onClick={this.openModalRejectDis}>Tidak</Button>
-                            </div>
-                        </div>
-                        )}
                         </Formik>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="sm">
+                <Modal isOpen={this.state.modalTrack} toggle={() => {this.openModalTrack()}} size="xl" className='xl'>
+                    <TrackingDisposal />
+                    <hr />
+                    <div className="modalFoot ml-3">
+                        {/* <Button color="primary" onClick={() => this.openModPreview({nama: 'disposal pengajuan', no: detailDis[0] !== undefined && detailDis[0].no_disposal})}>Preview</Button> */}
+                        <div></div>
+                        <div className="btnFoot">
+                            <Button color="primary" onClick={() => {this.openModalTrack()}}>
+                                Close
+                            </Button>
+                        </div>
+                    </div>
+                </Modal>
+                <Modal isOpen={this.state.openApproveDis} toggle={this.openModalApproveDis} centered={true}>
+                    <ModalBody>
+                        <div className={style.modalApprove}>
+                            <div>
+                                <text>
+                                    Anda yakin untuk approve 
+                                    <text className={style.verif}>  </text>
+                                    pada tanggal
+                                    <text className={style.verif}> {moment().format('LL')}</text> ?
+                                </text>
+                            </div>
+                            <div className={style.btnApprove}>
+                                <Button color="primary" onClick={this.approveDokumen}>Ya</Button>
+                                <Button color="secondary" onClick={this.openModalApproveDis}>Tidak</Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.openRejectDis} toggle={this.openModalRejectDis} centered={true}>
+                    <ModalBody>
+                        <Formik
+                        initialValues={{
+                        alasan: "",
+                        }}
+                        validationSchema={alasanSchema}
+                        onSubmit={(values) => {this.rejectDokumen(values)}}
+                        >
+                            {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                                <div className={style.modalApprove}>
+                                <div className={style.quest}>Anda yakin untuk reject {this.state.fileName.nama_dokumen} ?</div>
+                                <div className={style.alasan}>
+                                    <text className="col-md-3">
+                                        Alasan
+                                    </text>
+                                    <Input 
+                                    type="name" 
+                                    name="select" 
+                                    className="col-md-9"
+                                    value={values.alasan}
+                                    onChange={handleChange('alasan')}
+                                    onBlur={handleBlur('alasan')}
+                                    />
+                                </div>
+                                {errors.alasan ? (
+                                        <text className={`${style.txtError} ml-3`}>{errors.alasan}</text>
+                                    ) : null}
+                                <div className={style.btnApprove}>
+                                    <Button color="primary" onClick={handleSubmit}>Ya</Button>
+                                    <Button color="secondary" onClick={this.openModalRejectDis}>Tidak</Button>
+                                </div>
+                            </div>
+                            )}
+                            </Formik>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="md">
                     <ModalBody>
                         {this.state.confirm === 'reject' ? (
                             <div className={style.cekUpdate}>
@@ -1951,6 +2173,14 @@ class TaxFinDisposal extends Component {
                                 <div className="errApprove mt-2">Pastikan nomor document SAP dan no document clearing telah diinput</div>
                             </div>
                             </div>
+                        ) : this.state.confirm === 'falseNominal' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Save</div>
+                                <div className="errApprove mt-2">Pastikan nominal uang masuk tidak lebih kecil dari nilai jual</div>
+                            </div>
+                            </div>
                         ) : this.state.confirm === 'falseTax' ?(
                             <div>
                                 <div className={style.cekUpdate}>
@@ -1975,15 +2205,26 @@ class TaxFinDisposal extends Component {
                                     <div className="errApprove mt-2">Reject pembatalan hanya bisa dilakukan jika semua data ajuan terceklis</div>
                                 </div>
                             </div>
+                        ) : this.state.confirm === 'falseDoc' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                                    <div className="errApprove mt-2">Mohon upload dokumen terlebih dahulu</div>
+                                </div>
+                            </div>
                         ) : (
                             <div></div>
                         )}
                     </ModalBody>
+                    <div className='row justify-content-md-center mb-4'>
+                        <Button size='lg' onClick={() => this.openConfirm(false)} color='primary'>OK</Button>
+                    </div>
                 </Modal>
                 <Modal isOpen={this.state.openDraft} size='xl'>
                     <ModalHeader>Email Pemberitahuan</ModalHeader>
                     <ModalBody>
-                        <Email handleData={this.getMessage} tipe={tipeEmail === 'submit' ? 'persetujuan' : 'pengajuan'}/>
+                        <Email handleData={this.getMessage} tipe={'pengajuan'}/>
                         <div className={style.foot}>
                             <div></div>
                             <div>
@@ -2042,6 +2283,7 @@ const mapDispatchToProps = {
     sendEmail: tempmail.sendEmail,
     addNewNotif: newnotif.addNewNotif,
     rejectDisposal: disposal.rejectDisposal,
+    searchDisposal: disposal.searchDisposal
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(TaxFinDisposal)

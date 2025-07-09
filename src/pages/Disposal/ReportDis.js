@@ -22,6 +22,8 @@ import NavBar from '../../components/NavBar'
 import ReactHtmlToExcel from "react-html-table-to-excel"
 import styleTrans from '../../assets/css/transaksi.module.css'
 import NewNavbar from '../../components/NewNavbar'
+import ExcelJS from "exceljs"
+import fs from "file-saver"
 const {REACT_APP_BACKEND_URL} = process.env
 
 const userSchema = Yup.object().shape({
@@ -80,7 +82,8 @@ class MasterUser extends Component {
             // time1: moment().startOf('month').format('YYYY-MM-DD'),
             time2: moment().endOf('month').format('YYYY-MM-DD'),
             filter: '',
-            newReport: []
+            newReport: [],
+            isLoading: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -316,6 +319,205 @@ class MasterUser extends Component {
 
     onSetOpen(open) {
         this.setState({ open });
+    }
+
+    downloadHistoryReport = async (val) => {
+        const {newReport} = this.state
+        const dataDownload = newReport
+
+        const workbook = new ExcelJS.Workbook();
+        const ws = workbook.addWorksheet('data report')
+
+        // await ws.protect('F1n4NcePm4')
+
+        const borderStyles = {
+            top: {style:'thin'},
+            left: {style:'thin'},
+            bottom: {style:'thin'},
+            right: {style:'thin'}
+        }
+
+
+        ws.columns = [
+            {header: 'NO', key: 'c1'},
+            {header: 'No Pengajuan Disposal', key: 'c2'},
+            {header: 'Nomor Asset', key: 'c3'},
+            {header: 'Tgl dibuat Form  Disposal aset', key: 'c4'},
+            {header: 'Tgl App BM', key: 'c5'},
+            {header: 'Tgl app ISM', key: 'c6'},
+            {header: 'Tgl App IRM', key: 'c7'},
+            {header: 'Tgl App AM', key: 'c8'},
+            {header: 'Tgl App NFAM', key: 'c9'},
+            {header: 'Tgl App Head Of Ops', key: 'c10'},
+            {header: 'Tgl App Head Of HC', key: 'c11'},
+            {header: 'Tgl App CM', key: 'c12'},
+            {header: 'Tgl dibuat form Persetujuan', key: 'c13'},
+            {header: 'Tgl kirim Persetujuan disposal', key: 'c14'},
+            {header: 'Selesai App Form Persetujuan', key: 'c15'},
+            {header: 'Tgl area kirim kelengkapan eksekusi disposal', key: 'c16'},
+            {header: 'Tgl Jurnal uang masuk', key: 'c17'},
+            {header: 'Tgl Pembuatan Faktur Pajak', key: 'c18'},
+            {header: 'Tgl Aset Info eksekusi disposal aset', key: 'c19'}
+        ]
+
+        dataDownload.map((item, index) => { return ( ws.addRow(
+            {
+                c1: index + 1,
+                c2: item.no_disposal === null ? '-' : `D${item.no_disposal}`,
+                c3: item.no_asset,
+                c4: item.tanggalDis === null ? '-' : moment(item.tanggalDis).format('DD/MM/YYYY'),
+                c5: item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'BM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'BM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'BM').updatedAt).format('DD/MM/YYYY') : '-',
+                c6: item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'IT OSM') !== undefined &&item.appForm.find(({jabatan}) => jabatan === 'IT OSM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'IT OSM').updatedAt).format('DD/MM/YYYY') : '-',
+                c7: item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'IRM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'IRM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'IRM').updatedAt).format('DD/MM/YYYY') : '-',
+                c8: item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'AM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'AM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'AM').updatedAt).format('DD/MM/YYYY') : '-',
+                c9: item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'NFAM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'NFAM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'NFAM').updatedAt).format('DD/MM/YYYY') : '-',
+                c10: item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'HEAD OF OPS') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'HEAD OF OPS').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'HEAD OF OPS').updatedAt).format('DD/MM/YYYY') : '-',
+                c11: item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'HEAD OF HC') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'HEAD OF HC').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'HEAD OF HC').updatedAt).format('DD/MM/YYYY') : '-',
+                c12: item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'CM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'CM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'CM').updatedAt).format('DD/MM/YYYY') : '-',
+                c13: item.ttdSet.length > 0 && item.ttdSet.find(({jabatan}) => jabatan === 'NFAM') !== undefined && item.ttdSet.find(({jabatan}) => jabatan === 'NFAM').status === 1 ? moment(item.ttdSet.find(({jabatan}) => jabatan === 'NFAM').createdAt).format('DD/MM/YYYY') : '-',
+                c14: item.ttdSet.length > 0 && item.ttdSet.find(({jabatan}) => jabatan === 'NFAM') !== undefined && item.ttdSet.find(({jabatan}) => jabatan === 'NFAM').status === 1 ? moment(item.ttdSet.find(({jabatan}) => jabatan === 'NFAM').createdAt).format('DD/MM/YYYY') : '-',
+                c15: item.ttdSet.length > 0 && item.ttdSet.find(({jabatan}) => jabatan === 'CEO') !== undefined && item.ttdSet.find(({jabatan}) => jabatan === 'CEO').status === 1 ? moment(item.ttdSet.find(({jabatan}) => jabatan === 'CEO').updatedAt).format('DD/MM/YYYY') : '-',
+                c16: item.docAsset.length > 0 && item.docAsset.find(({tipe}) => tipe === 'dispose') !== undefined ? moment(item.docAsset.find(({tipe}) => tipe === 'dispose').createdAt).format('DD/MM/YYYY') : item.docAsset.find(({tipe}) => tipe === 'sell') !== undefined ? moment(item.docAsset.find(({tipe}) => tipe === 'sell').createdAt).format('DD/MM/YYYY') : '-',
+                c17: item.docAsset.length > 0 && item.docAsset.find(({tipe}) => tipe === 'finance') !== undefined ? moment(item.docAsset.find(({tipe}) => tipe === 'finance').createdAt).format('DD/MM/YYYY') : '-',
+                c18: item.docAsset.length > 0 && item.docAsset.find(({tipe}) => tipe === 'tax') !== undefined ? moment(item.docAsset.find(({tipe}) => tipe === 'tax').createdAt).format('DD/MM/YYYY') : '-',
+                c19: item.status_form === 8 ? moment(item.updatedAt).format('DD/MM/YYYY') : '-'
+            }
+        )
+        ) })
+
+        ws.eachRow({ includeEmpty: true }, function(row, rowNumber) {
+            row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
+              cell.border = borderStyles;
+            })
+          })
+
+        ws.columns.forEach(column => {
+            const lengths = column.values.map(v => v.toString().length)
+            const maxLength = Math.max(...lengths.filter(v => typeof v === 'number'))
+            column.width = maxLength + 5
+        })
+
+        workbook.xlsx.writeBuffer().then(function(buffer) {
+            fs.saveAs(
+              new Blob([buffer], { type: "application/octet-stream" }),
+              `Report History Disposal Asset ${moment().format('DD MMMM YYYY')}.xlsx`
+            );
+          });
+    }
+
+
+    downloadTransaksiReport = async (val) => {
+        const {newReport} = this.state
+        const dataDownload = newReport
+
+        const workbook = new ExcelJS.Workbook();
+        const ws = workbook.addWorksheet('data report')
+
+        // await ws.protect('F1n4NcePm4')
+
+        const borderStyles = {
+            top: {style:'thin'},
+            left: {style:'thin'},
+            bottom: {style:'thin'},
+            right: {style:'thin'}
+        }
+
+
+        ws.columns = [
+            {header: 'NO', key: 'c1'},
+            {header: 'No Pengajuan Disposal', key: 'c2'},
+            {header: 'No Persetujuan Disposal', key: 'c3'},
+            {header: 'Nomor Asset', key: 'c4'},
+            {header: 'Nama Barang', key: 'c5'},
+            {header: 'Kategori', key: 'c6'},
+            {header: 'Cost Center', key: 'c7'},
+            {header: 'Cost Center Name', key: 'c8'},
+            {header: 'Tgl Perolehan', key: 'c9'},
+            {header: 'Nilai Akuisisi', key: 'c10'},
+            {header: 'Nilai Buku saat pengajuan Disposal aset', key: 'c11'},
+            {header: 'Nilai jual', key: 'c12'},
+            {header: 'Keterangan pengajuan disposal aset', key: 'c13'},
+            {header: 'Nilai Buku saat persetujuan Disposal', key: 'c14'},
+            {header: 'Keterangan persetujuan disposal aset', key: 'c15'},
+            {header: 'Grouping eksekusi', key: 'c16'},
+            {header: 'Akumulasi Aset', key: 'c17'},
+            {header: 'Nilai Buku Saat eksekusi', key: 'c18'},
+            {header: 'DPP', key: 'c19'},
+            {header: 'PPN', key: 'c20'},
+            {header: 'Profit/LOSS', key: 'c21'},
+            {header: 'Tanggal Eksekusi disposal di SAP', key: 'c22'},
+            {header: 'No Doc Jurnal Uang Masuk', key: 'c23'},
+            {header: 'Nomor Faktur Pajak', key: 'c24'},
+            {header: 'No Doc Disposal', key: 'c25'},
+            {header: 'No Doc Clearing', key: 'c26'},
+            {header: 'PIC ASET', key: 'c27'}
+        ]
+
+        dataDownload.map((item, index) => { return ( ws.addRow(
+            {
+                c1: index + 1,
+                c2: item.no_disposal === null ? '-' : `D${item.no_disposal}`,
+                c3: item.no_persetujuan,
+                c4: item.no_asset,
+                c5: item.nama_asset,
+                c6: item.dataAsset === null ? '-' : item.dataAsset.kategori,
+                c7: item.cost_center,
+                c8: item.area,
+                c9: item.dataAsset === null ? '-' : moment(item.dataAsset.tanggal).format('DD/MM/YYYY'),
+                c10: item.dataAsset === null ? '-' : item.dataAsset.nilai_acquis === null ? '-' : item.dataAsset.nilai_acquis.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                c11: item.nilai_buku === null ? '-' : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                c12: item.nilai_jual === null ? '-' : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                c13: item.keterangan,
+                c14: item.nilai_buku === null ? '-' : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                c15: item.keterangan,
+                c16: item.nilai_jual === '0' ? 'Dispose' : 'Sell',
+                c17: item.dataAsset === null ? '-' : item.dataAsset.accum_dep === null ? '-' : item.dataAsset.accum_dep.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                c18: item.nilai_buku_eks === null ? '-' : item.nilai_buku_eks.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                c19: item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) / (11/10)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                c20: item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) - Math.round(parseInt(item.nilai_jual) / (11/10))).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                c21: item.nilai_jual === '0' ? '-' : Math.round(Math.round(parseInt(item.nilai_jual) / (11/10))-parseInt(item.dataAsset === null ? 0 : item.dataAsset.nilai_buku)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                c22: item.tgl_eksekusi === null ? '-' : moment(item.tgl_eksekusi).format('DD/MM/YYYY'),
+                c23: item.no_sap,
+                c24: item.no_fp,
+                c25: item.doc_sap,
+                c26: item.doc_clearing,
+                c27: item.pic_aset === null ? item.depo.nama_pic_1 : item.pic_aset
+            }
+        )
+        ) })
+        
+
+        ws.eachRow({ includeEmpty: true }, function(row, rowNumber) {
+            row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
+              cell.border = borderStyles;
+            })
+          })
+
+        ws.columns.forEach(column => {
+            const lengths = column.values.map(v => v.toString().length)
+            const maxLength = Math.max(...lengths.filter(v => typeof v === 'number'))
+            column.width = maxLength + 5
+        })
+
+        workbook.xlsx.writeBuffer().then(function(buffer) {
+            fs.saveAs(
+              new Blob([buffer], { type: "application/octet-stream" }),
+              `Report Transaksi Disposal Asset ${moment().format('DD MMMM YYYY')}.xlsx`
+            );
+          });
+    }
+
+    downloadReport = async () => {
+        const {tipe} = this.state
+        if (tipe === 'transaksi'){
+            this.setState({isLoading: true})
+            await this.downloadTransaksiReport()
+            this.setState({isLoading: false})
+        } else {
+            this.setState({isLoading: true})
+            await this.downloadHistoryReport()
+            this.setState({isLoading: false})
+        }
     }
 
     render() {
@@ -574,7 +776,7 @@ class MasterUser extends Component {
                                                         <td>{item.no_fp}</td>
                                                         <td>{item.doc_sap}</td>
                                                         <td>{item.doc_clearing}</td>
-                                                        <td>{item.depo.nama_pic_1}</td>
+                                                        <td>{item.pic_aset === null ? item.depo.nama_pic_1 : item.pic_aset}</td>
                                                     </tr>
                                                 ) : (
                                                     <tr>
@@ -628,14 +830,7 @@ class MasterUser extends Component {
                     <div className={`${styleTrans.mainContent} ${this.state.sidebarOpen ? styleTrans.collapsedContent : ''}`}>
                         <h2 className={styleTrans.pageTitle}>Report Disposal</h2>
                         <div className={styleTrans.searchContainer}>
-                            <ReactHtmlToExcel
-                                id="test-table-xls-button"
-                                className="btn btn-success"
-                                table="table-to-xls"
-                                filename={this.state.tipe === 'transaksi' ? "Report Disposal" : "Report History Disposal"}
-                                sheet="Report"
-                                buttonText="Download Report"
-                            />
+                            <Button size='md' color='success' onClick={this.downloadReport}>Download Report</Button>
                             <div></div>
                         </div>
                         <div className={styleTrans.searchContainer}>
@@ -702,7 +897,7 @@ class MasterUser extends Component {
                             />
                         </div>
 
-                        <table className={styleTrans.table}>
+                        <table className={`${styleTrans.table} ${styleTrans.tableFull}`}>
                             <thead>
                                 {this.state.tipe === 'transaksi' ? (
                                     <tr>
@@ -789,11 +984,11 @@ class MasterUser extends Component {
                                             <td>{item.no_fp}</td>
                                             <td>{item.doc_sap}</td>
                                             <td>{item.doc_clearing}</td>
-                                            <td>{item.depo.nama_pic_1}</td>
+                                            <td>{item.pic_aset === null ? item.depo.nama_pic_1 : item.pic_aset}</td>
                                         </tr>
                                     ) : (
                                         <tr>
-                                            <th scope="row">{newReport.indexOf(item) + 1}</th>
+                                            <td scope="row">{newReport.indexOf(item) + 1}</td>
                                             <td>{item.no_disposal === null ? '-' : `D${item.no_disposal}`}</td>
                                             <td>{item.no_asset}</td>
                                             <td>{item.tanggalDis === null ? '-' : moment(item.tanggalDis).format('DD/MM/YYYY')}</td>
@@ -1152,17 +1347,12 @@ class MasterUser extends Component {
                         </div>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.props.user.isLoading ? true: false} size="sm">
-                        <ModalBody>
-                        <div>
-                            <div className={style.cekUpdate}>
-                                <Spinner />
-                                <div sucUpdate>Waiting....</div>
-                            </div>
-                        </div>
-                        </ModalBody>
-                </Modal>
-                <Modal isOpen={this.props.report.isLoading ? true: false} size="sm">
+                <Modal isOpen={
+                    this.props.user.isLoading || 
+                    this.props.report.isLoading || 
+                    this.state.isLoading ? true: false
+                } 
+                size="sm">
                         <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>

@@ -42,7 +42,8 @@ const disposalState = {
     isSubmitFin: null,
     subRevisi: null,
     appRevisi: null,
-    detailNew: []
+    detailNew: [],
+    dataSearch: []
 };
 
 export default (state=disposalState, action) => {
@@ -67,6 +68,30 @@ export default (state=disposalState, action) => {
                 };
             }
             case 'GET_DISPOSAL_REJECTED': {
+                return {
+                    ...state,
+                    isError: true,
+                    isLoading: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'SEARCH_DISPOSAL_PENDING': {
+                return {
+                    ...state,
+                    isGet: false,
+                    isLoading: false,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'SEARCH_DISPOSAL_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    dataSearch: action.payload.data.result.rows,
+                    alertMsg: 'search disposal Succesfully',
+                };
+            }
+            case 'SEARCH_DISPOSAL_REJECTED': {
                 return {
                     ...state,
                     isError: true,

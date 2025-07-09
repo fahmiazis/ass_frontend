@@ -26,7 +26,8 @@ export default function Bell({dataPass, color}) {
             const data = {
                 route: val.routes, 
                 type: typeNotif, 
-                item: val
+                item: val,
+                filter: val.filter
             }
             await localStorage.setItem('typeNotif', typeNotif)
             const route = val.routes

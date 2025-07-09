@@ -23,6 +23,10 @@ export default {
         type: 'GET_MUTASI',
         payload: http(token).get(`/mutasi/get?status=${status}&time1=${time1}&time2=${time2}&search=${search}&limit=${limit}&page=1`)
     }),
+    searchMutasi: (token, status, time1, time2, search, limit) => ({
+        type: 'SEARCH_MUTASI',
+        payload: http(token).get(`/mutasi/get?status=${status}&time1=${time1}&time2=${time2}&search=${search}&limit=${limit}&page=1`)
+    }),
     getMutasiRec: (token, tipe) => ({
         type: 'GET_MUTASI_REC',
         payload: http(token).get(`/mutasi/rec?tipe=${tipe}`)

@@ -7,6 +7,10 @@ export default {
         type: 'GET_DISPOSAL',
         payload: http(token).get(`/disposal/get?limit=${limit === undefined ? 10 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&status=${status === undefined ? 1 : status}&tipe=${tipe === undefined ? 'disposal' : tipe}&time1=${time1}&time2=${time2}`)
     }),
+    searchDisposal: (token, limit, search, page, status, tipe, time1, time2) => ({
+        type: 'SEARCH_DISPOSAL',
+        payload: http(token).get(`/disposal/get?limit=${limit === undefined ? 10 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&status=${status === undefined ? 1 : status}&tipe=${tipe === undefined ? 'disposal' : tipe}&time1=${time1}&time2=${time2}`)
+    }),
     getCartDisposal: (token) => ({
         type: 'GET_CART',
         payload: http(token).get(`/disposal/cart`)
@@ -31,9 +35,9 @@ export default {
         type: 'ADD_DISPOSAL',
         payload: http(token).post(`/disposal/add/${no}`)
     }),
-    addSell: (token, no) => ({
+    addSell: (token, data) => ({
         type: 'ADD_DISPOSAL',
-        payload: http(token).post(`/disposal/sell/${no}`)
+        payload: http(token).post(`/disposal/sell`, qs.stringify(data))
     }),
     deleteDisposal: (token, asset) => ({
         type: 'DELETE_DISPOSAL',

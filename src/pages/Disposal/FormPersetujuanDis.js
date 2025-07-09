@@ -99,8 +99,8 @@ class PersetujuanDis extends Component {
         this.openPreview()
     }
 
-    openConfirm = () => {
-        this.setState({modalConfirm: !this.state.modalConfirm})
+    openConfirm = (val) => {
+        this.setState({modalConfirm: val === undefined || val === null || val === '' ? !this.state.modalConfirm : val})
     }
 
     showDokumen = async (value) => {

@@ -19,6 +19,10 @@ export default {
         type: 'GET_STOCK',
         payload: http(token).get(`/stock/get?limit=${limit === undefined ? 100 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&group=${group === undefined ? '' : group}&status=${status}&time1=${time1}&time2=${time2}`)
     }),
+    searchStock: (token, search, limit, page, group, status, time1, time2) => ({
+        type: 'SEARCH_STOCK',
+        payload: http(token).get(`/stock/get?limit=${limit === undefined ? 100 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&group=${group === undefined ? '' : group}&status=${status}&time1=${time1}&time2=${time2}`)
+    }),
     getReportAll: (token, search, limit, page, group, fisik, sap, kondisi, plant, time1, time2) => ({
         type: 'REPORT_STOCK',
         payload: http(token).get(`/stock/report?limit=${limit === undefined ? 100 : limit}&search=${search === undefined ? '' : search}&page=${page === undefined ? 1 : page}&group=${group === undefined ? '' : group}&fisik=${fisik === undefined ? '' : fisik}&sap=${sap === undefined ? '' : sap}&kondisi=${kondisi === undefined ? '' : kondisi}&plant=${plant === undefined ? '' : plant}&time1=${time1}&time2=${time2}`)

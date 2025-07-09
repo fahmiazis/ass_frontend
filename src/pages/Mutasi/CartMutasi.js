@@ -529,7 +529,7 @@ class CartMutasi extends Component {
                                         <td>{item.kode_plant_rec} - {item.area_rec}</td>
                                         <td>{item.nama_asset}</td>
                                         <td>{item.no_asset}</td>
-                                        <td>{item.dataAsset.nilai_buku === null || item.dataAsset.nilai_buku === '' ? '0' : item.dataAsset.nilai_buku}</td>
+                                        <td>{item.dataAsset.nilai_buku === null || item.dataAsset.nilai_buku === '' ? '0' : item.dataAsset.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                         <td>{item.kategori}</td>
                                         <td>
                                             <Button id={`toolEdit${index}`} onClick={() => this.prosesOpenRinci(item)} className='mt-1 mr-1' color='success'><MdEditSquare size={25}/></Button>
@@ -623,7 +623,7 @@ class CartMutasi extends Component {
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Nilai Buku</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.dataAsset === undefined || dataRinci.dataAsset.nilai_buku === null ? '-' : dataRinci.dataAsset.nilai_buku} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.dataAsset === undefined || dataRinci.dataAsset.nilai_buku === null ? '-' : dataRinci.dataAsset.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Keterangan</Col>
@@ -675,7 +675,7 @@ class CartMutasi extends Component {
                             </div>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.state.isAdd} toggle={this.openAdd} size='xl'>
+                <Modal isOpen={this.state.isAdd} toggle={this.openAdd} size='xl' className='xl'>
                     <ModalHeader>List Asset</ModalHeader>
                     <ModalBody>
                         <Table bordered striped responsive hover className={style.tab}>
@@ -697,7 +697,7 @@ class CartMutasi extends Component {
                                         <td>{dataAsset.indexOf(item) + 1}</td>
                                         <td>{item.nama_asset}</td>
                                         <td>{item.no_asset}</td>
-                                        <td>{item.nilai_buku === null || item.nilai_buku === '' ? '0' : item.nilai_buku}</td>
+                                        <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                         <td>{item.kategori}</td>
                                         <td>{item.status === '1' ? 'On Proses Disposal' : item.status === '11' ? 'On Proses Mutasi' : 'available'}</td>
                                         <td>
@@ -818,7 +818,7 @@ class CartMutasi extends Component {
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Nilai Buku</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null ? '-' : dataRinci.nilai_buku} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.nilai_buku === null ? '-' : dataRinci.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} disabled /></Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Keterangan</Col>

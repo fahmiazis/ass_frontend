@@ -7,9 +7,10 @@ import {
     UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem, Card, CardBody
 } from 'reactstrap'
 import style from '../../assets/css/input.module.css'
-import { FaSearch, FaUserCircle, FaBars, FaCartPlus, FaFileSignature, FaTh, FaList } from 'react-icons/fa'
+import { FaSearch, FaUserCircle, FaBars, FaCartPlus, FaFileSignature, FaTh, FaList, FaCheck } from 'react-icons/fa'
 import { BsCircle, BsBell, BsFillCircleFill } from 'react-icons/bs'
 import { AiOutlineCheck, AiOutlineClose, AiFillCheckCircle, AiOutlineInbox } from 'react-icons/ai'
+import { CiWarning } from "react-icons/ci"
 import { MdAssignment } from 'react-icons/md'
 import { FiSend, FiTruck, FiSettings, FiUpload } from 'react-icons/fi'
 import { Formik } from 'formik'
@@ -21,6 +22,8 @@ import { connect } from 'react-redux'
 import pengadaan from '../../redux/actions/pengadaan'
 import dokumen from '../../redux/actions/dokumen'
 import tempmail from '../../redux/actions/tempmail'
+import user from '../../redux/actions/user'
+import depo from '../../redux/actions/depo'
 import OtpInput from "react-otp-input";
 import moment from 'moment'
 import auth from '../../redux/actions/auth'
@@ -41,6 +44,8 @@ import Email from '../../components/Pengadaan/Email'
 import ExcelJS from "exceljs"
 import fs from "file-saver"
 import terbilang from '@develoka/angka-terbilang-js'
+import debounce from 'lodash.debounce';
+import Select from 'react-select/creatable';
 const { REACT_APP_BACKEND_URL } = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -148,10 +153,91 @@ class Pengadaan extends Component {
             message: '',
             openFill: false,
             dataRej: {},
-            history: false
+            history: false,
+            options: []
         }
-        this.onSetOpen = this.onSetOpen.bind(this);
-        this.menuButtonClick = this.menuButtonClick.bind(this);
+        this.onSetOpen = this.onSetOpen.bind(this)
+        this.menuButtonClick = this.menuButtonClick.bind(this)
+        this.debouncedLoadOptions = debounce(this.prosesSearch, 500)
+    }
+
+    prosesSearch = async (val) => {
+        const token = localStorage.getItem("token")
+        const level = localStorage.getItem('level')
+        const { time1, time2, search, limit, filter } = this.state
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        const statusBudget = level === '8' && filter === 'available' ? '3' : 'all'
+        const statusAset = level === '2' && filter === 'available' ? '1' : 'all'
+        const statusApp = (level !== '8' && level !== '2') && filter === 'available' ? '2' : 'all'
+        const status = filter === 'finish' ? '8' : level === '2' ? statusAset : level === '8' ? statusBudget : (level !== '2' && level !== '8' ) ? statusApp : 'all'
+
+        if (val === null || val === undefined || val.length === 0) {
+            this.setState({ options: [] })
+        } else {
+            await this.props.searchIo(token, status, cekTime1, cekTime2, val, limit)
+
+            const { dataSearch } = this.props.pengadaan
+            const firstOption = [
+                {value: val, label: val}
+            ]
+            const secondOption = [
+                {value: '', label: ''}
+            ]
+            
+    
+            for (let i = 0; i < dataSearch.length; i++) {
+                const dataArea = dataSearch[i].area
+                const dataNo = dataSearch[i].no_pengadaan
+                const dataItem = dataSearch[i].nama
+    
+                // const cekArea = dataArea.includes(val)
+                // const cekNo = dataNo.includes(val)
+                // const cekItem = dataItem.includes(val)
+    
+                // const cekAll = cekArea ? dataArea : cekNo ? dataNo : cekItem ? dataItem : null
+                // if (cekAll !== null) {
+                //     const data = {
+                //         value: dataNo, label: cekAll
+                //     }
+                //     firstOption.push(data)
+                // } else {
+                //     const cekFirst = firstOption.find(item => item.value === dataNo)
+                const cekSecond = secondOption.find(item => item.value === dataNo)
+                if (cekSecond === undefined) {
+                    const data = {
+                        value: dataNo, label: dataNo
+                    }
+                    secondOption.push(data)
+                }
+                // }
+            }
+    
+            const dataOption = [
+                ...firstOption,
+                ...secondOption
+            ]
+    
+            this.setState({ options: dataOption })
+        }
+    }
+    
+    handleInputChange = (val) => {
+        this.debouncedLoadOptions(val)
+        return val
+    }
+
+    goSearch = async (e) => {
+        if (e === null || e === undefined) {
+            console.log(e)
+        } else {
+            this.setState({ search: e.value })
+            const { filter } = this.state
+            setTimeout(() => {
+                this.changeFilter(filter)
+            }, 100)
+        }
+        
     }
 
     openHistory = () => {
@@ -325,7 +411,39 @@ class Pengadaan extends Component {
                 }
                 if (tempdoc.length === arrDoc.length) {
                     if (val === 'submit') {
-                        this.openModalSubmit()
+                        if (level === '2') {
+                            const cek = []
+                            const dataFalse = []
+                            for (let i = 0; i < detailIo.length; i++) {
+                                if (detailIo[i].isAsset !== 'true' && detailIo[i].isAsset !== 'false') {
+                                    cek.push(detailIo[i])
+                                } else if (detailIo[i].isAsset === 'false') {
+                                    dataFalse.push(detailIo[i])
+                                }
+                            }
+                            if (cek.length > 0) {
+                                this.setState({ confirm: 'falseSubmit' })
+                                this.openConfirm()
+                            } else if (dataFalse.length === detailIo.length) {
+                                this.setState({ confirm: 'falseItem' })
+                                this.openConfirm()
+                            } else {
+                                this.openModalSubmit()
+                            }
+                        } else if (level === '8') {
+                            const cek = []
+                            for (let i = 0; i < detailIo.length; i++) {
+                                if (detailIo[i].no_io === null || detailIo[i].no_io === '') {
+                                    cek.push(detailIo[i])
+                                }
+                            }
+                            if (cek.length > 0) {
+                                this.setState({ confirm: 'rejSubmit' })
+                                this.openConfirm()
+                            } else {
+                                this.openModalSubmit()
+                            }
+                        }
                     } else {
                         this.openModalApproveIo()
                     }
@@ -1136,17 +1254,26 @@ class Pengadaan extends Component {
         this.props.history.push('/revtick')
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         // this.getNotif()
+        const token = localStorage.getItem("token")
+        const id = localStorage.getItem('id')
+        const filter = this.props.location.state === undefined ? '' : this.props.location.state.filter
+        console.log(filter)
+        if (filter === 'finish' || filter === 'all') {
+            this.setState({filter: filter})
+        }
+        await this.props.getRole(token)
+        await this.props.getDepo(token, 1000, '')
+        await this.props.getDetailUser(token, id)
         this.getDataAsset()
     }
 
     getDataAsset = async (value) => {
         const level = localStorage.getItem('level')
-        const status = level === '2' ? '1' : level === '8' ? '3' : 'available'
-        const token = localStorage.getItem("token")
-        // await this.props.getPengadaan(token, status)
-        this.changeFilter(status === 'all' && (level !== '5' && level !== '9') ? 'all' : 'available')
+        const { filter } = this.state
+        console.log(filter)
+        this.changeFilter(filter)
     }
 
     getDataMount = () => {
@@ -1161,23 +1288,45 @@ class Pengadaan extends Component {
         const token = localStorage.getItem("token")
         const role = localStorage.getItem('role')
         const level = localStorage.getItem('level')
+        const { detailUser, dataRole } = this.props.user
+        const { dataDepo } = this.props.depo
+
         const { time1, time2, search, limit } = this.state
         const cekTime1 = time1 === '' ? 'undefined' : time1
         const cekTime2 = time2 === '' ? 'undefined' : time2
-        // const status = val === 'selesai' ? '8' : val === 'available' && level === '2' ? '1' : val === 'available' && level === '8' ? '3' : 'all'
-        const status = val === 'selesai' ? '8' : 'all'
+        const statusBudget = level === '8' && val === 'available' ? '3' : 'all'
+        const statusAset = level === '2' && val === 'available' ? '1' : 'all'
+        const statusApp = (level !== '8' && level !== '2') && val === 'available' ? '2' : 'all'
+        const status = val === 'finish' ? '8' : level === '2' ? statusAset : level === '8' ? statusBudget : (level !== '2' && level !== '8' ) ? statusApp : 'all'
 
         await this.props.getPengadaan(token, status, cekTime1, cekTime2, search, limit)
+
+        const arrRole = detailUser.detail_role
+        const listRole = []
+        for (let i = 0; i < arrRole.length + 1; i++) {
+            if (detailUser.user_level === 1) {
+                const data = {fullname: 'admin', name: 'admin', nomor: '1', type: 'all'}
+                listRole.push(data)
+            } else if (i === arrRole.length) {
+                const cek = dataRole.find(item => parseInt(item.nomor) === detailUser.user_level)
+                if (cek !== undefined) {
+                    listRole.push(cek)
+                }
+            } else {
+                const cek = dataRole.find(item => parseInt(item.nomor) === arrRole[i].id_role)
+                if (cek !== undefined) {
+                    listRole.push(cek)
+                }
+            }
+        }
         if (level === '2' || level === '8') {
             const { dataPeng } = this.props.pengadaan
             const newIo = []
             console.log(val)
             for (let i = 0; i < dataPeng.length; i++) {
-                // const cekBudget = (dataPeng[i].status_form === '3' && dataPeng[i].kategori !== 'return') || (dataPeng[i].status_form === '4' && dataPeng[i].kategori === 'return')
-                // const cekAsset = dataPeng[i].status_form === '1' || (dataPeng[i].status_form === '3' && dataPeng[i].kategori === 'return')
                 const cekBudget = dataPeng[i].status_form === '3'
                 const cekAsset = dataPeng[i].status_form === '1'
-                if (val === 'available' ) {
+                if (val === 'available') {
                     if (((level === '8' && cekBudget) || (level === '2' && cekAsset)) && dataPeng[i].status_reject !== 1) {
                         newIo.push(dataPeng[i])
                     }
@@ -1185,7 +1334,7 @@ class Pengadaan extends Component {
                     if (dataPeng[i].status_reject === 1) {
                         newIo.push(dataPeng[i])
                     }
-                } else if (val === 'selesai') {
+                } else if (val === 'finish') {
                     if (dataPeng[i].status_form === '8') {
                         newIo.push(dataPeng[i])
                     }
@@ -1203,27 +1352,47 @@ class Pengadaan extends Component {
             if (val === 'available' && dataPeng.length > 0) {
                 console.log('at available')
                 const newIo = []
+                const arrApp = []
                 for (let i = 0; i < dataPeng.length; i++) {
-                    const app = dataPeng[i].appForm === undefined ? [] : dataPeng[i].appForm
-                    const find = app.indexOf(app.find(({ jabatan }) => jabatan === role))
-                    if (level === '5' || level === '9') {
-                        console.log('at available 2')
-                        if (dataPeng[i].status_reject !== 1 && dataPeng[i].status_form === '2' && (app[find] === undefined || app.length === 0)) {
-                            console.log('at available 3')
-                            newIo.push(dataPeng[i])
-                        } else if (dataPeng[i].status_reject !== 1 && dataPeng[i].status_form === '2' && app[find].status === null) {
-                            console.log('at available 4')
-                            newIo.push(dataPeng[i])
-                        }
-                    } else if (find === 0 || find === '0') {
-                        console.log('at available 8')
-                        if (dataPeng[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
-                            newIo.push(dataPeng[i])
-                        }
-                    } else {
-                        console.log('at available 5')
-                        if (dataPeng[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
-                            newIo.push(dataPeng[i])
+                    const depoFrm = dataDepo.find(item => item.kode_plant === dataPeng[i].kode_plant)
+                    for (let x = 0; x < listRole.length; x++) {
+                        // console.log(listRole)
+                        const app = dataPeng[i].appForm === undefined ? [] : dataPeng[i].appForm
+                        const cekFrm = listRole[x].type === 'area' && depoFrm !== undefined ? (depoFrm.nama_bm === detailUser.fullname || depoFrm.nama_om === detailUser.fullname || depoFrm.nama_aos === detailUser.fullname ? 'pengirim' : 'not found') : 'all'
+                        // const cekFin = cekFrm === 'pengirim' ? 'pengirim' : 'all'
+                        const cekFin = cekFrm === 'pengirim' ? 'all' : 'all'
+                        const cekApp = app.find(item => (item.jabatan === listRole[x].name) && (cekFin === 'all' ? (item.struktur === null || item.struktur === 'all') : (item.struktur === cekFin)))
+                        const find = app.indexOf(cekApp)
+                        // console.log(listRole[x])
+                        // console.log(cekApp)
+                        // console.log(cekFrm)
+                        // console.log(cekTo)
+                        // console.log(cekFin)
+                        if (level === '5' || level === '9') {
+                            console.log('at available 2 area')
+                            if (dataPeng[i].status_reject !== 1 && dataPeng[i].status_form === '2' && (app[find] === undefined || app.length === 0)) {
+                                console.log('at available 3 area')
+                                newIo.push(dataPeng[i])
+                            } else if (dataPeng[i].status_reject !== 1 && dataPeng[i].status_form === '2' && app[find].status === null) {
+                                console.log('at available 4 area')
+                                newIo.push(dataPeng[i])
+                            }
+                        } else if (find === 0 || find === '0') {
+                            console.log('at available 8')
+                            if (dataPeng[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
+                                if (newIo.find(item => item.no_pengadaan === dataPeng[i].no_pengadaan) === undefined) {
+                                    newIo.push(dataPeng[i])
+                                    arrApp.push({index: find, noDis: dataPeng[i].no_pengadaan})
+                                }
+                            }
+                        } else {
+                            console.log('at available 5')
+                            if (dataPeng[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
+                                if (newIo.find(item => item.no_pengadaan === dataPeng[i].no_pengadaan) === undefined) {
+                                    newIo.push(dataPeng[i])
+                                    arrApp.push({index: find, noDis: dataPeng[i].no_pengadaan})
+                                }
+                            }
                         }
                     }
                 }
@@ -1236,7 +1405,7 @@ class Pengadaan extends Component {
                     }
                 }
                 this.setState({ filter: val, newIo: newIo })
-            } else if (val === 'selesai' && dataPeng.length > 0) {
+            } else if (val === 'finish' && dataPeng.length > 0) {
                 const newIo = []
                 for (let i = 0; i < dataPeng.length; i++) {
                     if (dataPeng[i].status_form === '8') {
@@ -1278,6 +1447,128 @@ class Pengadaan extends Component {
         }
     }
 
+    // changeFilter = async (val) => {
+    //     const token = localStorage.getItem("token")
+    //     const role = localStorage.getItem('role')
+    //     const level = localStorage.getItem('level')
+    //     const { time1, time2, search, limit } = this.state
+    //     const cekTime1 = time1 === '' ? 'undefined' : time1
+    //     const cekTime2 = time2 === '' ? 'undefined' : time2
+    //     // const status = val === 'finish' ? '8' : val === 'available' && level === '2' ? '1' : val === 'available' && level === '8' ? '3' : 'all'
+    //     const status = val === 'finish' ? '8' : 'all'
+
+    //     await this.props.getPengadaan(token, status, cekTime1, cekTime2, search, limit)
+
+    //     if (level === '2' || level === '8') {
+    //         const { dataPeng } = this.props.pengadaan
+    //         const newIo = []
+    //         console.log(val)
+    //         for (let i = 0; i < dataPeng.length; i++) {
+    //             // const cekBudget = (dataPeng[i].status_form === '3' && dataPeng[i].kategori !== 'return') || (dataPeng[i].status_form === '4' && dataPeng[i].kategori === 'return')
+    //             // const cekAsset = dataPeng[i].status_form === '1' || (dataPeng[i].status_form === '3' && dataPeng[i].kategori === 'return')
+    //             const cekBudget = dataPeng[i].status_form === '3'
+    //             const cekAsset = dataPeng[i].status_form === '1'
+    //             if (val === 'available' ) {
+    //                 if (((level === '8' && cekBudget) || (level === '2' && cekAsset)) && dataPeng[i].status_reject !== 1) {
+    //                     newIo.push(dataPeng[i])
+    //                 }
+    //             } else if (val === 'reject') {
+    //                 if (dataPeng[i].status_reject === 1) {
+    //                     newIo.push(dataPeng[i])
+    //                 }
+    //             } else if (val === 'finish') {
+    //                 if (dataPeng[i].status_form === '8') {
+    //                     newIo.push(dataPeng[i])
+    //                 }
+    //             } else {
+    //                 if ((!cekAsset && level === '2') || (!cekBudget && level === '8')) {
+    //                     newIo.push(dataPeng[i])
+    //                 } else if (((level === '8' && cekBudget) || (level === '2' && cekAsset)) && dataPeng[i].status_reject === 1) {
+
+    //                 }
+    //             }
+    //         }
+    //         this.setState({ filter: val, newIo: newIo })
+    //     } else {
+    //         const { dataPeng } = this.props.pengadaan
+    //         if (val === 'available' && dataPeng.length > 0) {
+    //             console.log('at available')
+    //             const newIo = []
+    //             for (let i = 0; i < dataPeng.length; i++) {
+    //                 const app = dataPeng[i].appForm === undefined ? [] : dataPeng[i].appForm
+    //                 const find = app.indexOf(app.find(({ jabatan }) => jabatan === role))
+    //                 if (level === '5' || level === '9') {
+    //                     console.log('at available 2')
+    //                     if (dataPeng[i].status_reject !== 1 && dataPeng[i].status_form === '2' && (app[find] === undefined || app.length === 0)) {
+    //                         console.log('at available 3')
+    //                         newIo.push(dataPeng[i])
+    //                     } else if (dataPeng[i].status_reject !== 1 && dataPeng[i].status_form === '2' && app[find].status === null) {
+    //                         console.log('at available 4')
+    //                         newIo.push(dataPeng[i])
+    //                     }
+    //                 } else if (find === 0 || find === '0') {
+    //                     console.log('at available 8')
+    //                     if (dataPeng[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
+    //                         newIo.push(dataPeng[i])
+    //                     }
+    //                 } else {
+    //                     console.log('at available 5')
+    //                     if (dataPeng[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
+    //                         newIo.push(dataPeng[i])
+    //                     }
+    //                 }
+    //             }
+    //             this.setState({ filter: val, newIo: newIo })
+    //         } else if (val === 'reject' && dataPeng.length > 0) {
+    //             const newIo = []
+    //             for (let i = 0; i < dataPeng.length; i++) {
+    //                 if (dataPeng[i].status_reject === 1) {
+    //                     newIo.push(dataPeng[i])
+    //                 }
+    //             }
+    //             this.setState({ filter: val, newIo: newIo })
+    //         } else if (val === 'finish' && dataPeng.length > 0) {
+    //             const newIo = []
+    //             for (let i = 0; i < dataPeng.length; i++) {
+    //                 if (dataPeng[i].status_form === '8') {
+    //                     newIo.push(dataPeng[i])
+    //                 }
+    //             }
+    //             this.setState({ filter: val, newIo: newIo })
+    //         } else {
+    //             const newIo = []
+    //             for (let i = 0; i < dataPeng.length; i++) {
+    //                 const app = dataPeng[i].appForm === undefined ? [] : dataPeng[i].appForm
+    //                 const find = app.indexOf(app.find(({ jabatan }) => jabatan === role))
+    //                 if (level === '5' || level === '9') {
+    //                     if (dataPeng[i].status_form === '2' && (app[find] === undefined || app.length === 0)) {
+    //                         console.log('at all 3')
+    //                         newIo.push()
+    //                     } else if (dataPeng[i].status_form === '2' && app[find].status === null) {
+    //                         console.log('at all 4')
+    //                         newIo.push()
+    //                     } else {
+    //                         newIo.push(dataPeng[i])
+    //                     }
+    //                 } else if (find === 0 || find === '0') {
+    //                     if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
+    //                         newIo.push()
+    //                     } else {
+    //                         newIo.push(dataPeng[i])
+    //                     }
+    //                 } else {
+    //                     if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
+    //                         newIo.push()
+    //                     } else {
+    //                         newIo.push(dataPeng[i])
+    //                     }
+    //                 }
+    //             }
+    //             this.setState({ filter: val, newIo: newIo })
+    //         }
+    //     }
+    // }
+
     selectTime = (val) => {
         this.setState({ [val.type]: val.val })
     }
@@ -1299,7 +1590,7 @@ class Pengadaan extends Component {
         const cekTime2 = time2 === '' ? 'undefined' : time2
         const token = localStorage.getItem("token")
         const level = localStorage.getItem("level")
-        // const status = filter === 'selesai' ? '8' : filter === 'available' && level === '2' ? '1' : filter === 'available' && level === '8' ? '3' : 'all'
+        // const status = filter === 'finish' ? '8' : filter === 'available' && level === '2' ? '1' : filter === 'available' && level === '8' ? '3' : 'all'
         this.changeFilter(filter)
     }
 
@@ -1556,7 +1847,7 @@ class Pengadaan extends Component {
                                 <option value="all">All</option>
                                 <option value="available">Available To Approve</option>
                                 <option value="reject">Reject</option>
-                                <option value="selesai">Finished</option>
+                                <option value="finish">Finished</option>
                             </select>
                         </div>
                         <div className={styleTrans.searchContainer}>
@@ -1595,14 +1886,22 @@ class Pengadaan extends Component {
                                     </>
                                 ) : null}
                             </ div>
-                            <input
+                            <Select
+                                className={styleTrans.searchSelect}
+                                options={this.state.options}
+                                onInputChange={this.handleInputChange}
+                                onChange={e => this.goSearch(e)}
+                                formatCreateLabel={(inputValue) => `"${inputValue}"`}
+                                isClearable
+                            />
+                            {/* <input
                                 type="text"
                                 placeholder="Search..."
                                 onChange={this.onSearch}
                                 value={this.state.search}
                                 onKeyPress={this.onSearch}
                                 className={styleTrans.searchInput}
-                            />
+                            /> */}
                         </div>
 
                         <table className={`${styleTrans.table} ${newIo.length > 0 ? styleTrans.tableFull : ''}`}>
@@ -1693,7 +1992,14 @@ class Pengadaan extends Component {
                                         isDisabled={level === '8' ? false : true}
                                     />
                                     {level === '8' && (
-                                        <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo(detailIo[0].no_pengadaan)}>Save</Button>
+                                        <div className='rowGeneral'>
+                                            <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo(detailIo[0].no_pengadaan)}>Save</Button>
+                                            {detailIo.length > 0 &&  detailIo[0].no_io !== null && detailIo[0].no_io.length > 0 ? (
+                                                <FaCheck size={30} className='green ml-2' />
+                                            ) : (
+                                                <CiWarning size={30} className='red ml-2' />
+                                            )}
+                                        </div>
                                     )}
                                 </Col>
                             </Row>
@@ -1722,7 +2028,7 @@ class Pengadaan extends Component {
                                                 <th>Total Amount</th>
                                                 {/* <th>OPSI</th> */}
                                                 {level === '2' && (
-                                                    <th>Asset</th>
+                                                    <th><text className='red star'>*</text> Asset</th>
                                                 )}
                                                 <th>Status IT</th>
                                                 {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
@@ -1939,10 +2245,10 @@ class Pengadaan extends Component {
                                     {detailIo[0] === undefined ? '' : `${detailIo[0].area}, ${moment(detailIo[0].tglIo).format('DD MMMM YYYY')}`}
                                 </Col>
                             </Row>
-                            <Table borderless responsive className="tabPreview mt-4">
+                            {/* <Table borderless responsive className="tabPreview mt-4">
                                 <thead>
                                     <tr>
-                                        <th className="buatPre">Dibuat oleh,</th>
+                                        <th className="buatPre buatPreFirst">Dibuat oleh,</th>
                                         <th className="buatPre">Diperiksa oleh,</th>
                                         <th className="buatPre">Disetujui oleh,</th>
                                     </tr>
@@ -2024,6 +2330,50 @@ class Pengadaan extends Component {
                                                 </tbody>
                                             </Table>
                                         </td>
+                                    </tr>
+                                </tbody>
+                            </Table> */}
+                            <Table bordered responsive className="tabPreview mt-4">
+                                <thead>
+                                    <tr>
+                                        <th className="buatPre" colSpan={dataApp.pembuat?.length || 1}>Dibuat oleh,</th>
+                                        <th className="buatPre" colSpan={
+                                            dataApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').length || 1
+                                        }>Diperiksa oleh,</th>
+                                        <th className="buatPre" colSpan={dataApp.penyetuju?.length || 1}>Disetujui oleh,</th>
+                                    </tr>
+                                    <tr>
+                                        {dataApp.pembuat?.map(item => (
+                                            <th className="headPre">
+                                                <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                                <div>{item.nama ?? '-'}</div>
+                                            </th>
+                                        ))}
+                                        {dataApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                            <th className="headPre">
+                                                <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                                <div>{item.nama ?? '-'}</div>
+                                            </th>
+                                        ))}
+                                        {dataApp.penyetuju?.map(item => (
+                                            <th className="headPre">
+                                                <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                                <div>{item.nama ?? '-'}</div>
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        {dataApp.pembuat?.map(item => (
+                                            <td className="footPre">{item.jabatan ?? '-'}</td>
+                                        ))}
+                                        {dataApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                            <td className="footPre">{item.jabatan ?? '-'}</td>
+                                        ))}
+                                        {dataApp.penyetuju?.map(item => (
+                                            <td className="footPre">{item.jabatan ?? '-'}</td>
+                                        ))}
                                     </tr>
                                 </tbody>
                             </Table>
@@ -2466,7 +2816,17 @@ class Pengadaan extends Component {
                         </Button>
                     </ModalFooter>
                 </Modal>
-                <Modal isOpen={this.props.pengadaan.isLoading || this.props.dokumen.isLoading || this.props.tempmail.isLoading ? true : false} size="sm">
+                <Modal 
+                isOpen={
+                    this.props.pengadaan.isLoading ||
+                    this.props.dokumen.isLoading ||
+                    this.props.user.isLoading ||
+                    this.props.depo.isLoading ||
+                    this.props.newnotif.isLoading ||
+                    this.props.tempmail.isLoading ? true : false
+                } 
+                size="sm"
+                >
                     <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>
@@ -3092,6 +3452,14 @@ class Pengadaan extends Component {
                                     <div className="errApprove mt-2">Mohon identifikasi asset terlebih dahulu</div>
                                 </div>
                             </div>
+                        ) : this.state.confirm === 'falseItem' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                                    <div className="errApprove mt-2">Ajuan hanya bisa direject karena seluruh data teridentifikasi bukan aset</div>
+                                </div>
+                            </div>
                         ) : this.state.confirm === 'falseSubmitDok' ? (
                             <div>
                                 <div className={style.cekUpdate}>
@@ -3258,7 +3626,10 @@ const mapStateToProps = state => ({
     notif: state.notif,
     auth: state.auth,
     dokumen: state.dokumen,
-    tempmail: state.tempmail
+    tempmail: state.tempmail,
+    newnotif: state.newnotif,
+    depo: state.depo,
+    user: state.user,
 })
 
 const mapDispatchToProps = {
@@ -3292,6 +3663,10 @@ const mapDispatchToProps = {
     getTempAsset: pengadaan.getTempAsset,
     podsSend: pengadaan.podsSend,
     addNewNotif: newnotif.addNewNotif,
+    getRole: user.getRole,
+    getDetailUser: user.getDetailUser,
+    getDepo: depo.getDepo,
+    searchIo: pengadaan.searchIo,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Pengadaan)
