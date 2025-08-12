@@ -17,14 +17,17 @@ export default function AllPages(props) {
   const genData = dataFile === undefined ? ['file.pdf'] : dataFile.path.split('/')
   const cekDoc = genData[genData.length - 1].split('.')
   const cekPr = genData.find(item => item === 'printPR')
-  // console.log(cekDoc)
-  // console.log(cekDoc[cekDoc.length - 1])
+  const pathData = genData[genData.length - 1]
+  console.log(dataFile)
+  console.log(cekDoc)
+  console.log(cekDoc[cekDoc.length - 1])
+  console.log(pathData)
   // console.log(pdf)
   return (
     cekDoc.length !== 0 && filePict.find(item => item === cekDoc[cekDoc.length - 1].toString().toLowerCase()) !== undefined ? 
-    <div>
-      <img className="imgPdf" src={`${REACT_APP_BACKEND_URL}/${dataFile.path}`} />
-    </div>
+      <div>
+        <img className="imgPdf" src={`${REACT_APP_BACKEND_URL}/uploads/${pathData}`} />
+      </div>
     : cekDoc.length !== 0 && cekDoc[cekDoc.length - 1].toString().toLowerCase() === 'pdf' || cekPr !== undefined ? 
       // <Document
       //   file={pdf}

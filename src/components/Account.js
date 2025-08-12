@@ -263,7 +263,7 @@ class Account extends Component {
                                 className="col-12 col-md-6 col-lg-3 mb-4">
                                     <div className={styleHome.assetCard1}>
                                         <FiUser size={150} className='mt-4 mb-4' />
-                                        <p className='mt-2 mb-4 sizeCh'>{item.username}</p>
+                                        <p className='mt-2 mb-4 sizeCh'>{item.username}{(level === '5' || level === '9') ? `-${item.kode_plant}` : ''}</p>
                                     </div>
                                 </div>
                             )

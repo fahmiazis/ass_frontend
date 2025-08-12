@@ -273,6 +273,17 @@ class ModalDokumen extends Component {
                 } else {
                     this.collDoc(val.id)
                 }
+            } else if (tipe === 'persetujuan disposal') {
+                const data = {
+                    noId: detailForm.id,
+                    noAsset: detailForm.no_asset
+                }
+                await this.props.getDocumentDis(token, data, 'disposal', 'persetujuan')
+                if (val.type === 'show') {
+                    this.collDoc(val.id)
+                } else {
+                    this.collDoc(val.id)
+                }
             }
             
         }

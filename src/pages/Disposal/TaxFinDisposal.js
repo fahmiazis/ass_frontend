@@ -5,8 +5,9 @@ import {NavbarBrand, Input, Button, Row, Col,
     Modal, ModalHeader, ModalBody, ModalFooter, Container, Alert, Spinner,
     Table, UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem} from 'reactstrap'
 import style from '../../assets/css/input.module.css'
-import {FaUserCircle, FaBars, FaFileSignature} from 'react-icons/fa'
+import {FaUpload, FaUserCircle, FaBars, FaFileSignature} from 'react-icons/fa'
 import {AiOutlineCheck, AiOutlineClose, AiFillCheckCircle, AiOutlineInbox} from 'react-icons/ai'
+import {FiSend, FiTruck, FiSettings, FiUpload} from 'react-icons/fi'
 import {BsCircle, BsBell, BsFillCircleFill} from 'react-icons/bs'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
@@ -45,6 +46,7 @@ import FormPersetujuan from '../../components/Disposal/FormPersetujuan'
 import ModalDokumen from '../../components/ModalDokumen'
 import debounce from 'lodash.debounce';
 import Select from 'react-select/creatable';
+import styleHome from '../../assets/css/Home.module.css'
 
 const {REACT_APP_BACKEND_URL} = process.env
 
@@ -140,7 +142,8 @@ class TaxFinDisposal extends Component {
             noDoc: '',
             noTrans: '',
             valdoc: {},
-            options: []
+            options: [],
+            modalType: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -710,6 +713,10 @@ class TaxFinDisposal extends Component {
                 this.openDocTax(item)
             } else if (tipe === 'finance') {
                 this.openDocFinance(item)
+            } else if (tipe === 'ajuan') {
+                this.openDocAjuan(item)
+            } else if (tipe === 'eksekusi') {
+                this.openDocEksekusi(item)
             }
          }, 100)
     }
@@ -736,14 +743,24 @@ class TaxFinDisposal extends Component {
 
     openDocEksekusi = async (val) => {
         const token = localStorage.getItem('token')
-        this.setState({tipeDoc: 'sell'})
         // const { dataRinci } = this.state
         const data = {
             noId: val.id,
             noAsset: val.no_asset
         }
         const tipeDis = val.nilai_jual === "0" ? 'dispose' : 'sell'
+        this.setState({tipeDoc: 'tipeDis'})
         await this.props.getDocumentDis(token, data, 'disposal', tipeDis, val.npwp)
+        this.modalDocEks()
+    }
+
+    openDocAjuan = async (val) => {
+        const token = localStorage.getItem('token')
+        const data = {
+            noId: val.id,
+            noAsset: val.no_asset
+        }
+        await this.props.getDocumentDis(token, data, 'disposal', 'pengajuan')
         this.modalDocEks()
     }
 
@@ -1027,6 +1044,10 @@ class TaxFinDisposal extends Component {
             this.openConfirm()
         }
         
+    }
+
+    openTypeDoc = () => {
+        this.setState({modalType: !this.state.modalType})
     }
 
     render() {
@@ -1396,7 +1417,7 @@ class TaxFinDisposal extends Component {
                         parDoc={{ 
                             noDoc: this.state.noDoc, 
                             noTrans: this.state.noTrans, 
-                            tipe: `${this.state.tipeDoc} disposal`, 
+                            tipe: this.state.tipeDoc === 'ajuan' ? 'disposal' : `${this.state.tipeDoc} disposal`, 
                             filter: this.state.filter, 
                             detailForm: this.state.valdoc 
                         }}
@@ -1699,7 +1720,7 @@ class TaxFinDisposal extends Component {
                                                 <Button size="md" color="success" onClick={() => this.openProsesDocFinance(dataRinci)}>Upload Doc</Button>
                                             ) : (
                                                 <>
-                                                    <Button 
+                                                    {/* <Button 
                                                     className='ml-1' 
                                                     color='success' 
                                                     size="md"
@@ -1712,6 +1733,13 @@ class TaxFinDisposal extends Component {
                                                     size="md"
                                                     onClick={() => this.prosesOpenDokumen({item: dataRinci, tipe: 'finance'})}>
                                                         Dokumen Finance
+                                                    </Button> */}
+                                                    <Button 
+                                                    className='ml-1' 
+                                                    color='success' 
+                                                    size="md"
+                                                    onClick={() => this.openTypeDoc()}>
+                                                        Dokumen
                                                     </Button>
                                                 </>
                                             )}
@@ -1721,35 +1749,62 @@ class TaxFinDisposal extends Component {
                                             <Button size="md" color="secondary" onClick={() => this.openModalRinci()}>Close</Button>
                                         </div>
                                     </Row>
-                                    {/* {level === '2' ? (
-                                        <Row className="footRinci1 ml-2 mb-2">
-                                            <Button className="btnFootRinci3" size="md" color="primary" outline onClick={handleSubmit}>Save</Button>
-                                            <Button className="btnFootRinci3" size="md" color="warning" outline onClick={() => this.openProsesDocFinance(dataRinci)}>Doc Finance</Button>
-                                            <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocTax(dataRinci)}>Doc Tax</Button>
-                                            <Button className="btnFootRinci3" size="md" color="danger" outline onClick={() => this.pengajuanDisposal(dataRinci.no_disposal)}>Form Pengajuan</Button>
-                                            <Button className="btnFootRinci3" size="md" color="info" outline onClick={() => this.persetujuanDisposal(dataRinci.status_app)}>Form Persetujuan</Button>
-                                            <Button className="btnFootRinci3" size="md" color="primary" outline onClick={() => this.openDocEksekusi()}>Doc Eksekusi</Button>
-                                            <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocPeng()}>Doc Pengajuan</Button>
-                                            <Button className="btnFootRinci3 mb-5" size="md" color="danger" outline onClick={() => this.goReport(dataRinci.no_asset)}>Show Report</Button>
-                                            <Button className="btnFootRinci3 mb-5" size="md" color="secondary" outline onClick={() => this.openModalRinci()}>Close</Button>
-                                        </Row>
-                                    ) : (
-                                        <Row className="footRinci1 ml-2">
-                                            <Button className="btnFootRinci3" size="md" color="primary" outline onClick={handleSubmit}>Save</Button>
-                                            {level === "3" ? (
-                                                <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocTax(dataRinci)}>Upload Doc</Button>
-                                            ) : level === '4' && (
-                                                <Button className="btnFootRinci3" size="md" color="success" outline onClick={() => this.openProsesDocFinance(dataRinci)}>Upload Doc</Button>
-                                            )}
-                                            <Button className="btnFootRinci3" size="md" color="warning" outline onClick={() => this.pengajuanDisposal(dataRinci.no_disposal)}>Form Pengajuan</Button>
-                                            <Button className="btnFootRinci3" size="md" color="info" outline onClick={() => this.persetujuanDisposal(dataRinci.status_app)}>Form Persetujuan</Button>
-                                            <Button className="btnFootRinci3" size="md" color="danger" outline onClick={() => this.openDocEksekusi()}>Doc Eksekusi</Button>
-                                            <Button className="btnFootRinci3" size="md" color="primary" outline onClick={() => this.openProsesDocPeng()}>Doc Pengajuan</Button>
-                                        </Row>
-                                    )} */}
                                 </div>
                             )}
                             </Formik>
+                        </div>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.modalType} toggle={this.openTypeDoc} centered={true} size='xl'>
+                    <ModalBody>
+                        <div className={styleHome.mainContent}>
+                            <main className={styleHome.mainSection}>
+                            <h1 className={styleHome.title}>Pilih Open Dokumen </h1>
+                            <h4 className={styleHome.subtitle}></h4>
+
+                            <div className={`${styleHome.assetContainer} row`}>
+                                <div 
+                                onClick={() => this.prosesOpenDokumen({item: dataRinci, tipe: 'ajuan'})}
+                                className="col-12 col-md-6 col-lg-3 mb-4">
+                                    <div className={styleHome.assetCard1}>
+                                        <FiSend size={120} className='mt-4 mb-4' />
+                                        <p className='mt-2 mb-4 sizeCh'>Dokumen Ajuan</p>
+                                    </div>
+                                </div>
+                                <div 
+                                onClick={() => this.prosesOpenDokumen({item: dataRinci, tipe: 'eksekusi'})}
+                                className="col-12 col-md-6 col-lg-3 mb-4">
+                                    <div className={styleHome.assetCard1}>
+                                        <FiTruck size={120} className='mt-4 mb-4' />
+                                        <p className='mt-2 mb-4 sizeCh'>Dokumen Eksekusi</p>
+                                    </div>
+                                </div>
+                                <div 
+                                onClick={() => this.prosesOpenDokumen({item: dataRinci, tipe: 'tax'})}
+                                className="col-12 col-md-6 col-lg-3 mb-4">
+                                    <div className={styleHome.assetCard1}>
+                                        <FiSettings size={120} className='mt-4 mb-4' />
+                                        <p className='mt-2 mb-4 sizeCh'>Dokumen Tax</p>
+                                    </div>
+                                </div>
+                                <div 
+                                onClick={() => this.prosesOpenDokumen({item: dataRinci, tipe: 'finance'})}
+                                className="col-12 col-md-6 col-lg-3 mb-4">
+                                    <div className={styleHome.assetCard1}>
+                                        <FiSettings size={120} className='mt-4 mb-4' />
+                                        <p className='mt-2 mb-4 sizeCh'>Dokumen Finance</p>
+                                    </div>
+                                </div>
+                            </div>
+                            </main>
+                        </div>
+                        <hr />
+                        <div className='rowBetween'>
+                            <div className='rowGeneral'>
+                            </div>
+                            <div className='rowGeneral'>
+                                <Button onClick={this.openTypeDoc} color='secondary'>Close</Button>
+                            </div>
                         </div>
                     </ModalBody>
                 </Modal>
@@ -1757,7 +1812,7 @@ class TaxFinDisposal extends Component {
                     <ModalHeader>Dokumen</ModalHeader>
                     <ModalBody>
                         <div className={style.readPdf}>
-                            <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
+                            <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} dataFile={this.state.fileName} />
                         </div>
                         <hr/>
                         <div className={style.foot}>

@@ -796,9 +796,9 @@ class Approve extends Component {
                                         <td>{item.name}</td>
                                         <td>{item.tipe === 'all' ? 'Nasional' : 'Area'}</td>
                                         <td>
-                                            <Button color="info" onClick={() => this.getDataDetailApprove(item)}>Detail</Button>
-                                            <Button onClick={() => this.prosesOpenEdit(item)} className='ml-2' color="success">Update</Button>
-                                            <Button onClick={() => this.delName(item)} className='ml-2' color="danger">Delete</Button>
+                                            <Button color="info" className='ml-1 mt-1' onClick={() => this.getDataDetailApprove(item)}>Detail</Button>
+                                            <Button onClick={() => this.prosesOpenEdit(item)} className='ml-1 mt-1' color="success">Update</Button>
+                                            <Button onClick={() => this.delName(item)} className='ml-1 mt-1' color="danger">Delete</Button>
                                         </td>
                                     </tr>
                                     )

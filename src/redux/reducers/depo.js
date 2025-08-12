@@ -1,7 +1,7 @@
 /* eslint-disable import/no-anonymous-default-export */
 const depoState = {
     isAdd: false,
-    isUpload: false,
+    isUpload: null,
     isUpdate: false,
     isGet: false,
     isDetail: false,
@@ -195,7 +195,6 @@ export default (state=depoState, action) => {
                     ...state,
                     isLoading: false,
                     isUpload: true,
-                    isError: false,
                     alertMsg: 'upload master Succesfully'
                 };
             }
@@ -204,7 +203,6 @@ export default (state=depoState, action) => {
                     ...state,
                     isLoading: false,
                     isUpload: false,
-                    isError: true,
                     alertMsg: action.payload.response.data.message,
                     alertUpload: action.payload.response.data.result
                 };
@@ -213,7 +211,7 @@ export default (state=depoState, action) => {
                 return {
                     ...state,
                     isError: false,
-                    isUpload: false,
+                    isUpload: null,
                     isGet: false,
                     isExport: false
                 }

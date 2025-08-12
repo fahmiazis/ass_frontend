@@ -388,6 +388,9 @@ html,body{
   width: 30%;
   left: 50%;
 }
+.mb3 {
+  margin-bottom: 2%;
+}
 .btnApproveIo {
   align-self: center;
   margin-top: 30px;

@@ -1,7 +1,7 @@
 /* eslint-disable import/no-anonymous-default-export */
 const userState = {
     isAdd: false,
-    isUpload: false,
+    isUpload: null,
     isUpdate: false,
     isGet: false,
     isGetRole: false,
@@ -298,7 +298,6 @@ export default (state=userState, action) => {
                     ...state,
                     isLoading: false,
                     isUpload: true,
-                    isError: false,
                     alertMsg: 'upload master Succesfully'
                 };
             }
@@ -307,7 +306,6 @@ export default (state=userState, action) => {
                     ...state,
                     isLoading: false,
                     isUpload: false,
-                    isError: true,
                     alertMsg: action.payload.response.data.message,
                     alertUpload: action.payload.response.data.result
                 };
@@ -362,7 +360,7 @@ export default (state=userState, action) => {
                 return {
                     ...state,
                     isError: false,
-                    isUpload: false,
+                    isUpload: null,
                     isExport: false,
                     isUpdate: false,
                     isChange: false,

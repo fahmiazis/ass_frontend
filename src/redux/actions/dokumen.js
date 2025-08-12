@@ -11,7 +11,7 @@ export default {
         type: 'UPDATE_DOKUMEN',
         payload: http(token).patch(`/dokumen/update/${id}`, qs.stringify(data)),
     }),
-    getDokumen: (token, limit, search, page) => ({
+    getAllDokumen: (token, limit, search, page) => ({
         type: 'GET_DOKUMEN',
         payload: http(token).get(`/dokumen/get?limit=${limit}&search=${search}&page=${page === undefined ? 1 : page}`)
     }),
@@ -51,6 +51,36 @@ export default {
         type: 'SHOW_DOK',
         payload: http(token).get(`/show/doc/${id}?no=${no}`)
     }),
+
+    createNameDocument: (token, data) => ({
+        type: 'CREATE_NAMEDOK',
+        payload: http(token).post(`/dokumen/create`, qs.stringify(data))
+    }),
+    updateNameDocument: (token, data, id) => ({
+        type: 'UPDATE_NAMEDOK',
+        payload: http(token).patch(`/dokumen/name/edit/${id}`, qs.stringify(data))
+    }),
+    getNameDocument: (token, limit, search, page) => ({
+        type: 'GET_NAMEDOK',
+        payload: http(token).get(`/dokumen/name?limit=${limit}&search=${search}&page=${page === undefined ? 1 : page}`)
+    }),
+    getDetailDocument: (token, nama, kode) => ({
+        type: 'GET_DETAIL_NAMEDOK',
+        payload: http(token).get(`/dokumen/detail?nama=${nama}&kode=${kode}`)
+    }),
+    deleteNameDocument: (token, id) => ({
+        type: 'DELETE_NAMEDOK',
+        payload: http(token).delete(`/dokumen/delete/name/${id}`)
+    }),
+    getTempDoc: (token, id) => ({
+        type: 'GET_TEMPLATE_NAMEDOK',
+        payload: http(token).get(`/dokumen/template?id=${id}`)
+    }),
+    getDetailId: (token, id) => ({
+        type: 'GET_DETAIL_DOKUMEN',
+        payload: http(token).get(`/dokumen/detail/${id}`)
+    }),
+
     resetError: () => ({
         type: 'RESET'
     })

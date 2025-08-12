@@ -1557,7 +1557,7 @@ class Disposal extends Component {
                                                 className="mr-1 mt-1" 
                                                 color="primary" 
                                                 onClick={item.status_reject === 1 && item.status_form !== 0 && (level === '5' || level === '9') && item.user_rev === kode ? () => this.goRevisi() : () => this.prosesOpenDisposal(item)}>
-                                                    {this.state.filter === 'available' || 'submit' ? 'Proses' : item.status_reject === 1 && item.status_form !== 0 && (level === '5' || level === '9') && item.user_rev === kode ? 'Revisi' : 'Detail'}
+                                                    {(this.state.filter === 'available' || this.state.filter === 'submit') ? 'Proses' : item.status_reject === 1 && item.status_form !== 0 && (level === '5' || level === '9') && item.user_rev === kode ? 'Revisi' : 'Detail'}
                                                 </Button>
                                                 <Button
                                                 className='mt-1'
@@ -1612,240 +1612,163 @@ class Disposal extends Component {
                         <div>Data Penjualan Asset Sedang Dilengkapi oleh divisi purchasing</div>
                     </Alert> */}
                     <ModalBody>
-                        <div className="preDis">
-                            <text className='bold'>PT. Pinus Merah Abadi</text>
-                            <text></text>
-                        </div>
-                        <div className="modalDis">
-                            <text className="titleModDis">FORM PENGAJUAN DISPOSAL ASET</text>
-                        </div>
-                        <div className="mb-2 bold">
-                            <text className="txtTrans">
-                                {detailDis[0] !== undefined && detailDis[0].area}
-                            </text>, 
-                            {moment(detailDis[0] !== undefined && detailDis[0].tanggalDis).locale('idn').format('DD MMMM YYYY ')}
-                        </div>
-                        <Row>
-                            <Col md={2} className='bold'>
-                            Hal
-                            </Col>
-                            <Col md={10} className='bold'>
-                            : Pengajuan Disposal Asset
-                            </Col>
-                        </Row>
-                        <Row className="mb-2 bold">
-                            <Col md={2}>
-                            {detailDis[0] === undefined ? "" :
-                            detailDis[0].status_depo === "Cabang Scylla" || detailDis[0].status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
-                            </Col>
-                            <Col md={10} className="txtTrans">
-                            : {detailDis[0] !== undefined && detailDis[0].area + ' - ' + detailDis[0].cost_center} 
-                            </Col>
-                        </Row>
-                        <div>Kepada Yth.</div>
-                        <div>Bpk/Ibu Pimpinan</div>
-                        <div className="mb-2">Di tempat</div>
-                        <div>Dengan Hormat,</div>
-                        <div className="mb-3">Dengan surat ini kami mengajukan permohonan disposal aset dengan perincian sbb :</div>
-                        <Table striped bordered responsive hover className="tableDis mb-3">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>No</th>
-                                    <th>Nomor Asset</th>
-                                    <th>Nama Barang</th>
-                                    <th>Merk/Type</th>
-                                    <th>Kategori</th>
-                                    <th>Nilai Buku</th>
-                                    <th>Nilai Jual</th>
-                                    <th>Keterangan</th>
-                                    <th>{this.state.filter === 'submit' ? 'Opsi' : 'Dokumen'}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {detailDis.length !== 0 && detailDis.map(item => {
-                                    return (
-                                        <tr>
-                                            <td> 
-                                                <Input
-                                                addon
-                                                disabled={this.state.filter !== 'available' && this.state.filter !== 'revisi' ? true : false}
-                                                checked={listMut.find(element => element === item.id) !== undefined ? true : false}
-                                                type="checkbox"
-                                                onClick={listMut.find(element => element === item.id) === undefined ? () => this.chekApp(item.id) : () => this.chekRej(item.id)}
-                                                value={item.id} />
-                                            </td>
-                                            <th scope="row" >{detailDis.indexOf(item) + 1}</th>
-                                            {/* <td onClick={() => this.openDataRinci(item)}>{item.no_asset}</td> */}
-                                            <td>{item.no_asset}</td>
-                                            <td>{item.nama_asset}</td>
-                                            <td>{item.merk}</td>
-                                            <td>{item.kategori}</td>
-                                            <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                            <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                            <td>{item.keterangan}</td>
-                                            <td >
-                                                {this.state.filter === 'submit' ? (
-                                                    <Button color='primary' onClick={() => this.prosesOpenRinci(item)}>Proses</Button>
-                                                ) : (
-                                                    <Button color='success' onClick={() => this.prosesOpenDokumen(item)}>Dokumen</Button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    )
-                                })}
-                            </tbody>
-                        </Table>
-                        <div className="mb-3">Demikianlah hal yang kami sampaikan, atas perhatiannya kami mengucapkan terima kasih</div>
-                        {/* <Table borderless responsive className="tabPreview">
-                           <thead>
-                               <tr>
-                                   <th className="buatPre">Dibuat oleh,</th>
-                                   <th className="buatPre">Diperiksa oleh,</th>
-                                   <th className="buatPre">Disetujui oleh,</th>
-                               </tr>
-                           </thead>
-                           <tbody className="tbodyPre">
-                               <tr>
-                                   <td className="restTable">
-                                       <Table bordered responsive className="divPre">
-                                            <thead>
-                                                <tr>
-                                                    {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
-                                                        return (
-                                                            <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                <div>{item.nama === null ? "-" : item.nama}</div>
-                                                            </th>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                {disApp.pembuat !== undefined && disApp.pembuat.map(item => {
-                                                    return (
-                                                        <td className="footPre mb-3">{item.jabatan === null ? "-" : item.jabatan}<br /></td>
-                                                    )
-                                                })}
-                                                </tr>
-                                            </tbody>
-                                       </Table>
-                                   </td>
-                                   <td className="restTable">
-                                       <Table bordered responsive className="divPre">
-                                            <thead>
-                                                <tr>
-                                                    {disApp.pemeriksa !== undefined && disApp.pemeriksa.map(item => {
-                                                        return (
-                                                            (item.id_role === 2 || item.jabatan === 'asset') ? (
-                                                                null
-                                                            ) : (
-                                                            <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                <div>{item.nama === null ? "-" : item.nama}</div>
-                                                            </th>
-                                                            )
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    {disApp.pemeriksa !== undefined && disApp.pemeriksa.map(item => {
-                                                        return (
-                                                            (item.id_role === 2 || item.jabatan === 'asset') ? (
-                                                                null
-                                                            ) : (
-                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}<br /></td>
-                                                            )
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </tbody>
-                                       </Table>
-                                   </td>
-                                   <td className="restTable">
-                                       <Table bordered responsive className="divPre">
-                                            <thead>
-                                                <tr>
-                                                    {disApp.penyetuju !== undefined && disApp.penyetuju.map((item, index) => {
-                                                        return (
-                                                            index === (disApp.penyetuju.length) ? (
-                                                                null
-                                                            ) : (
-                                                                <th className="headPre">
-                                                                    <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                    <div>{item.nama === null ? "-" : item.nama}</div>
-                                                                </th>
-                                                            )
-                                                            
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    {disApp.penyetuju !== undefined && disApp.penyetuju.map((item, index) => {
-                                                        return (
-                                                            index === (disApp.penyetuju.length) ? (
-                                                                null
-                                                            ) : (
-                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                            )
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </tbody>
-                                       </Table>
-                                   </td>
-                               </tr>
-                           </tbody>
-                       </Table> */}
-                       <Table bordered responsive className="tabPreview">
-                            <thead>
-                                <tr>
-                                    <th className="buatPre" colSpan={disApp.pembuat?.length || 1}>Dibuat oleh,</th>
-                                    <th className="buatPre" colSpan={
-                                        disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').length || 1
-                                    }>Diperiksa oleh,</th>
-                                    <th className="buatPre" colSpan={disApp.penyetuju?.length || 1}>Disetujui oleh,</th>
-                                </tr>
-                                <tr>
-                                    {disApp.pembuat?.map(item => (
-                                        <th className="headPre">
-                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
-                                            <div>{item.nama ?? '-'}</div>
-                                        </th>
-                                    ))}
-                                    {disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
-                                        <th className="headPre">
-                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
-                                            <div>{item.nama ?? '-'}</div>
-                                        </th>
-                                    ))}
-                                    {disApp.penyetuju?.map(item => (
-                                        <th className="headPre">
-                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
-                                            <div>{item.nama ?? '-'}</div>
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    {disApp.pembuat?.map(item => (
-                                        <td className="footPre">{item.jabatan ?? '-'}</td>
-                                    ))}
-                                    {disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
-                                        <td className="footPre">{item.jabatan ?? '-'}</td>
-                                    ))}
-                                    {disApp.penyetuju?.map(item => (
-                                        <td className="footPre">{item.jabatan ?? '-'}</td>
-                                    ))}
-                                </tr>
-                            </tbody>
-                        </Table>
+                        <Container className='xxl borderGen'>
+                            <div className="preDis">
+                                <text className='bold'>PT. Pinus Merah Abadi</text>
+                                <text></text>
+                            </div>
+                            <div className="modalDis">
+                                <text className="titleModDis">FORM PENGAJUAN DISPOSAL ASET</text>
+                            </div>
+                            <div className="mb-2 bold">
+                                <text className="txtTrans">
+                                    {detailDis[0] !== undefined && detailDis[0].area}
+                                </text>, 
+                                {moment(detailDis[0] !== undefined && detailDis[0].tanggalDis).locale('idn').format('DD MMMM YYYY ')}
+                            </div>
+                            <Row>
+                                <Col md={2} className='bold'>
+                                Hal
+                                </Col>
+                                <Col md={10} className='bold'>
+                                : Pengajuan Disposal Asset
+                                </Col>
+                            </Row>
+                            <Row className="mb-2 bold">
+                                <Col md={2}>
+                                {detailDis[0] === undefined ? "" :
+                                detailDis[0].status_depo === "Cabang Scylla" || detailDis[0].status_depo === "Cabang SAP" ? "Cabang" : "Depo"}
+                                </Col>
+                                <Col md={10} className="txtTrans">
+                                : {detailDis[0] !== undefined && detailDis[0].area + ' - ' + detailDis[0].cost_center} 
+                                </Col>
+                            </Row>
+                            <div>Kepada Yth.</div>
+                            <div>Bpk/Ibu Pimpinan</div>
+                            <div className="mb-2">Di tempat</div>
+                            <div>Dengan Hormat,</div>
+                            <div className="mb-3">Dengan surat ini kami mengajukan permohonan disposal aset dengan perincian sbb :</div>
+                            <Table striped bordered responsive hover className="tableDis mb-3">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>No</th>
+                                        <th>Nomor Asset</th>
+                                        <th>Nama Barang</th>
+                                        <th>Merk/Type</th>
+                                        <th>Kategori</th>
+                                        <th>Nilai Buku</th>
+                                        <th>Nilai Jual</th>
+                                        <th>Keterangan</th>
+                                        <th>{this.state.filter === 'submit' ? 'Opsi' : 'Dokumen'}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {detailDis.length !== 0 && detailDis.map(item => {
+                                        return (
+                                            <tr>
+                                                <td> 
+                                                    <Input
+                                                    addon
+                                                    disabled={this.state.filter !== 'available' && this.state.filter !== 'revisi' ? true : false}
+                                                    checked={listMut.find(element => element === item.id) !== undefined ? true : false}
+                                                    type="checkbox"
+                                                    onClick={listMut.find(element => element === item.id) === undefined ? () => this.chekApp(item.id) : () => this.chekRej(item.id)}
+                                                    value={item.id} />
+                                                </td>
+                                                <th scope="row" >{detailDis.indexOf(item) + 1}</th>
+                                                {/* <td onClick={() => this.openDataRinci(item)}>{item.no_asset}</td> */}
+                                                <td>{item.no_asset}</td>
+                                                <td>{item.nama_asset}</td>
+                                                <td>{item.merk}</td>
+                                                <td>{item.kategori}</td>
+                                                <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                <td>{item.keterangan}</td>
+                                                <td >
+                                                    {this.state.filter === 'submit' ? (
+                                                        <Button color='primary' onClick={() => this.prosesOpenRinci(item)}>Proses</Button>
+                                                    ) : (
+                                                        <Button color='success' onClick={() => this.prosesOpenDokumen(item)}>Dokumen</Button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
+                                </tbody>
+                            </Table>
+                            <div className="mb-3">Demikianlah hal yang kami sampaikan, atas perhatiannya kami mengucapkan terima kasih</div>
+                            <Table bordered responsive className="tabPreview">
+                                <thead>
+                                    <tr>
+                                        <th className="buatPre" colSpan={disApp.pembuat?.length || 1}>Dibuat oleh,</th>
+                                        <th className="buatPre" colSpan={
+                                            disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').length || 1
+                                        }>Diperiksa oleh,</th>
+                                        <th className="buatPre" colSpan={disApp.penyetuju?.length || 1}>Disetujui oleh,</th>
+                                    </tr>
+                                    <tr>
+                                        {disApp.pembuat?.map(item => (
+                                            <th className="headPre">
+                                                <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                                <div>{item.nama ?? '-'}</div>
+                                            </th>
+                                        ))}
+                                        {disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                            <th className="headPre">
+                                                <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                                <div>{item.nama ?? '-'}</div>
+                                            </th>
+                                        ))}
+                                        {disApp.penyetuju?.map(item => (
+                                            <th className="headPre">
+                                                <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                                <div>{item.nama ?? '-'}</div>
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        {disApp.pembuat?.map(item => (
+                                            <td className="footPre">{item.jabatan ?? '-'}</td>
+                                        ))}
+                                        {disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                            <td className="footPre">{item.jabatan ?? '-'}</td>
+                                        ))}
+                                        {disApp.penyetuju?.map(item => (
+                                            <td className="footPre">{item.jabatan ?? '-'}</td>
+                                        ))}
+                                    </tr>
+                                </tbody>
+                            </Table>
+                        </Container>
+                        <Container className='xxl'>
+                            <div>FRM-HCD-105(1) REV 04</div>
+                            {(detailDis.length > 0 && detailDis[0].status_form === 8) && (
+                                <div className='justiceEnd mt-4 rowStart'>
+                                    <div className='boxRec'>
+                                        <div className='mb-3'>DITERIMA ASSET PMA HO</div>
+                                        <br />
+                                        <div>{moment(detailDis[0].date_finish).format('DD/MM/YYYY')}</div>
+                                        <div>PENERIMA: {detailDis[0].pic_aset}</div>
+                                    </div>
+                                    <div className='boxRec ml-4'>
+                                        <div className='mb-3'>EKSEKUSI DI SAP</div>
+                                        <div>{moment(detailDis[0].tgl_eksekusi).format('DD/MM/YYYY')}</div>
+                                        <div>NO. DOC SAP: {detailDis.reduce((accumulator, object) => {
+                                            return accumulator + ` ${object.doc_sap},`
+                                            }, 0).slice(2, -1)}
+                                        </div>
+                                        <div>NO. DOC CLEARING: {detailDis.reduce((accumulator, object) => {
+                                            return accumulator + ` ${object.doc_clearing},`
+                                            }, 0).slice(2, -1)}
+                                        </div>
+                                        <div>PENCATAT: {detailDis[0].pic_aset}</div>
+                                    </div>
+                                </div>
+                            )}
+                        </Container>
                     </ModalBody>
                     <hr />
                     <div className="modalFoot ml-3">

@@ -339,16 +339,33 @@ class CartDisposal extends Component {
     }
 
     cekSubmit = async () => {
+        const token = localStorage.getItem('token')
         const { dataCart } = this.props.disposal
         const cek = []
+        const cekDoc = []
         for (let i = 0; i < dataCart.length; i++) {
-            console.log(dataCart[i].nilai_jual)
             if (dataCart[i].keterangan === null || dataCart[i].nilai_jual === null ) {
                 cek.push(dataCart[i].keterangan)
+            } else {
+                const data = {
+                    noId: dataCart[i].id,
+                    noAsset: dataCart[i].no_asset
+                }
+                await this.props.getDocumentDis(token, data, 'disposal', 'pengajuan')
+                const {dataDoc} = this.props.disposal
+                for (let j = 0; j < dataDoc.length; j++) {
+                    if (dataDoc[j].path === null) {
+                        cekDoc.push(dataDoc[j])
+                    }
+                }
             }
         }
+        
         if (cek.length > 0) {
             this.setState({confirm: 'failSubmit'})
+            this.openConfirm()
+        } else if (cekDoc.length > 0) {
+            this.setState({confirm: 'falseDoc'})
             this.openConfirm()
         } else {
             this.openModalSub()
@@ -1015,6 +1032,14 @@ class CartDisposal extends Component {
                                 <AiOutlineClose size={80} className={style.red} />
                                 <div className={[style.sucUpdate, style.green]}>Gagal Menambahkan Data</div>
                                 <div className={[style.sucUpdate, style.green]}>Pastikan data yang ditambahkan memiliki tipe yang sama</div>
+                            </div>
+                        </div>
+                    ) : this.state.confirm === 'falseDoc' ? (
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                                <div className="errApprove mt-2">Mohon upload dokumen terlebih dahulu</div>
                             </div>
                         </div>
                     ) : (

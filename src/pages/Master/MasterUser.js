@@ -4,7 +4,7 @@ import {  NavbarBrand, DropdownToggle, DropdownMenu,
     Modal, ModalHeader, ModalBody, Alert, Spinner, UncontrolledDropdown} from 'reactstrap'
 import style from '../../assets/css/input.module.css'
 import {FaSearch, FaUserCircle, FaBars, FaSortAlphaDown, FaSortAlphaUpAlt} from 'react-icons/fa'
-import {AiFillCheckCircle, AiOutlineFileExcel, AiOutlineInbox} from 'react-icons/ai'
+import {AiFillCheckCircle, AiOutlineFileExcel, AiOutlineInbox, AiOutlineClose} from 'react-icons/ai'
 import depo from '../../redux/actions/depo'
 import user from '../../redux/actions/user'
 import {connect} from 'react-redux'
@@ -314,6 +314,10 @@ class MasterUser extends Component {
             this.setState({confirm: 'upload'})
             this.openConfirm()
             this.getDataUser()
+        } else if (isUpload === false) {
+            this.props.resetError()
+            this.setState({confirm: 'failUpload'})
+            this.openConfirm()
         } else if (isExport) {
             this.DownloadMaster()
             this.props.resetError()
@@ -817,9 +821,8 @@ class MasterUser extends Component {
                                         checked={listUser.length === 0 ? false : listUser.length === dataUser.length ? true : false}
                                         onChange={() => listUser.length === dataUser.length ? this.chekRej('all') : this.chekApp('all')}
                                         />
-                                        {/* Select */}
                                     </th>
-                                    <th>No</th>
+                                    <th className='tdNo'>No</th>
                                     <th>
                                         {this.state.sortType === 'desc' ? (
                                             <FaSortAlphaDown onClick={() => this.changeSort({name: 'username', type: 'asc'})} className='mr-1' size={20} />
@@ -846,7 +849,9 @@ class MasterUser extends Component {
                                                 onChange={listUser.find(element => element === item.id) === undefined ? () => this.chekApp(item.id) : () => this.chekRej(item.id)}
                                                 />
                                             </td>
-                                            <td scope="row">{(dataUser.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</td>
+                                            <td className='tdNo' scope="row">
+                                                {(dataUser.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}
+                                            </td>
                                             <td>{item.username}</td>
                                             <td>{item.fullname}</td>
                                             <td>{item.kode_plant === 0 ? "" : item.kode_plant}</td>
@@ -1329,7 +1334,7 @@ class MasterUser extends Component {
                         </div>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="sm">
+                <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="md">
                     <ModalBody>
                         {this.state.confirm === 'edit' ? (
                         <div className={style.cekUpdate}>
@@ -1355,7 +1360,22 @@ class MasterUser extends Component {
                                 <div className={style.sucUpdate}>Berhasil Mereset Password</div>
                             </div>
                             </div>
-                        ) : (
+                        ) : this.state.confirm === 'failUpload' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green, style.mb4]}>Gagal Upload</div>
+
+                                    {alertUpload !== undefined && alertUpload.length > 0 ? alertUpload.map(item => {
+                                        return (
+                                            <div className={[style.sucUpdate, style.green, style.mb3]}>{`${item}`}</div>
+                                        )
+                                    }) : (
+                                        <div></div>
+                                    )}
+                                </div>
+                            </div>
+                        ): (
                             <div></div>
                         )}
                     </ModalBody>

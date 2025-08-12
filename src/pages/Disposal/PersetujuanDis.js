@@ -52,6 +52,8 @@ import FormDisposal from '../../components/Disposal/FormDisposal'
 import FormPersetujuan from '../../components/Disposal/FormPersetujuan'
 import debounce from 'lodash.debounce';
 import Select from 'react-select/creatable';
+import ModalDokumen from '../../components/ModalDokumen'
+const docAccess = [1, 32, 17]
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -147,7 +149,12 @@ class Disposal extends Component {
             submitPre: false,
             listDis: [],
             newSubmit: [],
-            options: []
+            options: [],
+            noDoc: '',
+            noTrans: '',
+            valdoc: {},
+            tipeDoc: '',
+            appData: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -324,14 +331,50 @@ class Disposal extends Component {
         this.setState({chooseApp: !this.state.chooseApp, select: false})
     }
 
-    selectUser = () => {
-        this.setState({select: !this.state.select})
+    cekSubmit = async (val) => {
+        const token = localStorage.getItem('token')
+        const {detailDis} = this.props.disposal
+        const cekDoc = []
+        const data = {
+            noId: detailDis[0].id,
+            noAsset: detailDis[0].no_asset
+        }
+        await this.props.getDocumentDis(token, data, 'disposal', 'persetujuan')
+        const {dataDoc} = this.props.disposal
+        for (let j = 0; j < dataDoc.length; j++) {
+            if (dataDoc[j].path === null) {
+                cekDoc.push(dataDoc[j])
+            }
+        }
+        if (cekDoc.length > 0) {
+            this.setState({confirm: 'falseDoc'})
+            this.openConfirm()
+        } else {
+            if (val === 'upload') {
+                this.chooseApprove()
+            } else {
+                this.openModalApprove()
+            }
+        }
+    } 
+
+    selectUser = (val) => {
+        const {detailDis} = this.props.disposal
+        let data = []
+        if (val === 'open' && detailDis.length > 0 && detailDis[0].ttdSet.length > 0) {
+            data = detailDis[0].ttdSet.reverse().filter(item => item.status !== 1 && item.way_app === 'upload')
+            this.setState({select: !this.state.select, appData: data})
+        } else {
+            this.setState({select: !this.state.select})
+        }
+        
     }
 
     chooseUser = (val) => {
-        const { userApp, arrApp } = this.state
+        const { userApp, arrApp, appData } = this.state
         const { detailDis } = this.props.disposal
         const app = detailDis[0].ttdSet
+        // const app = appData
 
         const idUser = arrApp.find(item => item.noDis === detailDis[0].no_persetujuan).app.id
         const dataUser = app.find(item => item.id === idUser)
@@ -343,7 +386,7 @@ class Disposal extends Component {
         const dataVal = app.find(item => item.id === val)
         const indexVal = app.indexOf(dataVal)
 
-        const cekData = userApp.length === 0 && indexUser === indexVal ? val : indexNow - 1 === indexVal ? val : 'wrong'
+        const cekData = userApp.length === 0 && indexUser === indexVal ? val : (indexNow + 1) === indexVal ? val : 'wrong'
         if (cekData === 'wrong') {
             this.setState({confirm: 'wrongApp'})
             this.openConfirm()
@@ -393,13 +436,39 @@ class Disposal extends Component {
         this.openModalPdf()
     }
 
-    openProsesModalDoc = async (val) => {
+    prosesOpenDokumen = async (val) => {
         const token = localStorage.getItem('token')
+        this.setState({ noDoc: val.no_asset, noTrans: val.no_disposal, valdoc: val, tipeDoc: 'disposal' })
         const data = {
             noId: val.id,
             noAsset: val.no_asset
         }
         await this.props.getDocumentDis(token, data, 'disposal', 'pengajuan')
+        this.modalDocEks()
+    }
+
+    allDocSet = async (val) => {
+        const token = localStorage.getItem('token')
+        this.setState({ noDoc: val.no_asset, noTrans: val.no_disposal, valdoc: val, tipeDoc: 'persetujuan disposal' })
+        const data = {
+            noId: val.id,
+            noAsset: val.no_asset
+        }
+        await this.props.getDocumentDis(token, data, 'disposal', 'persetujuan')
+        this.modalDocEks()
+    }
+
+    modalDocEks = () => {
+        this.setState({modalDoc: !this.state.modalDoc})
+    }
+
+    openDocSet = async (val) => {
+        const token = localStorage.getItem('token')
+        const data = {
+            noId: val.id,
+            noAsset: val.no_asset
+        }
+        await this.props.getDocumentDis(token, data, 'disposal', 'persetujuan')
         this.closeProsesModalDoc()
     }
 
@@ -834,7 +903,8 @@ class Disposal extends Component {
 
     componentDidUpdate() {
         const {isError, isUpload, isExport} = this.props.asset
-        const {isAdd, isDelete, isAppDoc, isRejDoc} = this.props.disposal
+        const {isAdd, isDelete, isAppDoc, isRejDoc, detailDis} = this.props.disposal
+        const statUpload = this.props.disposal.isUpload
         const {errorRej, errorApp} = this.props.setuju
         const token = localStorage.getItem('token')
         const { dataRinci } = this.state
@@ -875,6 +945,15 @@ class Disposal extends Component {
         } else if (errorApp) {
             this.openConfirm(this.setState({confirm: 'rejApprove'}))
             this.props.resetAppSet()
+        } else if (statUpload) {
+            this.props.resetErrorDis()
+            const send = {
+                noId: detailDis[0].id,
+                noAsset: detailDis[0].no_asset
+            }
+            setTimeout(() => {
+            this.props.getDocumentDis(token, send, 'disposal', 'persetujuan')
+            }, 110)
         }
     }
 
@@ -1180,8 +1259,27 @@ class Disposal extends Component {
         this.prepSendEmail('submit')
     }
 
+    onChangeUpload = e => {
+        const {size, type} = e.target.files[0]
+        this.setState({fileUpload: e.target.files[0]})
+        if (size >= 20000000) {
+            this.setState({errMsg: "Maximum upload size 20 MB"})
+            this.uploadAlert()
+        } else if (type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && type !== 'application/vnd.ms-excel' && type !== 'application/pdf' && type !== 'application/x-7z-compressed' && type !== 'application/vnd.rar' && type !== 'application/zip' && type !== 'application/x-zip-compressed' && type !== 'application/octet-stream' && type !== 'multipart/x-zip' && type !== 'application/x-rar-compressed' && type !== 'image/jpeg' && type !== 'image/png') {
+            this.setState({errMsg: 'Invalid file type. Only excel, pdf, zip, rar, and image files are allowed.'})
+            this.uploadAlert()
+        } else {
+            const {detail} = this.state
+            const token = localStorage.getItem('token')
+            const data = new FormData()
+            data.append('document', e.target.files[0])
+            this.props.uploadDocumentDis(token, detail.id, data)
+        }
+    }
+
+
     render() {
-        const {listMut, alert, upload, errMsg, newDis, listStat, detailData, arrApp, typeReject, tipeEmail, userApp, listDis, newSubmit} = this.state
+        const {listMut, alert, upload, errMsg, newDis, listStat, detailData, arrApp, typeReject, tipeEmail, userApp, listDis, newSubmit, appData} = this.state
         const { alertM, alertMsg, alertUpload} = this.props.asset
         const page = this.props.disposal.page
         const role = localStorage.getItem('role')
@@ -1476,6 +1574,7 @@ class Disposal extends Component {
                                     <th>Nilai Jual</th>
                                     <th>Tanggal Perolehan</th>
                                     <th>Keterangan</th>
+                                    <th>Dokumen</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1499,6 +1598,9 @@ class Disposal extends Component {
                                             <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             <td>{moment(item.dataAsset.tanggal).format('DD/MM/YYYY')}</td>
                                             <td>{item.keterangan}</td>
+                                            <td>
+                                                <Button color='success' onClick={() => this.prosesOpenDokumen(item)}>Dokumen</Button>
+                                            </td>
                                         </tr>
                                     )
                                 }) : (
@@ -1610,43 +1712,45 @@ class Disposal extends Component {
                                 </tr>
                             </tbody>
                         </Table>
-                    </ModalBody>
-                    <div className="btnFoot1 mb-3">
-                        <div className="btnFoot">
-                            {detailDis.length > 0 && detailDis[0].status_form !== 26 && detailDis[0].status_form !== 9 && detailDis[0].status_form >= 3 && (
-                                <FormPersetujuan />
-                            )}
-                        </div>
-                        <div className="btnfootapp">
-                            {this.state.filter === 'available' ? (
-                                <>
-                                    <Button disabled={listMut.length === 0 ? true : false} className="mr-2" color="danger" onClick={this.openModalReject}>
-                                        Reject
-                                    </Button>
-                                    <Button 
-                                        color="success" 
-                                        onClick={arrApp.length > 0 && detailDis.length > 0 && arrApp.find(item => item.noDis === detailDis[0].no_persetujuan).app.way_app === 'upload' ? this.chooseApprove : this.openModalApprove}
-                                    >
-                                        Approve
-                                    </Button>
-                                    {/* {detailDis > 0 && arrApp.find(item => item.noDis === detailDis[0].no_persetujuan) !== undefined && arrApp.find(item => item.noDis === detailDis[0].no_persetujuan).app.way_app === 'upload' ? (
-                                        <Button color="success">
-                                            <label>
-                                                <input type="file" className="file-upload2" onChange={this.approveSet}/>
-                                                Approve upload
-                                            </label>
+                        <div className="rowBetween mt-4 mb-3">
+                            <div className="rowGeneral">
+                                {detailDis.length > 0 && detailDis[0].status_form !== 26 && detailDis[0].status_form !== 9 && detailDis[0].status_form >= 3 && (
+                                    <>
+                                    {(this.state.filter === 'available' || docAccess.find(item => item === parseInt(level))) && (
+                                        <Button 
+                                            color='success' 
+                                            onClick={
+                                                this.state.filter === 'available' ? 
+                                                () => this.openDocSet(detailDis[0]) :
+                                                () => this.allDocSet(detailDis[0])
+                                            } 
+                                        >
+                                            Dokumen Persetujuan
                                         </Button>
-                                    ) : (
-                                        <Button color="success" onClick={this.openModalApprove}>
+                                    )}
+                                    <FormPersetujuan />
+                                    </>
+                                )}
+                            </div>
+                            <div className="btnfootapp">
+                                {this.state.filter === 'available' ? (
+                                    <>
+                                        <Button disabled={listMut.length === 0 ? true : false} className="mr-2" color="danger" onClick={this.openModalReject}>
+                                            Reject
+                                        </Button>
+                                        <Button 
+                                            color="success" 
+                                            onClick={arrApp.length > 0 && detailDis.length > 0 && arrApp.find(item => item.noDis === detailDis[0].no_persetujuan).app.way_app === 'upload' ? () => this.cekSubmit('upload') : () => this.cekSubmit('digital')}
+                                        >
                                             Approve
                                         </Button>
-                                    )} */}
-                                </>
-                            ) : (
-                                null
-                            )}
+                                    </>
+                                ) : (
+                                    null
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    </ModalBody>
                 </Modal>
                 <Modal isOpen={this.state.submitPre} toggle={this.modalSubmitPre} size="xl" className='xl'>
                     <ModalHeader>Submit Persetujuan Disposal</ModalHeader>
@@ -1940,7 +2044,7 @@ class Disposal extends Component {
                                     </div>
                                     <div className="footRinci1">
                                         <Button className="btnFootRinci1" size="lg" color="primary" onClick={handleSubmit}>Save</Button>
-                                        <Button className="btnFootRinci1" size="lg" color="success" onClick={this.openProsesModalDoc}>Dokumen</Button>
+                                        {/* <Button className="btnFootRinci1" size="lg" color="success" onClick={this.openProsesModalDoc}>Dokumen</Button> */}
                                         <Button className="btnFootRinci1" size="lg" color="secondary" onClick={() => this.openRinciAdmin()}>Close</Button>
                                     </div>
                                 </div>
@@ -1948,6 +2052,18 @@ class Disposal extends Component {
                             </Formik>
                         </div>
                     </ModalBody>
+                </Modal>
+                <Modal size="xl" isOpen={this.state.modalDoc} toggle={this.modalDocEks}>
+                    <ModalDokumen
+                        parDoc={{ 
+                            noDoc: this.state.noDoc, 
+                            noTrans: this.state.noTrans, 
+                            tipe: this.state.tipeDoc, 
+                            filter: this.state.filter, 
+                            detailForm: this.state.valdoc 
+                        }}
+                        dataDoc={dataDoc}
+                    />
                 </Modal>
                 <Modal size="xl" isOpen={this.state.openDoc} toggle={this.closeProsesModalDoc}>
                 <ModalHeader>
@@ -1974,10 +2090,27 @@ class Disposal extends Component {
                                                 <BsCircle size={20} />
                                             )}
                                             <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
+                                            <div>
+                                                <input
+                                                className="ml-4"
+                                                type="file"
+                                                onClick={() => this.setState({detail: x})}
+                                                onChange={this.onChangeUpload}
+                                                />
+                                            </div>
                                         </Col>
                                     ) : (
                                         <Col md={6} lg={6} >
-                                            -
+                                            {level === '2' ? (
+                                                <text>-</text>
+                                            ) : (
+                                                <input
+                                                className="ml-4"
+                                                type="file"
+                                                onClick={() => this.setState({detail: x})}
+                                                onChange={this.onChangeUpload}
+                                                />
+                                            )}
                                         </Col>
                                     )}
                                 </Row>
@@ -1990,141 +2123,141 @@ class Disposal extends Component {
                         Close
                     </Button>
                 </ModalFooter>
-            </Modal>
-            <Modal isOpen={this.state.openReject} toggle={this.openModalReject} centered={true}>
-                <ModalBody>
-                    <Formik
-                        initialValues={{
-                            alasan: "",
-                        }}
-                        validationSchema={alasanSchema}
-                        onSubmit={(values) => {
-                            // this.rejectMutasi(values)
-                            this.prepReject(values)
-                        }}
-                    >
-                    {({ handleChange, handleBlur, handleSubmit, values, errors, touched, }) => (
-                        <div className={style.modalApprove}>
-                            <div className='mb-2 quest'>Anda yakin untuk reject ?</div>
-                            <div className='mb-2 titStatus'>Pilih reject :</div>
-                            <div className="ml-2">
-                                <Input
-                                    addon
-                                    type="checkbox"
-                                    checked={this.state.typeReject === 'perbaikan' ? true : false}
-                                    onClick={this.state.typeReject === 'perbaikan' ? () => this.rejectRej('perbaikan') : () => this.rejectApp('perbaikan')}
-                                />  Perbaikan
-                            </div>
-                            <div className="ml-2">
-                                <Input
-                                    addon
-                                    type="checkbox"
-                                    checked={this.state.typeReject === 'pembatalan' ? true : false}
-                                    onClick={this.state.typeReject === 'pembatalan' ? () => this.rejectRej('pembatalan') : () => this.rejectApp('pembatalan')}
-                                />  Pembatalan
-                            </div>
-                            <div className='ml-2'>
-                                {this.state.typeReject === '' ? (
-                                    <text className={style.txtError}>Must be filled</text>
-                                ) : null}
-                            </div>
-                            {this.state.typeReject === 'perbaikan' && (
-                                <>
-                                    <div className='mb-2 mt-2 titStatus'>Pilih Menu Revisi :</div>
+                </Modal>
+                <Modal isOpen={this.state.openReject} toggle={this.openModalReject} centered={true}>
+                    <ModalBody>
+                        <Formik
+                            initialValues={{
+                                alasan: "",
+                            }}
+                            validationSchema={alasanSchema}
+                            onSubmit={(values) => {
+                                // this.rejectMutasi(values)
+                                this.prepReject(values)
+                            }}
+                        >
+                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched, }) => (
+                            <div className={style.modalApprove}>
+                                <div className='mb-2 quest'>Anda yakin untuk reject ?</div>
+                                <div className='mb-2 titStatus'>Pilih reject :</div>
+                                <div className="ml-2">
+                                    <Input
+                                        addon
+                                        type="checkbox"
+                                        checked={this.state.typeReject === 'perbaikan' ? true : false}
+                                        onClick={this.state.typeReject === 'perbaikan' ? () => this.rejectRej('perbaikan') : () => this.rejectApp('perbaikan')}
+                                    />  Perbaikan
+                                </div>
+                                <div className="ml-2">
+                                    <Input
+                                        addon
+                                        type="checkbox"
+                                        checked={this.state.typeReject === 'pembatalan' ? true : false}
+                                        onClick={this.state.typeReject === 'pembatalan' ? () => this.rejectRej('pembatalan') : () => this.rejectApp('pembatalan')}
+                                    />  Pembatalan
+                                </div>
+                                <div className='ml-2'>
+                                    {this.state.typeReject === '' ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                                {this.state.typeReject === 'perbaikan' && (
+                                    <>
+                                        <div className='mb-2 mt-2 titStatus'>Pilih Menu Revisi :</div>
+                                        <div className="ml-2">
+                                            <Input
+                                                addon
+                                                type="checkbox"
+                                                checked={this.state.menuRev === 'Revisi Area' ? true : false}
+                                                onClick={this.state.menuRev === 'Revisi Area' ? () => this.menuRej('Revisi Area') : () => this.menuApp('Revisi Area')}
+                                            />  Revisi Area
+                                        </div>
+                                        {/* <div className="ml-2">
+                                        <Input
+                                        addon
+                                        type="checkbox"
+                                        checked= {this.state.menuRev === 'pembatalan' ? true : false}
+                                        onClick={this.state.menuRev === 'pembatalan' ? () => this.menuRej('pembatalan') : () => this.menuApp('pembatalan')}
+                                        />  Revisi Asset
+                                    </div> */}
+                                        <div className='ml-2'>
+                                            {this.state.menuRev === '' ? (
+                                                <text className={style.txtError}>Must be filled</text>
+                                            ) : null}
+                                        </div>
+                                    </>
+                                )}
+
+                                <div className='mb-2 mt-2 titStatus'>Pilih alasan :</div>
                                     <div className="ml-2">
                                         <Input
                                             addon
                                             type="checkbox"
-                                            checked={this.state.menuRev === 'Revisi Area' ? true : false}
-                                            onClick={this.state.menuRev === 'Revisi Area' ? () => this.menuRej('Revisi Area') : () => this.menuApp('Revisi Area')}
-                                        />  Revisi Area
+                                            checked={listStat.find(element => element === 'Nilai jual tidak sesuai') !== undefined ? true : false}
+                                            onClick={listStat.find(element => element === 'Nilai jual tidak sesuai') === undefined ? () => this.statusApp('Nilai jual tidak sesuai') : () => this.statusRej('Nilai jual tidak sesuai')}
+                                        />  Nilai jual tidak sesuai
                                     </div>
-                                    {/* <div className="ml-2">
+                                    <div className="ml-2">
+                                        <Input
+                                            addon
+                                            type="checkbox"
+                                            checked={listStat.find(element => element === 'Keterangan tidak sesuai') !== undefined ? true : false}
+                                            onClick={listStat.find(element => element === 'Keterangan tidak sesuai') === undefined ? () => this.statusApp('Keterangan tidak sesuai') : () => this.statusRej('Keterangan tidak sesuai')}
+                                        />  Keterangan tidak sesuai
+                                    </div>
+                                    <div className="ml-2">
+                                        <Input
+                                            addon
+                                            type="checkbox"
+                                            checked={listStat.find(element => element === 'Dokumen lampiran tidak sesuai') !== undefined ? true : false}
+                                            onClick={listStat.find(element => element === 'Dokumen lampiran tidak sesuai') === undefined ? () => this.statusApp('Dokumen lampiran tidak sesuai') : () => this.statusRej('Dokumen lampiran tidak sesuai')}
+                                        />  Dokumen lampiran tidak sesuai
+                                    </div>
+                                    <div className={style.alasan}>
+                                        <text className='ml-2'>
+                                            Lainnya
+                                        </text>
+                                    </div>
                                     <Input
-                                    addon
-                                    type="checkbox"
-                                    checked= {this.state.menuRev === 'pembatalan' ? true : false}
-                                    onClick={this.state.menuRev === 'pembatalan' ? () => this.menuRej('pembatalan') : () => this.menuApp('pembatalan')}
-                                    />  Revisi Asset
-                                </div> */}
+                                        type="name"
+                                        name="select"
+                                        className="ml-2 inputRec"
+                                        value={values.alasan}
+                                        onChange={handleChange('alasan')}
+                                        onBlur={handleBlur('alasan')}
+                                    />
                                     <div className='ml-2'>
-                                        {this.state.menuRev === '' ? (
+                                        {listStat.length === 0 && (values.alasan.length < 3) ? (
                                             <text className={style.txtError}>Must be filled</text>
                                         ) : null}
                                     </div>
-                                </>
+                                    <div className={style.btnApprove}>
+                                        <Button color="primary" disabled={(((values.alasan === '.' || values.alasan === '') && listStat.length === 0) || this.state.typeReject === '' || (this.state.typeReject === 'perbaikan' && this.state.menuRev === '')) ? true : false} onClick={handleSubmit}>Submit</Button>
+                                        <Button className='ml-2' color="secondary" onClick={this.openModalReject}>Close</Button>
+                                    </div>
+                                </div>
                             )}
-
-                            <div className='mb-2 mt-2 titStatus'>Pilih alasan :</div>
-                                <div className="ml-2">
-                                    <Input
-                                        addon
-                                        type="checkbox"
-                                        checked={listStat.find(element => element === 'Nilai jual tidak sesuai') !== undefined ? true : false}
-                                        onClick={listStat.find(element => element === 'Nilai jual tidak sesuai') === undefined ? () => this.statusApp('Nilai jual tidak sesuai') : () => this.statusRej('Nilai jual tidak sesuai')}
-                                    />  Nilai jual tidak sesuai
-                                </div>
-                                <div className="ml-2">
-                                    <Input
-                                        addon
-                                        type="checkbox"
-                                        checked={listStat.find(element => element === 'Keterangan tidak sesuai') !== undefined ? true : false}
-                                        onClick={listStat.find(element => element === 'Keterangan tidak sesuai') === undefined ? () => this.statusApp('Keterangan tidak sesuai') : () => this.statusRej('Keterangan tidak sesuai')}
-                                    />  Keterangan tidak sesuai
-                                </div>
-                                <div className="ml-2">
-                                    <Input
-                                        addon
-                                        type="checkbox"
-                                        checked={listStat.find(element => element === 'Dokumen lampiran tidak sesuai') !== undefined ? true : false}
-                                        onClick={listStat.find(element => element === 'Dokumen lampiran tidak sesuai') === undefined ? () => this.statusApp('Dokumen lampiran tidak sesuai') : () => this.statusRej('Dokumen lampiran tidak sesuai')}
-                                    />  Dokumen lampiran tidak sesuai
-                                </div>
-                                <div className={style.alasan}>
-                                    <text className='ml-2'>
-                                        Lainnya
-                                    </text>
-                                </div>
-                                <Input
-                                    type="name"
-                                    name="select"
-                                    className="ml-2 inputRec"
-                                    value={values.alasan}
-                                    onChange={handleChange('alasan')}
-                                    onBlur={handleBlur('alasan')}
-                                />
-                                <div className='ml-2'>
-                                    {listStat.length === 0 && (values.alasan.length < 3) ? (
-                                        <text className={style.txtError}>Must be filled</text>
-                                    ) : null}
-                                </div>
-                                <div className={style.btnApprove}>
-                                    <Button color="primary" disabled={(((values.alasan === '.' || values.alasan === '') && listStat.length === 0) || this.state.typeReject === '' || (this.state.typeReject === 'perbaikan' && this.state.menuRev === '')) ? true : false} onClick={handleSubmit}>Submit</Button>
-                                    <Button className='ml-2' color="secondary" onClick={this.openModalReject}>Close</Button>
-                                </div>
+                        </Formik>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.openApprove} toggle={this.openModalApprove} centered={true}>
+                    <ModalBody>
+                        <div className={style.modalApprove}>
+                            <div>
+                                <text>
+                                    Anda yakin untuk approve     
+                                    <text className={style.verif}> </text>
+                                    pada tanggal
+                                    <text className={style.verif}> {moment().format('LL')}</text> ?
+                                </text>
                             </div>
-                        )}
-                    </Formik>
-                </ModalBody>
-            </Modal>
-            <Modal isOpen={this.state.openApprove} toggle={this.openModalApprove} centered={true}>
-                <ModalBody>
-                    <div className={style.modalApprove}>
-                        <div>
-                            <text>
-                                Anda yakin untuk approve     
-                                <text className={style.verif}> </text>
-                                pada tanggal
-                                <text className={style.verif}> {moment().format('LL')}</text> ?
-                            </text>
+                            <div className={style.btnApprove}>
+                                <Button color="primary" onClick={() => this.prepSendEmail('approve')}>Ya</Button>
+                                <Button color="secondary" onClick={this.openModalApprove}>Tidak</Button>
+                            </div>
                         </div>
-                        <div className={style.btnApprove}>
-                            <Button color="primary" onClick={() => this.prepSendEmail('approve')}>Ya</Button>
-                            <Button color="secondary" onClick={this.openModalApprove}>Tidak</Button>
-                        </div>
-                    </div>
-                </ModalBody>
-            </Modal>
+                    </ModalBody>
+                </Modal>
                 <Modal isOpen={this.state.chooseApp} toggle={this.chooseApprove} size='xl'>
                     <ModalBody>
                         <div className={styleHome.mainContent}>
@@ -2144,7 +2277,7 @@ class Disposal extends Component {
                                             </div>
                                         </div>
                                         <div 
-                                        onClick={() => this.selectUser()} 
+                                        onClick={() => this.selectUser('open')} 
                                         className="col-12 col-md-6 col-lg-3 mb-4">
                                             <div className={styleHome.assetCard1}>
                                                 <FaUpload size={150} className='mt-4 mb-4' />
@@ -2153,7 +2286,7 @@ class Disposal extends Component {
                                         </div>
                                     </>
                                 ) : (
-                                    detailDis.length > 0 && detailDis[0].ttdSet.length > 0 && detailDis[0].ttdSet.reverse().filter(item => item.status !== 1 && item.way_app === 'upload').map(item => {
+                                    appData.map(item => {
                                         return (
                                             <div 
                                             onClick={userApp.find(x => x === item.id) ? () => this.declineUser(item.id) : () => this.chooseUser(item.id) } 
@@ -2350,6 +2483,14 @@ class Disposal extends Component {
                                     <div className="errApprove mt-2">Pilih data disposal terlebih dahulu</div>
                                 </div>
                             </div>
+                        ) : this.state.confirm === 'falseDoc' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green]}>Gagal Approve</div>
+                                    <div className="errApprove mt-2">Mohon upload dokumen terlebih dahulu</div>
+                                </div>
+                            </div>
                         ) : this.state.confirm === 'submit' ?(
                             <div>
                                 <div className={style.cekUpdate}>
@@ -2454,7 +2595,8 @@ const mapDispatchToProps = {
     submitSetDisposal: setuju.submitSetDisposal,
     genNoSetDisposal: setuju.genNoSetDisposal,
     getUser: user.getUser,
-    searchDisposal: disposal.searchDisposal
+    searchDisposal: disposal.searchDisposal,
+    uploadDocumentDis: disposal.uploadDocumentDis,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Disposal)

@@ -6,7 +6,7 @@ import { Container, Collapse, Nav, Navbar,
     Modal, ModalHeader, ModalBody, ModalFooter, Alert, Spinner} from 'reactstrap'
 import logo from "../../assets/img/logo.png"
 import style from '../../assets/css/input.module.css'
-import {FaSearch, FaUserCircle, FaBars} from 'react-icons/fa'
+import {FaSearch, FaUserCircle, FaBars, FaBarcode} from 'react-icons/fa'
 import {AiOutlineFileExcel, AiFillCheckCircle, AiOutlineInbox, AiOutlineClose} from 'react-icons/ai'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
@@ -20,9 +20,14 @@ import MaterialTitlePanel from "../../components/material_title_panel";
 import SidebarContent from "../../components/sidebar_content";
 import NavBar from '../../components/NavBar'
 import styleTrans from '../../assets/css/transaksi.module.css'
+import styleHome from '../../assets/css/Home.module.css'
 import NewNavbar from '../../components/NewNavbar'
 import ExcelJS from "exceljs"
 import fs from "file-saver"
+import Barcode from 'react-barcode'
+import { BsTable, BsQrCode } from "react-icons/bs";
+import * as htmlToImage from 'html-to-image';
+import QRCode from "react-qr-code"
 const {REACT_APP_BACKEND_URL} = process.env
 
 const dokumenSchema = Yup.object().shape({
@@ -68,10 +73,15 @@ class Asset extends Component {
             fileUpload: '',
             limit: 10,
             search: '',
-            listAsset: []
+            listAsset: [],
+            openChoose: false,
+            images: [],
+            isLoading: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+        this.canvasRefs = []
+        this.barcodeRefs = {};
     }
 
     prosesSidebar = (val) => {
@@ -155,7 +165,8 @@ class Asset extends Component {
             {header: 'SATUAN', key: 'c13'},
             {header: 'JUMLAH', key: 'c14'},
             {header: 'LOKASI', key: 'c15'},
-            {header: 'KATEGORI', key: 'c16'}
+            {header: 'KATEGORI', key: 'c16'},
+            {header: 'STATUS', key: 'c17'}
         ]
 
         dataDownload.map((item, index) => { return ( ws.addRow(
@@ -174,7 +185,8 @@ class Asset extends Component {
                 c13: item.satuan,
                 c14: item.unit,
                 c15: item.lokasi,
-                c16: item.kategori
+                c16: item.kategori,
+                c17: item.status === '100' ? 'Asset belum di GR' : item.status === '0' ? 'Asset telah didisposal' : 'available'
             }
         )
         ) })
@@ -198,6 +210,132 @@ class Asset extends Component {
             );
           });
     }
+
+    downloadBarcode = async () => {
+        this.setState({isLoading: true})
+        const {listAsset} = this.state
+        const {dataAsset} = this.props.asset
+        const dataDownload = []
+        for (let i = 0; i < listAsset.length; i++) {
+            for (let j = 0; j < dataAsset.length; j++) {
+                if (dataAsset[j].id === listAsset[i]) {
+                    dataDownload.push(dataAsset[j])
+                }
+            }
+        }
+
+        const workbook = new ExcelJS.Workbook();
+        const ws = workbook.addWorksheet('qr code', {
+            pageSetup: { 
+                orientation:'portrait', 
+                paperSize: 9,
+                // margins: {
+                //     top: 0.1,
+                //     bottom: 0.1
+                // } 
+            }
+        })
+
+        const tbStyle = {
+            horizontal:'center',
+            wrapText: true,
+            vertical: 'middle',
+            shrinkToFit: true
+        }
+
+        const textImgStyle = {
+            vertical: 'bottom',
+            horizontal: 'center',
+            wrapText: true
+        }
+
+        const boldStyle = {
+            bold: true
+        }
+
+        const imgStyle = {
+            wrapText: true,
+            vertical: 'middle',
+            shrinkToFit: true,
+            horizontal: 'center'
+        }
+
+        const borderStyles = {
+            top: {style:'thin'},
+            left: {style:'thin'},
+            bottom: {style:'thin'},
+            right: {style:'thin'}
+        }
+
+        ws.pageSetup.printTitlesRow = '1:2';
+
+        ws.mergeCells(`A${2}`, `H${2}`)
+        ws.getCell(`A${2}`).value = 'Qr Code'
+        ws.getCell(`A${2}`).alignment = { 
+            ...tbStyle
+        }
+        ws.getCell(`A${2}`).border = { 
+            ...borderStyles
+        }
+        ws.getCell(`A${2}`).font = { 
+            ...boldStyle
+        }
+    
+        for (let i = 0; i < dataDownload.length; i++) {
+            const item = dataDownload[i]
+
+            const colFirst = (i % 2) === 0 ? 'A' : 'E'
+            const colLast = (i % 2) === 0 ? 'D' : 'H'
+            const numContent = colFirst === 'E' ? 3 + (i - 1) : 3 + i
+
+            ws.mergeCells(`${colFirst}${numContent}`, `${colLast}${numContent}`)
+            ws.getCell(`${colFirst}${numContent}`).value = `${item.nama_asset}\nNO ASSET: ${item.no_asset}\nCOST CENTER: ${item.cost_center}\n`
+            ws.getCell(`${colFirst}${numContent}`).alignment = { 
+                ...textImgStyle
+            }
+            ws.getCell(`${colFirst}${numContent}`).border = { 
+                ...borderStyles
+            }
+            ws.getRow(numContent).height = 230
+            
+            const node = this.barcodeRefs[item.no_asset];
+            if (!node) continue;
+        
+            const dataUrl = await htmlToImage.toPng(node);
+            const imageId = workbook.addImage({
+                base64: dataUrl,
+                extension: 'png',
+            });
+
+            const rowImg = colFirst === 'E' ? (i - 1) : i
+        
+            ws.addImage(imageId, {
+                tl: { col: colFirst === 'A' ? 0.5 : 4.5, row: rowImg + 2.4 },
+                ext: { width: 200, height: 200 },
+            });
+        }
+    
+        const buffer = await workbook.xlsx.writeBuffer();
+        fs.saveAs(
+            new Blob([buffer], { type: "application/octet-stream" }),
+            `Data Qr Code ${moment().format('DD MMMM YYYY')}.xlsx`
+        );
+        this.setState({isLoading: false})
+    }
+
+    setImageBarcode = () => {
+        setTimeout(() => {
+            const images = this.canvasRefs.map((ref, index) => {
+                const canvas = ref?.querySelector('canvas');
+                if (!canvas) return null;
+
+                const base64 = canvas.toDataURL('image/png');
+                return { index, base64 };
+            }).filter(Boolean);
+    
+          this.setState({ images });
+        }, 1000);
+      }
 
     showAlert = () => {
         this.setState({alert: true, modalEdit: false, modalAdd: false, modalUpload: false })
@@ -272,7 +410,8 @@ class Asset extends Component {
             {header: 'SATUAN', key: 'c13'},
             {header: 'JUMLAH', key: 'c14'},
             {header: 'LOKASI', key: 'c15'},
-            {header: 'KATEGORI', key: 'c16'}
+            {header: 'KATEGORI', key: 'c16'},
+            {header: 'STATUS', key: 'c17'}
         ]
 
         ws.eachRow({ includeEmpty: true }, function(row, rowNumber) {
@@ -441,6 +580,20 @@ class Asset extends Component {
         this.getDataAsset()
     }
 
+    cekDownload = () => {
+        const {listAsset} = this.state
+        if (listAsset.length > 0) {
+            this.chooseDownload()
+        } else {
+            this.setState({confirm: 'failList'})
+            this.openConfirm()
+        }
+    }
+
+    chooseDownload = () => {
+        this.setState({openChoose: !this.state.openChoose})
+    }
+
     getDataAsset = async (value) => {
         const token = localStorage.getItem("token")
         const { page } = this.props.asset
@@ -494,118 +647,6 @@ class Asset extends Component {
           };
         return (
             <>
-                {/* <Sidebar {...sidebarProps}>
-                    <MaterialTitlePanel title={contentHeader}>
-                        <div className={style.backgroundLogo}>
-                            <Alert color="danger" className={style.alertWrong} isOpen={alert}>
-                                <div>{alertMsg}</div>
-                                <div>{alertM}</div>
-                                {alertUpload !== undefined && alertUpload.map(item => {
-                                    return (
-                                        <div>{item}</div>
-                                    )
-                                })}
-                            </Alert>
-                            <Alert color="danger" className={style.alertWrong} isOpen={upload}>
-                                <div>{errMsg}</div>
-                            </Alert>
-                            <div className={style.bodyDashboard}>
-                                <div className={style.headMaster}>
-                                    <div className={style.titleDashboard}>My Asset</div>
-                                </div>
-                                <div className={style.secHeadDashboard}>
-                                    <div className={style.headEmail}>
-                                        <Button color="success" size="lg">Download</Button>
-                                    </div>
-                                </div>
-                                <div className='mb-4'> </div>
-                                <div className={style.secEmail}>
-                                    <div>
-                                        <text>Show: </text>
-                                        <ButtonDropdown className={style.drop} isOpen={dropOpen} toggle={this.dropDown}>
-                                        <DropdownToggle caret color="light">
-                                            {this.state.limit}
-                                        </DropdownToggle>
-                                        <DropdownMenu>
-                                        <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 10, search: ''})}>10</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 20, search: ''})}>20</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 50, search: ''})}>50</DropdownItem>
-                                        </DropdownMenu>
-                                        </ButtonDropdown>
-                                        <text className={style.textEntries}>entries</text>
-                                    </div>
-                                    <div className={style.searchEmail2}>
-                                        <text>Search: </text>
-                                        <Input 
-                                        className={style.search}
-                                        onChange={this.onSearch}
-                                        value={this.state.search}
-                                        onKeyPress={this.onSearch}
-                                        >
-                                            <FaSearch size={20} />
-                                        </Input>
-                                    </div>
-                                </div>
-                                {isGet === false ? (
-                                    <div className={style.tableDashboard}>
-                                    <Table bordered responsive hover className={style.tab}>
-                                        <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>No Asset</th>
-                                                <th>No Document</th>
-                                                <th>Nama Asset</th>
-                                                <th>Area</th>
-                                                <th>Keterangan</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                    </Table>
-                                    </div>                    
-                                ) : (
-                                    <div className={style.tableDashboard}>
-                                    <Table bordered responsive hover className={style.tab}>
-                                        <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>No Asset</th>
-                                                <th>No Document</th>
-                                                <th>Nama Asset</th>
-                                                <th>Area</th>
-                                                <th>Keterangan</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        {dataAsset.length !== 0 && dataAsset.map(item => {
-                                                return (
-                                            <tr>
-                                                <th scope="row">{(dataAsset.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</th>
-                                                <td>{item.no_asset}</td>
-                                                <td>{item.no_doc}</td>
-                                                <td>{item.nama_asset}</td>
-                                                <td>{item.area}</td>
-                                                <td></td>
-                                                <td></td>
-                                            </tr>
-                                                )})}
-                                        </tbody>
-                                    </Table>
-                                    </div>
-                                )}
-                                <div>
-                                    <div className={style.infoPageEmail1}>
-                                        <text>Showing {page.currentPage} of {page.pages} pages</text>
-                                        <div className={style.pageButton}>
-                                            <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
-                                            <button className={style.btnPrev} color="info" disabled={page.nextLink === null ? true : false} onClick={this.next}>Next</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </MaterialTitlePanel>
-                </Sidebar> */}
                 <div className={styleTrans.app}>
                     <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
 
@@ -635,7 +676,7 @@ class Asset extends Component {
                         
                         <div className={styleTrans.searchContainer}>
                             <div className='rowGeneral'>
-                                <Button color="success" size="lg" onClick={this.downloadData}>Download</Button>
+                                <Button color="success" size="lg" onClick={this.cekDownload}>Download</Button>
                                 {level === '1' && (
                                     <>
                                         <Button className='ml-1' color="warning" size="lg" onClick={this.openModalUpload}>Upload</Button>
@@ -669,6 +710,7 @@ class Asset extends Component {
                                         {/* Select */}
                                     </th>
                                     <th>No</th>
+                                    <th className='indexStat'>Qr code</th>
                                     <th>Asset</th>
                                     <th>SNo.</th>
                                     <th>Cap.Date</th>
@@ -699,6 +741,30 @@ class Asset extends Component {
                                                 />
                                             </td>
                                             <td scope="row">{(dataAsset.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</td>
+                                            <td key={item.no_asset} ref={(el) => (this.barcodeRefs[item.no_asset] = el)}>
+                                                <div style={{ position: "relative", width: 192, height: 192 }}>
+                                                    <QRCode value={JSON.stringify({no: item.no_asset, cost: item.cost_center})} size={192} />
+                                                    <img
+                                                        src={logo}
+                                                        alt="logo"
+                                                        style={{
+                                                            position: "absolute",
+                                                            top: "50%",
+                                                            left: "50%",
+                                                            transform: "translate(-50%, -50%)",
+                                                            width: 32,
+                                                            height: 32,
+                                                            borderRadius: "8px",
+                                                            backgroundColor: "white",
+                                                            padding: "4px",
+                                                        }}
+                                                    />
+                                                </div>
+                                                {/* <Barcode 
+                                                width={1}
+                                                value={JSON.stringify({no: item.no_asset, cost: item.cost_center})} 
+                                                displayValue={false} /> */}
+                                            </td>
                                             <td>{item.no_asset}</td>
                                             <td>{item.no_doc}</td>
                                             <td>{moment(item.tanggal).format('DD/MM/YYYY')}</td>
@@ -737,6 +803,45 @@ class Asset extends Component {
                         </div>
                     </div>
                 </div>
+                <Modal isOpen={this.state.openChoose} toggle={this.chooseDownload} size='xl'>
+                    <ModalBody>
+                        <div className={styleHome.mainContent}>
+                            <main className={styleHome.mainSection}>
+                            <h1 className={styleHome.title}>Pilih Download Data</h1>
+                            <h4 className={styleHome.subtitle}></h4>
+
+                            <div className={`${styleHome.assetContainer} row`}>
+                                <>
+                                    <div 
+                                    onClick={() => this.downloadData()} 
+                                    className="col-12 col-md-6 col-lg-3 mb-4">
+                                        <div className={styleHome.assetCard1}>
+                                            <BsTable size={150} className='mt-4 mb-4' />
+                                            <p className='mt-2 mb-4 sizeCh'>Download Master Data</p>
+                                        </div>
+                                    </div>
+                                    <div 
+                                    onClick={() => this.downloadBarcode()} 
+                                    className="col-12 col-md-6 col-lg-3 mb-4">
+                                        <div className={styleHome.assetCard1}>
+                                            <BsQrCode size={150} className='mt-4 mb-4' />
+                                            <p className='mt-2 mb-4 sizeCh'>Download Qr Code</p>
+                                        </div>
+                                    </div>
+                                </>
+                            </div>
+                            </main>
+                        </div>
+                        <hr />
+                        <div className='rowBetween'>
+                            <div className='rowGeneral'>
+                            </div>
+                            <div className='rowGeneral'>
+                                <Button onClick={this.chooseDownload} color='secondary'>Close</Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                </Modal>
                 <Modal toggle={this.openModalAdd} isOpen={this.state.modalAdd} size="lg">
                     <ModalHeader toggle={this.openModalAdd}>Add Master Dokumen</ModalHeader>
                     <Formik
@@ -1011,7 +1116,7 @@ class Asset extends Component {
                         )}
                     </Formik>
                 </Modal>
-                <Modal isOpen={this.props.asset.isLoading ? true: false} size="sm">
+                <Modal isOpen={this.props.asset.isLoading || this.state.isLoading ? true: false} size="sm">
                         <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>
@@ -1060,6 +1165,14 @@ class Asset extends Component {
                                     <AiOutlineClose size={80} className={style.red} />
                                     <div className={[style.sucUpdate, style.green]}>Gagal Synchronize Data</div>
                                     <div className={[style.sucUpdate, style.green]}>Data Asset Tidak Ditemukan</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'failList' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green]}>Gagal Download</div>
+                                    <div className={[style.sucUpdate, style.green]}>Ceklist Data Asset Terlebih Dahulu</div>
                                 </div>
                             </div>
                         ) : (

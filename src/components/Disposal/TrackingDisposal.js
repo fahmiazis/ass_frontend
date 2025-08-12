@@ -217,13 +217,13 @@ class TrackingDisposal extends Component {
                                     </div>
                                 ) : this.state.tipeCol === 'Eksekusi' ? (
                                     <div class="steps d-flex flex-wrap flex-sm-nowrap justify-content-between padding-top-2x padding-bottom-1x">
-                                        <div class={detailDis[0] === undefined ? 'step' : (detailDis[0].status_form !== 26 && detailDis[0].status_form !== 9 && detailDis[0].status_form !== 15) && (detailDis[0].status_form > 4 || detailDis[0].status_form === 4) ? "step completed" : 'step'}>
+                                        <div class={detailDis[0] === undefined ? 'step' : (detailDis[0].status_form !== 26 && detailDis[0].status_form !== 9 && detailDis[0].status_form !== 15) && (detailDis[0].status_form >= 4) ? "step completed" : 'step'}>
                                             <div class="step-icon-wrap">
                                             <button class="step-icon" ><FiSettings size={30} className="center2" /></button>
                                             </div>
                                             <h4 class="step-title">Proses Eksekusi Area</h4>
                                         </div>
-                                        <div class={detailDis[0] === undefined ? 'step' : (detailDis[0].status_form !== 26 && detailDis[0].status_form !== 9 && detailDis[0].status_form !== 15) && (detailDis[0].status_form > 4 || detailDis[0].status_form === 4) ? "step completed" : 'step'}>
+                                        <div class={detailDis[0] === undefined ? 'step' : (detailDis[0].status_form !== 26 && detailDis[0].status_form !== 9 && detailDis[0].status_form !== 15) && (detailDis[0].status_form > 4) ? "step completed" : 'step'}>
                                             <div class="step-icon-wrap">
                                             <button class="step-icon" ><FiSettings size={30} className="center2" /></button>
                                             </div>

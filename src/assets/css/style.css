@@ -1463,6 +1463,11 @@ html,body{
     flex-direction: row;
     align-items: center;
 }
+.rowStart {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+}
 .rowCenter1 {
     display: flex !important;
     flex-direction: row !important;
@@ -1657,4 +1662,11 @@ html,body{
 }
 .tdIo {
     width: 10% !important;
+}
+.btnDocCon {
+    align-self: center;
+    margin-top: 30px;
+    display: flex;
+    flex-direction: row;
+    left: 50%;
 }

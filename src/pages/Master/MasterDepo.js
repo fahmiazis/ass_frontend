@@ -8,7 +8,7 @@ import { Container, Collapse, Nav, Navbar,
 import logo from "../../assets/img/logo.png"
 import style from '../../assets/css/input.module.css'
 import {FaSearch, FaUserCircle, FaBars} from 'react-icons/fa'
-import {AiOutlineFileExcel, AiFillCheckCircle, AiOutlineInbox} from 'react-icons/ai'
+import {AiOutlineFileExcel, AiFillCheckCircle, AiOutlineInbox, AiOutlineClose} from 'react-icons/ai'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
 import depo from '../../redux/actions/depo'
@@ -147,22 +147,27 @@ class MasterDepo extends Component {
         ws.columns = [
             {header: 'Kode Area', key: 'c2'},
             {header: 'Home Town', key: 'c3'},
-            {header: 'Channel', key: 'c4'},
-            {header: 'Distribution', key: 'c5'},
-            {header: 'Status Depo', key: 'c6'},
-            {header: 'Profit Center', key: 'c7'},
-            {header: 'Cost Center', key: 'c8'},
-            {header: 'Kode SAP 1', key: 'c9'},
-            {header: 'Kode SAP 2', key: 'c10'},
-            {header: 'Nama NOM', key: 'c11'},
-            {header: 'Nama OM', key: 'c12'},
-            {header: 'Nama BM', key: 'c13'},
-            {header: 'Nama AOS', key: 'c14'},
-            {header: 'Nama PIC 1', key: 'c15'},
-            {header: 'Nama PIC 2', key: 'c16'},
-            {header: 'Nama PIC 3', key: 'c17'},
-            {header: 'Nama PIC 4', key: 'c18'},
-            {header: 'Nama Assistant Manager', key: 'c19'}
+            {header: 'Place Aset', key: 'c4'},
+            {header: 'Channel', key: 'c5'},
+            {header: 'Distribution', key: 'c6'},
+            {header: 'Status Depo', key: 'c7'},
+            {header: 'Profit Center', key: 'c8'},
+            {header: 'Cost Center', key: 'c9'},
+            {header: 'Kode SAP 1', key: 'c10'},
+            {header: 'Kode SAP 2', key: 'c11'},
+            {header: 'Nama NOM', key: 'c12'},
+            {header: 'Nama OM', key: 'c13'},
+            {header: 'Nama BM', key: 'c14'},
+            {header: 'Nama AOS', key: 'c15'},
+            {header: 'Nama PIC 1', key: 'c16'},
+            {header: 'Nama PIC 2', key: 'c17'},
+            {header: 'Nama PIC 3', key: 'c18'},
+            {header: 'Nama PIC 4', key: 'c19'},
+            {header: 'Nama Assistant Manager', key: 'c20'},
+            {header: 'PIC Budget', key: 'c21'},
+            {header: 'PIC Finance', key: 'c22'},
+            {header: 'PIC Tax', key: 'c23'},
+            {header: 'PIC Purchasing', key: 'c24'}
         ]
 
         ws.eachRow({ includeEmpty: true }, function(row, rowNumber) {
@@ -421,6 +426,10 @@ class MasterDepo extends Component {
              setTimeout(() => {
                 this.getDataDepo()
              }, 2100)
+        } else if (isUpload === false) {
+            this.props.resetError()
+            this.setState({confirm: 'failUpload'})
+            this.openConfirm()
         } else if (isExport) {
             this.props.resetError()
             this.DownloadMaster()
@@ -507,159 +516,6 @@ class MasterDepo extends Component {
           };
         return (
             <>
-                {/* <Sidebar {...sidebarProps}>
-                    <MaterialTitlePanel title={contentHeader}>
-                        <div className={style.backgroundLogo}>
-                            <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
-                                <div>{alertMsg}</div>
-                                <div>{alertM}</div>
-                                {alertUpload !== undefined && alertUpload.map(item => {
-                                    return (
-                                        <div>{item}</div>
-                                    )
-                                })}
-                            </Alert>
-                            <Alert color="danger" className={style.alertWrong} isOpen={upload}>
-                                <div>{errMsg}</div>
-                            </Alert>
-                            <div className={style.bodyDashboard}>
-                                <div className={style.headMaster}>
-                                    <div className={style.titleDashboard}>Master Depo</div>
-                                </div>
-                                <div className={style.secHeadDashboard}>
-                                    <div>
-                                        <text>Show: </text>
-                                        <ButtonDropdown className={style.drop} isOpen={dropOpen} toggle={this.dropDown}>
-                                        <DropdownToggle caret color="light">
-                                            {this.state.limit}
-                                        </DropdownToggle>
-                                        <DropdownMenu>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataDepo({limit: 10, search: ''})}>10</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataDepo({limit: 20, search: ''})}>20</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataDepo({limit: 50, search: ''})}>50</DropdownItem>
-                                        </DropdownMenu>
-                                        </ButtonDropdown>
-                                        <text className={style.textEntries}>entries</text>
-                                    </div>
-                                </div>
-                                <div className='secEmail mt-4 mb-4'>
-                                    <div className='rowCenter'>
-                                        <Button onClick={this.openModalAdd} color="primary" size="lg" className='mr-1'>Add</Button>
-                                        <Button onClick={this.openModalUpload} color="warning" size="lg" className='mr-1'>Upload</Button>
-                                        <Button color="success" size="lg" onClick={this.ExportMaster}>Download</Button>
-                                    </div>
-                                    <div className={style.searchEmail2}>
-                                        <text>Search: </text>
-                                        <Input 
-                                        className={style.search}
-                                        onChange={this.onSearch}
-                                        value={this.state.search}
-                                        onKeyPress={this.onSearch}
-                                        >
-                                            <FaSearch size={20} />
-                                        </Input>
-                                    </div>
-                                </div>
-                                {dataDepo.length === 0  ? (
-                                    <div className={style.tableDashboard}>
-                                    <Table bordered responsive hover className={style.tab}>
-                                        <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>Kode Area</th>
-                                                <th>Nama Area</th>
-                                                <th>Channel</th>
-                                                <th>Distribution</th>
-                                                <th>Status Depo</th>
-                                                <th>Profit Center</th>
-                                                <th>Cost Center</th>
-                                                <th>Kode SAP 1</th>
-                                                <th>Kode SAP 2</th>
-                                                <th>Nama NOM</th>
-                                                <th>Nama OM</th>
-                                                <th>Nama BM</th>
-                                                <th>Nama AOS</th>
-                                                <th>Nama PIC 1</th>
-                                                <th>Nama PIC 2</th>
-                                                <th>Nama PIC 3</th>
-                                                <th>Nama PIC 4</th>
-                                                <th>Nama ASMAN</th>
-                                            </tr>
-                                        </thead>
-                                    </Table>
-                                    <div className={style.spinCol}>
-                                        <AiOutlineInbox size={50} className='secondary mb-4' />
-                                        <div className='textInfo'>Data depo tidak ditemukan</div>
-                                    </div>
-                                    </div>
-                                ) : (
-                                    <div className={style.tableDashboard}>
-                                    <Table bordered responsive hover className={style.tab}>
-                                        <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>Kode Area</th>
-                                                <th>Nama Area</th>
-                                                <th>Channel</th>
-                                                <th>Distribution</th>
-                                                <th>Status Depo</th>
-                                                <th>Profit Center</th>
-                                                <th>Cost Center</th>
-                                                <th>Kode SAP 1</th>
-                                                <th>Kode SAP 2</th>
-                                                <th>Nama NOM</th>
-                                                <th>Nama OM</th>
-                                                <th>Nama BM</th>
-                                                <th>Nama AOS</th>
-                                                <th>Nama PIC 1</th>
-                                                <th>Nama PIC 2</th>
-                                                <th>Nama PIC 3</th>
-                                                <th>Nama PIC 4</th>
-                                                <th>Nama ASMAN</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {dataDepo.length !== 0 && dataDepo.map(item => {
-                                                return (
-                                                <tr onClick={() => this.openModalEdit(this.setState({detail: item}))}>
-                                                    <th scope="row">{(dataDepo.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</th>
-                                                    <td>{item.kode_plant}</td>
-                                                    <td>{item.nama_area}</td>
-                                                    <td>{item.channel}</td>
-                                                    <td>{item.distribution}</td>
-                                                    <td>{item.status_area}</td>
-                                                    <td>{item.profit_center}</td>
-                                                    <td>{item.cost_center}</td>
-                                                    <td>{item.kode_sap_1}</td>
-                                                    <td>{item.kode_sap_2}</td>
-                                                    <td>{item.nama_nom}</td>
-                                                    <td>{item.nama_om}</td>
-                                                    <td>{item.nama_bm}</td>
-                                                    <td>{item.nama_aos}</td>
-                                                    <td>{item.nama_pic_1}</td>
-                                                    <td>{item.nama_pic_2}</td>
-                                                    <td>{item.nama_pic_3}</td>
-                                                    <td>{item.nama_pic_4}</td>
-                                                    <td>{item.nama_asman}</td>
-                                                </tr>
-                                                )})}
-                                        </tbody>
-                                    </Table>
-                                </div>
-                                )}
-                                <div>
-                                    <div className={style.infoPageEmail1}>
-                                        <text>Showing {page.currentPage} of {page.pages} pages</text>
-                                        <div className={style.pageButton}>
-                                            <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
-                                            <button className={style.btnPrev} color="info" disabled={page.nextLink === null ? true : false} onClick={this.next}>Next</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </MaterialTitlePanel>
-                </Sidebar> */}
                 <div className={styleTrans.app}>
                     <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
 
@@ -1267,7 +1123,7 @@ class MasterDepo extends Component {
                         </div>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="sm">
+                <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="md">
                     <ModalBody>
                         {this.state.confirm === 'edit' ? (
                         <div className={style.cekUpdate}>
@@ -1285,6 +1141,21 @@ class MasterDepo extends Component {
                                     <AiFillCheckCircle size={80} className={style.green} />
                                 <div className={style.sucUpdate}>Berhasil Mengupload Master Depo</div>
                             </div>
+                            </div>
+                        ) : this.state.confirm === 'failUpload' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green, style.mb4]}>Gagal Upload</div>
+
+                                    {alertUpload !== undefined && alertUpload.length > 0 ? alertUpload.map(item => {
+                                        return (
+                                            <div className={[style.sucUpdate, style.green, style.mb3]}>{`${item}`}</div>
+                                        )
+                                    }) : (
+                                        <div></div>
+                                    )}
+                                </div>
                             </div>
                         ) : (
                             <div></div>

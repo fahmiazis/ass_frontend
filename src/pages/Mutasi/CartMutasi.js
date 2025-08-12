@@ -54,7 +54,7 @@ class CartMutasi extends Component {
             img: '',
             agree: false,
             alasan: '',
-            limit: 10,
+            limit: 1000,
             confirm: "",
             modalAdd: false,
             modalEdit: false,
@@ -66,7 +66,6 @@ class CartMutasi extends Component {
             upload: false,
             errMsg: '',
             fileUpload: '',
-            limit: 10,
             search: '',
             modalRinci: false,
             dataRinci: {},
@@ -212,7 +211,7 @@ class CartMutasi extends Component {
         await this.props.getCart(token)
         await this.props.getDetailDepo(token, 1)
         this.prepareSelect()
-        this.setState({limit: value === undefined ? 12 : value.limit})
+        this.setState({limit: 1000})
     }
 
     prepareSelect = async () => {
@@ -691,10 +690,10 @@ class CartMutasi extends Component {
                                 </tr>
                             </thead>
                             <tbody>
-                            {dataAsset.length !== 0 && dataAsset.map(item => {
+                            {dataAsset.length !== 0 && dataAsset.filter(x => (x.status === null)).map((item, index) => {
                                 return (
                                     <tr>
-                                        <td>{dataAsset.indexOf(item) + 1}</td>
+                                        <td>{index + 1}</td>
                                         <td>{item.nama_asset}</td>
                                         <td>{item.no_asset}</td>
                                         <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
@@ -852,14 +851,21 @@ class CartMutasi extends Component {
                                             </Col>
                                         </Row>
                                     </div>
-                                    <div className="footRinci3 mt-4">
+                                    <div className="footRinci1">
+                                        <div></div>
+                                        <div>
+                                            <Button className="mr-2" size="md" color="success" onClick={handleSubmit}>Add</Button>
+                                            <Button className="" size="md" color="secondary" onClick={() => this.openRinciAdmin()}>Close</Button>
+                                        </div>
+                                    </div>
+                                    {/* <div className="footRinci3 mt-4">
                                         <Col md={6}>
                                             <Button className="btnFootRinci2" size="lg" block color="success" onClick={handleSubmit}>Add</Button>
                                         </Col>
                                         <Col md={6}>
                                             <Button className="btnFootRinci2" size="lg" block outline  color="secondary" onClick={() => this.openRinciAdmin()}>Close</Button>
                                         </Col>
-                                    </div>
+                                    </div> */}
                                 </div>
                             )}
                             </Formik>
