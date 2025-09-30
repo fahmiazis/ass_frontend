@@ -26,6 +26,12 @@ import NewNavbar from '../../components/NewNavbar'
 import Email from '../../components/Mutasi/Email'
 import moment from 'moment'
 import { MdUpload, MdDownload, MdEditSquare, MdAddCircle, MdDelete } from "react-icons/md"
+import QRCode from "react-qr-code"
+import styleHome from '../../assets/css/Home.module.css'
+import logo from "../../assets/img/logo.png"
+import * as htmlToImage from 'html-to-image';
+import ExcelJS from "exceljs"
+import fs from "file-saver"
 const {REACT_APP_BACKEND_URL} = process.env
 
 const alasanSchema = Yup.object().shape({
@@ -85,9 +91,12 @@ class CartMutasi extends Component {
             openDraft: false,
             subject: '',
             message: '',
+            modalQr: false,
+            isLoading: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+        this.barcodeRefs = {};
     }
 
     getMessage = (val) => {
@@ -142,6 +151,7 @@ class CartMutasi extends Component {
         await this.props.getApproveMut(token, nomor_mutasi, 'Mutasi')
         await this.props.getDraftEmail(token, tempno)
         this.openDraftEmail()
+        this.openModalQr()
     }
 
     openDraftEmail = () => {
@@ -183,6 +193,11 @@ class CartMutasi extends Component {
         this.openDraftEmail()
         this.setState({confirm: 'submit'})
         this.openConfirm()
+        // this.openModalQr()
+    }
+
+    openModalQr = () => {
+        this.setState({modalQr: !this.state.modalQr})
     }
 
     componentDidMount() {
@@ -341,10 +356,107 @@ class CartMutasi extends Component {
         this.setState({modalConfirm: !this.state.modalConfirm})
     }
 
+    downloadBarcode = async () => {
+        this.setState({isLoading: true})
+        const { nomor_mutasi } = this.props.mutasi
+
+        const workbook = new ExcelJS.Workbook();
+        const ws = workbook.addWorksheet('qr code', {
+            pageSetup: { 
+                orientation:'portrait', 
+                paperSize: 9,
+                // margins: {
+                //     top: 0.1,
+                //     bottom: 0.1
+                // } 
+            }
+        })
+
+        const tbStyle = {
+            horizontal:'center',
+            wrapText: true,
+            vertical: 'middle',
+            shrinkToFit: true
+        }
+
+        const textImgStyle = {
+            vertical: 'bottom',
+            horizontal: 'center',
+            wrapText: true
+        }
+
+        const boldStyle = {
+            bold: true
+        }
+
+        const imgStyle = {
+            wrapText: true,
+            vertical: 'middle',
+            shrinkToFit: true,
+            horizontal: 'center'
+        }
+
+        const borderStyles = {
+            top: {style:'thin'},
+            left: {style:'thin'},
+            bottom: {style:'thin'},
+            right: {style:'thin'}
+        }
+
+        ws.pageSetup.printTitlesRow = '1:2';
+
+        ws.mergeCells(`A${2}`, `H${2}`)
+        ws.getCell(`A${2}`).value = 'Qr Code'
+        ws.getCell(`A${2}`).alignment = { 
+            ...tbStyle
+        }
+        ws.getCell(`A${2}`).border = { 
+            ...borderStyles
+        }
+        ws.getCell(`A${2}`).font = { 
+            ...boldStyle
+        }
+    
+        const colFirst = 'A'
+        const colLast = 'H'
+        const numContent = 3
+
+        ws.mergeCells(`${colFirst}${numContent}`, `${colLast}${numContent}`)
+        ws.getCell(`${colFirst}${numContent}`).value = `NO MUTASI: ${nomor_mutasi}\n`
+        ws.getCell(`${colFirst}${numContent}`).alignment = { 
+            ...textImgStyle
+        }
+        ws.getCell(`${colFirst}${numContent}`).border = { 
+            ...borderStyles
+        }
+        ws.getRow(numContent).height = 320
+        
+        const node = this.barcodeRefs[nomor_mutasi]
+    
+        const dataUrl = await htmlToImage.toPng(node)
+        const imageId = workbook.addImage({
+            base64: dataUrl,
+            extension: 'png',
+        });
+
+    
+        ws.addImage(imageId, {
+            tl: { col: 1.5, row: 2.9 },
+            ext: { width: 300, height: 300 },
+        });
+    
+        const buffer = await workbook.xlsx.writeBuffer();
+        fs.saveAs(
+            new Blob([buffer], { type: "application/octet-stream" }),
+            `Qr Code Mutasi ${nomor_mutasi} ${moment().format('DD MMMM YYYY')}.xlsx`
+        );
+        this.setState({isLoading: false})
+    }
+
     render() {
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
-        const {dataCart} = this.props.mutasi
+        const {dataCart, no_jwt, nomor_mutasi} = this.props.mutasi
         const {dataAsset} = this.props.asset
         const { detailDepo } = this.props.depo
         const {dataRinci} = this.state
@@ -378,112 +490,6 @@ class CartMutasi extends Component {
           };
         return (
             <>
-                {/* <Sidebar {...sidebarProps}>
-                    <MaterialTitlePanel title={contentHeader}>
-                    <div className={style.backgroundLogo}>
-                            <div className={style.bodyDashboard}>
-                                <div className={style.headMaster}>
-                                    <div className={style.titleDashboard}>Draft Pengajuan Mutasi</div>
-                                </div>
-                                <div className={style.secEmail}>
-                                    <div className='rowGeneral'>
-                                        <Button size='lg' color="primary" onClick={this.prosesOpenAdd}>Add</Button>
-                                        <Button size='lg' className='ml-2' color="success" disabled={dataCart.length === 0 ? true : false } onClick={() => this.openAgree()}>Submit</Button>
-                                    </div>
-                                </div>
-                                <div className={style.tableDashboard}>
-                                    <Table bordered striped responsive hover className={style.tab}>
-                                        <thead>
-                                            <tr>
-                                                <th>NO</th>
-                                                <th>AREA TUJUAN</th>
-                                                <th>NAMA ASET</th>
-                                                <th>NOMOR ASET</th>
-                                                <th>NILAI BUKU</th>
-                                                <th>KATEGORI</th>
-                                                <th>STATUS</th>
-                                                <th>OPSI</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        {dataCart.length !== 0 && dataCart.map(item => {
-                                            return (
-                                                <tr>
-                                                    <td>{dataCart.indexOf(item) + 1}</td>
-                                                    <td>{item.area_rec}</td>
-                                                    <td>{item.nama_asset}</td>
-                                                    <td>{item.no_asset}</td>
-                                                    <td>{item.dataAsset.nilai_buku === null || item.dataAsset.nilai_buku === '' ? '0' : item.dataAsset.nilai_buku}</td>
-                                                    <td>{item.kategori}</td>
-                                                    <td>{item.status === '1' ? 'On Proses Disposal' : item.status === '11' ? 'On Proses Mutasi' : 'available'}</td>
-                                                    <td>
-                                                        <Button color="primary" onClick={() => this.prosesRinci(item)}>Rincian</Button>
-                                                        <Button color="danger" className='ml-2' onClick={() => this.deleteItem(item.no_asset)}>Delete</Button>
-                                                    </td>
-                                                </tr>
-                                            )
-                                        })}
-                                        </tbody>
-                                    </Table>
-                                    {dataCart.length === 0 && (
-                                        <div className={style.spin}>
-                                            <text className='textInfo'>Data ajuan belum ditambahkan</text>
-                                        </div>
-                                    )}
-                                </div> */}
-                                {/* <Row className="cartDisposal">
-                                    {dataCart.length === 0 ? (
-                                        <Col md={8} xl={8} sm={12}>
-                                            <div className="txtDisposEmpty">Mutasi Data is empty</div>
-                                        </Col>
-                                    ) : (
-                                        <Col md={8} xl={8} sm={12} className="mb-5 mt-5">
-                                        {dataCart.length !== 0 && dataCart.map(item => {
-                                            return (
-                                                <div className="cart">
-                                                    <div className="navCart">
-                                                        <img src={item.pict.length > 0 ? `${REACT_APP_BACKEND_URL}/${item.pict[item.pict.length - 1].path}` : placeholder} className="cartImg" />
-                                                        <Button className="labelBut" color="danger" size="sm">Mutasi</Button>
-                                                        <div className="txtCart">
-                                                            <div>
-                                                                <div className="nameCart">{item.nama_asset}</div>
-                                                                <div className="noCart">No asset {item.no_asset}</div>
-                                                            </div>
-                                                            <Button color="primary" onClick={() => this.prosesRinci(this.setState({dataRinci: item, img: item.pict.length > 0 ? item.pict[item.pict.length - 1].path : ''}))}>Rincian</Button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="footCart">
-                                                        <div><FaTrash size={20} onClick={() => this.deleteItem(item.id)} className="txtError"/></div>
-                                                    </div>
-                                                </div>
-                                            )
-                                        })}
-                                    </Col>
-                                    )}
-                                    <Col md={4} xl={4} sm={12} className="mt-5">
-                                        <div className="sideSum">
-                                            <div className="titSum">Mutasi summary</div>
-                                            <div className="txtSum">
-                                                <div className="totalSum">Total Item</div>
-                                                <div className="angkaSum">{dataCart.length}</div>
-                                            </div>
-                                            <button className="btnSum" disabled={dataCart.length === 0 ? true : false } onClick={() => this.openAgree()}>Submit</button>
-                                        </div>
-                                    </Col>
-                                </Row> */}
-                                {/* <div className='mt-4'>
-                                    <div className={style.infoPageEmail1}>
-                                        <text>Showing 1 of 1 pages</text>
-                                        <div className={style.pageButton}>
-                                            <button className={style.btnPrev} color="info" disabled>Prev</button>
-                                            <button className={style.btnPrev} color="info" disabled>Next</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </MaterialTitlePanel>
-                </Sidebar> */}
                 <div className={styleTrans.app}>
                     <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
 
@@ -736,7 +742,7 @@ class CartMutasi extends Component {
                         <button className="btnSum" disabled={this.state.alasan === '' ? true : false } onClick={() => this.submitMut()}>Submit</button>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.props.mutasi.isLoading || this.props.tempmail.isLoading || this.props.depo.isLoading || this.props.asset.isLoading ? true: false} size="sm">
+                <Modal isOpen={this.props.mutasi.isLoading || this.props.tempmail.isLoading || this.props.depo.isLoading || this.props.asset.isLoading || this.state.isLoading ? true: false} size="sm">
                     <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>
@@ -872,6 +878,54 @@ class CartMutasi extends Component {
                         </div>
                     </ModalBody>
                 </Modal>
+                <Modal isOpen={this.state.modalQr} toggle={this.openModalQr} size='lg'>
+                    <ModalBody>
+                        <div className={styleHome.mainContent}>
+                            <main className={styleHome.mainSection}>
+                            <h1 className={styleHome.title}>Download Qr Code</h1>
+                            <h4 className={styleHome.subtitle}></h4>
+
+                            <div className={`${styleHome.assetContainer} row`}>
+                                <>
+                                    <div 
+                                    onClick={() => this.downloadBarcode()} 
+                                    className="col-12 col-md-8 col-lg-8 mb-4">
+                                        <div className={styleHome.assetCard1}>
+                                            <div style={{ position: "relative", width: 256, height: 256 }} key={nomor_mutasi} ref={(el) => (this.barcodeRefs[nomor_mutasi] = el)}>
+                                                <QRCode value={JSON.stringify({no: no_jwt})} size={256} />
+                                                <img
+                                                    src={logo}
+                                                    alt="logo"
+                                                    style={{
+                                                        position: "absolute",
+                                                        top: "50%",
+                                                        left: "50%",
+                                                        transform: "translate(-50%, -50%)",
+                                                        width: 32,
+                                                        height: 32,
+                                                        borderRadius: "8px",
+                                                        backgroundColor: "white",
+                                                        padding: "4px",
+                                                    }}
+                                                />
+                                            </div>
+                                            <p className='mt-4 mb-4 sizeCh'>Download</p>
+                                        </div>
+                                    </div>
+                                </>
+                            </div>
+                            </main>
+                        </div>
+                        <hr />
+                        <div className='rowBetween'>
+                            <div className='rowGeneral'>
+                            </div>
+                            <div className='rowGeneral'>
+                                <Button onClick={this.openModalQr} color='secondary'>Close</Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                </Modal>
                 <Modal isOpen={this.state.modalSubmit} toggle={this.openModalSub} centered={true}>
                     <ModalBody>
                         <div className={style.modalApprove}>
@@ -958,7 +1012,12 @@ class CartMutasi extends Component {
                     <ModalBody>
                         <Email handleData={this.getMessage}/>
                         <div className={style.foot}>
-                            <div></div>
+                            <div>
+                                <Button
+                                color='success' 
+                                className="mr-3" 
+                                onClick={this.openModalQr}>Download Qr code</Button>
+                            </div>
                             <div>
                                 <Button
                                     disabled={this.state.message === '' ? true : false} 

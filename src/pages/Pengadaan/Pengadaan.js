@@ -322,10 +322,12 @@ class Pengadaan extends Component {
         const { value } = this.state
         const token = localStorage.getItem('token')
         const data = {
-            no_io: value
+            no_io: val.type === 'sap' ? val.val.no_pengadaan : value,
+            no: val.val.no_pengadaan,
+            type: val.type
         }
-        await this.props.updateNoIo(token, val, data)
-        await this.props.getDetail(token, val)
+        await this.props.updateNoIo(token, data)
+        await this.props.getDetail(token, val.val.no_pengadaan)
         this.setState({ confirm: 'isupdate' })
         this.openConfirm()
     }
@@ -1989,11 +1991,13 @@ class Pengadaan extends Component {
                                         numInputs={11}
                                         inputStyle={style.otp}
                                         containerStyle={style.containerOtp}
-                                        isDisabled={level === '8' ? false : true}
+                                        // isDisabled={level === '8' ? false : true}
+                                        isDisabled
                                     />
                                     {level === '8' && (
                                         <div className='rowGeneral'>
-                                            <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo(detailIo[0].no_pengadaan)}>Save</Button>
+                                            {/* <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo({val: detailIo[0], type: 'web'})}>Save</Button> */}
+                                            <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo({val: detailIo[0], type: 'sap'})}>Generate By SAP</Button>
                                             {detailIo.length > 0 &&  detailIo[0].no_io !== null && detailIo[0].no_io.length > 0 ? (
                                                 <FaCheck size={30} className='green ml-2' />
                                             ) : (

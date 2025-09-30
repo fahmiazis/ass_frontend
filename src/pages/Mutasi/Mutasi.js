@@ -523,7 +523,7 @@ class Mutasi extends Component {
                 }
             }
         }
-        console.log(dataMut)
+        console.log(listRole)
         if (val === 'available') {
             const newMut = []
             const arrApp = []
@@ -565,11 +565,15 @@ class Mutasi extends Component {
                     const cekFin = cekFrm === 'pengirim' ? 'pengirim' : cekTo === 'penerima' ? 'penerima' : 'all'
                     const cekApp = app.find(item => (item.jabatan === listRole[x].name) && (cekFin === 'all' ? (item.struktur === null || item.struktur === 'all') : (item.struktur === cekFin)))
                     const find = app.indexOf(cekApp)
-                    // console.log(listRole[x])
-                    // console.log(cekApp)
-                    // console.log(cekFrm)
-                    // console.log(cekTo)
-                    // console.log(cekFin)
+                    console.log(dataDepo)
+                    console.log(depoFrm)
+                    console.log(detailUser)
+                    console.log(app)
+                    console.log(listRole[x])
+                    console.log(cekApp)
+                    console.log(cekFrm)
+                    console.log(cekTo)
+                    console.log(cekFin)
                     if (level === '5' || level === '9') {
                         console.log('at available 2')
                         if (find === 0 || find === '0') {
@@ -601,8 +605,12 @@ class Mutasi extends Component {
                         }
                     } else {
                         console.log('at available 5')
+                        // console.log(find)
+                        console.log(app[find])
                         if (dataMut[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
+                            console.log('if first available 5')
                             if (newMut.find(item => item.no_mutasi === dataMut[i].no_mutasi) === undefined) {
+                                console.log('if second available 5')
                                 newMut.push(dataMut[i])
                                 arrApp.push({index: find, noMut: dataMut[i].no_mutasi})
                             }
