@@ -36,6 +36,12 @@ class TrackingMutasi extends Component {
 
   render() {
     const { dataMut, noMut, mutApp, dataDoc, detailMut } = this.props.mutasi
+    const statusList = [
+        { status_form: 2, title: 'proses approval'},
+        { status_form: 3, title: 'verifikasi budget'},
+        { status_form: 4, title: 'eksekusi mutasi'},
+        { status_form: 8, title: 'completed'},
+    ]
     return (
         <>
         <ModalBody>

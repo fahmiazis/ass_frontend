@@ -3476,7 +3476,7 @@ class Pengadaan extends Component {
                                     <div className="errApprove mt-2">Mohon approve dokumen terlebih dahulu</div>
                                 </div>
                             </div>
-                        ) : this.state.confirm === 'recent' ? (
+                        ) : this.state.confirm === 'reason' ? (
                             <div>
                                 <div className={style.cekUpdate}>
                                     <AiOutlineClose size={80} className={style.red} />
