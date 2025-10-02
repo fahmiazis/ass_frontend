@@ -23,6 +23,7 @@ const mutasiState = {
     changeDate: false,
     mutApp: {},
     nomor_mutasi: '',
+    no_jwt: '',
     alertMsg: '',
     alertM: '',
     dataMut: [],
@@ -366,6 +367,7 @@ export default (state=mutasiState, action) => {
                     isLoading: false,
                     isSubmit: true,
                     nomor_mutasi: action.payload.data.no_mutasi,
+                    no_jwt: action.payload.data.no_jwt,
                     alertMsg: 'submit mutasi Succesfully'
                 };
             }

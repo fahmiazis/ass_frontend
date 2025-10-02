@@ -51,9 +51,9 @@ export default {
         type: 'UPDATE_IO',
         payload: http(token).patch(`/ticket/upasset/${id}`, qs.stringify(data))
     }),
-    updateNoIo: (token, no, data) => ({
+    updateNoIo: (token, data) => ({
         type: 'UPDATE_NOIO',
-        payload: http(token).patch(`/ticket/upnoio`, qs.stringify({...data, no: no}))
+        payload: http(token).patch(`/ticket/upnoio`, qs.stringify(data))
     }),
     updateNoAsset: (token, id, data) => ({
         type: 'NO_ASSET',
@@ -142,6 +142,10 @@ export default {
     submitNotAsset: (token, no) => ({
         type: 'SUBMIT_NOTASSET',
         payload: http(token).patch(`/ticket/subnot`, qs.stringify({no: no}))
+    }),
+    generateAssetSap: (token, no) => ({
+        type: 'GENNO_SAP',
+        payload: http(token).patch(`/ticket/asetsap`, qs.stringify({no: no}))
     }),
     testApiPods: (token) => ({
         type: 'TESTAPI_PODS',

@@ -45,7 +45,8 @@ import Select from 'react-select/creatable';
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
-    doc_sap: Yup.string().required('must be filled')
+    // doc_sap: Yup.string().required('must be filled'),
+    date_ba: Yup.string().required('must be filled')
 })
 
 const alasanSchema = Yup.object().shape({
@@ -456,7 +457,8 @@ class EksekusiDisposal extends Component {
         const tempdoc = []
         const arrDoc = []
         for (let i = 0; i < detailDis.length; i++) {
-            if (detailDis[i].doc_sap === null || detailDis[i].doc_sap === '') {
+            // if (detailDis[i].doc_sap === null || detailDis[i].doc_sap === '') {
+            if (detailDis[i].nilai_jual === "0" && (detailDis[i].date_ba === null || detailDis[i].date_ba === '')) {
                 cekSap.push(detailDis[i])
             } else {
                 const tipeDis = detailDis[i].nilai_jual === "0" ? 'dispose' : 'sell'
@@ -483,7 +485,8 @@ class EksekusiDisposal extends Component {
             }
         }
         if (cekSap.length > 0) {
-            this.setState({confirm: 'falseNodoc'})
+            // this.setState({confirm: 'falseNodoc'})
+            this.setState({confirm: 'falseDateBa'})
             this.openConfirm()
         } else if (tempdoc.length !== arrDoc.length) {
             this.setState({ confirm: 'falsubmit' })
@@ -733,8 +736,11 @@ class EksekusiDisposal extends Component {
         const token = localStorage.getItem('token')
         const { dataRinci } = this.state
         const data = {
-            doc_sap: val.doc_sap
+            date_ba: val.date_ba
         }
+        // const data = {
+        //     doc_sap: val.doc_sap
+        // }
         await this.props.updateDisposal(token, dataRinci.id, data)
         await this.props.getDetailDisposal(token, dataRinci.no_disposal, 'pengajuan')
         this.setState({confirm: 'update'})
@@ -1261,7 +1267,8 @@ class EksekusiDisposal extends Component {
                             initialValues = {{
                                 doc_sap: dataRinci.doc_sap === null ? '' : dataRinci.doc_sap,
                                 keterangan: dataRinci.keterangan,
-                                nilai_jual: dataRinci.nilai_jual
+                                nilai_jual: dataRinci.nilai_jual,
+                                date_ba: dataRinci.date_ba === null ? '' : moment(dataRinci.date_ba).format('YYYY-MM-DD')
                             }}
                             validationSchema = {disposalSchema}
                             onSubmit={(values) => {this.updateDataDis(values)}}
@@ -1357,8 +1364,7 @@ class EksekusiDisposal extends Component {
                                         ) : (
                                             <Row></Row>
                                         )}
-                                        {/* {level === '2' && dataRinci.nilai_jual === '0' ? ( */}
-                                        <div>
+                                        {/* <div>
                                             <Row className="mb-2">
                                                 <Col md={3}>No Doc SAP</Col>
                                                 <Col md={9} className="colRinci">:  <Input 
@@ -1373,10 +1379,25 @@ class EksekusiDisposal extends Component {
                                             {errors.doc_sap ? (
                                                 <text className={style.txtError}>{errors.doc_sap}</text>
                                             ) : null}
-                                        </div>
-                                        {/* ) : (
-                                            <Row></Row>
-                                        )} */}
+                                        </div> */}
+                                        {(level === '2' && dataRinci.nilai_jual === '0') && (
+                                            <div>
+                                                <Row className="mb-2">
+                                                    <Col md={3}>Tgl BA Pemusnahan Asset</Col>
+                                                    <Col md={9} className="colRinci">:  <Input 
+                                                    className="inputRinci"
+                                                    type="date"
+                                                    value={values.date_ba}
+                                                    onChange={handleChange("date_ba")}
+                                                    onBlur={handleBlur("date_ba")}
+                                                    />
+                                                    </Col>
+                                                </Row>
+                                                {errors.date_ba ? (
+                                                    <text className={style.txtError}>{errors.date_ba}</text>
+                                                ) : null}
+                                            </div>
+                                        )}
                                     </div>
                                     <Row className="footRinci1 mt-4">
                                         {/* <Button className="btnFootRinci3" size="md" color="primary" outline onClick={handleSubmit}>Save</Button> */}
@@ -1398,7 +1419,17 @@ class EksekusiDisposal extends Component {
                                         <div className='rowGeneral'>
                                         </div>
                                         <div className='rowGeneral'>
-                                            <Button disabled={values.doc_sap === ''} onClick={handleSubmit} className='mr-1' color='primary'>Save</Button>
+                                            <Button 
+                                                disabled={
+                                                    // values.doc_sap === ''
+                                                    values.date_ba === ''
+                                                } 
+                                                onClick={handleSubmit} 
+                                                className='mr-1' 
+                                                color='primary'
+                                            >
+                                                Save
+                                            </Button>
                                             <Button onClick={this.openModalRinci}>Close</Button>
                                         </div>
                                     </Row>
@@ -1538,6 +1569,14 @@ class EksekusiDisposal extends Component {
                                 <AiOutlineClose size={80} className={style.red} />
                                 <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
                                 <div className="errApprove mt-2">Pastikan nomor document SAP telah diinput</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'falseDateBa' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                                <div className="errApprove mt-2">Pastikan Tanggal BA telah diinput</div>
                             </div>
                             </div>
                         ) : this.state.confirm === 'falseCancel' ? (

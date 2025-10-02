@@ -933,6 +933,15 @@ class EksekusiTicket extends Component {
         this.openConfirm()
     }
 
+    generateSap = async (val) => {
+        const token = localStorage.getItem("token")
+        await this.props.generateAssetSap(token, val.no_pengadaan)
+        await this.props.getTempAsset(token, val.no_pengadaan)
+        await this.props.getDetail(token, val.no_pengadaan)
+        this.setState({confirm: 'sucUpdate'})
+        this.openConfirm()
+    }
+
     componentDidUpdate() {
         const {isError, isUpload, isUpdate, approve, rejApprove, reject, rejReject, detailIo, errUpload, uploadTemp, podssend} = this.props.pengadaan
         const {rinciIo} = this.state
@@ -1747,17 +1756,20 @@ class EksekusiTicket extends Component {
                         </tbody>
                     </Table>
                     <div className="mt-3 modalFoot">
-                        <div className="btnFoot">
+                        <div>
+                            <Button color="secondary mr-2" onClick={this.openFill}>
+                                Close
+                            </Button>
                             <Button className="mr-2" color="warning" onClick={() => this.downloadAjuan()}>
                                 Download
                             </Button>
                         </div>
-                        <div className="btnFoot">
+                        <div>
                             <Button className="mr-2" color="primary" onClick={this.openModalUpload} >
                                 Upload
                             </Button>
-                            <Button color="secondary" onClick={this.openFill}>
-                                Close
+                            <Button color="success" onClick={() => this.generateSap(dataTemp[0])}>
+                                Generate By SAP
                             </Button>
                         </div>
                     </div>
@@ -2743,6 +2755,7 @@ const mapDispatchToProps = {
     sendEmail: tempmail.sendEmail,
     addNewNotif: newnotif.addNewNotif,
     searchIo: pengadaan.searchIo,
+    generateAssetSap: pengadaan.generateAssetSap
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EksekusiTicket)

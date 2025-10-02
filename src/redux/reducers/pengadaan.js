@@ -55,7 +55,8 @@ const pengState = {
     noIo: '',
     isSubIo: null,
     isFinIo: null,
-    appRevisi: null
+    appRevisi: null,
+    generateSap: null
 }
 
 export default (state=pengState, action) => {
@@ -485,6 +486,29 @@ export default (state=pengState, action) => {
                 ...state,
                 isLoading: false,
                 isError: true,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'GENNO_SAP_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'GENNO_SAP_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                generateSap: true,
+                alertMsg: 'generate sap succesfully',
+            };
+        }
+        case 'GENNO_SAP_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                generateSap: false,
                 alertMsg: "Unable connect to server"
             };
         }
@@ -951,7 +975,8 @@ export default (state=pengState, action) => {
                 isUpdate: false,
                 isGet: false,
                 errUpload: false,
-                uploadTemp: false
+                uploadTemp: false,
+                generateSap: null
             }
         }
         case 'APP_RESET': {
