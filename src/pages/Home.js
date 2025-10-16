@@ -329,16 +329,33 @@ class Home extends Component {
                             Pengadaan Aset
                         </li>
                         <Collapse isOpen={this.state.openTicket} className="ml-3 mt-3">
-                            <li onClick={() => this.goRoute('pengadaan')} className={styleHome.alignCenter}>
-                                <FiSend className="mr-2"/>
-                                Pengajuan Pengadaan Asset
-                            </li>
+                            {(level !== '2' && level !== '8') && (
+                                <li onClick={() => this.goRoute('pengadaan')} className={styleHome.alignCenter}>
+                                    <FiSend className="mr-2"/>
+                                    Pengajuan Pengadaan Asset
+                                </li>
+                            )}
                             {(level === '5' || level === '9') && (
                                 <li onClick={() => this.goRoute('revtick')} className={styleHome.alignCenter}>
                                     <BiRevision className="mr-2"/>
                                     Revisi Pengadaan Asset
                                 </li>
                             )}
+
+                            {(level === '2') && (
+                                <li onClick={() => this.goRoute('pengadaan')} className={styleHome.alignCenter}>
+                                    <MdDomainVerification className="mr-2"/>
+                                    Verifikasi Pengadaan Asset
+                                </li>
+                            )}
+
+                            {(level === '8') && (
+                                <li onClick={() => this.goRoute('pengadaan')} className={styleHome.alignCenter}>
+                                    <MdOutlineVerifiedUser className="mr-2"/>
+                                    Verifikasi Budget Pengadaan
+                                </li>
+                            )}
+
                             {(level === '2') && (
                                 <li onClick={() => this.goRoute('ekstick')} className={styleHome.alignCenter}>
                                     <FiTruck className="mr-2"/>
