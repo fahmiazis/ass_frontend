@@ -1838,7 +1838,7 @@ class Pengadaan extends Component {
                     <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
 
                     <div className={`${styleTrans.mainContent} ${this.state.sidebarOpen ? styleTrans.collapsedContent : ''}`}>
-                        <h2 className={styleTrans.pageTitle}>Pengadaan Aset</h2>
+                        <h2 className={styleTrans.pageTitle}>{level === '2' ? 'Verifikasi Asset' : level === '8' ? 'Verifikasi Budget' : 'Pengadaan Asset'}</h2>
                         <div className={styleTrans.searchContainer}>
                             {(level === '5' || level === '9') ? (
                                 <Button size="lg" color='primary' onClick={this.goCartTicket}>Create</Button>

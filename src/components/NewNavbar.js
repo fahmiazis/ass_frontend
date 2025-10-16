@@ -177,10 +177,27 @@ class NewNavbar extends Component {
               {(!sidebarOpen || isMobile) &&  <span>Pengadaan Aset</span>}
             </div>
             <Collapse isOpen={this.state.openTicket} className="ml-3 mt-2">
-              <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('pengadaan')} >
-                  <FiSend className={styleTrans.icon} size={sidebarOpen && 20} /> 
-                  {(!sidebarOpen || isMobile) &&  <span>Pengajuan Pengadaan Asset</span>}
-              </div>
+              {(level !== '2' && level !== '8') && (
+                  <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('pengadaan')} >
+                    <FiSend className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                    {(!sidebarOpen || isMobile) &&  <span>Pengajuan Pengadaan Asset</span>}
+                </div>
+              )}
+
+              {(level === '2') && (
+                  <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('pengadaan')} >
+                    <MdDomainVerification className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                    {(!sidebarOpen || isMobile) &&  <span>Verifikasi Pengadaan Asset</span>}
+                </div>
+              )}
+
+              {(level === '8') && (
+                  <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('pengadaan')} >
+                    <MdOutlineVerifiedUser className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                    {(!sidebarOpen || isMobile) &&  <span>Verifikasi Budget Pengadaan</span>}
+                </div>
+              )}
+              
               {(level === '5' || level === '9') && (
                 <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('revtick')} >
                     <BiRevision className={styleTrans.icon} size={sidebarOpen && 20} /> 
@@ -214,7 +231,7 @@ class NewNavbar extends Component {
               {(!sidebarOpen || isMobile) &&  <span>Disposal Asset</span>}
             </div>
             <Collapse isOpen={this.state.openDis} className="ml-3 mt-2">
-              {level !== '6' && level !== '3' && level !== '4' && (
+              {(level !== '6' && level !== '3' && level !== '4') && (
                 <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('disposal')} >
                     <FiSend className={styleTrans.icon} size={sidebarOpen && 20} /> 
                     {(!sidebarOpen || isMobile) &&  <span>Pengajuan Disposal Asset</span>}

@@ -377,7 +377,7 @@ class TaxFinDisposal extends Component {
                     }
                 }
                 if (tempdocTax.length !== arrdocTax.length) {
-                    this.setState({confirm: 'falseDoc'})
+                    this.setState({confirm: 'falsubmit'})
                     this.openConfirm()
                 } else {
                     for (let i = 0; i < detailDis.length; i++) {
@@ -402,8 +402,8 @@ class TaxFinDisposal extends Component {
                             }
                         }
                     }
-                    if (tempdocTax.length !== arrdocTax.length) {
-                        this.setState({confirm: 'falseDoc'})
+                    if (tempdocFin.length !== arrdocFin.length) {
+                        this.setState({confirm: 'falsubmit'})
                         this.openConfirm()
                     } else {
                         this.openModalApprove()
