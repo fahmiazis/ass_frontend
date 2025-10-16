@@ -19,6 +19,7 @@ import tracking from './tracking'
 import report from './report'
 import menu from './menu'
 import newnotif from './newnotif'
+import apk from './apk'
 
 export default combineReducers({
   pengadaan,
@@ -38,5 +39,6 @@ export default combineReducers({
   tracking,
   report,
   menu,
-  newnotif
+  newnotif,
+  apk
 })
