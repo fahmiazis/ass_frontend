@@ -3,7 +3,7 @@ import styleTrans from '../assets/css/transaksi.module.css' // Import module CSS
 import logo from '../assets/img/logo.png'
 import React, { Component } from "react";
 import { Collapse } from 'reactstrap';
-import { FaUserCircle, FaBell, FaBars } from "react-icons/fa";
+import { FaUserCircle, FaBell, FaBars, FaMobileAlt } from "react-icons/fa";
 import {
   BsFillHouseDoorFill,
   BsGearFill,
@@ -425,6 +425,10 @@ class NewNavbar extends Component {
                   {(!sidebarOpen || isMobile) &&  <span>Setting Approval</span>}
                 </div>
               </Collapse>
+              <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('release-apk')} >
+                <FaMobileAlt className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                {(!sidebarOpen || isMobile) &&  <span>Release APK</span>}
+              </div>
           </div>
         </div>
         <div className={styleTrans.navbar}>

@@ -328,7 +328,8 @@ class Pengadaan extends Component {
         }
         await this.props.updateNoIo(token, data)
         await this.props.getDetail(token, val.val.no_pengadaan)
-        this.setState({ confirm: 'isupdate' })
+        const { detailIo } = this.props.pengadaan
+        this.setState({ confirm: 'isupdate', value: detailIo[0].no_io })
         this.openConfirm()
     }
 
@@ -1988,7 +1989,7 @@ class Pengadaan extends Component {
                                     <OtpInput
                                         value={this.state.value}
                                         onChange={this.onChange}
-                                        numInputs={11}
+                                        numInputs={this.state.value.length > 11 ? this.state.value.length : 11}
                                         inputStyle={style.otp}
                                         containerStyle={style.containerOtp}
                                         // isDisabled={level === '8' ? false : true}
@@ -2466,7 +2467,7 @@ class Pengadaan extends Component {
                                     <OtpInput
                                         value={this.state.value}
                                         onChange={this.onChange}
-                                        numInputs={11}
+                                        numInputs={this.state.value.length > 11 ? this.state.value.length : 11}
                                         inputStyle={style.otp}
                                         containerStyle={style.containerOtp}
                                         isDisabled

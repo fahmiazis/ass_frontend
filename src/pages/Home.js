@@ -20,7 +20,7 @@ import style from '../assets/css/input.module.css'
 import moment from 'moment'
 import Bell from '../components/Bell'
 import Account from '../components/Account'
-import { FaBell, FaUser, FaBars, FaTimes } from 'react-icons/fa';
+import { FaBell, FaUser, FaBars, FaTimes, FaMobileAlt } from 'react-icons/fa';
 import styleHome from '../assets/css/Home.module.css'
 import pengadaanIm from '../assets/img/io.png'
 import disposalIm from '../assets/img/dis.png'
@@ -567,6 +567,10 @@ class Home extends Component {
                                 Master PIC
                             </li> */}
                         </Collapse>
+                        <li className={styleHome.alignCenter} onClick={() => this.goRoute('release-apk')}>
+                            <FaMobileAlt className='mr-2' />
+                            Release APK
+                        </li>
                     </ul>
                     </nav>
                 </aside>

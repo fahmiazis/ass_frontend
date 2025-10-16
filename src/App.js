@@ -71,6 +71,7 @@ import MasterUser from './pages/Master/MasterUser'
 import MasterRole from './pages/Master/MasterRole'
 import MasterEmail from './pages/Master/MasterEmail'
 import MasterDokumen from './pages/Master/MasterDokumen'
+import ReleaseApk from './pages/Master/ReleaseApk'
 import Notif from './pages/Master/Notif'
 
 
@@ -102,6 +103,9 @@ class App extends Component {
                 </PrivateRoute>
                 <PrivateRoute path='/depo'>
                     <MasterDepo />
+                </PrivateRoute>
+                <PrivateRoute path='/release-apk'>
+                    <ReleaseApk />
                 </PrivateRoute>
                 <PrivateRoute path='/user'>
                     <MasterUser />
