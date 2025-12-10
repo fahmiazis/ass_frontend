@@ -975,7 +975,7 @@ class EditMutasi extends Component {
                                             {detailMut.length !== 0 && (kode === detailMut[0].user_rev || detailMut[0].user_rev === null) && (kode === detailMut[0].kode_plant) ? 
                                                 <>
                                                     {item.isreject === 1 ? 'Perlu Diperbaiki' : item.isreject === null ? 'Data tidak direject' : 'Telah diperbaiki'}
-                                                    {item.isreject === 1 && (
+                                                    {item.isreject === null ? null : (
                                                         <Button className='mt-2' color="info" size='sm' onClick={() => this.prosesOpenRinci(item)}>Update</Button>
                                                     )}
                                                 </>
@@ -1019,121 +1019,61 @@ class EditMutasi extends Component {
                         {detailMut.length !== 0 && (kode === detailMut[0].user_rev || detailMut[0].user_rev === null) && (kode === detailMut[0].kode_plant) && (
                             <Button className="mb-3" color='primary' onClick={this.prosesOpenReason}>Update Alasan</Button>
                         )}
-                        <Table borderless responsive className="tabPreview">
+                        <Table bordered responsive className="tabPreview">
                             <thead>
                                 <tr>
-                                    <th className="buatPre">Dibuat oleh</th>
-                                    <th className="buatPre">Diterima oleh</th>
-                                    <th rowSpan={2} className="buatPre">Diperiksa oleh</th>
-                                    <th rowSpan={2} className="buatPre">Disetujui oleh</th>
+                                    <th className="buatPre" colSpan={mutApp.pembuat?.length || 1}>Dibuat oleh,</th>
+                                    <th className="buatPre" colSpan={mutApp.penerima?.length || 1}>Diterima oleh,</th>
+                                    <th className="buatPre" rowSpan={2} colSpan={
+                                        mutApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').length || 1
+                                    }>Diperiksa oleh,</th>
+                                    <th className="buatPre" rowSpan={2} colSpan={mutApp.penyetuju?.length || 1}>Disetujui oleh,</th>
                                 </tr>
                                 <tr>
                                     <th className="buatPre">Pengirim</th>
                                     <th className="buatPre">Penerima</th>
                                 </tr>
-                            </thead>
-                            <tbody className="tbodyPre">
                                 <tr>
-                                    <td className="restTable">
-                                        <Table bordered responsive className="divPre">
-                                            <thead>
-                                                <tr>
-                                                    {mutApp.pembuat !== undefined && mutApp.pembuat.map(item => {
-                                                        return (
-                                                            <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                <div>{item.nama === null ? "-" : item.nama}</div>
-                                                            </th>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    {mutApp.pembuat !== undefined && mutApp.pembuat.map(item => {
-                                                        return (
-                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'HO' ? 'SPV' : item.jabatan}</td>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </tbody>
-                                        </Table>
-                                    </td>
-                                    <td className="restTable">
-                                        <Table bordered responsive className="divPre">
-                                            <thead>
-                                                <tr>
-                                                    {mutApp.penerima !== undefined && mutApp.penerima.map(item => {
-                                                        return (
-                                                            <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                <div>{item.nama === null ? "-" : item.nama}</div>
-                                                            </th>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    {mutApp.penerima !== undefined && mutApp.penerima.map(item => {
-                                                        return (
-                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'HO' ? 'SPV' : item.jabatan}</td>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </tbody>
-                                        </Table>
-                                    </td>
-                                    <td className="restTable">
-                                        <Table bordered responsive className="divPre">
-                                            <thead>
-                                                <tr>
-                                                    {mutApp.pemeriksa !== undefined && mutApp.pemeriksa.map(item => {
-                                                        return (
-                                                            <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                <div>{item.nama === null ? "-" : item.nama}</div>
-                                                            </th>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    {mutApp.pemeriksa !== undefined && mutApp.pemeriksa.map(item => {
-                                                        return (
-                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </tbody>
-                                        </Table>
-                                    </td>
-                                    <td className="restTable">
-                                        <Table bordered responsive className="divPre">
-                                            <thead>
-                                                <tr>
-                                                    {mutApp.penyetuju !== undefined && mutApp.penyetuju.map(item => {
-                                                        return (
-                                                            <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                <div>{item.nama === null ? "-" : item.nama}</div>
-                                                            </th>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    {mutApp.penyetuju !== undefined && mutApp.penyetuju.map(item => {
-                                                        return (
-                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </tbody>
-                                        </Table>
-                                    </td>
+                                    {mutApp.pembuat?.map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
+                                    {mutApp.penerima?.map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
+                                    {mutApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
+                                    {mutApp.penyetuju?.map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    {mutApp.pembuat?.map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
+                                    {mutApp.penerima?.map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
+                                    {mutApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
+                                    {mutApp.penyetuju?.map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
                                 </tr>
                             </tbody>
                         </Table>

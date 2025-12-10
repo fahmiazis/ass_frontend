@@ -186,7 +186,13 @@ class TableRincian extends Component {
                                 <td>{detailStock[0].no_stock}</td>
                                 <td>{detailStock[0].kode_plant}</td>
                                 <td>{detailStock[0].depo === null ? '' : detailStock[0].area === null ? `${detailStock[0].depo.nama_area} ${detailStock[0].depo.channel}` : detailStock[0].area}</td>
-                                <td>{moment(detailStock[0].tanggalStock).format('DD MMMM YYYY')}</td>
+                                <td>
+                                    {
+                                        detailStock[0].tanggalStock === null
+                                        ? moment().format('DD MMMM YYYY')
+                                        : moment(detailStock[0].tanggalStock).format('DD MMMM YYYY')
+                                    }
+                                </td>
                             </tr>
                         </tbody>
                     </Table>

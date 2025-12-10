@@ -25,6 +25,7 @@ import NewNavbar from '../../components/NewNavbar'
 import ExcelJS from "exceljs"
 import fs from "file-saver"
 const {REACT_APP_BACKEND_URL} = process.env
+const ppn = 11/100
 
 const userSchema = Yup.object().shape({
     username: Yup.string().required(),
@@ -363,7 +364,7 @@ class MasterUser extends Component {
         dataDownload.map((item, index) => { return ( ws.addRow(
             {
                 c1: index + 1,
-                c2: item.no_disposal === null ? '-' : `D${item.no_disposal}`,
+                c2: item.no_disposal === null ? '-' : `${item.no_disposal}`,
                 c3: item.no_asset,
                 c4: item.tanggalDis === null ? '-' : moment(item.tanggalDis).format('DD/MM/YYYY'),
                 c5: item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'BM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'BM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'BM').updatedAt).format('DD/MM/YYYY') : '-',
@@ -456,11 +457,11 @@ class MasterUser extends Component {
         dataDownload.map((item, index) => { return ( ws.addRow(
             {
                 c1: index + 1,
-                c2: item.no_disposal === null ? '-' : `D${item.no_disposal}`,
+                c2: item.no_disposal === null ? '-' : `${item.no_disposal}`,
                 c3: item.no_persetujuan,
                 c4: item.no_asset,
                 c5: item.nama_asset,
-                c6: item.dataAsset === null ? '-' : item.dataAsset.kategori,
+                c6: item.kategori,
                 c7: item.cost_center,
                 c8: item.area,
                 c9: item.dataAsset === null ? '-' : moment(item.dataAsset.tanggal).format('DD/MM/YYYY'),
@@ -471,11 +472,11 @@ class MasterUser extends Component {
                 c14: item.nilai_buku === null ? '-' : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
                 c15: item.keterangan,
                 c16: item.nilai_jual === '0' ? 'Dispose' : 'Sell',
-                c17: item.dataAsset === null ? '-' : item.dataAsset.accum_dep === null ? '-' : item.dataAsset.accum_dep.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                c17: item.dataAsset === null ? '-' : item.accum_dep !== null ? item.accum_dep.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") : item.dataAsset.accum_dep === null ? '-' : item.dataAsset.accum_dep.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
                 c18: item.nilai_buku_eks === null ? '-' : item.nilai_buku_eks.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
-                c19: item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) / (11/10)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
-                c20: item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) - Math.round(parseInt(item.nilai_jual) / (11/10))).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
-                c21: item.nilai_jual === '0' ? '-' : Math.round(Math.round(parseInt(item.nilai_jual) / (11/10))-parseInt(item.dataAsset === null ? 0 : item.dataAsset.nilai_buku)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                c19: item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) - Math.round(parseInt(item.nilai_jual) * ppn)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                c20: item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) * ppn).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                c21: item.nilai_jual === '0' ? '-' : Math.round(Math.round(parseInt(item.nilai_jual) * ppn)-parseInt(item.dataAsset === null ? 0 : item.dataAsset.nilai_buku)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
                 c22: item.tgl_eksekusi === null ? '-' : moment(item.tgl_eksekusi).format('DD/MM/YYYY'),
                 c23: item.no_sap,
                 c24: item.no_fp,
@@ -557,273 +558,6 @@ class MasterUser extends Component {
           };
         return (
             <>
-                {/* <Sidebar {...sidebarProps}>
-                    <MaterialTitlePanel title={contentHeader}>
-                        <div className={style.backgroundLogo}>
-                            <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
-                                <div>{alertMsg}</div>
-                                <div>{alertM}</div>
-                                {alertUpload !== undefined && alertUpload.map(item => {
-                                    return (
-                                        <div>{item}</div>
-                                    )
-                                })}
-                            </Alert>
-                            <Alert color="danger" className={style.alertWrong} isOpen={upload}>
-                                <div>{errMsg}</div>
-                            </Alert>
-                            {levels === '2' || levels === 2 ? (
-                                <div className={style.bodyDashboard}>
-                                <div className={style.headMaster}>
-                                    <div className={style.titleDashboard}>Report Disposal</div>
-                                </div>
-                                <div className={style.secHeadDashboard} >
-                                    <div>
-                                        <text>Show: </text>
-                                        <ButtonDropdown className={style.drop} isOpen={dropOpen} toggle={this.dropDown}>
-                                        <DropdownToggle caret color="light">
-                                            {this.state.limit}
-                                        </DropdownToggle>
-                                        <DropdownMenu>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataReportDisposal({limit: 10, search: ''})}>10</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataReportDisposal({limit: 20, search: ''})}>20</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataReportDisposal({limit: 50, search: ''})}>50</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataReportDisposal({limit: 100, search: ''})}>100</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataReportDisposal({limit: 'All', search: ''})}>All</DropdownItem>
-                                        </DropdownMenu>
-                                        </ButtonDropdown>
-                                        <text className={style.textEntries}>entries</text>
-                                    </div>
-                                </div>
-                                <div className={style.secEmail}>
-                                    <div className={style.headEmail}>
-                                        <ReactHtmlToExcel
-                                            id="test-table-xls-button"
-                                            className="btn btn-success"
-                                            table="table-to-xls"
-                                            filename={this.state.tipe === 'transaksi' ? "Report Disposal" : "Report History Disposal"}
-                                            sheet="Report"
-                                            buttonText="Download Report"
-                                        />
-                                        <Button onClick={this.ExportMaster} disabled color="success" size="lg">Download</Button>
-                                    </div>
-                                    <div>
-                                        <text>Tipe Report: </text>
-                                        <ButtonDropdown className={style.drop} isOpen={dropOpenNum} toggle={this.dropOpen}>
-                                        <DropdownToggle caret color="light">
-                                            Report {this.state.tipe}
-                                        </DropdownToggle>
-                                        <DropdownMenu>
-                                            <DropdownItem className={style.item} onClick={() => this.changeTipe("transaksi")}>Report transaksi</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.changeTipe("history")}>Report history</DropdownItem>
-                                        </DropdownMenu>
-                                        </ButtonDropdown>
-                                    </div>
-                                </div>
-                                {dataRep.length === 0 ? (
-                                    <div className={style.tableDashboard}>
-                                    <Table bordered responsive hover className={style.tab}>
-                                        <thead>
-                                            {this.state.tipe === 'transaksi' ? (
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>No Pengajuan Disposal</th>
-                                                    <th>No Persetujuan Disposal</th>
-                                                    <th>Nomor Asset</th>
-                                                    <th>Nama Barang</th>
-                                                    <th>Kategori</th>
-                                                    <th>Cost Center</th>
-                                                    <th>Cost Center Name</th>
-                                                    <th>Tgl Perolehan</th>
-                                                    <th>Nilai Akuisisi</th>
-                                                    <th>Nilai Buku saat pengajuan Disposal aset</th>
-                                                    <th>Nilai jual</th>
-                                                    <th>Keterangan pengajuan disposal aset</th>
-                                                    <th>Nilai Buku saat persetujuan Disposal</th>
-                                                    <th>Keteranagan persetujuan disposal aset</th>
-                                                    <th>Grouping eksekusi</th>
-                                                    <th>Akumulasi Aset</th>
-                                                    <th>Nilai Buku Saat eksekusi</th>
-                                                    <th>DPP</th>
-                                                    <th>PPN</th>
-                                                    <th>Profit/LOSS</th>
-                                                    <th>Tanggal Eksekusi disposal di SAP</th>
-                                                    <th>No Doc Jurnal Uang Masuk</th>
-                                                    <th>Nomor Faktur Pajak</th>
-                                                    <th>No Doc Disposal</th>
-                                                    <th>No Doc Clearing</th>
-                                                    <th>PIC ASET</th>
-                                                </tr>
-                                            ) : (
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>No Pengajuan Disposal</th>
-                                                    <th>Nomor Asset</th>
-                                                    <th>Tgl dibuat Form  Disposal aset</th>
-                                                    <th>Tgl App BM</th>
-                                                    <th>Tgl app ISM</th>
-                                                    <th>Tgl App IRM</th>
-                                                    <th>Tgl App AM</th>
-                                                    <th>Tgl App NFAM</th>
-                                                    <th>Tgl App Head Of Ops</th>
-                                                    <th>Tgl App Head Of HC</th>
-                                                    <th>Tgl App CM</th>
-                                                    <th>Tgl dibuat form Persetujuan</th>
-                                                    <th>Tgl kirim Persetujuan disposal</th>
-                                                    <th>Selesai App Form Persetujuan</th>
-                                                    <th>Tgl area kirim kelengkapan eksekusi disposal</th>
-                                                    <th>Tgl Jurnal uang masuk</th>
-                                                    <th>Tgl Pembuatan Faktur Pajak</th>
-                                                    <th>Tgl Aset Info eksekusi disposal aset</th>
-                                                </tr>
-                                            )}
-                                        </thead>
-                                    </Table>
-                                        <div className={style.spin}>
-                                            <Spinner type="grow" color="primary"/>
-                                            <Spinner type="grow" className="mr-3 ml-3" color="success"/>
-                                            <Spinner type="grow" color="warning"/>
-                                            <Spinner type="grow" className="mr-3 ml-3" color="danger"/>
-                                            <Spinner type="grow" color="info"/>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className={style.tableDashboard}>
-                                    <Table bordered responsive hover id="table-to-xls" className={style.tab}>
-                                        <thead>
-                                            {this.state.tipe === 'transaksi' ? (
-                                                <tr>
-                                                    <th style={{backgroundColor: '#76923B'}}>No</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>No Pengajuan Disposal</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>No Persetujuan Disposal</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>Nomor Asset</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>Nama Barang</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>Kategori</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>Cost Center</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>Cost Center Name</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>Tgl Perolehan</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>Nilai Akuisisi</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>Nilai Buku saat pengajuan Disposal aset</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>Nilai jual</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>Keterangan pengajuan disposal aset</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>Nilai Buku saat persetujuan Disposal</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>Keterangan persetujuan disposal aset</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>Grouping eksekusi</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>Akumulasi Aset</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>Nilai Buku Saat eksekusi</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>DPP</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>PPN</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>Profit/LOSS</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>Tanggal Eksekusi disposal di SAP</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>No Doc Jurnal Uang Masuk</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>Nomor Faktur Pajak</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>No Doc Disposal</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>No Doc Clearing</th>
-                                                    <th style={{backgroundColor: '#76923B'}}>PIC ASET</th>
-                                                </tr>
-                                            ) : (
-                                                    <tr>
-                                                        <th>No</th>
-                                                        <th>No Pengajuan Disposal</th>
-                                                        <th>Nomor Asset</th>
-                                                        <th>Tgl dibuat Form  Disposal aset</th>
-                                                        <th>Tgl App BM</th>
-                                                        <th>Tgl app ISM</th>
-                                                        <th>Tgl App IRM</th>
-                                                        <th>Tgl App AM</th>
-                                                        <th>Tgl App NFAM</th>
-                                                        <th>Tgl App Head Of Ops</th>
-                                                        <th>Tgl App Head Of HC</th>
-                                                        <th>Tgl App CM</th>
-                                                        <th>Tgl dibuat form Persetujuan</th>
-                                                        <th>Tgl kirim Persetujuan disposal</th>
-                                                        <th>Selesai App Form Persetujuan</th>
-                                                        <th>Tgl area kirim kelengkapan eksekusi disposal</th>
-                                                        <th>Tgl Jurnal uang masuk</th>
-                                                        <th>Tgl Pembuatan Faktur Pajak</th>
-                                                        <th>Tgl Aset Info eksekusi disposal aset</th>
-                                                    </tr>
-                                            )}
-                                        </thead>
-                                        <tbody>
-                                        {dataRep.length !== 0 && dataRep.map(item => {
-                                                return (
-                                                this.state.tipe === 'transaksi' ? (
-                                                    <tr>
-                                                        <th scope="row">{dataRep.indexOf(item) + 1}</th>
-                                                        <td>{item.no_disposal === null ? '-' : `D${item.no_disposal}`}</td>
-                                                        <td>{item.no_persetujuan}</td>
-                                                        <td>{item.no_asset}</td>
-                                                        <td>{item.nama_asset}</td>
-                                                        <td>{item.dataAsset === null ? '-' : item.dataAsset.kategori}</td>
-                                                        <td>{item.cost_center}</td>
-                                                        <td>{item.area}</td>
-                                                        <td>{item.dataAsset === null ? '-' : moment(item.dataAsset.tanggal).format('DD/MM/YYYY')}</td>
-                                                        <td>{item.dataAsset === null ? '-' : item.dataAsset.nilai_acquis === null ? '-' : item.dataAsset.nilai_acquis.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                        <td>{item.nilai_buku === null ? '-' : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                        <td>{item.nilai_jual === null ? '-' : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                        <td>{item.keterangan}</td>
-                                                        <td>{item.nilai_buku === null ? '-' : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                        <td>{item.keterangan}</td>
-                                                        <td>{item.nilai_jual === '0' ? 'Dispose' : 'Sell'}</td>
-                                                        <td>{item.dataAsset === null ? '-' : item.dataAsset.accum_dep === null ? '-' : item.dataAsset.accum_dep.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                        <td>{item.nilai_buku_eks === null ? '-' : item.nilai_buku_eks.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                        <td>{item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) / (11/10)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                        <td>{item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) - Math.round(parseInt(item.nilai_jual) / (11/10))).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                        <td>{item.nilai_jual === '0' ? '-' : Math.round(Math.round(parseInt(item.nilai_jual) / (11/10))-parseInt(item.dataAsset === null ? 0 : item.dataAsset.nilai_buku)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                        <td>{item.tgl_eksekusi === null ? '-' : moment(item.tgl_eksekusi).format('DD/MM/YYYY')}</td>
-                                                        <td>{item.no_sap}</td>
-                                                        <td>{item.no_fp}</td>
-                                                        <td>{item.doc_sap}</td>
-                                                        <td>{item.doc_clearing}</td>
-                                                        <td>{item.pic_aset === null ? item.depo.nama_pic_1 : item.pic_aset}</td>
-                                                    </tr>
-                                                ) : (
-                                                    <tr>
-                                                        <th scope="row">{dataRep.indexOf(item) + 1}</th>
-                                                        <td>{item.no_disposal === null ? '-' : `D${item.no_disposal}`}</td>
-                                                        <td>{item.no_asset}</td>
-                                                        <td>{item.tanggalDis === null ? '-' : moment(item.tanggalDis).format('DD/MM/YYYY')}</td>
-                                                        <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'BM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'BM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'BM').updatedAt).format('DD/MM/YYYY') : '-'}</td>
-                                                        <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'IT OSM') !== undefined &&item.appForm.find(({jabatan}) => jabatan === 'IT OSM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'IT OSM').updatedAt).format('DD/MM/YYYY') : '-'}</td>
-                                                        <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'IRM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'IRM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'IRM').updatedAt).format('DD/MM/YYYY') : '-'}</td>
-                                                        <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'AM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'AM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'AM').updatedAt).format('DD/MM/YYYY') : '-'}</td>
-                                                        <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'NFAM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'NFAM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'NFAM').updatedAt).format('DD/MM/YYYY') : '-'}</td>
-                                                        <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'HEAD OF OPS') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'HEAD OF OPS').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'HEAD OF OPS').updatedAt).format('DD/MM/YYYY') : '-'}</td>
-                                                        <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'HEAD OF HC') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'HEAD OF HC').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'HEAD OF HC').updatedAt).format('DD/MM/YYYY') : '-'}</td>
-                                                        <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'CM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'CM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'CM').updatedAt).format('DD/MM/YYYY') : '-'}</td>
-                                                        <td>{item.ttdSet.length > 0 && item.ttdSet.find(({jabatan}) => jabatan === 'NFAM') !== undefined && item.ttdSet.find(({jabatan}) => jabatan === 'NFAM').status === 1 ? moment(item.ttdSet.find(({jabatan}) => jabatan === 'NFAM').createdAt).format('DD/MM/YYYY') : '-'}</td>
-                                                        <td>{item.ttdSet.length > 0 && item.ttdSet.find(({jabatan}) => jabatan === 'NFAM') !== undefined && item.ttdSet.find(({jabatan}) => jabatan === 'NFAM').status === 1 ? moment(item.ttdSet.find(({jabatan}) => jabatan === 'NFAM').createdAt).format('DD/MM/YYYY') : '-'}</td>
-                                                        <td>{item.ttdSet.length > 0 && item.ttdSet.find(({jabatan}) => jabatan === 'CEO') !== undefined && item.ttdSet.find(({jabatan}) => jabatan === 'CEO').status === 1 ? moment(item.ttdSet.find(({jabatan}) => jabatan === 'CEO').updatedAt).format('DD/MM/YYYY') : '-'}</td>
-                                                        <td>{item.docAsset.length > 0 && item.docAsset.find(({tipe}) => tipe === 'dispose') !== undefined ? moment(item.docAsset.find(({tipe}) => tipe === 'dispose').createdAt).format('DD/MM/YYYY') : item.docAsset.find(({tipe}) => tipe === 'sell') !== undefined ? moment(item.docAsset.find(({tipe}) => tipe === 'sell').createdAt).format('DD/MM/YYYY') : '-'}</td>
-                                                        <td>{item.docAsset.length > 0 && item.docAsset.find(({tipe}) => tipe === 'finance') !== undefined ? moment(item.docAsset.find(({tipe}) => tipe === 'finance').createdAt).format('DD/MM/YYYY') : '-'}</td>
-                                                        <td>{item.docAsset.length > 0 && item.docAsset.find(({tipe}) => tipe === 'tax') !== undefined ? moment(item.docAsset.find(({tipe}) => tipe === 'tax').createdAt).format('DD/MM/YYYY') : '-'}</td>
-                                                        <td>{item.status_form === 8 ? moment(item.updatedAt).format('DD/MM/YYYY') : '-'}</td>
-                                                    </tr>
-                                                )
-                                                )})}
-                                        </tbody>
-                                    </Table>
-                                </div>  
-                                )}
-                                <div>
-                                    <div className={style.infoPageEmail}>
-                                        <text>Showing {page.currentPage} of {page.pages} pages</text>
-                                        <div className={style.pageButton}>
-                                            <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
-                                            <button className={style.btnPrev} color="info" disabled={page.nextLink === null ? true : false} onClick={this.next}>Next</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            ) : (
-                                <div className={style.headMaster}>
-                                    <div className={style.titleDashboard1}>Anda tidak memiliki akses dihalaman ini</div>
-                                </div>
-                            )}
-                        </div>
-                    </MaterialTitlePanel>
-                </Sidebar> */}
                 <div className={styleTrans.app}>
                     <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
 
@@ -959,11 +693,11 @@ class MasterUser extends Component {
                                     this.state.tipe === 'transaksi' ? (
                                         <tr>
                                             <td scope="row">{newReport.indexOf(item) + 1}</td>
-                                            <td>{item.no_disposal === null ? '-' : `D${item.no_disposal}`}</td>
+                                            <td>{item.no_disposal === null ? '-' : `${item.no_disposal}`}</td>
                                             <td>{item.no_persetujuan}</td>
                                             <td>{item.no_asset}</td>
                                             <td>{item.nama_asset}</td>
-                                            <td>{item.dataAsset === null ? '-' : item.dataAsset.kategori}</td>
+                                            <td>{item.kategori}</td>
                                             <td>{item.cost_center}</td>
                                             <td>{item.area}</td>
                                             <td>{item.dataAsset === null ? '-' : moment(item.dataAsset.tanggal).format('DD/MM/YYYY')}</td>
@@ -974,11 +708,11 @@ class MasterUser extends Component {
                                             <td>{item.nilai_buku === null ? '-' : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             <td>{item.keterangan}</td>
                                             <td>{item.nilai_jual === '0' ? 'Dispose' : 'Sell'}</td>
-                                            <td>{item.dataAsset === null ? '-' : item.dataAsset.accum_dep === null ? '-' : item.dataAsset.accum_dep.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.dataAsset === null ? '-' : item.accum_dep !== null ? item.accum_dep.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") : item.dataAsset.accum_dep === null ? '-' : item.dataAsset.accum_dep.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             <td>{item.nilai_buku_eks === null ? '-' : item.nilai_buku_eks.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                            <td>{item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) / (11/10)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                            <td>{item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) - Math.round(parseInt(item.nilai_jual) / (11/10))).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                            <td>{item.nilai_jual === '0' ? '-' : Math.round(Math.round(parseInt(item.nilai_jual) / (11/10))-parseInt(item.dataAsset === null ? 0 : item.dataAsset.nilai_buku)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) - Math.round(parseInt(item.nilai_jual) * ppn)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.nilai_jual === '0' ? '-' : Math.round(parseInt(item.nilai_jual) * ppn).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                            <td>{item.nilai_jual === '0' ? '-' : Math.round((parseInt(item.nilai_jual) - Math.round(parseInt(item.nilai_jual) * ppn))-parseInt(item.nilai_buku_eks)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             <td>{item.tgl_eksekusi === null ? '-' : moment(item.tgl_eksekusi).format('DD/MM/YYYY')}</td>
                                             <td>{item.no_sap}</td>
                                             <td>{item.no_fp}</td>
@@ -989,7 +723,7 @@ class MasterUser extends Component {
                                     ) : (
                                         <tr>
                                             <td scope="row">{newReport.indexOf(item) + 1}</td>
-                                            <td>{item.no_disposal === null ? '-' : `D${item.no_disposal}`}</td>
+                                            <td>{item.no_disposal === null ? '-' : `${item.no_disposal}`}</td>
                                             <td>{item.no_asset}</td>
                                             <td>{item.tanggalDis === null ? '-' : moment(item.tanggalDis).format('DD/MM/YYYY')}</td>
                                             <td>{item.appForm.length > 0 && item.appForm.find(({jabatan}) => jabatan === 'BM') !== undefined && item.appForm.find(({jabatan}) => jabatan === 'BM').status === 1 ? moment(item.appForm.find(({jabatan}) => jabatan === 'BM').updatedAt).format('DD/MM/YYYY') : '-'}</td>

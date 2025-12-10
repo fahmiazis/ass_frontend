@@ -551,17 +551,25 @@ class Home extends Component {
                                 <FiMail className="mr-2"/>
                                 Master Email
                             </li> */}
+                            <li onClick={() => this.goRoute('dokumen')} className={styleHome.alignCenter}>
+                                <BsClipboardData className="mr-2"/>
+                                Master Document
+                            </li>
                             <li onClick={() => this.goRoute('menu')} className={styleHome.alignCenter}>
                                 <AiOutlineMenu className="mr-2"/>
                                 Master Menu
                             </li>
-                            <li onClick={() => this.goRoute('tempmail')} className={styleHome.alignCenter}>
-                                <FiMail className="mr-2"/>
-                                Template Email
-                            </li>
                             <li onClick={() => this.goRoute('role')} className={styleHome.alignCenter}>
                                 <FiUser className="mr-2"/>
                                 Master Role
+                            </li>
+                            <li onClick={() => this.goRoute('status-stock')} className={styleHome.alignCenter}>
+                                <FiUser className="mr-2"/>
+                                Master Status Stock
+                            </li>
+                            <li onClick={() => this.goRoute('tempmail')} className={styleHome.alignCenter}>
+                                <FiMail className="mr-2"/>
+                                Master Template Email
                             </li>
                             <li onClick={() => this.goRoute('user')} className={styleHome.alignCenter}>
                                 <FiUser className="mr-2"/>
@@ -571,10 +579,7 @@ class Home extends Component {
                                 <GiFamilyTree className="mr-2"/>
                                 Master Divisi
                             </li> */}
-                            <li onClick={() => this.goRoute('dokumen')} className={styleHome.alignCenter}>
-                                <BsClipboardData className="mr-2"/>
-                                Master Document
-                            </li>
+                            
                             <li onClick={() => this.goRoute('approval')} className={styleHome.alignCenter}>
                                 <BsClipboardData className="mr-2"/>
                                 Setting Approval

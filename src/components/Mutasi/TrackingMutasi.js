@@ -141,8 +141,6 @@ class TrackingMutasi extends Component {
                                     <th>Nama Barang</th>
                                     <th>Merk/Type</th>
                                     <th>Kategori</th>
-                                    <th>Nilai Buku</th>
-                                    <th>Nilai Jual</th>
                                     <th>Keterangan</th>
                                 </tr>
                             </thead>
@@ -155,8 +153,6 @@ class TrackingMutasi extends Component {
                                             <td>{item.nama_asset}</td>
                                             <td>{item.merk}</td>
                                             <td>{item.kategori}</td>
-                                            <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                            <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             <td>{item.keterangan}</td>
                                         </tr>
                                     )

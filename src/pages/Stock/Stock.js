@@ -432,7 +432,7 @@ class Stock extends Component {
         const data = {
             alasan: temp + value.alasan,
             no: dataItem.no_stock,
-            menu: typeReject === 'pembatalan' ? 'Pengadaan asset' : menuRev,
+            menu: typeReject === 'pembatalan' ? 'Stock opname asset' : menuRev,
             list: listMut,
             type: level === '2' ? 'verif' : 'form',
             type_reject: typeReject

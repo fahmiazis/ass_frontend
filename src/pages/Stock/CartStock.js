@@ -1144,6 +1144,7 @@ class Stock extends Component {
                                     <th>MERK</th>
                                     <th>SATUAN</th>
                                     <th>UNIT</th>
+                                    <th>KATEGORI</th>
                                     <th>LOKASI</th>
                                     <th>STATUS FISIK</th>
                                     <th>KONDISI</th>
@@ -1184,6 +1185,20 @@ class Stock extends Component {
                                                 </Input>
                                             </td>
                                             <td>{item.unit}</td>
+                                            <td>
+                                                <Input 
+                                                type="select"
+                                                className="inputRinci"
+                                                name="kategori"
+                                                value={item.kategori}
+                                                defaultValue={item.kategori}
+                                                onChange={e => {this.updateNewAsset({item: item, target: e.target})} }
+                                                >
+                                                    <option>-Pilih Kategori-</option>
+                                                    <option value="IT">IT</option>
+                                                    <option value="NON IT">NON IT</option>
+                                                </Input>
+                                            </td>
                                             <td className='largeTh'>
                                                 <Input
                                                 type= "text"

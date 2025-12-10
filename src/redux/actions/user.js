@@ -1,6 +1,7 @@
 /* eslint-disable import/no-anonymous-default-export */
 import http from '../../helpers/http'
 import qs from 'qs'
+import httpsync from '../../helpers/httpsync'
 
 export default {
     addUser: (token, data) => ({
@@ -11,9 +12,9 @@ export default {
         type: 'UPDATE_USER',
         payload: http(token).patch(`/user/update/${id}`, qs.stringify(data)),
     }),
-    getUser: (token, limit, search, page, filter, sortName, sortType) => ({
+    getUser: (token, limit, search, page, filter, sortName, sortType, typeData) => ({
         type: 'GET_USER',
-        payload: http(token).get(`/user/get?limit=${limit}&search=${search}&page=${page === undefined ? 1 : page}&filter=${filter}&sortName=${sortName}&sortType=${sortType}`)
+        payload: http(token).get(`/user/get?limit=${limit}&search=${search}&page=${page === undefined ? 1 : page}&filter=${filter}&sortName=${sortName}&sortType=${sortType}&typeData=${typeData}`)
     }),
     uploadMaster: (token, data) => ({
         type: 'UPLOAD_MASTER',
@@ -31,9 +32,9 @@ export default {
         type: 'NEXT_DATA_USER',
         payload: http(token).get(`${link}`)
     }),
-    deleteUser: (token, id) => ({
+    deleteUser: (token, data) => ({
         type: 'DELETE_USER',
-        payload: http(token).delete(`/user/delete/${id}`)
+        payload: http(token).patch(`/user/delete`, data)
     }),
     changePassword: (token, data) => ({
         type: 'CHANGE_PW',
@@ -58,6 +59,14 @@ export default {
     getDetailRole: (token, id) => ({
         type: 'GET_DETAIL_ROLE',
         payload: http(token).get(`/user/role/detail/${id}`)
+    }),
+    syncOnboarding: (token) => ({
+        type: 'SYNC_ONBOARDING',
+        payload: httpsync(token).get(`/edot/sync-onboarding`),
+    }),
+    syncOffboarding: (token) => ({
+        type: 'SYNC_OFFBOARDING',
+        payload: httpsync(token).get(`/edot/sync-offboarding`),
     }),
     resetError: () => ({
         type: 'RESET'

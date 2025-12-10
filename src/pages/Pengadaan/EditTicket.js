@@ -1137,7 +1137,7 @@ class EditTicket extends Component {
                                 <OtpInput
                                     value={this.state.value}
                                     onChange={this.onChange}
-                                    numInputs={11}
+                                    numInputs={(this.state.value === undefined || this.state.value === null) ? 11 : this.state.value.length > 11 ? this.state.value.length : 11}
                                     inputStyle={style.otp}
                                     containerStyle={style.containerOtp}
                                 />
@@ -1444,7 +1444,7 @@ class EditTicket extends Component {
                                 <OtpInput
                                     value={this.state.value}
                                     onChange={this.onChange}
-                                    numInputs={11}
+                                    numInputs={(this.state.value === undefined || this.state.value === null) ? 11 : this.state.value.length > 11 ? this.state.value.length : 11}
                                     inputStyle={style.otp}
                                     containerStyle={style.containerOtp}
                                     isDisabled

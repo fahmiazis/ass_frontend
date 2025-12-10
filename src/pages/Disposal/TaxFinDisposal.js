@@ -55,7 +55,8 @@ const disposalSchema = Yup.object().shape({
 })
 
 const taxSchema = Yup.object().shape({
-    no_fp: Yup.string().required('must be filled')
+    no_fp: Yup.string().required('must be filled'),
+    date_faktur: Yup.date().required('must be filled')
 })
 
 const finSchema = Yup.object().shape({
@@ -143,7 +144,9 @@ class TaxFinDisposal extends Component {
             noTrans: '',
             valdoc: {},
             options: [],
-            modalType: false
+            modalType: false,
+            gl_debit: "11020909",
+            gl_credit: "71050001"
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -349,7 +352,7 @@ class TaxFinDisposal extends Component {
         const tempdocFin = []
         const arrdocFin = []
         if (level === '2') {
-            if (detailDis.find(item => (item.doc_sap === null || item.doc_sap === '') || (item.doc_clearing === null || item.doc_clearing === ''))) {
+            if (detailDis.find(item => (item.doc_sap === null || item.doc_sap === '') || (item.doc_clearing === null || item.doc_clearing === '')) !== undefined) {
                 this.setState({confirm: 'falseNodoc'})
                 this.openConfirm()
             } else {
@@ -502,7 +505,12 @@ class TaxFinDisposal extends Component {
             no: detailDis[0].no_disposal
         }
         if (level === '2') {
-            await this.props.submitFinal(token, data)
+            const send = {
+                no: detailDis[0].no_disposal,
+                gl_debit: this.state.gl_debit,
+                gl_credit: this.state.gl_credit
+            }
+            await this.props.submitFinal(token, send)
             this.prosesSendEmail('submit')
             this.openModalApprove()
             this.openModalDis()
@@ -1521,7 +1529,8 @@ class TaxFinDisposal extends Component {
                                 nominal: dataRinci.nominal === null ? '' : dataRinci.nominal,
                                 doc_sap: dataRinci.doc_sap === null ? '' : dataRinci.doc_sap,
                                 doc_clearing: dataRinci.doc_clearing === null ? '' : dataRinci.doc_clearing,
-                                no_fp: dataRinci.no_fp === null ? '' : dataRinci.no_fp
+                                no_fp: dataRinci.no_fp === null ? '' : dataRinci.no_fp,
+                                date_faktur: dataRinci.date_faktur === null ? '' : dataRinci.date_faktur
                             }}
                             validationSchema = {level === '2' ? assetSchema : level === '3' ? taxSchema : level === '4' ? finSchema : disposalSchema}
                             onSubmit={(values) => {this.updateDataDis(values)}}
@@ -1676,6 +1685,20 @@ class TaxFinDisposal extends Component {
                                                     </Col>
                                                     {errors.no_fp ? (
                                                         <text className={`${style.txtError} mb-2 ml-3`}>{errors.no_fp}</text>
+                                                    ) : null}
+                                                </Row>
+                                                <Row className="mb-5 rowRinci">
+                                                    <Col md={3}>Tgl Faktur Pajak</Col>
+                                                    <Col md={9} className="colRinci">:  <Input 
+                                                        type="date" 
+                                                        className="inputRinci" 
+                                                        value={values.date_faktur} 
+                                                        onBlur={handleBlur("date_faktur")}
+                                                        onChange={handleChange("date_faktur")}
+                                                        />
+                                                    </Col>
+                                                    {errors.date_faktur ? (
+                                                        <text className={`${style.txtError} mb-2 ml-3`}>{errors.date_faktur}</text>
                                                     ) : null}
                                                 </Row>
                                             </div>
@@ -1837,7 +1860,34 @@ class TaxFinDisposal extends Component {
                     <ModalBody>
                         <div className="preDis">
                             <text className='bold'>PT. Pinus Merah Abadi</text>
-                            <text></text>
+                            <div>
+                                {level === '2' ? (
+                                    <>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={4}>Gl Debit</Col>
+                                            <Col md={8} className="colRinci">:  <Input
+                                                type= "text" 
+                                                className="inputRinci"
+                                                value={this.state.gl_debit}
+                                                onChange={(val) => this.setState({gl_debit: val.value})}
+                                                />
+                                            </Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={4}>Gl Credit</Col>
+                                            <Col md={8} className="colRinci">:  <Input
+                                                type= "text" 
+                                                className="inputRinci"
+                                                value={this.state.gl_credit}
+                                                onChange={(val) => this.setState({gl_credit: val.value})}
+                                                />
+                                            </Col>
+                                        </Row>
+                                    </>
+                                ) : (
+                                    <text></text>
+                                )}
+                            </div>
                         </div>
                         <div className="modalDis">
                             <text className="titleModDis">FORM PENGAJUAN DISPOSAL ASET</text>

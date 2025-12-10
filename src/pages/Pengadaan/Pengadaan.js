@@ -1989,7 +1989,7 @@ class Pengadaan extends Component {
                                     <OtpInput
                                         value={this.state.value}
                                         onChange={this.onChange}
-                                        numInputs={this.state.value.length > 11 ? this.state.value.length : 11}
+                                        numInputs={(this.state.value === undefined || this.state.value === null) ? 11 : this.state.value.length > 11 ? this.state.value.length : 11}
                                         inputStyle={style.otp}
                                         containerStyle={style.containerOtp}
                                         // isDisabled={level === '8' ? false : true}
@@ -1997,8 +1997,8 @@ class Pengadaan extends Component {
                                     />
                                     {level === '8' && (
                                         <div className='rowGeneral'>
-                                            {/* <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo({val: detailIo[0], type: 'web'})}>Save</Button> */}
-                                            <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo({val: detailIo[0], type: 'sap'})}>Generate By SAP</Button>
+                                            <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo({val: detailIo[0], type: 'web'})}>Save</Button>
+                                            {/* <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo({val: detailIo[0], type: 'sap'})}>Generate By SAP</Button> */}
                                             {detailIo.length > 0 &&  detailIo[0].no_io !== null && detailIo[0].no_io.length > 0 ? (
                                                 <FaCheck size={30} className='green ml-2' />
                                             ) : (
@@ -2250,94 +2250,6 @@ class Pengadaan extends Component {
                                     {detailIo[0] === undefined ? '' : `${detailIo[0].area}, ${moment(detailIo[0].tglIo).format('DD MMMM YYYY')}`}
                                 </Col>
                             </Row>
-                            {/* <Table borderless responsive className="tabPreview mt-4">
-                                <thead>
-                                    <tr>
-                                        <th className="buatPre buatPreFirst">Dibuat oleh,</th>
-                                        <th className="buatPre">Diperiksa oleh,</th>
-                                        <th className="buatPre">Disetujui oleh,</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="tbodyPre">
-                                    <tr>
-                                        <td className="restTable">
-                                            <Table bordered responsive className="divPre">
-                                                <thead>
-                                                    <tr>
-                                                        {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
-                                                            return (
-                                                                <th className="headPre">
-                                                                    <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                    <div>{item.nama === null ? "-" : item.nama}</div>
-                                                                </th>
-                                                            )
-                                                        })}
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
-                                                            return (
-                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'area' ? 'AOS' : item.jabatan}</td>
-                                                            )
-                                                        })}
-                                                    </tr>
-                                                </tbody>
-                                            </Table>
-                                        </td>
-                                        <td className="restTable">
-                                            <Table bordered responsive className="divPre">
-                                                <thead>
-                                                    <tr>
-                                                        {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
-                                                            return (
-                                                                <th className="headPre">
-                                                                    <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                    <div>{item.nama === null ? "-" : item.nama}</div>
-                                                                </th>
-                                                            )
-                                                        })}
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
-                                                            return (
-                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                            )
-                                                        })}
-                                                    </tr>
-                                                </tbody>
-                                            </Table>
-                                        </td>
-                                        <td className="restTable">
-                                            <Table bordered responsive className="divPre">
-                                                <thead>
-                                                    <tr>
-                                                        {dataApp.penyetuju !== undefined && dataApp.penyetuju.map(item => {
-                                                            return (
-                                                                <th className="headPre">
-                                                                    <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                    <div>{item.nama === null ? "-" : item.nama}</div>
-                                                                </th>
-                                                            )
-                                                        })}
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        {dataApp.penyetuju !== undefined && dataApp.penyetuju.map(item => {
-                                                            return (
-                                                                <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                            )
-                                                        })}
-                                                    </tr>
-                                                </tbody>
-                                            </Table>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </Table> */}
                             <Table bordered responsive className="tabPreview mt-4">
                                 <thead>
                                     <tr>
@@ -2467,7 +2379,7 @@ class Pengadaan extends Component {
                                     <OtpInput
                                         value={this.state.value}
                                         onChange={this.onChange}
-                                        numInputs={this.state.value.length > 11 ? this.state.value.length : 11}
+                                        numInputs={(this.state.value === undefined || this.state.value === null) ? 11 : this.state.value.length > 11 ? this.state.value.length : 11}
                                         inputStyle={style.otp}
                                         containerStyle={style.containerOtp}
                                         isDisabled
@@ -2595,91 +2507,47 @@ class Pengadaan extends Component {
                                 </Col>
                             </Row>
                         </Container>
-                        <Table borderless responsive className="tabPreview">
+                        <Table bordered responsive className="tabPreview mt-4">
                             <thead>
                                 <tr>
-                                    <th className="buatPre">Dibuat oleh,</th>
-                                    <th className="buatPre">Diperiksa oleh,</th>
-                                    <th className="buatPre">Disetujui oleh,</th>
+                                    <th className="buatPre" colSpan={dataApp.pembuat?.length || 1}>Dibuat oleh,</th>
+                                    <th className="buatPre" colSpan={
+                                        dataApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').length || 1
+                                    }>Diperiksa oleh,</th>
+                                    <th className="buatPre" colSpan={dataApp.penyetuju?.length || 1}>Disetujui oleh,</th>
+                                </tr>
+                                <tr>
+                                    {dataApp.pembuat?.map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
+                                    {dataApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
+                                    {dataApp.penyetuju?.map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
                                 </tr>
                             </thead>
-                            <tbody className="tbodyPre">
+                            <tbody>
                                 <tr>
-                                    <td className="restTable">
-                                        <Table bordered responsive className="divPre">
-                                            <thead>
-                                                <tr>
-                                                    {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
-                                                        return (
-                                                            <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                <div>{item.nama === null ? "-" : item.nama}</div>
-                                                            </th>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    {dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
-                                                        return (
-                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan === 'area' ? 'AOS' : item.jabatan}</td>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </tbody>
-                                        </Table>
-                                    </td>
-                                    <td className="restTable">
-                                        <Table bordered responsive className="divPre">
-                                            <thead>
-                                                <tr>
-                                                    {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
-                                                        return (
-                                                            <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                <div>{item.nama === null ? "-" : item.nama}</div>
-                                                            </th>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    {dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map(item => {
-                                                        return (
-                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </tbody>
-                                        </Table>
-                                    </td>
-                                    <td className="restTable">
-                                        <Table bordered responsive className="divPre">
-                                            <thead>
-                                                <tr>
-                                                    {dataApp.penyetuju !== undefined && dataApp.penyetuju.map(item => {
-                                                        return (
-                                                            <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                <div>{item.nama === null ? "-" : item.nama}</div>
-                                                            </th>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    {dataApp.penyetuju !== undefined && dataApp.penyetuju.map(item => {
-                                                        return (
-                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </tbody>
-                                        </Table>
-                                    </td>
+                                    {dataApp.pembuat?.map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
+                                    {dataApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
+                                    {dataApp.penyetuju?.map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
                                 </tr>
                             </tbody>
                         </Table>

@@ -354,7 +354,6 @@ class EditDisposal extends Component {
             this.setState({dataSubmit: val})
            this.openModalSubmit()
         }
-        
     }
 
     openModalSubmit = () => {
@@ -838,7 +837,6 @@ class EditDisposal extends Component {
                                             <Col md={9} className="colRinci">:  <Input
                                                 className="inputRinci" 
                                                 type="text"
-                                                disabled={level !== 5 ? true : false}
                                                 value={values.keterangan} 
                                                 onBlur={handleBlur("keterangan")}
                                                 onChange={handleChange("keterangan")}

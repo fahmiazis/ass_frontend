@@ -25,21 +25,22 @@ class TableRincian extends Component {
 
     componentDidMount() {
         const { draftEmail } = this.props.tempmail
-        const {detailMut} = this.props.mutasi
+        const detailData = this.props.detailData
         const cek = draftEmail.result
-        const stat = detailMut[0].status_form
-        const no = detailMut[0].no_mutasi
+        const no = detailData.mpn_number
+        console.log(detailData)
         const message = cek === undefined ? '' : `${cek.message} (${no})`
-        const subject = cek === undefined ? '' : `${cek.type === 'submit' ? '' : cek.type} ${cek.menu} NO ${no}`
+        const subject = cek === undefined ? '' : `${cek.type === 'submit' ? '' : cek.type} ${cek.menu} MPN NUMBER ${no}`
         this.setState({message: message, subject: subject})
         this.props.handleData({message: message, subject: subject})
     }
 
   render() {
-    const {detailMut} = this.props.mutasi
+    const detailData = this.props.detailData
     const { draftEmail } = this.props.tempmail
     const statMail = this.props.statMail || ''
     const {dataResmail} = this.props.tempmail
+    const { dataRole } = this.props.user
 
     const listMut = this.props.cekData !== undefined ? this.props.cekData : []
     const tipe = this.props.tipe !== undefined ? this.props.tipe : 'approve'
@@ -171,38 +172,34 @@ class TableRincian extends Component {
                     <thead>
                         <tr>
                             <th>NO</th>
-                            <th>No Mutasi</th>
-                            <th>No Asset</th>
-                            <th>Asset description</th>
-                            <th>Cabang / Depo</th>
-                            <th>Cost Ctr</th>
-                            <th>Cabang / Depo Penerima</th>
-                            <th>Cost Ctr Penerima</th>
-                            <th>Tgl Ajuan</th>
+                            <th>USER NAME</th>
+                            <th>FULL NAME</th>
+                            <th>NIK</th>
+                            <th>MPN NUMBER</th>
+                            <th>EMAIL</th>
+                            <th>LEVEL</th>
+                            <th>KODE</th>
+                            <th>TGL REQUEST</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {detailMut.length !== 0 && detailMut.map((item, index) => {
-                            return (
-                                <tr>
-                                    <td>{index + 1}</td>
-                                    <td>{item.no_mutasi}</td>
-                                    <td>{item.no_asset}</td>
-                                    <td>{item.nama_asset}</td>
-                                    <td>{item.area}</td>
-                                    <td>{item.cost_center}</td>
-                                    <td>{item.area_rec}</td>
-                                    <td>{item.cost_center_rec}</td>
-                                    <td>
-                                        {
-                                            item.tanggalMut === null 
-                                            ? moment().format('DD MMMM YYYY') 
-                                            : moment(item.tanggalMut).format('DD MMMM YYYY')
-                                        }
-                                    </td>
-                                </tr>
-                            )
-                        })}
+                        <tr>
+                            <td>{1}</td>
+                            <td>{detailData.username}</td>
+                            <td>{detailData.fullname}</td>
+                            <td>{detailData.nik}</td>
+                            <td>{detailData.mpn_number}</td>
+                            <td>{detailData.email}</td>
+                            <td>
+                                {
+                                    dataRole.find(item => item.nomor == detailData.request_level) === undefined 
+                                    ? detailData.request_level 
+                                    : dataRole.find(item => item.nomor == detailData.request_level).name
+                                }
+                            </td>
+                            <td>{detailData.request_kode}</td>
+                            <td>{moment().format('DD MMMM YYYY')}</td>
+                        </tr>
                     </tbody>
                 </Table>
             </div>
@@ -216,7 +213,7 @@ class TableRincian extends Component {
 }
 
 const mapStateToProps = state => ({
-    mutasi: state.mutasi,
+    user: state.user,
     menu: state.menu,
     reason: state.reason,
     tempmail: state.tempmail

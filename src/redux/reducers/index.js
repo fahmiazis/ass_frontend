@@ -20,6 +20,7 @@ import report from './report'
 import menu from './menu'
 import newnotif from './newnotif'
 import apk from './apk'
+import status_stock from './status_stock'
 
 export default combineReducers({
   pengadaan,
@@ -40,5 +41,6 @@ export default combineReducers({
   report,
   menu,
   newnotif,
-  apk
+  apk,
+  status_stock
 })

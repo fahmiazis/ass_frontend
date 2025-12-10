@@ -400,31 +400,37 @@ class NewNavbar extends Component {
                   <FiMail className={styleTrans.icon} size={sidebarOpen && 20} /> 
                   {(!sidebarOpen || isMobile) &&  <span>Master Email</span>}
                 </div> */}
+                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('dokumen')} >
+                  <BsClipboardData className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Master Document</span>}
+                </div>
                 <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('menu')} >
                   <AiOutlineMenu className={styleTrans.icon} size={sidebarOpen && 20} /> 
                   {(!sidebarOpen || isMobile) &&  <span>Master Menu</span>}
-                </div>
-                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('tempmail')} >
-                  <FiMail className={styleTrans.icon} size={sidebarOpen && 20} /> 
-                  {(!sidebarOpen || isMobile) &&  <span>Master Template Email</span>}
                 </div>
                 <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('role')} >
                   <FiUser className={styleTrans.icon} size={sidebarOpen && 20} /> 
                   {(!sidebarOpen || isMobile) &&  <span>Master Role</span>}
                 </div>
+                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('status-stock')} >
+                  <FiUser className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Master Status Stock</span>}
+                </div>
+                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('tempmail')} >
+                  <FiMail className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Master Template Email</span>}
+                </div>
                 <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('user')} >
                   <FiUser className={styleTrans.icon} size={sidebarOpen && 20} /> 
                   {(!sidebarOpen || isMobile) &&  <span>Master User</span>}
                 </div>
-                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('dokumen')} >
-                  <BsClipboardData className={styleTrans.icon} size={sidebarOpen && 20} /> 
-                  {(!sidebarOpen || isMobile) &&  <span>Master Document</span>}
-                </div>
+                
                 <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('approval')} >
                   <BsClipboardData className={styleTrans.icon} size={sidebarOpen && 20} /> 
                   {(!sidebarOpen || isMobile) &&  <span>Setting Approval</span>}
                 </div>
               </Collapse>
+
               <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('release-apk')} >
                 <FaMobileAlt className={styleTrans.icon} size={sidebarOpen && 20} /> 
                 {(!sidebarOpen || isMobile) &&  <span>Release APK</span>}

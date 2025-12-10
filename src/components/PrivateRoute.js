@@ -11,6 +11,8 @@ class PrivateRoute extends Component {
   } 
 
   render () {
+    const level = localStorage.getItem('level')
+    const { disableRoute } = this.props.auth
     return (
       <Route render={
         (props) => {
@@ -21,7 +23,13 @@ class PrivateRoute extends Component {
             return child
           })
           if (localStorage.getItem('token')) {
-            return childWithProps
+            if (level === 1 || level === '1') {
+              return childWithProps
+            } else if (disableRoute && disableRoute.length > 0 && disableRoute.find(item => `/${item}` === childWithProps[0].props.location.pathname)) {
+              return <Redirect to={{ pathname: '/access-denied' }} />
+            } else {
+              return childWithProps
+            }
           } else {
             return <Redirect to={{ pathname: '/login' }} />
           }

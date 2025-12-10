@@ -28,7 +28,12 @@ import Barcode from 'react-barcode'
 import { BsTable, BsQrCode } from "react-icons/bs";
 import * as htmlToImage from 'html-to-image';
 import QRCode from "react-qr-code"
+import placeholder from  "../../assets/img/placeholder.png"
 const {REACT_APP_BACKEND_URL} = process.env
+
+const stockSchema = Yup.object().shape({
+    record_type: Yup.string().required("must be filled")
+})
 
 const dokumenSchema = Yup.object().shape({
     nama_dokumen: Yup.string().required(),
@@ -76,12 +81,17 @@ class Asset extends Component {
             listAsset: [],
             openChoose: false,
             images: [],
-            isLoading: false
+            isLoading: false,
+            onQr: false,
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
         this.canvasRefs = []
         this.barcodeRefs = {};
+    }
+
+    toggleQr = () => {
+        this.setState({onQr: !this.state.onQr})
     }
 
     prosesSidebar = (val) => {
@@ -289,13 +299,25 @@ class Asset extends Component {
             const numContent = colFirst === 'E' ? 3 + (i - 1) : 3 + i
 
             ws.mergeCells(`${colFirst}${numContent}`, `${colLast}${numContent}`)
-            ws.getCell(`${colFirst}${numContent}`).value = `${item.nama_asset}\nNO ASSET: ${item.no_asset}\nCOST CENTER: ${item.cost_center}\n`
+
+            // ws.getCell(`${colFirst}${numContent}`).value = `${item.nama_asset}\nNO ASSET: ${item.no_asset}\nCOST CENTER: ${item.cost_center}\n`
+            // ws.getCell(`${colFirst}${numContent}`).alignment = { 
+            //     ...textImgStyle
+            // }
+            // ws.getCell(`${colFirst}${numContent}`).border = { 
+            //     ...borderStyles
+            // }
+
+            const cleanText = (str) => str ? str.replace(/[\u0000-\u001F\u007F]/g, '') : ''
+            ws.getCell(`${colFirst}${numContent}`).value =
+                `${cleanText(item.nama_asset)}\r\nNO ASSET: ${cleanText(item.no_asset)}\r\nCOST CENTER: ${cleanText(item.cost_center) || ''}\r\n`
             ws.getCell(`${colFirst}${numContent}`).alignment = { 
                 ...textImgStyle
             }
             ws.getCell(`${colFirst}${numContent}`).border = { 
                 ...borderStyles
             }
+
             ws.getRow(numContent).height = 230
             
             const node = this.barcodeRefs[item.no_asset];
@@ -530,20 +552,6 @@ class Asset extends Component {
         this.getDataAsset()
     }
 
-    editDokumen = async (values, id) => {
-        const token = localStorage.getItem("token")
-        await this.props.updateDokumen(token, id, values)
-        const {isUpdate} = this.props.asset
-        if (isUpdate) {
-            this.setState({confirm: 'edit'})
-            this.openConfirm()
-            this.openModalEdit()
-            setTimeout(() => {
-                this.getDataAsset()
-            }, 700)
-        }
-    }
-
     componentDidUpdate() {
         const {isError, isUpload, isExport, isSync} = this.props.asset
         if (isError) {
@@ -612,6 +620,24 @@ class Asset extends Component {
         this.setState({ open });
     }
 
+    prosesOpenUpdate = async (val) => {
+        this.setState({detail: val})
+        this.openModalEdit()
+    }
+
+    updateAsset = async (value) => {
+        const token = localStorage.getItem("token")
+        const { detail } = this.state
+        const data = {
+            record_type: value.record_type,
+        }
+        await this.props.updateAsset(token, detail.id, data)
+        this.openModalEdit()
+        this.setState({confirm: 'update'})
+        this.openConfirm()
+        this.getDataAsset()
+    }
+
     render() {
         const {isOpen, dropOpen, dropOpenNum, detail, alert, upload, errMsg, listAsset} = this.state
         const {dataAsset, isGet, alertM, alertMsg, alertUpload, page} = this.props.asset
@@ -672,6 +698,26 @@ class Asset extends Component {
                                 </DropdownMenu>
                                 </ButtonDropdown>
                             </div>
+                            <Row className='borderRed'>
+                                <Col md={4}>
+                                    <text>
+                                        Qr code
+                                    </text>
+                                </Col>
+                                <Col md={8} className='nullPading'>
+                                    <label className="switch">
+                                        <input
+                                        type="checkbox"
+                                        checked={this.state.onQr}
+                                        onChange={this.toggleQr}
+                                        />
+                                        <span className="slider round"></span>
+                                        <span style={{ marginLeft: '10px' }}>
+                                        {this.state.onQr ? 'ON' : 'OFF'}
+                                        </span>
+                                    </label>
+                                </Col>
+                            </Row>
                         </div>
                         
                         <div className={styleTrans.searchContainer}>
@@ -710,7 +756,9 @@ class Asset extends Component {
                                         {/* Select */}
                                     </th>
                                     <th>No</th>
-                                    <th className='indexStat'>Qr code</th>
+                                    {this.state.onQr && (
+                                        <th className='indexStat'>Qr code</th>
+                                    )}
                                     <th>Asset</th>
                                     <th>SNo.</th>
                                     <th>Cap.Date</th>
@@ -727,6 +775,8 @@ class Asset extends Component {
                                     <th>LOKASI</th>
                                     <th>KATEGORI</th>
                                     <th>STATUS</th>
+                                    <th>Record</th>
+                                    <th>OPSI</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -741,30 +791,32 @@ class Asset extends Component {
                                                 />
                                             </td>
                                             <td scope="row">{(dataAsset.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</td>
-                                            <td key={item.no_asset} ref={(el) => (this.barcodeRefs[item.no_asset] = el)}>
-                                                <div style={{ position: "relative", width: 192, height: 192 }}>
-                                                    <QRCode value={JSON.stringify({no: item.no_asset, cost: item.cost_center})} size={192} />
-                                                    <img
-                                                        src={logo}
-                                                        alt="logo"
-                                                        style={{
-                                                            position: "absolute",
-                                                            top: "50%",
-                                                            left: "50%",
-                                                            transform: "translate(-50%, -50%)",
-                                                            width: 32,
-                                                            height: 32,
-                                                            borderRadius: "8px",
-                                                            backgroundColor: "white",
-                                                            padding: "4px",
-                                                        }}
-                                                    />
-                                                </div>
-                                                {/* <Barcode 
-                                                width={1}
-                                                value={JSON.stringify({no: item.no_asset, cost: item.cost_center})} 
-                                                displayValue={false} /> */}
-                                            </td>
+                                            {this.state.onQr && (
+                                                <td key={item.no_asset} ref={(el) => (this.barcodeRefs[item.no_asset] = el)}>
+                                                    <div style={{ position: "relative", width: 192, height: 192 }}>
+                                                        <QRCode value={JSON.stringify({no: item.no_asset, cost: item.cost_center})} size={192} />
+                                                        <img
+                                                            src={logo}
+                                                            alt="logo"
+                                                            style={{
+                                                                position: "absolute",
+                                                                top: "50%",
+                                                                left: "50%",
+                                                                transform: "translate(-50%, -50%)",
+                                                                width: 32,
+                                                                height: 32,
+                                                                borderRadius: "8px",
+                                                                backgroundColor: "white",
+                                                                padding: "4px",
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    {/* <Barcode 
+                                                    width={1}
+                                                    value={JSON.stringify({no: item.no_asset, cost: item.cost_center})} 
+                                                    displayValue={false} /> */}
+                                                </td>
+                                            )}
                                             <td>{item.no_asset}</td>
                                             <td>{item.no_doc}</td>
                                             <td>{moment(item.tanggal).format('DD/MM/YYYY')}</td>
@@ -781,6 +833,16 @@ class Asset extends Component {
                                             <td>{item.lokasi}</td>
                                             <td>{item.kategori}</td>
                                             <td>{item.status === '100' ? 'Asset belum di GR' : item.status === '0' ? 'Asset telah didisposal' : 'available'}</td>
+                                            <td>{!item.record_type ? 'SAP' : item.record_type}</td>
+                                            <td>
+                                                <Button
+                                                    size='sm'
+                                                    color='success'
+                                                    onClick={() => this.prosesOpenUpdate(item)}
+                                                >
+                                                    Update Record
+                                                </Button>
+                                            </td>
                                         </tr>
                                     )
                                 })}
@@ -820,14 +882,16 @@ class Asset extends Component {
                                             <p className='mt-2 mb-4 sizeCh'>Download Master Data</p>
                                         </div>
                                     </div>
-                                    <div 
-                                    onClick={() => this.downloadBarcode()} 
-                                    className="col-12 col-md-6 col-lg-3 mb-4">
-                                        <div className={styleHome.assetCard1}>
-                                            <BsQrCode size={150} className='mt-4 mb-4' />
-                                            <p className='mt-2 mb-4 sizeCh'>Download Qr Code</p>
+                                    {this.state.onQr && (
+                                        <div 
+                                        onClick={() => this.downloadBarcode()} 
+                                        className="col-12 col-md-6 col-lg-3 mb-4">
+                                            <div className={styleHome.assetCard1}>
+                                                <BsQrCode size={150} className='mt-4 mb-4' />
+                                                <p className='mt-2 mb-4 sizeCh'>Download Qr Code</p>
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </>
                             </div>
                             </main>
@@ -867,9 +931,6 @@ class Asset extends Component {
                                 onChange={handleChange("nama_dokumen")}
                                 onBlur={handleBlur("nama_dokumen")}
                                 />
-                                {errors.nama_dokumen ? (
-                                    <text className={style.txtError}>{errors.nama_dokumen}</text>
-                                ) : null}
                             </div>
                         </div>
                         <div className={style.addModalDepo}>
@@ -888,9 +949,6 @@ class Asset extends Component {
                                     <option value="it">IT</option>
                                     <option value="non_it">Non-It</option>
                                 </Input>
-                                {errors.jenis_dokumen ? (
-                                        <text className={style.txtError}>{errors.jenis_dokumen}</text>
-                                    ) : null}
                             </div>
                         </div>
                         <div className={style.addModalDepo}>
@@ -948,89 +1006,6 @@ class Asset extends Component {
                             <Button onClick={this.openModalUpload}>Cancel</Button>
                         </div>
                     </ModalBody>
-                </Modal>
-                <Modal toggle={this.openModalEdit} isOpen={this.state.modalEdit} size="lg">
-                    <ModalHeader toggle={this.openModalEdit}>Edit Master Dokumen</ModalHeader>
-                    <Formik
-                    initialValues={{
-                        nama_dokumen: detail.nama_dokumen, 
-                        jenis_dokumen: detail.jenis_dokumen,
-                        divisi: detail.divisi,
-                    }}
-                    validationSchema={dokumenSchema}
-                    onSubmit={(values) => {this.editDokumen(values, detail.id)}}
-                    >
-                    {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
-                    <ModalBody>
-                        <div className={style.addModalDepo}>
-                            <text className="col-md-3">
-                                Nama Dokumen
-                            </text>
-                            <div className="col-md-9">
-                                <Input 
-                                type="textarea" 
-                                name="nama_pic"
-                                value={values.nama_dokumen}
-                                onChange={handleChange("nama_dokumen")}
-                                onBlur={handleBlur("nama_dokumen")}
-                                />
-                                {errors.nama_dokumen ? (
-                                    <text className={style.txtError}>{errors.nama_dokumen}</text>
-                                ) : null}
-                            </div>
-                        </div>
-                        <div className={style.addModalDepo}>
-                            <text className="col-md-3">
-                                Jenis Dokumen
-                            </text>
-                            <div className="col-md-9">
-                                <Input 
-                                type="select" 
-                                name="select"
-                                value={values.jenis_dokumen}
-                                onChange={handleChange("jenis_dokumen")}
-                                onBlur={handleBlur("jenis_dokumen")}
-                                >
-                                    <option>-Pilih Jenis Dokumen-</option>
-                                    <option value="it">IT</option>
-                                    <option value="non_it">Non-It</option>
-                                </Input>
-                                {errors.jenis_dokumen ? (
-                                        <text className={style.txtError}>{errors.jenis_dokumen}</text>
-                                    ) : null}
-                            </div>
-                        </div>
-                        <div className={style.addModalDepo}>
-                            <text className="col-md-3">
-                                Divisi
-                            </text>
-                            <div className="col-md-9">
-                                <Input
-                                type="select" 
-                                name="select"
-                                value={values.divisi}
-                                onChange={handleChange("divisi")}
-                                onBlur={handleBlur("divisi")}
-                                >
-                                    <option>-Pilih Divisi-</option>
-                                    <option value="all">All</option>
-                                </Input>
-                                {errors.divisi ? (
-                                    <text className={style.txtError}>{errors.divisi}</text>
-                                ) : null}
-                            </div>
-                        </div>
-                        <hr/>
-                        <div className={style.foot}>
-                            <div></div>
-                            <div>
-                                <Button className="mr-2" onClick={handleSubmit} color="primary">Save</Button>
-                                <Button className="mr-5" onClick={this.openModalEdit}>Cancel</Button>
-                            </div>
-                        </div>
-                    </ModalBody>
-                    )}
-                    </Formik>
                 </Modal>
                 <Modal toggle={this.openModsync} isOpen={this.state.openSync} size='lg'>
                     <ModalHeader>Synchronize Data Asset</ModalHeader>
@@ -1128,10 +1103,10 @@ class Asset extends Component {
                 </Modal>
                 <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="sm">
                     <ModalBody>
-                        {this.state.confirm === 'edit' ? (
+                        {this.state.confirm === 'update' ? (
                         <div className={style.cekUpdate}>
                             <AiFillCheckCircle size={80} className={style.green} />
-                            <div className={style.sucUpdate}>Berhasil Memperbarui Asset</div>
+                            <div className={style.sucUpdate}>Berhasil Update Asset</div>
                         </div>
                         ) : this.state.confirm === 'add' ? (
                             <div className={style.cekUpdate}>
@@ -1180,6 +1155,244 @@ class Asset extends Component {
                         )}
                     </ModalBody>
                 </Modal>
+                <Modal isOpen={this.state.modalEdit} toggle={this.openModalEdit} size="lg">
+                    <ModalHeader>
+                        Update Record Type Asset
+                    </ModalHeader>
+                    <ModalBody>
+                        <div className="mainRinci2">
+                            <div className="leftRinci2 mb-5">
+                                <div className="titRinci">{detail.nama_asset}</div>
+                                <img src={detail.pict === undefined || detail.pict.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detail.pict[detail.pict.length - 1].path}`} className="imgRinci" />
+                                <Input type="file" className='mt-2' onChange={this.uploadPicture}>Upload Picture</Input>
+                                {/* <div className="secImgSmall">
+                                    <button className="btnSmallImg">
+                                        <img src={placeholder} className="imgSmallRinci" />
+                                    </button>
+                                </div> */}
+                            </div>
+                            <Formik
+                            initialValues = {{
+                                record_type: detail.record_type === null ? '' : detail.record_type
+                            }}
+                            validationSchema = {stockSchema}
+                            onSubmit={(values) => {this.updateAsset(values)}}
+                            >
+                            {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                                <div className="rightRinci2">
+                                    <div>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>No Asset</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={detail.no_asset} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Nama Asset</Col>
+                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={detail.nama_asset} disabled /></Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Merk</Col>
+                                            <Col md={9} className="colRinci">:  <Input
+                                                type= "text" 
+                                                className="inputRinci"
+                                                value={detail.merk}
+                                                onBlur={handleBlur("merk")}
+                                                onChange={handleChange("merk")}
+                                                disabled
+                                                />
+                                            </Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Acquis Val</Col>
+                                            <Col md={9} className="colRinci">:  <Input
+                                                type= "text" 
+                                                className="inputRinci"
+                                                value={detail.nilai_acquis}
+                                                onBlur={handleBlur("nilai_acquis")}
+                                                onChange={handleChange("nilai_acquis")}
+                                                disabled
+                                                />
+                                            </Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Accum Dep</Col>
+                                            <Col md={9} className="colRinci">:  <Input
+                                                type= "text" 
+                                                className="inputRinci"
+                                                value={detail.accum_dep}
+                                                onBlur={handleBlur("accum_dep")}
+                                                onChange={handleChange("accum_dep")}
+                                                disabled
+                                                />
+                                            </Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Cost Center</Col>
+                                            <Col md={9} className="colRinci">:  <Input
+                                                type= "text" 
+                                                className="inputRinci"
+                                                value={detail.cost_center}
+                                                onBlur={handleBlur("cost_center")}
+                                                onChange={handleChange("cost_center")}
+                                                disabled
+                                                />
+                                            </Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Cost Center Name</Col>
+                                            <Col md={9} className="colRinci">:  <Input
+                                                type= "text" 
+                                                className="inputRinci"
+                                                value={detail.area}
+                                                onBlur={handleBlur("area")}
+                                                onChange={handleChange("area")}
+                                                disabled
+                                                />
+                                            </Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Satuan</Col>
+                                            <Col md={9} className="colRinci">:  <Input
+                                                disabled={level === '5' || level === '9' ? false : true}
+                                                type= "select" 
+                                                className="inputRinci"
+                                                value={detail.satuan}
+                                                onBlur={handleBlur("satuan")}
+                                                onChange={handleChange("satuan")}
+                                                >
+                                                    <option>{detail.satuan}</option>
+                                                    <option>-Pilih Satuan-</option>
+                                                    <option value="UNIT">UNIT</option>
+                                                    <option value="PAKET">PAKET</option>
+                                                </Input>
+                                            </Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Unit</Col>
+                                            <Col md={9} className="colRinci">:  <Input
+                                                disabled={level === '5' || level === '9' ? false : true}
+                                                type= "text" 
+                                                className="inputRinci"
+                                                value={detail.unit}
+                                                onBlur={handleBlur("unit")}
+                                                onChange={handleChange("unit")}
+                                                />
+                                            </Col>
+                                        </Row>
+                                        {errors.unit ? (
+                                            <text className={style.txtError}>{errors.unit}</text>
+                                        ) : null}
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Lokasi</Col>
+                                            <Col md={9} className="colRinci">:
+                                            <Input
+                                                disabled={level === '5' || level === '9' ? false : true}
+                                                type= "text" 
+                                                className="inputRinci"
+                                                value={detail.lokasi}
+                                                onBlur={handleBlur("lokasi")}
+                                                onChange={handleChange("lokasi")}
+                                                />
+                                            </Col>
+                                        </Row>
+                                        {errors.lokasi ? (
+                                            <text className={style.txtError}>{errors.lokasi}</text>
+                                        ) : null}
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Status Fisik</Col>
+                                            <Col md={9} className="colRinci">:  <Input 
+                                                disabled={(level === '5' || level === '9') && (detail.grouping === null || detail.grouping === '') ? false : true}
+                                                type="select"
+                                                className="inputRinci" 
+                                                value={detail.fisik} 
+                                                onBlur={handleBlur("status_fisik")}
+                                                onChange={e => {handleChange("status_fisik"); this.updateCond({tipe: "status_fisik", val: e.target.value})}}
+                                                // onChange={e => { handleChange("status_fisik"); this.selectStatus(e.target.value, this.state.kondisi)} }
+                                                >
+                                                    <option>{detail.status_fisik}</option>
+                                                    <option>-Pilih Status Fisik-</option>
+                                                    <option value="ada">Ada</option>
+                                                    <option value="tidak ada">Tidak Ada</option>
+                                                </Input>
+                                            </Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Kondisi</Col>
+                                            <Col md={9} className="colRinci">:  <Input 
+                                                disabled={(level === '5' || level === '9') && (detail.grouping === null || detail.grouping === '') ? false : true}
+                                                type="select"
+                                                className="inputRinci" 
+                                                value={detail.fisik} 
+                                                onBlur={handleBlur("kondisi")}
+                                                onChange={e => {handleChange("kondisi"); this.updateCond({tipe: "kondisi", val: e.target.value})}}
+                                                // onChange={e => { handleChange("kondisi"); this.selectStatus(this.state.fisik, e.target.value)} }
+                                                >
+                                                    <option>{detail.kondisi === "" ? "-" : detail.kondisi}</option>
+                                                    <option>-Pilih Kondisi-</option>
+                                                    <option value="baik">Baik</option>
+                                                    <option value="rusak">Rusak</option>
+                                                    <option value="">-</option>
+                                                </Input>
+                                            </Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Status Aset</Col>
+                                            <Col md={9} className="colRinci">:  <Input
+                                                disabled={level === '5' || level === '9' ? false : true}
+                                                type= "select" 
+                                                className="inputRinci"
+                                                value={detail.grouping}
+                                                // onBlur={handleBlur("grouping")}
+                                                // onChange={handleChange("grouping")}
+                                                onClick={() => this.listStatus(detail)}
+                                                >
+                                                    <option>{detail.grouping}</option>
+                                                    {/* <option>-Pilih Status Aset-</option> */}
+                                                    {/* {dataStatus.length > 0 && dataStatus.map(item => {
+                                                        return (
+                                                            <option value={item.status}>{item.status}</option>
+                                                        )
+                                                    })} */}
+                                                </Input>
+                                            </Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Keterangan</Col>
+                                            <Col md={9} className="colRinci">:  <Input
+                                                disabled={level === '5' || level === '9' ? false : true}
+                                                type= "text" 
+                                                className="inputRinci"
+                                                value={detail.keterangan}
+                                                onBlur={handleBlur("keterangan")}
+                                                onChange={handleChange("keterangan")}
+                                                />
+                                            </Col>
+                                        </Row>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>Record Type</Col>
+                                            <Col md={9} className="colRinci">:  <Input 
+                                                type="select"
+                                                className="inputRinci" 
+                                                value={!values.record_type ? 'SAP' : values.record_type} 
+                                                onBlur={handleBlur("record_type")}
+                                                onChange={handleChange("record_type")}
+                                                >
+                                                    <option>-Pilih-</option>
+                                                    <option value="WEB">WEB</option>
+                                                    <option value="SAP">SAP</option>
+                                                </Input>
+                                            </Col>
+                                        </Row>
+                                    </div>
+                                    <ModalFooter>
+                                        <Button className="btnFootRinci1 mr-3" size="md" color="primary" onClick={handleSubmit}>Save</Button>
+                                        <Button className="btnFootRinci1" size="md" color="secondary" onClick={() => this.openModalEdit()}>Close</Button>
+                                    </ModalFooter>
+                                </div>
+                            )}
+                            </Formik>
+                        </div>
+                    </ModalBody>
+                </Modal>
             </>
         )
     }
@@ -1192,6 +1405,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
     logout: auth.logout,
     getAsset: asset.getAsset,
+    updateAsset: asset.updateAsset,
     resetError: asset.resetError,
     uploadMasterAsset: asset.uploadMasterAsset,
     nextPage: asset.nextPage,

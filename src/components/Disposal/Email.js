@@ -192,7 +192,13 @@ class TableRincian extends Component {
                                     <td>{item.nama_asset}</td>
                                     <td>{item.cost_center}</td>
                                     <td>{item.area}</td>
-                                    <td>{moment(item.tanggalDis).format('DD MMMM YYYY')}</td>
+                                    <td>
+                                        {
+                                            item.tanggalDis === null 
+                                            ? moment().format('DD MMMM YYYY') 
+                                            : moment(item.tanggalDis).format('DD MMMM YYYY')
+                                        }
+                                    </td>
                                 </tr>
                             )
                         })}

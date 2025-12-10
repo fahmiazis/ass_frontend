@@ -344,7 +344,7 @@ class CartDisposal extends Component {
         const cek = []
         const cekDoc = []
         for (let i = 0; i < dataCart.length; i++) {
-            if (dataCart[i].keterangan === null || dataCart[i].nilai_jual === null ) {
+            if (dataCart[i].keterangan === null) {
                 cek.push(dataCart[i].keterangan)
             } else {
                 const data = {
@@ -885,13 +885,20 @@ class CartDisposal extends Component {
                                             (
                                                 <>
                                                     <Button 
-                                                    className='ml-1 mt-1' 
-                                                    color="warning" 
-                                                    // onClick={() => this.prosesOpenNpwp(item.no_asset)}
-                                                    onClick={() => this.prosesAddSell(item.no_asset)}
-                                                    >Jual
+                                                        className='ml-1 mt-1' 
+                                                        color="warning" 
+                                                        // onClick={() => this.prosesOpenNpwp(item.no_asset)}
+                                                        onClick={() => this.prosesAddSell(item.no_asset)}
+                                                    >
+                                                        Sell
                                                     </Button>
-                                                    <Button className='ml-1 mt-1' color="info" onClick={() => this.addDisposal(item.no_asset)}>Pemusnahan</Button>
+                                                    <Button 
+                                                        className='ml-1 mt-1' 
+                                                        color="info" 
+                                                        onClick={() => this.addDisposal(item.no_asset)}
+                                                    >
+                                                        Dispose
+                                                    </Button>
                                                 </>
                                             )
                                             }

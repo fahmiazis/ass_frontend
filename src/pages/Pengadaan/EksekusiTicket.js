@@ -1423,7 +1423,7 @@ class EksekusiTicket extends Component {
                             <OtpInput
                                 value={this.state.value}
                                 onChange={this.onChange}
-                                numInputs={11}
+                                numInputs={(this.state.value === undefined || this.state.value === null) ? 11 : this.state.value.length > 11 ? this.state.value.length : 11}
                                 inputStyle={style.otp}
                                 isDisabled
                                 containerStyle={style.containerOtp}
@@ -1768,9 +1768,9 @@ class EksekusiTicket extends Component {
                             <Button className="mr-2" color="primary" onClick={this.openModalUpload} >
                                 Upload
                             </Button>
-                            <Button color="success" onClick={() => this.generateSap(dataTemp[0])}>
+                            {/* <Button color="success" onClick={() => this.generateSap(dataTemp[0])}>
                                 Generate By SAP
-                            </Button>
+                            </Button> */}
                         </div>
                     </div>
                 </ModalBody>
@@ -1803,7 +1803,7 @@ class EksekusiTicket extends Component {
                             <OtpInput
                                 value={this.state.value}
                                 onChange={this.onChange}
-                                numInputs={11}
+                                numInputs={(this.state.value === undefined || this.state.value === null) ? 11 : this.state.value.length > 11 ? this.state.value.length : 11}
                                 inputStyle={style.otp}
                                 containerStyle={style.containerOtp}
                                 isDisabled

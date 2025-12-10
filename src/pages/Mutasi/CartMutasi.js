@@ -151,7 +151,7 @@ class CartMutasi extends Component {
         await this.props.getApproveMut(token, nomor_mutasi, 'Mutasi')
         await this.props.getDraftEmail(token, tempno)
         this.openDraftEmail()
-        this.openModalQr()
+        // this.openModalQr()
     }
 
     openDraftEmail = () => {
@@ -1012,12 +1012,12 @@ class CartMutasi extends Component {
                     <ModalBody>
                         <Email handleData={this.getMessage}/>
                         <div className={style.foot}>
-                            <div>
+                            {/* <div>
                                 <Button
                                 color='success' 
                                 className="mr-3" 
                                 onClick={this.openModalQr}>Download Qr code</Button>
-                            </div>
+                            </div> */}
                             <div>
                                 <Button
                                     disabled={this.state.message === '' ? true : false} 

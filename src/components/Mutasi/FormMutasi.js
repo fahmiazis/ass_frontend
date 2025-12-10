@@ -475,7 +475,7 @@ class FormMutasi extends Component {
             }
 
             ws.mergeCells(`I${bodyTable}`, `J${bodyTable}`)
-            ws.getCell(`I${bodyTable}`).value = `${item.kategori}`
+            ws.getCell(`I${bodyTable}`).value = `${item.kategori ? item.kategori : '-'}`
             ws.getCell(`I${bodyTable}`).alignment = {
                 ...alignStyle
             }

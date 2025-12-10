@@ -45,7 +45,7 @@ import Select from 'react-select/creatable';
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
-    // doc_sap: Yup.string().required('must be filled'),
+    doc_sap: Yup.string().required('must be filled'),
     date_ba: Yup.string().required('must be filled')
 })
 
@@ -454,11 +454,13 @@ class EksekusiDisposal extends Component {
         const token = localStorage.getItem('token')
         const {detailDis} = this.props.disposal
         const cekSap = []
+        const cekNo = []
         const tempdoc = []
         const arrDoc = []
         for (let i = 0; i < detailDis.length; i++) {
-            // if (detailDis[i].doc_sap === null || detailDis[i].doc_sap === '') {
-            if (detailDis[i].nilai_jual === "0" && (detailDis[i].date_ba === null || detailDis[i].date_ba === '')) {
+            if (detailDis[i].nilai_jual === "0" && (detailDis[i].doc_sap === null || detailDis[i].doc_sap === '')) {
+                cekNo.push(detailDis[i])
+            } else if (detailDis[i].nilai_jual === "0" && (detailDis[i].date_ba === null || detailDis[i].date_ba === '')) {
                 cekSap.push(detailDis[i])
             } else {
                 const tipeDis = detailDis[i].nilai_jual === "0" ? 'dispose' : 'sell'
@@ -484,8 +486,10 @@ class EksekusiDisposal extends Component {
                 }
             }
         }
-        if (cekSap.length > 0) {
-            // this.setState({confirm: 'falseNodoc'})
+        if (cekNo.length > 0) {
+            this.setState({confirm: 'falseNodoc'})
+            this.openConfirm()
+        } else if (cekSap.length > 0) {
             this.setState({confirm: 'falseDateBa'})
             this.openConfirm()
         } else if (tempdoc.length !== arrDoc.length) {
@@ -736,7 +740,8 @@ class EksekusiDisposal extends Component {
         const token = localStorage.getItem('token')
         const { dataRinci } = this.state
         const data = {
-            date_ba: val.date_ba
+            date_ba: val.date_ba,
+            doc_sap: val.doc_sap
         }
         // const data = {
         //     doc_sap: val.doc_sap
@@ -1364,7 +1369,7 @@ class EksekusiDisposal extends Component {
                                         ) : (
                                             <Row></Row>
                                         )}
-                                        {/* <div>
+                                        <div>
                                             <Row className="mb-2">
                                                 <Col md={3}>No Doc SAP</Col>
                                                 <Col md={9} className="colRinci">:  <Input 
@@ -1379,7 +1384,7 @@ class EksekusiDisposal extends Component {
                                             {errors.doc_sap ? (
                                                 <text className={style.txtError}>{errors.doc_sap}</text>
                                             ) : null}
-                                        </div> */}
+                                        </div>
                                         {(level === '2' && dataRinci.nilai_jual === '0') && (
                                             <div>
                                                 <Row className="mb-2">

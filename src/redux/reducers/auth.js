@@ -10,7 +10,11 @@ const authState = {
     level: 0,
     isRoute: false,
     listUser: [],
-    dataToken: {}
+    dataToken: {},
+    disableRoute: [
+        'depo', 'menu', 'tempmail', 'role', 'user',
+        'dokumen', 'approval'
+    ]
 };
 
 export default (state=authState, action) => {

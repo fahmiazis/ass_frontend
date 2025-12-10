@@ -25,6 +25,8 @@ const userState = {
     updateRole: null,
     isDetailRole: null,
     detailRole: {},
+    syncOnboarding: null,
+    syncOffboarding: null,
 };
 
 export default (state=userState, action) => {
@@ -356,6 +358,52 @@ export default (state=userState, action) => {
                     alertMsg: 'unable connect to server',
                 };
             }
+            case 'SYNC_ONBOARDING_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'SYNC_ONBOARDING_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    syncOnboarding: true,
+                    alertMsg: 'get detail faktur Succesfully',
+                };
+            }
+            case 'SYNC_ONBOARDING_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    syncOnboarding: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'SYNC_OFFBOARDING_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'SYNC_OFFBOARDING_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    syncOffboarding: true,
+                    alertMsg: 'get detail faktur Succesfully',
+                };
+            }
+            case 'SYNC_OFFBOARDING_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    syncOffboarding: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
             case 'RESET': {
                 return {
                     ...state,
@@ -368,6 +416,8 @@ export default (state=userState, action) => {
                     addRole: null,
                     updateRole: null,
                     isDetailRole: null,
+                    syncOnboarding: null,
+                    syncOffboarding: null,
                 }
             }
             // case 'USERS_LOADED': {

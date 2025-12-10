@@ -6,6 +6,7 @@ import auth from './redux/actions/auth'
 import PrivateRoute from './components/PrivateRoute'
 
 import Login from './pages/Login'
+import AccessDenied from './components/AccessDenied'
 import Home from './pages/Home'
 import Sidebar from './components/Sidebar'
 import Tes from './pages/Tes'
@@ -16,7 +17,6 @@ import NavBar from './components/NavBar'
 
 // Pengadaan Asset
 import Pengadaan from './pages/Pengadaan/Pengadaan'
-import Tespeng from './pages/Pengadaan/Pengadaan2'
 import EksekusiTicket from './pages/Pengadaan/EksekusiTicket'
 import NavTicket from './pages/Pengadaan/NavTicket'
 import CartTicket from './pages/Pengadaan/CartTicket'
@@ -69,6 +69,7 @@ import MasterMenu from './pages/Master/MasterMenu'
 import MasterTempmail from './pages/Master/MasterTempmail'
 import MasterUser from './pages/Master/MasterUser'
 import MasterRole from './pages/Master/MasterRole'
+import MasterStatus from './pages/Master/MasterStatus'
 import MasterEmail from './pages/Master/MasterEmail'
 import MasterDokumen from './pages/Master/MasterDokumen'
 import ReleaseApk from './pages/Master/ReleaseApk'
@@ -92,6 +93,9 @@ class App extends Component {
                 <Route path='/tes' exact component={Tes} />
                 <Route path='/transaksi' exact component={Transaksi} />
                 <Route path='/tablepdf' component={TablePdf} />
+                <PrivateRoute path='/access-denied' exact>
+                    <AccessDenied />
+                </PrivateRoute>
                 <PrivateRoute path='/' exact>
                     <Home />
                 </PrivateRoute>
@@ -221,9 +225,6 @@ class App extends Component {
                 <PrivateRoute path='/monstock'>
                     <MonitoringStock />
                 </PrivateRoute>
-                <PrivateRoute path='/tespeng'>
-                    <Tespeng />
-                </PrivateRoute>
                 <PrivateRoute path='/ekstick'>
                     <EksekusiTicket />
                 </PrivateRoute>
@@ -244,6 +245,9 @@ class App extends Component {
                 </PrivateRoute>
                 <PrivateRoute path='/notif'>
                     <Notif />
+                </PrivateRoute>
+                <PrivateRoute path='/status-stock'>
+                    <MasterStatus />
                 </PrivateRoute>
             </Switch>
         </BrowserRouter>
