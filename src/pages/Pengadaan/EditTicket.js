@@ -34,6 +34,7 @@ import NewNavbar from '../../components/NewNavbar'
 import Email from '../../components/Pengadaan/Email'
 import ModalDokumen from '../../components/ModalDokumen'
 import Select from 'react-select'
+import FormIo from '../../components/Pengadaan/FormIo'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -1405,9 +1406,10 @@ class EditTicket extends Component {
                                     Dokumen 
                                 </Button>
                             )}
-                            <Button className="ml-2" color="warning" onClick={() => this.goDownload('formio')}>
+                            {/* <Button className="ml-2" color="warning" onClick={() => this.goDownload('formio')}>
                                 Download Form
-                            </Button>
+                            </Button> */}
+                            <FormIo />
                         </div>
                         <div className="btnFoot">
                             <div></div>
@@ -1613,9 +1615,10 @@ class EditTicket extends Component {
                         <div className="btnFoot">
                         </div>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="warning" onClick={() => this.goDownload('formio')}>
+                            {/* <Button className="mr-2" color="warning" onClick={() => this.goDownload('formio')}>
                                 Download
-                            </Button>
+                            </Button> */}
+                            <FormIo />
                             <Button color="secondary" onClick={this.openPreview}>
                                 Close 
                             </Button>

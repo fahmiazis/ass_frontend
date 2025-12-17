@@ -27,24 +27,10 @@ import NewNavbar from '../../components/NewNavbar'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const status_stockSchema = Yup.object().shape({
-    kode_plant: Yup.string().required('must be filled'),
-    nama_area: Yup.string().required('must be filled'),
-    place_asset: Yup.string().required('must be filled'),
-    channel: Yup.string().required('must be filled'),
-    distribution: Yup.string().required('must be filled'),
-    status_area: Yup.string().required('must be filled'),
-    profit_center: Yup.string().required('must be filled'),
-    cost_center: Yup.string().required('must be filled'),
-    kode_sap_1: Yup.string().required('must be filled'),
-    kode_sap_2: Yup.string(),
-    nama_nom: Yup.string().required('must be filled'),
-    nama_om: Yup.string().required('must be filled'),
-    nama_bm: Yup.string().required('must be filled'),
-    nama_aos: Yup.string(),
-    nama_pic_1: Yup.string(),
-    nama_pic_2: Yup.string(),
-    nama_pic_3: Yup.string(),
-    nama_pic_4: Yup.string()
+    fisik: Yup.string().required('must be filled'),
+    kondisi: Yup.string().required('must be filled'),
+    status: Yup.string().required('must be filled'),
+    isSap: Yup.string().required('must be filled')
 });
 
 class MasterStatusStock extends Component {
@@ -79,7 +65,8 @@ class MasterStatusStock extends Component {
             limit: 10,
             search: '',
             listStatusStock: [],
-            tipeModal: 'add'
+            tipeModal: 'add',
+            openDelete: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -369,18 +356,40 @@ class MasterStatusStock extends Component {
         }
     }
 
+    prosesOpenDelete = (val) => {
+        this.setState({detail: val})
+        this.openModalDelete()
+    } 
+
+    openModalDelete = () => {
+        this.setState({openDelete: !this.state.openDelete})
+    }
+
+    prosesDelete = async () => {
+        const token = localStorage.getItem("token")
+        const {detail} = this.state
+        await this.props.deleteStatusStock(token, detail.id)
+        this.setState({confirm: 'delete'})
+        this.openConfirm()
+        this.openModalDelete()
+        setTimeout(() => {
+            this.getDataStatusStock()
+        }, 500)
+    }
+
     addStatusStock = async (values) => {
         const token = localStorage.getItem("token")
-        await this.props.addStatusStock(token, values)
-        const {isAdd} = this.props.status_stock
-        if (isAdd) {
-            this.setState({confirm: 'add'})
-            this.openConfirm()
-            this.openModalEdit()
-            setTimeout(() => {
-                this.getDataStatusStock()
-            }, 500)
+        const data = {
+            ...values,
+            kondisi: values.kondisi === '-' ? '' : values.kondisi
         }
+        await this.props.addStatusStock(token, data)
+        this.setState({confirm: 'add'})
+        this.openConfirm()
+        this.openModalEdit()
+        setTimeout(() => {
+            this.getDataStatusStock()
+        }, 500)
     }
 
     onChangeHandler = e => {
@@ -405,14 +414,15 @@ class MasterStatusStock extends Component {
 
     editStatusStock = async (values, id) => {
         const token = localStorage.getItem("token")
-        await this.props.updateStatusStock(token, id, values)
-        const {isUpdate} = this.props.status_stock
-        if (isUpdate) {
-            this.setState({confirm: 'edit'})
-            this.openConfirm()
-            this.getDataStatusStock()
-            this.openModalEdit()
+        const data = {
+            ...values,
+            kondisi: values.kondisi === '-' ? '' : values.kondisi
         }
+        await this.props.updateStatusStock(token, id, data)
+        this.setState({confirm: 'edit'})
+        this.openConfirm()
+        this.getDataStatusStock()
+        this.openModalEdit()
     }
 
     componentDidUpdate() {
@@ -525,7 +535,7 @@ class MasterStatusStock extends Component {
                         <h2 className={styleTrans.pageTitle}>Master Status Stock Opname</h2>
                         
                         <div className={styleTrans.searchContainer}>
-                            <div>
+                            {/* <div>
                                 <text>Show: </text>
                                 <ButtonDropdown className={style.drop} isOpen={dropOpen} toggle={this.dropDown}>
                                 <DropdownToggle caret color="light">
@@ -539,7 +549,7 @@ class MasterStatusStock extends Component {
                                 </DropdownMenu>
                                 </ButtonDropdown>
                                 <text className={style.textEntries}>entries</text>
-                            </div>
+                            </div> */}
                         </div>
                         <div className={styleTrans.searchContainer}>
                             <div className='rowCenter'>
@@ -563,44 +573,31 @@ class MasterStatusStock extends Component {
                         <table className={`${styleTrans.table} ${dataStatusStock.length > 0 ? styleTrans.tableFull : ''}`}>
                             <thead>
                                 <tr>
-                                    <th>
-                                        <input  
-                                        className='mr-2'
-                                        type='checkbox'
-                                        checked={listStatusStock.length === 0 ? false : listStatusStock.length === dataStatusStock.length ? true : false}
-                                        onChange={() => listStatusStock.length === dataStatusStock.length ? this.chekRej('all') : this.chekApp('all')}
-                                        />
-                                        {/* Select */}
-                                    </th>
-                                    <th>Opsi</th>
                                     <th>No</th>
-                                    <th>Kondisi</th>
                                     <th>Status Fisik</th>
+                                    <th>Kondisi</th>
                                     <th>Status Asset</th>
                                     <th>Type Asset</th>
+                                    <th>Opsi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {dataStatusStock.length !== 0 && dataStatusStock.map((item, index) => {
                                     return (
                                         <tr>
-                                             <td>
-                                                <input 
-                                                type='checkbox'
-                                                checked={listStatusStock.find(element => element === item.id) !== undefined ? true : false}
-                                                onChange={listStatusStock.find(element => element === item.id) === undefined ? () => this.chekApp(item.id) : () => this.chekRej(item.id)}
-                                                />
-                                            </td>
-                                            <td>
-                                                <Button onClick={() => this.prosesOpen(item)} color='success'>
-                                                    Edit
-                                                </Button>
-                                            </td>
-                                            <td>{(dataStatusStock.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</td>
-                                            <td>{item.kondisi}</td>
+                                            <td>{index + 1}</td>
                                             <td>{item.fisik}</td>
+                                            <td>{item.kondisi === '' || !item.kondisi ? '-' : item.kondisi}</td>
                                             <td>{item.status}</td>
                                             <td>{item.isSap === 'true' ? 'SAP' : 'Asset Tambahan'}</td>
+                                            <td>
+                                                <Button className='ml-1 mt-1' onClick={() => this.prosesOpen(item)} color='success'>
+                                                    Edit
+                                                </Button>
+                                                <Button className='ml-1 mt-1' onClick={() => this.prosesOpenDelete(item)} color='danger'>
+                                                    Delete
+                                                </Button>
+                                            </td>
                                         </tr>
                                     )
                                 })}
@@ -614,102 +611,125 @@ class MasterStatusStock extends Component {
                         )}
                         <div>
                             <div className={style.infoPageEmail1}>
-                                <text>Showing {page.currentPage} of {page.pages} pages</text>
+                                <text>Showing 1 of 1 pages</text>
                                 <div className={style.pageButton}>
-                                    <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
-                                    <button className={style.btnPrev} color="info" disabled={page.nextLink === null ? true : false} onClick={this.next}>Next</button>
+                                    <button 
+                                        className={style.btnPrev} 
+                                        color="info" 
+                                        disabled
+                                        // disabled={page.prevLink === null ? true : false}
+                                        onClick={this.prev}
+                                    >
+                                        Prev
+                                    </button>
+                                    <button 
+                                    className={style.btnPrev} 
+                                    disabled
+                                    color="info" 
+                                    // disabled={page.nextLink === null ? true : false} 
+                                    onClick={this.next}>
+                                        Next
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <Modal toggle={this.openModalEdit} isOpen={this.state.modalEdit} size="xl">
-                    <ModalHeader toggle={this.openModalEdit}>{tipeModal === 'add' ? 'Add' : 'Edit'} Data StatusStock</ModalHeader>
+                <Modal toggle={this.openModalEdit} isOpen={this.state.modalEdit} size="lg">
+                    <ModalHeader toggle={this.openModalEdit}>{tipeModal === 'add' ? 'Add' : 'Edit'} Data Status Stock</ModalHeader>
                     <Formik
                     initialValues={{
-                        kode_plant: tipeModal === 'add' ? '' : detail.kode_plant === null ? '' : detail.kode_plant,
-                        nama_area: tipeModal === 'add' ? '' : detail.nama_area === null ? '' : detail.nama_area,
-                        place_asset: tipeModal === 'add' ? '' : detail.place_asset === null ? '' : detail.place_asset,
-                        channel: tipeModal === 'add' ? '' : detail.channel === null ? '' : detail.channel,
+                        fisik: tipeModal === 'add' ? '' : detail.fisik === null ? '' : detail.fisik,
+                        kondisi: tipeModal === 'add' ? '' : detail.kondisi === null ? '-' : detail.kondisi,
+                        status: tipeModal === 'add' ? '' : detail.status === null ? '' : detail.status,
+                        isSap: tipeModal === 'add' ? '' : detail.isSap === null ? '' : detail.isSap,
                     }}
                     validationSchema={status_stockSchema}
                     onSubmit={(values) => {tipeModal === 'add' ? this.addStatusStock(values) : this.editStatusStock(values, detail.id)}}
                     >
                         {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
-                        <div className={style.bodyStatusStock}>
-                            <ModalBody className={style.addStatusStock}>
-                                <div className="col-md-6">
-                                    <div className={style.addModalStatusStock}>
-                                        <text className="col-md-4">
-                                            Kode Area
-                                        </text>
-                                        <div className="col-md-8">
+                        <>
+                            <ModalBody>
+                                <div className={style.addModalDepo}>
+                                    <text className="col-md-4">
+                                        Status Fisik
+                                    </text>
+                                    <div className="col-md-8">
                                         <Input 
-                                        type="name"
-                                        name="nama_spv"
-                                        value={values.kode_plant}
-                                        onBlur={handleBlur("kode_plant")}
-                                        onChange={handleChange("kode_plant")}
-                                        />
-                                        {errors.kode_plant ? (
-                                                <text className={style.txtError}>{errors.kode_plant}</text>
-                                            ) : null}
-                                        </div>    
-                                    </div>
-                                    <div className={style.addModalStatusStock}>
-                                        <text className="col-md-4">
-                                            Home Town
-                                        </text>
-                                        <div className="col-md-8">
-                                        <Input 
-                                        type="name" 
-                                        name="nama_area"
-                                        value={values.nama_area}
-                                        onBlur={handleChange("nama_area")}
-                                        onChange={handleBlur("nama_area")}
-                                        />
-                                        {errors.nama_area ? (
-                                            <text className={style.txtError}>{errors.nama_area}</text>
+                                        type="select" 
+                                        name="fisik"
+                                        value={values.fisik}
+                                        onChange={handleChange("fisik")}
+                                        onBlur={handleBlur("fisik")}
+                                        >
+                                            <option>-Pilih-</option>
+                                            <option value="ada">Ada</option>
+                                            <option value="tidak ada">Tidak Ada</option>
+                                        </Input>
+                                        {errors.fisik ? (
+                                            <text className={style.txtError}>{errors.fisik}</text>
                                         ) : null}
-                                        </div>    
                                     </div>
-                                    <div className={style.addModalStatusStock}>
-                                        <text className="col-md-4">
-                                            Place Asset
-                                        </text>
-                                        <div className="col-md-8">
+                                </div>
+                                <div className={style.addModalDepo}>
+                                    <text className="col-md-4">
+                                        Kondisi
+                                    </text>
+                                    <div className="col-md-8">
                                         <Input 
-                                        type="name" 
-                                        name="place_asset"
-                                        value={values.place_asset}
-                                        onBlur={handleChange("place_asset")}
-                                        onChange={handleBlur("place_asset")}
-                                        />
-                                        {errors.place_asset ? (
-                                            <text className={style.txtError}>{errors.place_asset}</text>
+                                        type="select" 
+                                        name="kondisi"
+                                        value={values.kondisi}
+                                        onChange={handleChange("kondisi")}
+                                        onBlur={handleBlur("kondisi")}
+                                        >
+                                            <option>-Pilih-</option>
+                                            <option value="baik">Baik</option>
+                                            <option value="rusak">Rusak</option>
+                                            <option value='-'>-</option>
+                                        </Input>
+                                        {errors.kondisi ? (
+                                            <text className={style.txtError}>{errors.kondisi}</text>
                                         ) : null}
-                                        </div>    
                                     </div>
-                                    <div className={style.addModalStatusStock}>
-                                        <text className="col-md-4">
-                                            Channel
-                                        </text>
-                                        <div className="col-md-8">
-                                            <Input 
-                                            type="select" 
-                                            name="select"
-                                            value={values.channel}
-                                            onChange={handleChange("channel")}
-                                            onBlur={handleBlur("channel")}
-                                            >
-                                                <option>-Pilih Channel-</option>
-                                                <option value="GT">GT</option>
-                                                <option value="MT">MT</option>
-                                            </Input>
-                                            {errors.channel ? (
-                                                <text className={style.txtError}>{errors.channel}</text>
-                                            ) : null}
-                                        </div>
+                                </div>
+                                <div className={style.addModalDepo}>
+                                    <text className="col-md-4">
+                                        Status Asset
+                                    </text>
+                                    <div className="col-md-8">
+                                        <Input 
+                                            type="name" 
+                                            name="status"
+                                            value={values.status}
+                                            onBlur={handleBlur("status")}
+                                            onChange={handleChange("status")}
+                                        />
+                                        {errors.status ? (
+                                            <text className={style.txtError}>{errors.status}</text>
+                                        ) : null}
+                                    </div>
+                                </div>
+                                
+                                <div className={style.addModalDepo}>
+                                    <text className="col-md-4">
+                                        Type Asset
+                                    </text>
+                                    <div className="col-md-8">
+                                        <Input 
+                                        type="select" 
+                                        name="select"
+                                        value={values.isSap}
+                                        onChange={handleChange("isSap")}
+                                        onBlur={handleBlur("isSap")}
+                                        >
+                                            <option>-Pilih-</option>
+                                            <option value="true">SAP</option>
+                                            <option value="false">Asset Tambahan</option>
+                                        </Input>
+                                        {errors.isSap ? (
+                                            <text className={style.txtError}>{errors.isSap}</text>
+                                        ) : null}
                                     </div>
                                 </div>
                             </ModalBody>
@@ -720,9 +740,24 @@ class MasterStatusStock extends Component {
                                     <Button className="mr-5" onClick={this.openModalEdit}>Cancel</Button>
                                 </div>
                             </ModalFooter>
-                        </div>
+                        </>
                     )}
                     </Formik>
+                </Modal>
+                <Modal isOpen={this.state.openDelete} size="md" toggle={this.openModalDelete} centered={true}>
+                    <ModalBody>
+                        <div className={style.modalApprove}>
+                            <div>
+                                <text>
+                                    Anda yakin untuk delete status stock ?
+                                </text>
+                            </div>
+                            <div className={style.btnApproveIo}>
+                                <Button color="primary" className='mr-2' onClick={this.prosesDelete}>Ya</Button>
+                                <Button color="secondary" onClick={this.openModalDelete}>Tidak</Button>
+                            </div>
+                        </div>
+                    </ModalBody>
                 </Modal>
                 <Modal toggle={this.openModalUpload} isOpen={this.state.modalUpload} >
                     <ModalHeader>Upload Master StatusStock</ModalHeader>
@@ -753,18 +788,25 @@ class MasterStatusStock extends Component {
                         {this.state.confirm === 'edit' ? (
                         <div className={style.cekUpdate}>
                             <AiFillCheckCircle size={80} className={style.green} />
-                            <div className={style.sucUpdate}>Berhasil Memperbarui StatusStock</div>
+                            <div className={style.sucUpdate}>Berhasil Memperbarui Status Stock</div>
                         </div>
                         ) : this.state.confirm === 'add' ? (
                             <div className={style.cekUpdate}>
                                     <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={style.sucUpdate}>Berhasil Menambahkan StatusStock</div>
+                                <div className={style.sucUpdate}>Berhasil Menambahkan Status Stock</div>
                             </div>
                         ) : this.state.confirm === 'upload' ?(
                             <div>
                                 <div className={style.cekUpdate}>
                                     <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={style.sucUpdate}>Berhasil Mengupload Master StatusStock</div>
+                                <div className={style.sucUpdate}>Berhasil Mengupload Master Status Stock</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'delete' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={style.sucUpdate}>Berhasil Delete Status Stock</div>
                             </div>
                             </div>
                         ) : this.state.confirm === 'failUpload' ? (
@@ -821,6 +863,7 @@ const mapDispatchToProps = {
     addStatusStock: status_stock.addStatusStock,
     updateStatusStock: status_stock.updateStatusStock,
     getStatusStock: status_stock.getStatusStock,
+    deleteStatusStock: status_stock.deleteStatusStock,
     resetError: status_stock.resetError,
     uploadMaster: status_stock.uploadMaster,
     nextPage: status_stock.nextPage,

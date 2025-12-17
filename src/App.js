@@ -63,7 +63,7 @@ import MonitoringStock from './pages/Stock/Monitoring'
 
 // Master
 import Asset from './pages/Master/Asset'
-import Approve from './pages/Master/Approve'
+import MasterApproval from './pages/Master/MasterApproval'
 import MasterDepo from './pages/Master/MasterDepo'
 import MasterMenu from './pages/Master/MasterMenu'
 import MasterTempmail from './pages/Master/MasterTempmail'
@@ -151,7 +151,7 @@ class App extends Component {
                     <EditDisposal />
                 </PrivateRoute>
                 <PrivateRoute path='/approval'>
-                    <Approve />
+                    <MasterApproval />
                 </PrivateRoute>
                 <PrivateRoute path='/formset'>
                     <FormPersetujuanDis />

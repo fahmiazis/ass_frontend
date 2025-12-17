@@ -7,7 +7,7 @@ import { Container, Collapse, Nav, Navbar,
 import logo from "../../assets/img/logo.png"
 import style from '../../assets/css/input.module.css'
 import {FaSearch, FaUserCircle, FaBars} from 'react-icons/fa'
-import {AiOutlineFileExcel, AiOutlineInbox, AiFillCheckCircle} from 'react-icons/ai'
+import {AiOutlineFileExcel, AiOutlineInbox, AiFillCheckCircle, AiOutlineClose} from 'react-icons/ai'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
 import dokumen from '../../redux/actions/dokumen'
@@ -79,10 +79,15 @@ class MasterDokumen extends Component {
             modalDel: false,
             nameDocs: {},
             modalApprove: false,
-            editModalName: false
+            editModalName: false,
+            openCreate: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+    }
+
+    openCreateName = (val) => {
+        this.setState({openCreate: !this.state.openCreate})
     }
 
     prosesSidebar = (val) => {
@@ -252,7 +257,7 @@ class MasterDokumen extends Component {
     }
 
     componentDidUpdate() {
-        const {isError, isUpload, isExport} = this.props.dokumen
+        const {isError, isUpload, isExport, isCreate, alertMsg, isEditName} = this.props.dokumen
         if (isError) {
             this.props.resetError()
             this.showAlert()
@@ -267,6 +272,10 @@ class MasterDokumen extends Component {
         } else if (isExport) {
             this.props.resetError()
             this.DownloadMaster()
+        } else if (isCreate === false || isEditName === false) {
+            this.props.resetError()
+            this.setState({confirm: 'serverFalse'})
+            this.openConfirm()
         }
     }
 
@@ -337,7 +346,11 @@ class MasterDokumen extends Component {
     editDocumentName = async (value) => {
         const token = localStorage.getItem("token")
         const {idName} = this.props.dokumen
-        await this.props.updateNameDocument(token, value, idName.id)
+        const data = {
+            ...value,
+            name: value.menu
+        }
+        await this.props.updateNameDocument(token, data, idName.id)
         this.openEditName()
         this.getDataDokumen()
         this.setState({confirm: 'editname'})
@@ -432,113 +445,6 @@ class MasterDokumen extends Component {
           };
         return (
             <>
-                {/* <Sidebar {...sidebarProps}>
-                    <MaterialTitlePanel title={contentHeader}>
-                        <div className={style.backgroundLogo}>
-                            <Alert color="danger" className={style.alertWrong} isOpen={alert}>
-                                <div>{alertMsg}</div>
-                                <div>{alertM}</div>
-                                {alertUpload !== undefined && alertUpload.map(item => {
-                                    return (
-                                        <div>{item}</div>
-                                    )
-                                })}
-                            </Alert>
-                            <Alert color="danger" className={style.alertWrong} isOpen={upload}>
-                                <div>{errMsg}</div>
-                            </Alert>
-                            <div className={style.bodyDashboard}>
-                                <div className={style.headMaster}>
-                                    <div className={style.titleDashboard}>Master Dokumen</div>
-                                </div>
-                                <div className={style.secHeadDashboard}>
-                                    <div>
-                                        <text>Show: </text>
-                                        <ButtonDropdown className={style.drop} isOpen={dropOpen} toggle={this.dropDown}>
-                                        <DropdownToggle caret color="light">
-                                            {this.state.limit}
-                                        </DropdownToggle>
-                                        <DropdownMenu>
-                                        <DropdownItem className={style.item} onClick={() => this.getDataDokumen({limit: 10, search: ''})}>10</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataDokumen({limit: 20, search: ''})}>20</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataDokumen({limit: 50, search: ''})}>50</DropdownItem>
-                                        </DropdownMenu>
-                                        </ButtonDropdown>
-                                        <text className={style.textEntries}>entries</text>
-                                    </div>
-                                </div>
-                                <div className={style.secEmail}>
-                                    <div className={style.headEmail}>
-                                        <Button onClick={this.openModalAdd} color="primary" size="lg">Add</Button>
-                                        <Button onClick={this.openModalUpload} color="warning" size="lg">Upload</Button>
-                                        <Button onClick={this.ExportMaster} color="success" size="lg">Download</Button>
-                                    </div>
-                                    <div className={style.searchEmail}>
-                                        <text>Search: </text>
-                                        <Input 
-                                        className={style.search}
-                                        onChange={this.onSearch}
-                                        value={this.state.search}
-                                        onKeyPress={this.onSearch}
-                                        >
-                                            <FaSearch size={20} />
-                                        </Input>
-                                    </div>
-                                </div>
-                                {isGet === false ? (
-                                    <div className={style.tableDashboard}>
-                                    <Table bordered responsive hover className={style.tab}>
-                                        <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>Nama Dokumen</th>
-                                                <th>Transaksi</th>
-                                                <th>Sub Transaksi</th>
-                                                <th>Jenis Dokumen</th>
-                                            </tr>
-                                        </thead>
-                                    </Table>
-                                    </div>                    
-                                ) : (
-                                    <div className={style.tableDashboard}>
-                                    <Table bordered responsive hover className={style.tab}>
-                                        <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>Nama Dokumen</th>
-                                                <th>Transaksi</th>
-                                                <th>Sub Transaksi</th>
-                                                <th>Jenis Dokumen</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        {dataDokumen.length !== 0 && dataDokumen.map(item => {
-                                            return (
-                                                <tr onClick={() => this.openModalEdit(this.setState({detail: item}))}>
-                                                    <th scope="row">{(dataDokumen.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</th>
-                                                    <td>{item.nama_dokumen}</td>
-                                                    <td>{item.tipe_dokumen}</td>
-                                                    <td>{tipeDoc.find(x => x.tipe === item.tipe) !== undefined ? tipeDoc.find(x => x.tipe === item.tipe).title : item.tipe}</td>
-                                                    <td>{item.jenis_dokumen}</td>
-                                                </tr>
-                                            )})}
-                                        </tbody>
-                                    </Table>
-                                    </div>
-                                )}
-                                <div>
-                                    <div className={style.infoPageEmail}>
-                                        <text>Showing {page.currentPage} of {page.pages} pages</text>
-                                        <div className={style.pageButton}>
-                                            <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
-                                            <button className={style.btnPrev} color="info" disabled={page.nextLink === null ? true : false} onClick={this.next}>Next</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </MaterialTitlePanel>
-                </Sidebar> */}
                 <div className={styleTrans.app}>
                     <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
 
@@ -568,7 +474,7 @@ class MasterDokumen extends Component {
                         </div>
                         <div className={styleTrans.searchContainer}>
                             <div className='rowCenter'>
-                                <Button onClick={() => this.openDocumentName()} color="primary" size="lg" className='mr-1'>Add</Button>
+                                <Button onClick={() => this.openDocumentName()} color="primary" size="lg" className='mr-1'>Create</Button>
                                 {/* <Button onClick={this.openModalUpload} color="warning" size="lg" className='mr-1'>Upload</Button>
                                 <Button color="success" size="lg" onClick={this.downloadData}>Download</Button> */}
                             </div>
@@ -727,7 +633,7 @@ class MasterDokumen extends Component {
                                 onBlur={handleBlur("sub_transaksi")}
                                 >
                                     <option>-Pilih Sub Transaksi-</option>
-                                    {tipeDoc.filter(x => x.trans === values.transaksi).map(item => {
+                                    {tipeDoc.filter(x => x.trans === values.transaksi || x.trans === 'all').map(item => {
                                         return (
                                             <option value={item.tipe}>{item.title}</option>
                                         )
@@ -886,7 +792,7 @@ class MasterDokumen extends Component {
                                 onBlur={handleBlur("sub_transaksi")}
                                 >
                                     <option>-Pilih Sub Transaksi-</option>
-                                    {tipeDoc.filter(x => x.trans === values.transaksi).map(item => {
+                                    {tipeDoc.filter(x => x.trans === values.transaksi || x.trans === 'all').map(item => {
                                         return (
                                             <option value={item.tipe}>{item.title}</option>
                                         )
@@ -974,6 +880,88 @@ class MasterDokumen extends Component {
                             <Button onClick={this.openModalUpload}>Cancel</Button>
                         </div>
                     </ModalBody>
+                </Modal>
+                <Modal toggle={this.openCreateName} isOpen={this.state.openCreate} size="lg">
+                    <ModalHeader>Add Master Approval</ModalHeader>
+                    <Formik
+                    initialValues={{
+                        name: "-",
+                        kode_plant: '',
+                        tipe: 'area'
+                    }}
+                    validationSchema={nameSchema}
+                    onSubmit={(values) => {this.createApproveName(values)}}
+                    >
+                    {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                    <ModalBody>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                Tipe Approval
+                            </text>
+                            <div className="col-md-9">
+                            <Input 
+                                type="select"
+                                name="tipe"
+                                value={values.tipe}
+                                disabled
+                                onChange={handleChange("tipe")}
+                                onBlur={handleBlur("tipe")}
+                                >
+                                    <option>-Pilih Tipe Approval-</option>
+                                    <option value='all'>Nasional</option>
+                                    <option value='area'>Area</option>
+                                </Input>
+                                {errors.tipe ? (
+                                    <text className={style.txtError}>Must Be filled</text>
+                                ) : null}
+                            </div>
+                        </div>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                Area
+                            </text>
+                            <div className="col-md-9">
+                            <Input 
+                                type="select"
+                                name="select"
+                                value={values.kode_plant}
+                                onChange={handleChange("kode_plant")}
+                                onBlur={handleBlur("kode_plant")}
+                                >
+                                    <option>-Pilih Area-</option>
+                                    <option 
+                                    color={values.tipe === "all" ? 'primary' : 'danger'} 
+                                    disabled={values.tipe === "all" ? false : true} 
+                                    value='all'>
+                                        All
+                                    </option>
+                                    {dataDepo.length !== 0 && dataDepo.map(item => {
+                                        return (
+                                            <option 
+                                            color={values.tipe === "area" ? 'primary' : 'danger'} 
+                                            disabled={values.tipe === "area" ? false : true} 
+                                            value={item.kode_plant}>
+                                                {item.kode_plant + '-' + item.nama_area}
+                                            </option>
+                                        )
+                                    })}
+                                </Input>
+                                {errors.kode_plant ? (
+                                    <text className={style.txtError}>Must Be filled</text>
+                                ) : null}
+                            </div>
+                        </div>
+                        <hr/>
+                        <div className={style.foot}>
+                            <div></div>
+                            <div>
+                                <Button className="mr-2" onClick={handleSubmit} color="primary">Save</Button>
+                                <Button className="" onClick={this.openCreateName}>Cancel</Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                    )}
+                    </Formik>
                 </Modal>
                 <Modal toggle={this.openDocumentName} isOpen={this.state.approveName} size="lg">
                     <ModalHeader toggle={this.openDocumentName}>Add Template Dokumen</ModalHeader>
@@ -1302,8 +1290,8 @@ class MasterDokumen extends Component {
                                 <tr>
                                     <th>No</th>
                                     <th>Nama dokumen</th>
-                                    <th>IT / NON IT</th>
                                     <th>Transaksi</th>
+                                    <th>IT / NON IT</th>
                                     <th>Sub Transaksi</th>
                                     <th>Status upload</th>
                                     <th>Action</th>
@@ -1315,8 +1303,8 @@ class MasterDokumen extends Component {
                                         <tr>
                                         <th>{detailName.indexOf(item) + 1}</th>
                                         <td>{item.nama_dokumen}</td>
+                                        <td>{tipeTrans.find(x => x.trans === item.tipe_dokumen) !== undefined ? tipeTrans.find(x => x.trans === item.tipe_dokumen).title : item.tipe_dokumen}</td>
                                         <td>{item.jenis_dokumen}</td>
-                                        <td>{item.tipe_dokumen}</td>
                                         <td>{tipeDoc.find(x => x.tipe === item.tipe) !== undefined ? tipeDoc.find(x => x.tipe === item.tipe).title : item.tipe}</td>
                                         <td>{item.stat_upload === 1 ? 'Harus upload' : 'Tidak harus upload'}</td>
                                         <td>
@@ -1358,6 +1346,12 @@ class MasterDokumen extends Component {
                             <div className={style.cekUpdate}>
                                     <AiFillCheckCircle size={80} className={style.green} />
                                 <div className={[style.sucUpdate, style.green]}>Berhasil Update Template Dokumen</div>
+                            </div>
+                        ) : this.state.confirm === 'serverFalse' ? (
+                            <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal</div>
+                                <div className={[style.sucUpdate, style.green]}>{this.props.dokumen.alertMsg}</div>
                             </div>
                         ) : (
                             <div></div>

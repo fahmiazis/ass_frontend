@@ -46,6 +46,7 @@ import fs from "file-saver"
 import terbilang from '@develoka/angka-terbilang-js'
 import debounce from 'lodash.debounce';
 import Select from 'react-select/creatable';
+import FormIo from '../../components/Pengadaan/FormIo'
 const { REACT_APP_BACKEND_URL } = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -388,7 +389,7 @@ class Pengadaan extends Component {
         const { detailIo } = this.props.pengadaan
 
         if ((level === '5' || level === '9') && (detailIo[0].alasan === '' || detailIo[0].alasan === null || detailIo[0].alasan === '-')) {
-            this.setState({ confirm: 'recent' })
+            this.setState({ confirm: 'reason' })
             this.openConfirm()
         } else if (level !== '5' && level !== '9') {
             if (detailIo[0].asset_token === null) {
@@ -496,7 +497,7 @@ class Pengadaan extends Component {
         const level = localStorage.getItem('level')
         const { detailIo } = this.props.pengadaan
         if ((level === '5' || level === '9') && (detailIo[0].alasan === '' || detailIo[0].alasan === null || detailIo[0].alasan === '-')) {
-            this.setState({ confirm: 'recent' })
+            this.setState({ confirm: 'reason' })
             this.openConfirm()
         } else {
             this.setState({ listStat: [], openReject: !this.state.openReject })
@@ -1361,7 +1362,7 @@ class Pengadaan extends Component {
                     for (let x = 0; x < listRole.length; x++) {
                         // console.log(listRole)
                         const app = dataPeng[i].appForm === undefined ? [] : dataPeng[i].appForm
-                        const cekFrm = listRole[x].type === 'area' && depoFrm !== undefined ? (depoFrm.nama_bm === detailUser.fullname || depoFrm.nama_om === detailUser.fullname || depoFrm.nama_aos === detailUser.fullname ? 'pengirim' : 'not found') : 'all'
+                        const cekFrm = listRole[x].type === 'area' && depoFrm !== undefined ? (depoFrm.nama_bm.toLowerCase() === detailUser.fullname.toLowerCase() || depoFrm.nama_om.toLowerCase() === detailUser.fullname.toLowerCase() || depoFrm.nama_aos.toLowerCase() === detailUser.fullname.toLowerCase() ? 'pengirim' : 'not found') : 'all'
                         // const cekFin = cekFrm === 'pengirim' ? 'pengirim' : 'all'
                         const cekFin = cekFrm === 'pengirim' ? 'all' : 'all'
                         const cekApp = app.find(item => (item.jabatan === listRole[x].name) && (cekFin === 'all' ? (item.struktur === null || item.struktur === 'all') : (item.struktur === cekFin)))
@@ -1992,8 +1993,8 @@ class Pengadaan extends Component {
                                         numInputs={(this.state.value === undefined || this.state.value === null) ? 11 : this.state.value.length > 11 ? this.state.value.length : 11}
                                         inputStyle={style.otp}
                                         containerStyle={style.containerOtp}
-                                        // isDisabled={level === '8' ? false : true}
-                                        isDisabled
+                                        isDisabled={level === '8' ? false : true}
+                                        // isDisabled
                                     />
                                     {level === '8' && (
                                         <div className='rowGeneral'>
@@ -2316,9 +2317,10 @@ class Pengadaan extends Component {
                                     Dokumen
                                 </Button>
                             )}
-                            <Button className="ml-2" color="warning" onClick={() => this.goDownload('formio')}>
+                            {/* <Button className="ml-2" color="warning" onClick={() => this.goDownload('formio')}>
                                 Download Form
-                            </Button>
+                            </Button> */}
+                            <FormIo className='ml-2'/>
                             {detailIo !== undefined && detailIo.length > 0 && detailIo[0].status_form === '8' && (
                                 <Button className="ml-2" color="primary" onClick={() => this.openTemp()}>
                                     List No.Aset
@@ -2557,9 +2559,10 @@ class Pengadaan extends Component {
                         <div className="btnFoot">
                         </div>
                         <div className="btnFoot">
-                            <Button className="mr-2" color="warning" onClick={() => this.goDownload('formio')}>
+                            {/* <Button className="mr-2" color="warning" onClick={() => this.goDownload('formio')}>
                                 Download
-                            </Button>
+                            </Button> */}
+                            <FormIo className='mr-2'/>
                             <Button color="secondary" onClick={this.openPreview}>
                                 Close
                             </Button>

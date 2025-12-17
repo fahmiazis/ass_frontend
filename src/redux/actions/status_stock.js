@@ -19,7 +19,7 @@ export default {
         type: 'ADD_STATUS_STOCK',
         payload: http(token).post(`/status-stock/add`, qs.stringify(data))
     }),
-    updateStatusStock: (token, data, id) => ({
+    updateStatusStock: (token, id, data) => ({
         type: 'UPDATE_STATUS_STOCK',
         payload: http(token).patch(`/status-stock/update/${id}`, qs.stringify(data))
     }),

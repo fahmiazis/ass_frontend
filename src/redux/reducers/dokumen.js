@@ -33,7 +33,8 @@ const dokumenState = {
         { tipe: 'akta', title: 'Akta', trans: 'pengadaan' },
         { tipe: 'gudang', title: 'Gudang', trans: 'pengadaan' },
         { tipe: 'pengajuan', title: 'Pengajuan', trans: 'all' },
-        { tipe: 'persetujuan', title: 'Persetujuan', trans: 'all' }
+        { tipe: 'persetujuan', title: 'Persetujuan', trans: 'all' },
+        { tipe: 'finance', title: 'verifikasi finance', trans: 'pengadaan' },
     ],
     tipeTrans: [
         { trans: 'disposal', title: 'Disposal asset' },
@@ -359,7 +360,7 @@ export default (state=dokumenState, action) => {
                     ...state,
                     isLoading: false,
                     isCreate: false,
-                    alertMsg: "Unable connect to server"
+                    alertMsg: action.payload.response.data === undefined ? "Unable connect to server" : action.payload.response.data.message
                 };
             }
             case 'UPDATE_NAMEDOK_PENDING': {
@@ -382,7 +383,7 @@ export default (state=dokumenState, action) => {
                     ...state,
                     isLoading: false,
                     isEditName: false,
-                    alertMsg: "Unable connect to server"
+                    alertMsg: action.payload.response.data === undefined ? "Unable connect to server" : action.payload.response.data.message
                 };
             }
             case 'GET_NAMEDOK_PENDING': {

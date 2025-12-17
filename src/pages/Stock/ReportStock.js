@@ -56,6 +56,10 @@ class ReportStock extends Component {
         this.menuButtonClick = this.menuButtonClick.bind(this);
     }
 
+    selectTime = (val) => {
+        this.setState({[val.type]: val.val})
+    }
+
     prosesSidebar = (val) => {
         this.setState({sidebarOpen: val})
     }
@@ -97,6 +101,28 @@ class ReportStock extends Component {
 
     dropArea = () => {
         this.setState({areaDrop: !this.state.areaDrop})
+    }
+
+    changeTime = async (val) => {
+        const token = localStorage.getItem("token")
+        this.setState({time: val})
+        if (val === 'all') {
+            this.setState({time1: '', time2: ''})
+            setTimeout(() => {
+                this.getDataTime()
+             }, 500)
+        }
+    }
+
+    getDataTime = async () => {
+        const {time1, time2, filter, search, limit} = this.state
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        const token = localStorage.getItem("token")
+        const level = localStorage.getItem("level")
+        const {group, sap, fisik, kondisi, plant} = this.state
+        // const status = filter === 'selesai' ? '8' : filter === 'available' && level === '2' ? '1' : filter === 'available' && level === '8' ? '3' : 'all'
+        this.getDataStock({group: group, sap: sap, fisik: fisik, kondisi: kondisi, plant: plant})
     }
 
     getDataStock = async (value) => {

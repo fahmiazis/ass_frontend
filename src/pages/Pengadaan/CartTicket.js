@@ -355,13 +355,20 @@ class CartMutasi extends Component {
         const token = localStorage.getItem('token')
         const {dataCart} = this.props.pengadaan
         const cek = []
+        const cekName = []
         for (let i = 0; i < dataCart.length; i++) {
-            if (dataCart[i].kategori !== val.kategori || dataCart[i].tipe !== val.tipe) {
+            if (dataCart[i].kategori !== val.kategori || dataCart[i].tipe !== val.tipe || dataCart[i].jenis !== val.jenis) {
                 cek.push(1)
+            } else if (dataCart[i].nama.toLowerCase() === val.nama.toLowerCase()) {
+                cekName.push(dataCart[i])
             }
         }
+
         if (cek.length > 0) {
             this.setState({confirm: 'falseAdd'})
+            this.openConfirm()
+        } else if (cekName.length > 0) {
+            this.setState({confirm: 'falseName'})
             this.openConfirm()
         } else {
             const data = {
@@ -432,16 +439,23 @@ class CartMutasi extends Component {
 
     editCart = async (val) => {
         const token = localStorage.getItem('token')
-        const {detailIo} = this.props.pengadaan
+        const {dataCart} = this.props.pengadaan
         const {dataRinci} = this.state
         const cek = []
-        for (let i = 0; i < detailIo.length; i++) {
-            if ((detailIo[i].kategori !== val.kategori || detailIo[i].tipe !== val.tipe) && detailIo.length > 1) {
+        const cekName = []
+        for (let i = 0; i < dataCart.length; i++) {
+            if ((dataCart[i].kategori !== val.kategori || dataCart[i].tipe !== val.tipe || dataCart[i].jenis !== val.jenis) && dataCart.length > 1) {
                 cek.push(1)
+            } else if (dataCart[i].nama.toLowerCase() === val.nama.toLowerCase()) {
+                cekName.push(dataCart[i])
             }
         }
+
         if (cek.length > 0) {
             this.setState({confirm: 'falseUpdate'})
+            this.openConfirm()
+        } else if (cekName.length > 0) {
+            this.setState({confirm: 'falseName'})
             this.openConfirm()
         } else {
             const data = {
@@ -1269,7 +1283,15 @@ class CartMutasi extends Component {
                             <div className={style.cekUpdate}>
                             <AiOutlineClose size={80} className={style.red} />
                             <div className={[style.sucUpdate, style.green]}>Gagal Menambahkan Item</div>
-                            <div className="errApprove mt-2">Pastikan kategori dan tipe sama di setiap item</div>
+                            <div className="errApprove mt-2">Pastikan kategori, tipe, dan jenis sama di setiap item</div>
+                        </div>
+                        </div>
+                    ) : this.state.confirm === 'falseName' ? (
+                        <div>
+                            <div className={style.cekUpdate}>
+                            <AiOutlineClose size={80} className={style.red} />
+                            <div className={[style.sucUpdate, style.green]}>Gagal</div>
+                            <div className="errApprove mt-2">Nama item sudah terdaftar, silahkan update quantity di item yg sudah terdaftar</div>
                         </div>
                         </div>
                     ) : this.state.confirm === 'falseUpdate' ? (
@@ -1277,7 +1299,7 @@ class CartMutasi extends Component {
                             <div className={style.cekUpdate}>
                             <AiOutlineClose size={80} className={style.red} />
                             <div className={[style.sucUpdate, style.green]}>Gagal Update Item</div>
-                            <div className="errApprove mt-2">Pastikan kategori dan tipe sama di setiap item</div>
+                            <div className="errApprove mt-2">Pastikan kategori, tipe, dan jenis sama di setiap item</div>
                         </div>
                         </div>
                     ) : this.state.confirm === 'update' ?(

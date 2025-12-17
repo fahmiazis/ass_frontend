@@ -128,38 +128,38 @@ class FormIo extends Component {
         }
     }
 
-    async componentDidMount () {
-        const dataCek = localStorage.getItem('printData')
-        const detailForm = this.props.detailForm
-        const tipe = this.props.tipe
-        const dataValid = dataCek
-        if (dataValid || (dataCek !== undefined && dataCek !== null)) {
-            const token = localStorage.getItem('token')
-            const level = localStorage.getItem('level')
-            await this.props.getDetail(token, dataValid)
-            await this.props.getApproveIo(token, dataValid)
-            const data = this.props.pengadaan.detailIo
-            if (data[0].status_form === '8') {
-                await this.props.getTempAsset(token, data[0].no_pengadaan)
-            }
-            let num = 0
-            for (let i = 0; i < data.length; i++) {
-                // if (data[i].isAsset !== 'true' && level !== '2' ) {
-                //     const temp = 0
-                //     num += temp
-                // } else {
-                const temp = parseInt(data[i].price) * parseInt(data[i].qty)
-                num += temp
-                // }
-            }
-            this.setState({total: num, value: data[0].no_io})
-            // if (tipe !== undefined && tipe === 'access') {
-            //     console.log()
-            // } else {
-            this.downloadForm()
-            // }
-        }
-    }
+    // async componentDidMount () {
+    //     const dataCek = localStorage.getItem('printData')
+    //     const detailForm = this.props.detailForm
+    //     const tipe = this.props.tipe
+    //     const dataValid = dataCek
+    //     if (dataValid || (dataCek !== undefined && dataCek !== null)) {
+    //         const token = localStorage.getItem('token')
+    //         const level = localStorage.getItem('level')
+    //         await this.props.getDetail(token, dataValid)
+    //         await this.props.getApproveIo(token, dataValid)
+    //         const data = this.props.pengadaan.detailIo
+    //         if (data[0].status_form === '8') {
+    //             await this.props.getTempAsset(token, data[0].no_pengadaan)
+    //         }
+    //         let num = 0
+    //         for (let i = 0; i < data.length; i++) {
+    //             // if (data[i].isAsset !== 'true' && level !== '2' ) {
+    //             //     const temp = 0
+    //             //     num += temp
+    //             // } else {
+    //             const temp = parseInt(data[i].price) * parseInt(data[i].qty)
+    //             num += temp
+    //             // }
+    //         }
+    //         this.setState({total: num, value: data[0].no_io})
+    //         // if (tipe !== undefined && tipe === 'access') {
+    //         //     console.log()
+    //         // } else {
+    //         this.downloadForm()
+    //         // }
+    //     }
+    // }
 
     toDataURL = (url) => {
         const promise = new Promise((resolve, reject) => {
@@ -181,7 +181,20 @@ class FormIo extends Component {
 
     downloadForm = async () => {
         const {dataPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataDocCart} = this.props.pengadaan
-        const {total} = this.state
+        
+        const data = detailIo
+        let num = 0
+        for (let i = 0; i < data.length; i++) {
+            // if (data[i].isAsset !== 'true' && level !== '2' ) {
+            //     const temp = 0
+            //     num += temp
+            // } else {
+            const temp = parseInt(data[i].price) * parseInt(data[i].qty)
+            num += temp
+            // }
+        }
+
+        const total = num
         
         const alpha = Array.from(Array(26)).map((e, i) => i + 65)
         const alphabet = alpha.map((x) => String.fromCharCode(x))
@@ -617,7 +630,7 @@ class FormIo extends Component {
                 :item.nama.slice(0, 13).split(" ").map((word) => { 
                     return word[0] === undefined ? '' : word[0].toUpperCase() + word.substring(1)
                 }).join(" ") + '.'
-            if (dataApp.pemeriksa.length > 1) {
+            // if (dataApp.pemeriksa.length > 1) {
                 const startRow = alphabet[alphabet.indexOf(alphabet.find(item => item === cekRow11.toUpperCase())) + (distCol * index)]
                 const endRow = alphabet[alphabet.indexOf(alphabet.find(item => item === cekRow11.toUpperCase())) + ((distCol * index) + (distCol - 1))]
                 
@@ -640,21 +653,21 @@ class FormIo extends Component {
                 // ws.getCell(`${startRow}${headRow}`).font = { 
                 //     ...fontStyle,
                 // }
-            } else {
-                ws.mergeCells(`D${headRow}`, `I${botRow}`)
-                ws.getCell(`D${headRow}`).value = name === null 
-                ? `\n - \n\n\n${item.jabatan === null ? "-" : item.jabatan.toUpperCase()}` 
-                : item.status === 0 
-                ? `Reject (${moment(item.updatedAt).format('DD/MM/YYYY')}) \n\n ${name} \n ${item.jabatan === null ? "-" : item.jabatan.toUpperCase()}` 
-                : `Approve (${moment(item.updatedAt).format('DD/MM/YYYY')}) \n\n ${name} \n ${item.jabatan === null ? "-" : item.jabatan.toUpperCase()}`
+            // } else {
+            //     ws.mergeCells(`D${headRow}`, `I${botRow}`)
+            //     ws.getCell(`D${headRow}`).value = name === null 
+            //     ? `\n - \n\n\n${item.jabatan === null ? "-" : item.jabatan.toUpperCase()}` 
+            //     : item.status === 0 
+            //     ? `Reject (${moment(item.updatedAt).format('DD/MM/YYYY')}) \n\n ${name} \n ${item.jabatan === null ? "-" : item.jabatan.toUpperCase()}` 
+            //     : `Approve (${moment(item.updatedAt).format('DD/MM/YYYY')}) \n\n ${name} \n ${item.jabatan === null ? "-" : item.jabatan.toUpperCase()}`
                 
-                ws.getCell(`D${headRow}`).alignment = { 
-                    ...alignStyle
-                }
-                ws.getCell(`D${headRow}`).border = { 
-                    ...borderStyles
-                }
-            }
+            //     ws.getCell(`D${headRow}`).alignment = { 
+            //         ...alignStyle
+            //     }
+            //     ws.getCell(`D${headRow}`).border = { 
+            //         ...borderStyles
+            //     }
+            // }
         })
 
 
@@ -914,7 +927,10 @@ class FormIo extends Component {
 
     return (
         <>
-        <div className="backWhite mb-5">
+        <Button className='ml-2' color="success" onClick={this.downloadForm}>
+            Download Form
+        </Button>
+        {/* <div className="backWhite mb-5">
             <Container className='borderGen'>
                 <Row className="rowModal">
                     <Col md={3} lg={3}>
@@ -1209,7 +1225,7 @@ class FormIo extends Component {
                     </div>
                 </div>
             </ModalBody>
-        </Modal>
+        </Modal> */}
         </>
     )
   }

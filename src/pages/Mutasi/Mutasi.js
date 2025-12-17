@@ -560,8 +560,8 @@ class Mutasi extends Component {
                 for (let x = 0; x < listRole.length; x++) {
                     console.log(listRole)
                     const app = dataMut[i].appForm === undefined ? [] : dataMut[i].appForm
-                    const cekFrm = listRole[x].type === 'area' && depoFrm !== undefined ? (depoFrm.nama_bm === detailUser.fullname || depoFrm.nama_om === detailUser.fullname || depoFrm.nama_aos === detailUser.fullname ? 'pengirim' : 'not found') : 'all'
-                    const cekTo = listRole[x].type === 'area' && depoTo !== undefined ? (depoTo.nama_bm === detailUser.fullname || depoTo.nama_om === detailUser.fullname || depoTo.nama_aos === detailUser.fullname ? 'penerima' : 'not found') : 'all'
+                    const cekFrm = listRole[x].type === 'area' && depoFrm !== undefined ? (depoFrm.nama_bm.toLowerCase() === detailUser.fullname.toLowerCase() || depoFrm.nama_om.toLowerCase() === detailUser.fullname.toLowerCase() || depoFrm.nama_aos.toLowerCase() === detailUser.fullname.toLowerCase() ? 'pengirim' : 'not found') : 'all'
+                    const cekTo = listRole[x].type === 'area' && depoTo !== undefined ? (depoTo.nama_bm.toLowerCase() === detailUser.fullname.toLowerCase() || depoTo.nama_om.toLowerCase() === detailUser.fullname.toLowerCase() || depoTo.nama_aos.toLowerCase() === detailUser.fullname.toLowerCase() ? 'penerima' : 'not found') : 'all'
                     const cekFin = cekFrm === 'pengirim' ? 'pengirim' : cekTo === 'penerima' ? 'penerima' : 'all'
                     const cekApp = app.find(item => (item.jabatan === listRole[x].name) && (cekFin === 'all' ? (item.struktur === null || item.struktur === 'all') : (item.struktur === cekFin)))
                     const find = app.indexOf(cekApp)

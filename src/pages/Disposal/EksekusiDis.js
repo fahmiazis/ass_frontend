@@ -1369,39 +1369,42 @@ class EksekusiDisposal extends Component {
                                         ) : (
                                             <Row></Row>
                                         )}
-                                        <div>
-                                            <Row className="mb-2">
-                                                <Col md={3}>No Doc SAP</Col>
-                                                <Col md={9} className="colRinci">:  <Input 
-                                                className="inputRinci"
-                                                type="text"
-                                                value={values.doc_sap}
-                                                onChange={handleChange("doc_sap")}
-                                                onBlur={handleBlur("doc_sap")}
-                                                />
-                                                </Col>
-                                            </Row>
-                                            {errors.doc_sap ? (
-                                                <text className={style.txtError}>{errors.doc_sap}</text>
-                                            ) : null}
-                                        </div>
+                                        
                                         {(level === '2' && dataRinci.nilai_jual === '0') && (
-                                            <div>
-                                                <Row className="mb-2">
-                                                    <Col md={3}>Tgl BA Pemusnahan Asset</Col>
-                                                    <Col md={9} className="colRinci">:  <Input 
-                                                    className="inputRinci"
-                                                    type="date"
-                                                    value={values.date_ba}
-                                                    onChange={handleChange("date_ba")}
-                                                    onBlur={handleBlur("date_ba")}
-                                                    />
-                                                    </Col>
-                                                </Row>
-                                                {errors.date_ba ? (
-                                                    <text className={style.txtError}>{errors.date_ba}</text>
-                                                ) : null}
-                                            </div>
+                                            <>
+                                                <div>
+                                                    <Row className="mb-2">
+                                                        <Col md={3}>No Doc SAP</Col>
+                                                        <Col md={9} className="colRinci">:  <Input 
+                                                        className="inputRinci"
+                                                        type="text"
+                                                        value={values.doc_sap}
+                                                        onChange={handleChange("doc_sap")}
+                                                        onBlur={handleBlur("doc_sap")}
+                                                        />
+                                                        </Col>
+                                                    </Row>
+                                                    {errors.doc_sap ? (
+                                                        <text className={style.txtError}>{errors.doc_sap}</text>
+                                                    ) : null}
+                                                </div>
+                                                <div>
+                                                    <Row className="mb-2">
+                                                        <Col md={3}>Tgl BA Pemusnahan Asset</Col>
+                                                        <Col md={9} className="colRinci">:  <Input 
+                                                        className="inputRinci"
+                                                        type="date"
+                                                        value={values.date_ba}
+                                                        onChange={handleChange("date_ba")}
+                                                        onBlur={handleBlur("date_ba")}
+                                                        />
+                                                        </Col>
+                                                    </Row>
+                                                    {errors.date_ba ? (
+                                                        <text className={style.txtError}>{errors.date_ba}</text>
+                                                    ) : null}
+                                                </div>
+                                            </>
                                         )}
                                     </div>
                                     <Row className="footRinci1 mt-4">
@@ -1426,8 +1429,8 @@ class EksekusiDisposal extends Component {
                                         <div className='rowGeneral'>
                                             <Button 
                                                 disabled={
-                                                    // values.doc_sap === ''
-                                                    values.date_ba === ''
+                                                    (level === '2' && dataRinci.nilai_jual === '0') && 
+                                                    (values.doc_sap === '' || values.date_ba === '') ? true : false
                                                 } 
                                                 onClick={handleSubmit} 
                                                 className='mr-1' 

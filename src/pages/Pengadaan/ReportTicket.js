@@ -453,7 +453,7 @@ class ReportTicket extends Component {
                 c22: item.no_pengadaan,
                 c23: item.date_eksekusi !== null ? moment(item.date_eksekusi).format('DD/MM/YYYY') : moment(item.updatedAt).format('DD/MM/YYYY'),
                 c24: '-',
-                c25: item.depo === null ? item.depo.nama_pic_1 : '-',
+                c25: item.pic_aset !== null ? item.pic_aset : item.depo !== null ? item.depo.nama_pic_1 : '-',
                 c26: '-',
                 c27: '-',
                 c28: item.kategori === 'return' ? 'Pengajuan Return' : item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS',
@@ -909,7 +909,7 @@ class ReportTicket extends Component {
                                             <td>{item.no_pengadaan}</td>
                                             <td>{item.date_eksekusi !== null ? moment(item.date_eksekusi).format('DD/MM/YYYY') : moment(item.updatedAt).format('DD/MM/YYYY')}</td>
                                             <td></td>
-                                            <td>{item.depo === null ? item.depo.nama_pic_1 : ''}</td>
+                                            <td>{item.pic_aset !== null ? item.pic_aset : item.depo !== null ? item.depo.nama_pic_1 : ''}</td>
                                             <td></td>
                                             <td></td>
                                             <td>{item.kategori === 'return' ? 'Pengajuan Return' : item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>

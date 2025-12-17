@@ -593,7 +593,13 @@ class MasterUser extends Component {
                 c3: item.nik,
                 c4: item.kode_plant === 0 ? "" : item.kode_plant,
                 c5: item.email,
-                c6: `${item.user_level}-${dataRole.find(({nomor}) => nomor == item.user_level).name}`,
+                c6: `${item.user_level}-${
+                dataRole.find(({nomor}) => nomor == item.user_level) !== undefined 
+                ? dataRole.find(({nomor}) => nomor == item.user_level).name : '-'
+                // dataRole.find(({nomor}) => nomor == item.request_level) !== undefined
+                // ? dataRole.find(({nomor}) => nomor == item.request_level).name
+                // : '-'
+                }`,
             }
         )
         ) })
@@ -928,7 +934,7 @@ class MasterUser extends Component {
                             <tbody>
                                 {dataUser.length !== 0 && dataUser.map((item, index) => {
                                     return (
-                                        <tr className={item.status === 'inactive' ? 'fail' : item.status_request === 0 && 'bad'}>
+                                        <tr className={item.status === 'inactive' ? 'fail' : (item.status_request === 0 && item.user_level  === 50) && 'bad'}>
                                              <td>
                                                 <input 
                                                 type='checkbox'

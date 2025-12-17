@@ -43,6 +43,7 @@ import NewNavbar from '../../components/NewNavbar'
 import Email from '../../components/Stock/Email'
 import EXIF from 'exif-js'
 const {REACT_APP_BACKEND_URL} = process.env
+const exclude = 'bandung'
 
 const stockSchema = Yup.object().shape({
     merk: Yup.string().required("must be filled"),
@@ -910,6 +911,16 @@ class Stock extends Component {
         }
     }
 
+    saveField = async (item, target) => {
+        const token = localStorage.getItem("token")
+        const data = {
+            [target.name]: target.value
+        }
+        await this.props.updateAsset(token, item.id, data)
+        this.setState({idTab: null})
+        this.getDataAsset()
+    }
+
     updateStatus = async (val) => {
         const token = localStorage.getItem('token')
         const { detailAsset } = this.props.asset
@@ -1095,14 +1106,12 @@ class Stock extends Component {
 
                         <div className={styleTrans.searchContainer}>
                             <Button size="lg" color='primary' onClick={this.prosesSubmitPre}>Submit</Button>
-                            {level == '9' && (
+                            {level == '9' && (dataDepo.find(x => x.kode_plant === this.state.asetPart) && (dataDepo.find(x => x.kode_plant === this.state.asetPart).nama_area.toLowerCase() !== exclude)) && (
                                 <select value={this.state.asetPart} onChange={e => this.getAssetPart(e.target.value)} className={styleTrans.searchInput}>
                                     <option value="all">All</option>
-                                    {dataDepo.length > 0 && dataDepo.map(item => {
+                                    {dataDepo.length > 0 && dataDepo.filter(x => (x.kode_plant && x.kode_plant.length > 4) && (x.nama_area && x.nama_area.toLowerCase() !== exclude)).map(item => {
                                         return (
-                                            item.kode_plant.length > 4 && (
-                                                <option value={item.kode_plant}>{item.kode_plant} - {item.nama_area}</option>
-                                            )
+                                            <option value={item.kode_plant}>{item.kode_plant}-{item.place_asset}-{item.nama_area}</option>
                                         )
                                     })}
                                 </select>
@@ -1135,7 +1144,7 @@ class Stock extends Component {
                             />
                         </div>
                         <div className={styleTrans.tableContainer2}>
-                        <table className={`${styleTrans.tableStock} ${dataAsset.length > 0 ? styleTrans.tableFull : ''}`}>
+                        <table className={dataAsset.length === 0 ? styleTrans.table : `${styleTrans.tableStock} ${dataAsset.length > 0 ? styleTrans.tableFull : ''}`}>
                             <thead>
                                 <tr>
                                     <th>No</th>
@@ -1160,7 +1169,7 @@ class Stock extends Component {
                                             <td onClick={() => this.getRincian(item)} scope="row">{(dataAsset.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</td>
                                             <td>{item.no_asset}</td>
                                             <td>{item.nama_asset}</td>
-                                            <td className='largeTh'>
+                                            {/* <td className='largeTh'>
                                                 <Input
                                                 type= "text"
                                                 name="merk"
@@ -1169,6 +1178,17 @@ class Stock extends Component {
                                                 onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                 onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                 />
+                                            </td> */}
+                                            <td className='largeTh'>
+                                                <Input
+                                                type="text"
+                                                name="merk"
+                                                className="inputRinci"
+                                                value={this.state.idTab == item.id ? null : item.merk !== null ? item.merk : ''}
+                                                onBlur={e => this.saveField(item, e.target)}
+                                                onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
+                                                onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
+                                            />
                                             </td>
                                             <td>
                                                 <Input 
@@ -1207,6 +1227,7 @@ class Stock extends Component {
                                                 value={this.state.idTab == item.id ? null : item.lokasi !== null ? item.lokasi : ''}
                                                 onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                 onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
+                                                onBlur={e => this.saveField(item, e.target)}
                                                 />
                                             </td>
                                             <td>
@@ -1261,6 +1282,7 @@ class Stock extends Component {
                                                 defaultValue={item.keterangan === null ? '' : item.keterangan}
                                                 onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
                                                 onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
+                                                onBlur={e => this.saveField(item, e.target)}
                                                 />
                                             </td>
                                             <td>
@@ -2473,6 +2495,7 @@ class Stock extends Component {
                                         <th>MERK</th>
                                         <th>SATUAN</th>
                                         <th>UNIT</th>
+                                        <th>KATEGORI</th>
                                         <th>LOKASI</th>
                                         <th>STATUS FISIK</th>
                                         <th>KONDISI</th>
@@ -2490,6 +2513,7 @@ class Stock extends Component {
                                             <td>{item.merk}</td>
                                             <td>{item.satuan}</td>
                                             <td>{item.unit}</td>
+                                            <td>{item.kategori}</td>
                                             <td>{item.lokasi}</td>
                                             <td>{item.status_fisik}</td>
                                             <td>{item.kondisi}</td>

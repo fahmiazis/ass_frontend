@@ -534,7 +534,7 @@ class CartMutasi extends Component {
                                         <td>{item.kode_plant_rec} - {item.area_rec}</td>
                                         <td>{item.nama_asset}</td>
                                         <td>{item.no_asset}</td>
-                                        <td>{item.dataAsset.nilai_buku === null || item.dataAsset.nilai_buku === '' ? '0' : item.dataAsset.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                        <td>{(item.dataAsset === null || !item.dataAsset.nilai_buku || item.dataAsset.nilai_buku === '') ? '0' : item.dataAsset.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                         <td>{item.kategori}</td>
                                         <td>
                                             <Button id={`toolEdit${index}`} onClick={() => this.prosesOpenRinci(item)} className='mt-1 mr-1' color='success'><MdEditSquare size={25}/></Button>

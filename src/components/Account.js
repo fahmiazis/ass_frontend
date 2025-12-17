@@ -84,17 +84,6 @@ class Account extends Component {
         this.getData()
     }
 
-    prosesOpenChange = async (val) => {
-        const token = localStorage.getItem("token")
-        const id = localStorage.getItem("id")
-        await this.props.getLogin(token, id)
-        this.openChange()
-    }
-
-    openChange = () => {
-        this.setState({modalChange: !this.state.modalChange})
-    }
-
     goPage = (val) => {
         this.props.handleRoute(val)
     }
@@ -149,6 +138,17 @@ class Account extends Component {
         } else if (cekUser > 1 && cekPlant) {
             this.prosesOpenChange()
         }
+    }
+
+    prosesOpenChange = async (val) => {
+        const token = localStorage.getItem("token")
+        const id = localStorage.getItem("id")
+        await this.props.getLogin(token, id)
+        this.openChange()
+    }
+
+    openChange = () => {
+        this.setState({modalChange: !this.state.modalChange})
     }
 
     prosesRelog = () => {

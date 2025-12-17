@@ -41,6 +41,7 @@ import NewNavbar from '../../components/NewNavbar'
 import Email from '../../components/Pengadaan/Email'
 import debounce from 'lodash.debounce';
 import Select from 'react-select/creatable';
+import FormIo from '../../components/Pengadaan/FormIo'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
@@ -1652,9 +1653,10 @@ class EksekusiTicket extends Component {
                                 Dokumen 
                             </Button>
                         )}
-                        <Button className="ml-2" color="warning" onClick={() => this.goDownload('formio')}>
+                        {/* <Button className="ml-2" color="warning" onClick={() => this.goDownload('formio')}>
                             Download Form
-                        </Button>
+                        </Button> */}
+                        <FormIo />
                     </div>
                     {level === '2' ? (
                         <div className="btnFoot">
@@ -2016,9 +2018,10 @@ class EksekusiTicket extends Component {
                     <div className="btnFoot">
                     </div>
                     <div className="btnFoot">
-                        <Button className="mr-2" color="warning" onClick={() => this.goDownload('formio')}>
+                        {/* <Button className="mr-2" color="warning" onClick={() => this.goDownload('formio')}>
                             Download
-                        </Button>
+                        </Button> */}
+                        <FormIo />
                         <Button color="secondary" onClick={this.openPreview}>
                             Close 
                         </Button>
