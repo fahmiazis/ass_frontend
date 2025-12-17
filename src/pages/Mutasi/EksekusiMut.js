@@ -125,7 +125,7 @@ class EksekusiMut extends Component {
         const cekTime1 = time1 === '' ? 'undefined' : time1
         const cekTime2 = time2 === '' ? 'undefined' : time2
         
-        const status = val === 'selesai' ? 8 : val === 'available' ? 4 : 'all'
+        const status = val === 'finish' ? 8 : val === 'available' ? 4 : 'all'
 
         if (val === null || val === undefined || val.length === 0) {
             this.setState({ options: [] })
@@ -497,7 +497,7 @@ class EksekusiMut extends Component {
         const { time1, time2, search, limit } = this.state
         const cekTime1 = time1 === '' ? 'undefined' : time1
         const cekTime2 = time2 === '' ? 'undefined' : time2
-        const status = val === 'selesai' ? 8 : val === 'available' ? 4 : 'all'
+        const status = val === 'finish' ? 8 : val === 'available' ? 4 : 'all'
 
         await this.props.getMutasi(token, status, cekTime1, cekTime2, search, limit)
         const { dataMut } = this.props.mutasi
@@ -514,7 +514,7 @@ class EksekusiMut extends Component {
                 if (dataMut[i].status_reject === 1) {
                     newMut.push(dataMut[i])
                 }
-            } else if (val === 'selesai') {
+            } else if (val === 'finish') {
                 if (dataMut[i].status_form === 8) {
                     newMut.push(dataMut[i])
                 }
@@ -551,7 +551,7 @@ class EksekusiMut extends Component {
         const cekTime2 = time2 === '' ? 'undefined' : time2
         const token = localStorage.getItem("token")
         const level = localStorage.getItem("level")
-        // const status = filter === 'selesai' ? '8' : filter === 'available' && level === '2' ? '1' : filter === 'available' && level === '8' ? '3' : 'all'
+        // const status = filter === 'finish' ? '8' : filter === 'available' && level === '2' ? '1' : filter === 'available' && level === '8' ? '3' : 'all'
         this.changeFilter(filter)
     }
 
@@ -680,9 +680,9 @@ class EksekusiMut extends Component {
         const cek = []
         for (let i = 0; i < detailMut.length; i++) {
             const data = detailMut[i]
-            if (data.doc_sap === '' || data.doc_sap === null || data.doc_sap === 'ya') {
-                cek.push(data)
-            }
+            // if (data.doc_sap === '' || data.doc_sap === null || data.doc_sap === 'ya') {
+            //     cek.push(data)
+            // }
         }
         const cekDoc = []
         for (let i = 0; i < detailMut.length; i++) {
@@ -857,7 +857,7 @@ class EksekusiMut extends Component {
                                 <option value="all">All</option>
                                 <option value="available">Available To Approve</option>
                                 <option value="reject">Reject</option>
-                                <option value="selesai">Finished</option>
+                                <option value="finish">Finished</option>
                             </select>
                         </div>
 
@@ -1222,7 +1222,7 @@ class EksekusiMut extends Component {
                                                         value={item.id} />
                                                 </td>
                                                 {/* <td scope="row">{detailMut.indexOf(item) + 1}</td> */}
-                                                {this.state.filter === 'available' && (
+                                                {(this.state.filter === 'available' || this.state.filter === 'finish') && (
                                                     <td>
                                                         <Button onClick={() => this.prosesOpenRinci(item)} color='success' size='md'>Proses</Button>
                                                     </td>

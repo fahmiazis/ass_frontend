@@ -1770,9 +1770,9 @@ class EksekusiTicket extends Component {
                             <Button className="mr-2" color="primary" onClick={this.openModalUpload} >
                                 Upload
                             </Button>
-                            {/* <Button color="success" onClick={() => this.generateSap(dataTemp[0])}>
+                            <Button color="success" onClick={() => this.generateSap(dataTemp[0])}>
                                 Generate By SAP
-                            </Button> */}
+                            </Button>
                         </div>
                     </div>
                 </ModalBody>

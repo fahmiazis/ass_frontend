@@ -1993,13 +1993,13 @@ class Pengadaan extends Component {
                                         numInputs={(this.state.value === undefined || this.state.value === null) ? 11 : this.state.value.length > 11 ? this.state.value.length : 11}
                                         inputStyle={style.otp}
                                         containerStyle={style.containerOtp}
-                                        isDisabled={level === '8' ? false : true}
+                                        // isDisabled={level === '8' ? false : true}
                                         // isDisabled
                                     />
                                     {level === '8' && (
                                         <div className='rowGeneral'>
-                                            <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo({val: detailIo[0], type: 'web'})}>Save</Button>
-                                            {/* <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo({val: detailIo[0], type: 'sap'})}>Generate By SAP</Button> */}
+                                            {/* <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo({val: detailIo[0], type: 'web'})}>Save</Button> */}
+                                            <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo({val: detailIo[0], type: 'sap'})}>Generate By SAP</Button>
                                             {detailIo.length > 0 &&  detailIo[0].no_io !== null && detailIo[0].no_io.length > 0 ? (
                                                 <FaCheck size={30} className='green ml-2' />
                                             ) : (

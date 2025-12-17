@@ -45,7 +45,8 @@ import Select from 'react-select/creatable';
 const {REACT_APP_BACKEND_URL} = process.env
 
 const disposalSchema = Yup.object().shape({
-    doc_sap: Yup.string().required('must be filled'),
+    // doc_sap: Yup.string().required('must be filled'),
+    doc_sap: Yup.string(),
     date_ba: Yup.string().required('must be filled')
 })
 
@@ -459,7 +460,7 @@ class EksekusiDisposal extends Component {
         const arrDoc = []
         for (let i = 0; i < detailDis.length; i++) {
             if (detailDis[i].nilai_jual === "0" && (detailDis[i].doc_sap === null || detailDis[i].doc_sap === '')) {
-                cekNo.push(detailDis[i])
+                // cekNo.push(detailDis[i])
             } else if (detailDis[i].nilai_jual === "0" && (detailDis[i].date_ba === null || detailDis[i].date_ba === '')) {
                 cekSap.push(detailDis[i])
             } else {
@@ -1681,7 +1682,7 @@ class EksekusiDisposal extends Component {
                                             <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             <td>{item.keterangan}</td>
                                             <td >
-                                                {this.state.filter === 'available' && (
+                                                {(this.state.filter === 'available' || this.state.filter === 'finish') && (
                                                     <Button className='ml-1 mt-1' color='warning' onClick={() => this.prosesOpenRinci(item)}>Proses</Button>
                                                 )}
                                                 <Button className='ml-1 mt-1' color='success' onClick={() => this.prosesOpenDokumen(item)}>Dokumen</Button>

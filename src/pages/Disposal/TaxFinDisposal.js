@@ -352,10 +352,10 @@ class TaxFinDisposal extends Component {
         const tempdocFin = []
         const arrdocFin = []
         if (level === '2') {
-            if (detailDis.find(item => (item.doc_sap === null || item.doc_sap === '') || (item.doc_clearing === null || item.doc_clearing === '')) !== undefined) {
-                this.setState({confirm: 'falseNodoc'})
-                this.openConfirm()
-            } else {
+            // if (detailDis.find(item => (item.doc_sap === null || item.doc_sap === '') || (item.doc_clearing === null || item.doc_clearing === '')) !== undefined) {
+            //     this.setState({confirm: 'falseNodoc'})
+            //     this.openConfirm()
+            // } else { 
                 for (let i = 0; i < detailDis.length; i++) {
                     const data = {
                         noId: detailDis[i].id,
@@ -412,7 +412,7 @@ class TaxFinDisposal extends Component {
                         this.openModalApprove()
                     }
                 }
-            }
+            // }
         } else if (level === '3') {
             if (detailDis.find(item => (item.no_fp === null || item.no_fp === ''))) {
                 this.setState({confirm: 'falseTax'})
@@ -1096,173 +1096,6 @@ class TaxFinDisposal extends Component {
           };
         return (
             <>
-                {/* <Sidebar {...sidebarProps}>
-                    <MaterialTitlePanel title={contentHeader}>
-                        <div className={style.backgroundLogo}>
-                            {level === '3' ? (
-                                <div className={style.bodyDashboard}>
-                                <Alert color="danger" className={style.alertWrong} isOpen={alert}>
-                                    <div>{alertMsg}</div>
-                                    <div>{alertM}</div>
-                                </Alert>
-                                <div className={style.headMaster}>
-                                    <div className={style.titleDashboard1}>Tax Disposal</div>
-                                </div>
-                                <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit}>
-                                    <div>Lengkapi data asset terlebih dahulu</div>
-                                </Alert>
-                                <Row className="cartDisposal2">
-                                    {dataDis.length === 0 ? (
-                                        <Col md={8} xl={8} sm={12}>
-                                            <div className="txtDisposEmpty">Tidak ada data disposal</div>
-                                        </Col>
-                                    ) : (
-                                        <Col md={12} xl={12} sm={12} className="mb-5 mt-5">
-                                        {dataDis.length !== 0 && dataDis.map(item => {
-                                            return (
-                                                item.no_io === '3' || item.no_io === 3 ? (
-                                                    <Col md={8} xl={8} sm={12}>
-                                                        <div className="txtDisposEmpty"></div>
-                                                    </Col>
-                                                ) : (
-                                                    <div className="cart1">
-                                                        <div className="navCart">
-                                                            <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="cartImg" />
-                                                            <Button className="labelBut" color="warning" size="sm">{item.nilai_jual === '0' ? 'Pemusnahan' : 'Penjualan'}</Button>
-                                                            <div className="txtCart">
-                                                                <div>
-                                                                    <div className="nameCart mb-3">{item.nama_asset}</div>
-                                                                    <div className="noCart mb-3">No asset : {item.no_asset}</div>
-                                                                    <div className="noCart mb-3">No disposal : D{item.no_disposal}</div>
-                                                                    <div className="noCart mb-3">{item.keterangan}</div>
-                                                                    <Button color="success" onClick={() => this.submitTaxFinDisposal(item)}>Submit</Button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="footCart">
-                                                            <Button color="primary" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}>Rincian</Button>
-                                                            <div></div>
-                                                        </div>
-                                                    </div>
-                                                )
-                                            )
-                                        })}
-                                    </Col>
-                                    )}
-                                </Row>
-                            </div>
-                            ) : level === '4' ? (
-                                <div className={style.bodyDashboard}>
-                                <Alert color="danger" className={style.alertWrong} isOpen={alert}>
-                                    <div>{alertMsg}</div>
-                                    <div>{alertM}</div>
-                                </Alert>
-                                <div className={style.headMaster}>
-                                    <div className={style.titleDashboard1}>Finance Disposal</div>
-                                </div>
-                                <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit}>
-                                    <div>Lengkapi data asset terlebih dahulu</div>
-                                </Alert>
-                                <Row className="cartDisposal2">
-                                    {dataDis.length === 0 ? (
-                                        <Col md={8} xl={8} sm={12}>
-                                            <div className="txtDisposEmpty">Tidak ada data disposal</div>
-                                        </Col>
-                                    ) : (
-                                        <Col md={12} xl={12} sm={12} className="mb-5 mt-5">
-                                        {dataDis.length !== 0 && dataDis.map(item => {
-                                            return (
-                                                item.no_io === '4' || item.no_io === 4 ? (
-                                                    <Col md={8} xl={8} sm={12}>
-                                                        <div className="txtDisposEmpty"></div>
-                                                    </Col> 
-                                                ) : (
-                                                    <div className="cart1">
-                                                        <div className="navCart">
-                                                            <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="cartImg" />
-                                                            <Button className="labelBut" color="warning" size="sm">{item.nilai_jual === '0' ? 'Pemusnahan' : 'Penjualan'}</Button>
-                                                            <div className="txtCart">
-                                                                <div>
-                                                                    <div className="nameCart mb-3">{item.nama_asset}</div>
-                                                                    <div className="noCart mb-3">No asset : {item.no_asset}</div>
-                                                                    <div className="noCart mb-3">No disposal : D{item.no_disposal}</div>
-                                                                    <div className="noCart mb-3">{item.keterangan}</div>
-                                                                    <Button color="success" onClick={() => this.submitTaxFinDisposal(item)}>Submit</Button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="footCart">
-                                                            <Button color="primary" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}>Rincian</Button>
-                                                            <div></div>
-                                                        </div>
-                                                    </div>
-                                                )
-                                            )
-                                        })}
-                                    </Col>
-                                    )}
-                                </Row>
-                            </div>
-                            ) : level === '2' ? (
-                                <div className={style.bodyDashboard}>
-                                <Alert color="danger" className={style.alertWrong} isOpen={alert}>
-                                    <div>{alertMsg}</div>
-                                    <div>{alertM}</div>
-                                </Alert>
-                                <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSetuju}>
-                                    <div>{message}</div>
-                                </Alert>
-                                <div className={style.headMaster}>
-                                    <div className={style.titleDashboard1}>Finance & Tax Disposal</div>
-                                </div>
-                                <Alert color="danger" className={style.alertWrong} isOpen={this.state.alertSubmit}>
-                                    <div>Lengkapi data asset terlebih dahulu</div>
-                                </Alert>
-                                <Row className="cartDisposal2">
-                                    {dataDis.length === 0 ? (
-                                        <Col md={8} xl={8} sm={12}>
-                                            <div className="txtDisposEmpty">Tidak ada data disposal</div>
-                                        </Col>
-                                    ) : (
-                                        <Col md={12} xl={12} sm={12} className="mb-5 mt-5">
-                                        {dataDis.length !== 0 && dataDis.map(item => {
-                                            return (
-                                                <div className="cart1">
-                                                    <div className="navCart">
-                                                        <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="cartImg" />
-                                                        <Button className="labelBut" color="warning" size="sm">{item.nilai_jual === '0' ? 'Pemusnahan' : 'Penjualan'}</Button>
-                                                        <div className="txtCart">
-                                                            <div>
-                                                                <div className="nameCart mb-3">{item.nama_asset}</div>
-                                                                <div className="noCart mb-3">No asset : {item.no_asset}</div>
-                                                                <div className="noCart mb-3">No disposal : D{item.no_disposal}</div>
-                                                                <div className="noCart mb-3">{item.keterangan}</div>
-                                                                <div className="btnVerTax">
-                                                                    <Button color="success" disabled={item.no_io === 'finance' || item.no_io === 'tax' || item.no_io === 'taxfin' ? true : false} onClick={() => this.submitFinalDisposal(item)}>Approve</Button>
-                                                                    <Button color="danger ml-2" disabled={item.no_io === 'tax' || item.no_io === 'taxfin' ? true : false} onClick={() => this.rejectTaxFinDis({val: item, tipe: 'tax'})} >Reject Tax</Button>
-                                                                    <Button color="danger ml-2" disabled={item.no_io === 'finance' || item.no_io === 'taxfin' ? true : false} onClick={() => this.rejectTaxFinDis({val: item, tipe: 'finance'})} >Reject Finance</Button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="footCart">
-                                                        <Button color="primary mr-4" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}>Rincian</Button>
-                                                    </div>
-                                                </div>
-                                            )
-                                        })}
-                                    </Col>
-                                    )}
-                                </Row>
-                            </div>
-                            ) : (
-                                <div className={style.headMaster}>
-                                    <div className={style.titleDashboard1}>Anda tidak memiliki akses dihalaman ini</div>
-                                </div>
-                            )}
-                        </div>
-                    </MaterialTitlePanel>
-                </Sidebar> */}
                 <div className={styleTrans.app}>
                     <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
 
@@ -1275,11 +1108,7 @@ class TaxFinDisposal extends Component {
                             }
                         </h2>
                         <div className={styleTrans.searchContainer}>
-                            {(level === '5' || level === '9' ) ? (
-                                <Button size="lg" color='primary' onClick={this.goCartDispos}>Create</Button>
-                            ) : (
-                                <div></div>
-                            )}
+                            <div></div>
                             <select value={this.state.filter} onChange={e => this.changeFilter(e.target.value)} className={styleTrans.searchInput}>
                                 <option value="all">All</option>
                                 <option value="available">Available Approve</option>
@@ -1958,7 +1787,7 @@ class TaxFinDisposal extends Component {
                                             <td>{item.nilai_jual === null || item.nilai_jual === undefined ? 0 : item.nilai_jual.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             <td>{item.keterangan}</td>
                                             <td >
-                                                {this.state.filter === 'available' && (
+                                                {(this.state.filter === 'available' || this.state.filter === 'finish') && (
                                                     <Button className='ml-1 mt-1' color='warning' onClick={() => this.prosesOpenRinci(item)}>Proses</Button>
                                                 )}
                                             </td>
