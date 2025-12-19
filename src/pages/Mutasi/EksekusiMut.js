@@ -1171,7 +1171,7 @@ class EksekusiMut extends Component {
                                     <Row className='ml-1'>
                                         <Col className='noPad' md={4}>Tanggal Mutasi Fisik</Col>
                                         <Col className='noPad rowGeneral' md={6}>
-                                            <div className='mr-1'>:</div> {detailMut.length !== 0 ? moment(detailMut[0].tgl_mutasifisik).format('DD MMMM YYYY') : ''}
+                                            <div className='mr-1'>:</div> {detailMut.length !== 0 ? (detailMut[0].tgl_mutasifisik ? moment(detailMut[0].tgl_mutasifisik).format('DD MMMM YYYY') : '-') : ''}
                                         </Col>
                                     </Row>
                                     <Row className='ml-1'>
