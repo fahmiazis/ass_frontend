@@ -253,7 +253,7 @@ class FormMutasi extends Component {
         }
 
         ws.mergeCells(`P4`, `R4`)
-        ws.getCell(`P4`).value = `:${detailMut.length !== 0 && detailMut[0].tgl_mutasifisik !== null ? moment(detailMut[0].tgl_mutasifisik).format('DD MMMM YYYY') : ''}`
+        ws.getCell(`P4`).value = `:${detailMut.length !== 0 && detailMut[0].tgl_mutasifisik ? moment(detailMut[0].tgl_mutasifisik).format('DD MMMM YYYY') : ''}`
         ws.getCell(`P4`).alignment = {
             ...leftStyle,
             ...wrapStyle
