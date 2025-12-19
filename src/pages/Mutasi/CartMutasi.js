@@ -302,14 +302,21 @@ class CartMutasi extends Component {
             if (dataCart.length > 0) {
                 if (dataCart.find(item => item.kode_plant_rec === kode)) {
                     if (dataCart.find(item => item.kategori === dataRinci.kategori)) {
-                        await this.props.addMutasi(token, dataRinci.no_asset, kode)
-                        await this.props.getAsset(token, limit, search, page.currentPage, 'mutasi')
-                        await this.props.getCart(token)
-                        this.openRinciAdmin()
-                        this.setState({confirm: 'add'})
-                        this.openConfirm()
+                        const cekKategori =  dataRinci.kategori ? ((dataRinci.kategori.toLowerCase() === 'it' || dataRinci.kategori.toLowerCase() === 'non it') ? true : false) : false
+                        if (!cekKategori) {
+                            this.setState({confirm: 'falseKategori'})
+                            this.openConfirm()
+                        } else {
+                            await this.props.addMutasi(token, dataRinci.no_asset, kode)
+                            await this.props.getAsset(token, limit, search, page.currentPage, 'mutasi')
+                            await this.props.getCart(token)
+                            this.openRinciAdmin()
+                            this.setState({confirm: 'add'})
+                            this.openConfirm()
+                        }
+                        
                     } else {
-                        this.setState({confirm: 'falseKat'})
+                        this.setState({confirm: 'diffKat'})
                         this.openConfirm()
                     }
                 } else {
@@ -969,12 +976,20 @@ class CartMutasi extends Component {
                                     <div className="errApprove mt-2">Pastikan tujuan mutasi sama dengan item yang lain</div>
                                 </div>
                             </div>
-                        ) : this.state.confirm === 'falseKat' ? (
+                        ) : this.state.confirm === 'diffKat' ? (
                             <div>
                                 <div className={style.cekUpdate}>
                                     <AiOutlineClose size={80} className={style.red} />
                                     <div className={[style.sucUpdate, style.green]}>Gagal Menambahkan Item</div>
                                     <div className="errApprove mt-2">Pastikan kategori it atau non-it sama dengan item yang lain</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'falseKategori' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green]}>Gagal Menambahkan Data</div>
+                                    <div className={[style.sucUpdate, style.green]}>Pastikan data yang ditambahkan memiliki kategori</div>
                                 </div>
                             </div>
                         ) : this.state.confirm === 'falseUpdate' ? (

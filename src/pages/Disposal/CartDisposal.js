@@ -85,7 +85,7 @@ class CartDisposal extends Component {
             subject: '',
             message: '',
             modalNpwp: false,
-            selAset: '',
+            selAset: {},
             typeNpwp: ''
         }
         this.onSetOpen = this.onSetOpen.bind(this);
@@ -246,11 +246,15 @@ class CartDisposal extends Component {
         const token = localStorage.getItem("token")
         const {dataCart} = this.props.disposal
         const cek = dataCart.find(item => item.nilai_jual !== '0' && item.nilai_jual !== 0)
+        const cekKategori =  value.kategori ? ((value.kategori.toLowerCase() === 'it' || value.kategori.toLowerCase() === 'non it') ? true : false) : false
         if (cek !== undefined) {
             this.setState({confirm: 'falseAdd'})
             this.openConfirm()
+        } else if (!cekKategori) {
+            this.setState({confirm: 'falseKategori'})
+            this.openConfirm()
         } else {
-            await this.props.addDisposal(token, value)
+            await this.props.addDisposal(token, value.no_asset)
             this.setState({confirm: 'add'})
             this.openConfirm()
             this.getDataCart()
@@ -288,18 +292,22 @@ class CartDisposal extends Component {
     addSell = async () => {
         const token = localStorage.getItem("token")
         const {dataCart} = this.props.disposal
+        const {typeNpwp, selAset} = this.state
         const cek = dataCart.find(item => item.nilai_jual === '0' || item.nilai_jual === 0)
+        const cekKategori =  selAset.kategori ? ((selAset.kategori.toLowerCase() === 'it' || selAset.kategori.toLowerCase() === 'non it') ? true : false) : false
         if (cek !== undefined) {
             this.setState({confirm: 'falseAdd'})
             this.openConfirm()
+        } else if (!cekKategori) {
+            this.setState({confirm: 'falseKategori'})
+            this.openConfirm()
         } else {
-            const {typeNpwp, selAset} = this.state
             const data = {
-                no: selAset
+                no: selAset.no_asset
                 // tipeNpwp: typeNpwp
             }
             await this.props.addSell(token, data)
-            this.setState({confirm: 'add', selAset: ''})
+            this.setState({confirm: 'add', selAset: {}})
             this.openConfirm()
             // this.openModalNpwp()
             this.getDataCart()
@@ -888,14 +896,14 @@ class CartDisposal extends Component {
                                                         className='ml-1 mt-1' 
                                                         color="warning" 
                                                         // onClick={() => this.prosesOpenNpwp(item.no_asset)}
-                                                        onClick={() => this.prosesAddSell(item.no_asset)}
+                                                        onClick={() => this.prosesAddSell(item)}
                                                     >
                                                         Sell
                                                     </Button>
                                                     <Button 
                                                         className='ml-1 mt-1' 
                                                         color="info" 
-                                                        onClick={() => this.addDisposal(item.no_asset)}
+                                                        onClick={() => this.addDisposal(item)}
                                                     >
                                                         Dispose
                                                     </Button>
@@ -1039,6 +1047,14 @@ class CartDisposal extends Component {
                                 <AiOutlineClose size={80} className={style.red} />
                                 <div className={[style.sucUpdate, style.green]}>Gagal Menambahkan Data</div>
                                 <div className={[style.sucUpdate, style.green]}>Pastikan data yang ditambahkan memiliki tipe yang sama</div>
+                            </div>
+                        </div>
+                    ) : this.state.confirm === 'falseKategori' ? (
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Menambahkan Data</div>
+                                <div className={[style.sucUpdate, style.green]}>Pastikan data yang ditambahkan memiliki kategori</div>
                             </div>
                         </div>
                     ) : this.state.confirm === 'falseDoc' ? (
