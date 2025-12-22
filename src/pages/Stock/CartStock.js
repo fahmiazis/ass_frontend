@@ -1106,7 +1106,7 @@ class Stock extends Component {
 
                         <div className={styleTrans.searchContainer}>
                             <Button size="lg" color='primary' onClick={this.prosesSubmitPre}>Submit</Button>
-                            {level == '9' && (dataDepo.find(x => x.kode_plant === this.state.asetPart) && (dataDepo.find(x => x.kode_plant === this.state.asetPart).nama_area.toLowerCase() !== exclude)) && (
+                            {level == '9' && (this.state.asetPart === 'all' || (dataDepo.find(x => x.kode_plant === this.state.asetPart) && (dataDepo.find(x => x.kode_plant === this.state.asetPart).nama_area.toLowerCase() !== exclude))) && (
                                 <select value={this.state.asetPart} onChange={e => this.getAssetPart(e.target.value)} className={styleTrans.searchInput}>
                                     <option value="all">All</option>
                                     {dataDepo.length > 0 && dataDepo.filter(x => (x.kode_plant && x.kode_plant.length > 4) && (x.nama_area && x.nama_area.toLowerCase() !== exclude)).map(item => {
