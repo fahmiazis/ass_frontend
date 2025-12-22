@@ -776,7 +776,9 @@ class Asset extends Component {
                                     <th>KATEGORI</th>
                                     <th>STATUS</th>
                                     <th>Record</th>
-                                    <th>OPSI</th>
+                                    {level === '1' && (
+                                        <th>OPSI</th>
+                                    )}
                                 </tr>
                             </thead>
                             <tbody>
@@ -834,15 +836,17 @@ class Asset extends Component {
                                             <td>{item.kategori}</td>
                                             <td>{item.status === '100' ? 'Asset belum di GR' : item.status === '0' ? 'Asset telah didisposal' : 'available'}</td>
                                             <td>{!item.record_type ? 'SAP' : item.record_type}</td>
-                                            <td>
-                                                <Button
-                                                    size='sm'
-                                                    color='success'
-                                                    onClick={() => this.prosesOpenUpdate(item)}
-                                                >
-                                                    Update Record
-                                                </Button>
-                                            </td>
+                                            {level === '1' && (
+                                                <td>
+                                                    <Button
+                                                        size='sm'
+                                                        color='success'
+                                                        onClick={() => this.prosesOpenUpdate(item)}
+                                                    >
+                                                        Update Record
+                                                    </Button>
+                                                </td>
+                                            )}
                                         </tr>
                                     )
                                 })}
