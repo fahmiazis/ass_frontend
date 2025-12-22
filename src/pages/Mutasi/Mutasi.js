@@ -953,9 +953,18 @@ class Mutasi extends Component {
         const { dataRinci, newMut, listMut, listStat, tipeEmail, dataRej } = this.state
         const { detailDepo, dataDepo } = this.props.depo
         const { dataRole } = this.props.user
-        const { dataMut, noMut, mutApp, dataDoc, detailMut } = this.props.mutasi
+        const { dataMut, noMut, mutApp, dataDoc, detailMut, infoApp } = this.props.mutasi
         const { dataAsset, page } = this.props.asset
         const pages = this.props.mutasi.page
+
+        const splitApp = infoApp.info ? infoApp.info.split(']') : []
+        const pembuatApp = splitApp.length > 0 ? splitApp[0] : ''
+        const pemeriksaApp = splitApp.length > 0 ? splitApp[1] : ''
+        const penyetujuApp = splitApp.length > 0 ? splitApp[2] : ''
+
+        const cekFrm = detailMut[0] && detailMut[0].kode_plant.length > 4 ? 9 : 5
+        const cekTo = detailMut[0] && detailMut[0].kode_plant_rec.length > 4 ? 9 : 5
+        const codeApp = cekFrm === 9 && cekTo === 9 ? 1 : cekFrm === 9 && cekTo === 5 ? 2 : cekFrm === 5 && cekTo === 9 ? 3 : 4
 
         const contentHeader = (
             <div className={style.navbar}>
@@ -1416,16 +1425,16 @@ class Mutasi extends Component {
                             <div className='colGeneral ml-4'>
                                 <div className='bold underline otoSize'>Matrix Otorisasi, ditandatangani oleh :</div>
                                 <div className='bold otoSize'>Area ke Area</div>
-                                <div className='otoSize'>1. Dibuat : AOS</div>
-                                <div className='otoSize'>2. Diperiksa : BM, ROM, GAAM/IT OSM (aset IT)</div>
-                                <div className='otoSize'>3. Disetujui  : Head of Ops Excellence, Treasury Operation Senior Manager</div>
+                                <div className='otoSize'>1. Dibuat : {pembuatApp.split(';')[4] && pembuatApp.split(';')[4]}</div>
+                                <div className='otoSize'>2. Diperiksa : {pemeriksaApp.split(';')[4] && pemeriksaApp.split(';')[4]}</div>
+                                <div className='otoSize'>3. Disetujui  : {penyetujuApp.split(';')[4] && penyetujuApp.split(';')[4]}</div>
                             </div>
                             <div className='colGeneral ml-4'>
                                 <br />
                                 <div className='bold otoSize'>HO ke Area</div>
-                                <div className='otoSize'>1. Dibuat : GA SPV/IT SPV (aset IT)</div>
-                                <div className='otoSize'>2. Diperiksa : BM, ROM, NFAC, GAAM, IT OSM (aset IT)</div>
-                                <div className='otoSize'>3. Disetujui : Head of Ops Excellence, Head of HC S&D Domestic, Treasury Operation Senior Manager</div>
+                                <div className='otoSize'>1. Dibuat : {pembuatApp.split(';')[2] && pembuatApp.split(';')[2]}</div>
+                                <div className='otoSize'>2. Diperiksa : {pemeriksaApp.split(';')[2] && pemeriksaApp.split(';')[2]}</div>
+                                <div className='otoSize'>3. Disetujui  : {penyetujuApp.split(';')[2] && penyetujuApp.split(';')[2]}</div>
                             </div>
                         </div>
                         <Table bordered responsive className="tabPreview">

@@ -43,7 +43,8 @@ const disposalState = {
     subRevisi: null,
     appRevisi: null,
     detailNew: [],
-    dataSearch: []
+    dataSearch: [],
+    infoApp: {}
 };
 
 export default (state=disposalState, action) => {
@@ -163,6 +164,7 @@ export default (state=disposalState, action) => {
                     isLoading: false,
                     isGetDet: true,
                     detailDis: action.payload.data.result,
+                    infoApp: action.payload.data.infoApp ? action.payload.data.infoApp : {},
                     alertMsg: 'get detail disposal Succesfully',
                 };
             }

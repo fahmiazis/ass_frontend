@@ -1228,7 +1228,7 @@ class Disposal extends Component {
         const {alert, upload, errMsg, app, find, fileName, listMut, listStat, listDis, newSubmit} = this.state
         const {dataAsset, alertM, alertMsg, alertUpload, page} = this.props.asset
         const pages = this.props.disposal.page 
-        const { dataDis, noDis, dataDoc, disApp, dataSubmit, detailDis } = this.props.disposal
+        const { dataDis, noDis, dataDoc, disApp, dataSubmit, detailDis, infoApp } = this.props.disposal
         const {dataRinci, newDis, tipeEmail} = this.state
         const {dataRole, dataUser} = this.props.user
         const disSet = this.props.setuju.disApp
@@ -1237,6 +1237,16 @@ class Disposal extends Component {
         const kode = localStorage.getItem('kode')
         const dataNotif = this.props.notif.data
         const role = localStorage.getItem('role')
+
+        const splitApp = infoApp.info ? infoApp.info.split(']') : []
+        const pembuatApp = splitApp.length > 0 ? splitApp[0] : ''
+        const pemeriksaApp = splitApp.length > 0 ? splitApp[1] : ''
+        const penyetujuApp = splitApp.length > 0 ? splitApp[2] : ''
+
+        const areaAppIt = `${pembuatApp.split(';')[4] && pembuatApp.split(';')[4]}, ${pemeriksaApp.split(';')[4] && pemeriksaApp.split(';')[4]}, ${penyetujuApp.split(';')[4] && penyetujuApp.split(';')[4]}`
+        const areaApp = `${pembuatApp.split(';')[3] && pembuatApp.split(';')[3]}, ${pemeriksaApp.split(';')[3] && pemeriksaApp.split(';')[3]}, ${penyetujuApp.split(';')[3] && penyetujuApp.split(';')[3]}`
+        const hoAppIt = `${pembuatApp.split(';')[2] && pembuatApp.split(';')[2]}, ${pemeriksaApp.split(';')[2] && pemeriksaApp.split(';')[2]}, ${penyetujuApp.split(';')[2] && penyetujuApp.split(';')[2]}`
+        const hoApp = `${pembuatApp.split(';')[1] && pembuatApp.split(';')[1]}, ${pemeriksaApp.split(';')[1] && pemeriksaApp.split(';')[1]}, ${penyetujuApp.split(';')[1] && penyetujuApp.split(';')[1]}`
 
         const contentHeader =  (
             <div className={style.navbar}>
@@ -1597,6 +1607,19 @@ class Disposal extends Component {
                                     </tr>
                                 </tbody>
                             </Table>
+                            <div className='underline bold'>Matrix Otorisasi ditandatangani oleh:</div>
+                            <Row className='mb-4'>
+                                <Col md={6} xl={6} lg={6}>
+                                    <div className='bold'>Aset (Nilai &ge; 1000.000, Barang IT)</div>
+                                    <div className='txtDisInfo'>1. Area : {areaAppIt}</div>
+                                    <div className='txtDisInfo'>2. Head Office : {hoAppIt}</div>
+                                </Col>
+                                <Col md={6} xl={6} lg={6}>
+                                    <div className='bold'>Aset (Nilai &ge; 1000.000, Barang Non IT)</div>
+                                    <div className='txtDisInfo'>1. Area : {areaApp}</div>
+                                    <div className='txtDisInfo'>2. Head Office : {hoApp}</div>
+                                </Col>
+                            </Row>
                         </Container>
                         <Container className='xxl'>
                             <div>FRM-HCD-105(1) REV 04</div>

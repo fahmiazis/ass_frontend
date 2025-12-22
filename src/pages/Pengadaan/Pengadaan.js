@@ -1686,11 +1686,18 @@ class Pengadaan extends Component {
         const { alert, upload, errMsg, rinciIo, total, listMut, newIo, listStat, fileName, url, detailTrack, sidebarOpen, tipeEmail } = this.state
         const { dataAsset, alertM, alertMsg, alertUpload, page } = this.props.asset
         const pages = this.props.disposal.page
-        const { dataPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataDocCart, dataTemp } = this.props.pengadaan
+        const { dataPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataDocCart, dataTemp, infoApp } = this.props.pengadaan
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
         const dataNotif = this.props.notif.data
         const role = localStorage.getItem('role')
+
+        const splitApp = infoApp.info ? infoApp.info.split(']') : []
+        const pembuatApp = splitApp.length > 0 ? splitApp[0] : ''
+        const pemeriksaApp = splitApp.length > 0 ? splitApp[1] : ''
+        const penyetujuApp = splitApp.length > 0 ? splitApp[2] : ''
+
+        const cekKode = detailIo[0] && detailIo[0].kode_plant.length > 4 ? 9 : 5
 
         const contentHeader = (
             <div className={style.navbar}>
@@ -2300,8 +2307,8 @@ class Pengadaan extends Component {
                             <div className=''>Cost Center diisi oleh Asset Department</div>
                             <div className=''>Untuk kategori Non Budgeted dan Return kolom alasan "Wajib" diisi</div>
                             <div className=''>* Sesuai Matriks Otorisasi, disetujui oleh :</div>
-                            <div className='ml-4'>- Budgeted / Return : NFAM</div>
-                            <div className='ml-4 mb-3'>- Non Budgeted : DH OPS, NFAM, DH FA, DH HC, CM</div>
+                            <div className='ml-4'>- Budgeted / Return : {cekKode === 5 ? (penyetujuApp.split(';')[1] && penyetujuApp.split(';')[1]) : (penyetujuApp.split(';')[3] && penyetujuApp.split(';')[3])}</div>
+                            <div className='ml-4 mb-3'>- Non Budgeted : {cekKode === 5 ? (penyetujuApp.split(';')[2] && penyetujuApp.split(';')[2]) : (penyetujuApp.split(';')[4] && penyetujuApp.split(';')[4])}</div>
                         </Container>
                         <Container>
                             <div className='mt-4'>FRM-FAD-058 REV 06</div>

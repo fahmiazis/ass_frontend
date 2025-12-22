@@ -192,6 +192,9 @@ html,body{
     color: black;
     margin-left: 10%;
 }
+.txtDisInfo {
+    font-size: 14px;
+}
 .menuSides {
     margin-left: 5%;
     background-color: #c0392b;

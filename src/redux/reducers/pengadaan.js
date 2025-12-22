@@ -14,6 +14,7 @@ const pengState = {
     dataShow: '',
     isShow: false,
     detailIo: [],
+    infoApp: {},
     dataTemp: [],
     isTemp: false,
     isDetail: false,
@@ -384,6 +385,7 @@ export default (state=pengState, action) => {
                 isLoading: false,
                 isDetail: true,
                 detailIo: action.payload.data.result,
+                infoApp: action.payload.data.infoApp ? action.payload.data.infoApp : {},
                 alertMsg: 'get pengadaan Succesfully',
             };
         }

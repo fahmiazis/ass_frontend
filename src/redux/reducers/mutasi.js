@@ -20,6 +20,7 @@ const mutasiState = {
     updateEks: false,
     submitEdit: false,
     detailMut: [],
+    infoApp: {},
     changeDate: false,
     mutApp: {},
     nomor_mutasi: '',
@@ -343,6 +344,7 @@ export default (state=mutasiState, action) => {
                     isLoading: false,
                     isGetDet: true,
                     detailMut: action.payload.data.result,
+                    infoApp: action.payload.data.infoApp ? action.payload.data.infoApp : {},
                     alertMsg: 'get mutasi Succesfully',
                 };
             }
