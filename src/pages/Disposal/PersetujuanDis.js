@@ -1439,7 +1439,7 @@ class Disposal extends Component {
                                 {newDis.length !== 0 && newDis.filter(x => ((level === '2' || level === '32') && this.state.filter === "submit") ? x.no_disposal !== null : (x.no_persetujuan !== null && x.status_form !== 9)).map((item, index) => {
                                     return (
                                         ((level === '2' || level === '32') && this.state.filter === "submit" ) ? (
-                                            <tr className={item.status_reject === 0 ? 'note' : item.status_transaksi === 0 ? 'fail' : item.status_reject === 1 && 'bad'}>
+                                            <tr className={item.status_reject === 0 ? 'note' : item.status_form == 0 ? 'fail' : item.status_reject === 1 && 'bad'}>
                                                 <td> 
                                                     <Input
                                                     addon
@@ -1469,7 +1469,7 @@ class Disposal extends Component {
                                                 </td>
                                             </tr>
                                         ) : (
-                                            <tr className={item.status_reject === 0 ? 'note' : item.status_transaksi === 0 ? 'fail' : item.status_reject === 1 && 'bad'}>
+                                            <tr className={item.status_reject === 0 ? 'note' : item.status_form == 0 ? 'fail' : item.status_reject === 1 && 'bad'}>
                                                 <td>{index + 1}</td>
                                                 <td>{item.no_persetujuan}</td>
                                                 {/* <td>{item.area}</td>

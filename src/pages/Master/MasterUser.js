@@ -34,7 +34,7 @@ const userSchema = Yup.object().shape({
     username: Yup.string().required(),
     fullname: Yup.string().required(),
     password: Yup.string().required(),
-    email: Yup.string().email().required(),
+    email: Yup.string().required(),
     depo: Yup.string(),
     user_level: Yup.string().required(),
     status: Yup.string().required(),
@@ -44,7 +44,7 @@ const userSchema = Yup.object().shape({
 const userEditSchema = Yup.object().shape({
     username: Yup.string().required(),
     fullname: Yup.string().required(),
-    email: Yup.string().email().required(),
+    email: Yup.string().required(),
     depo: Yup.string(),
     user_level: Yup.string().required(),
     status: Yup.string().required(),

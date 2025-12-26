@@ -1187,7 +1187,7 @@ class TaxFinDisposal extends Component {
                             <tbody>
                                 {newDis.length !== 0 && newDis.map(item => {
                                     return (
-                                        <tr className={item.status_reject === 0 ? 'note' : item.status_transaksi === 0 ? 'fail' : item.status_reject === 1 && 'bad'}>
+                                        <tr className={item.status_reject === 0 ? 'note' : item.status_form == 0 ? 'fail' : item.status_reject === 1 && 'bad'}>
                                             <td>{newDis.indexOf(item) + 1}</td>
                                             <td>{item.no_disposal}</td>
                                             <td>{item.area}</td>

@@ -1381,13 +1381,14 @@ class Disposal extends Component {
                                     <th>TANGGAL AJUAN</th>
                                     <th>APPROVED BY</th>
                                     <th>TGL APPROVED</th>
+                                    <th>LAST STATUS</th>
                                     <th>OPSI</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {newDis.length !== 0 && newDis.map(item => {
                                     return (
-                                        <tr className={item.status_reject === 0 ? 'note' : item.status_transaksi === 0 ? 'fail' : item.status_reject === 1 && 'bad'}>
+                                        <tr className={item.status_reject === 0 ? 'note' : item.status_form == 0 ? 'fail' : item.status_reject === 1 && 'bad'}>
                                             {(level === '2' && this.state.filter === "full" ) && (
                                                 <td> 
                                                     <Input
@@ -1417,6 +1418,7 @@ class Disposal extends Component {
                                                  : (item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? moment(item.appForm.find(item => item.status === 1).updatedAt).format('DD/MM/YYYY HH:mm:ss') : '-')
                                                 }
                                             </td>
+                                            <td>{item.history !== null ? item.history.split(',').reverse()[0] : '-'}</td>
                                             <td>
                                                 <Button 
                                                 className="mr-1 mt-1" 

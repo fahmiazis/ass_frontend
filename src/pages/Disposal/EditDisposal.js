@@ -573,7 +573,7 @@ class EditDisposal extends Component {
                             <tbody>
                                 {dataDis.length !== 0 && dataDis.map(item => {
                                     return (
-                                        <tr className={item.status_reject === 0 ? 'note' : item.status_transaksi === 0 ? 'fail' : item.status_reject === 1 && 'bad'}>
+                                        <tr className={item.status_reject === 0 ? 'note' : item.status_form == 0 ? 'fail' : item.status_reject === 1 && 'bad'}>
                                             <td>{dataDis.indexOf(item) + 1}</td>
                                             <td>{item.no_disposal}</td>
                                             <td>{item.area}</td>

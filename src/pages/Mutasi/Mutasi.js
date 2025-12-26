@@ -1079,6 +1079,7 @@ class Mutasi extends Component {
                                     <th>TANGGAL AJUAN</th>
                                     <th>APPROVED BY</th>
                                     <th>TGL APPROVED</th>
+                                    <th>LAST STATUS</th>
                                     <th>OPSI</th>
                                 </tr>
                             </thead>
@@ -1097,6 +1098,7 @@ class Mutasi extends Component {
                                             
                                             <Button className="btnSell" color="primary" onClick={() => {this.openDetailMut(item.no_mutasi); this.getDataApproveMut(item)}}>Proses</Button>
                                         </td> */}
+                                            <td>{item.history !== null ? item.history.split(',').reverse()[0] : '-'}</td>
                                             <td>
                                                 <Button
                                                     color='primary'

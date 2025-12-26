@@ -2328,7 +2328,7 @@ class Stock extends Component {
                                     <th>APPROVED BY</th>
                                     <th>TGL APPROVED</th>
                                     <th>STATUS WAKTU</th>
-                                    {/* <th>STATUS</th> */}
+                                    <th>LAST STATUS</th>
                                     <th>OPSI</th>
                                 </tr>
                             </thead>
@@ -2352,7 +2352,7 @@ class Stock extends Component {
                                             <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? item.appForm.find(item => item.status === 1).nama + ` (${item.appForm.find(item => item.status === 1).jabatan === 'area' ? 'AOS' : item.appForm.find(item => item.status === 1).jabatan})` : '-' }</td>
                                             <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? moment(item.appForm.find(item => item.status === 1).updatedAt).format('DD/MM/YYYY HH:mm:ss') : '-' }</td>
                                             <td>{moment(item.tanggalStock).format('DD') > 5 && moment(item.tanggalStock).format('DD') < 26 ? 'TELAT' : 'Tepat Waktu'}</td>
-                                            {/* <td>{item.history !== null && item.history.split(',').reverse()[0]}</td> */}
+                                            <td>{item.history !== null ? item.history.split(',').reverse()[0] : '-'}</td>
                                             <td className='tdOpsi'>
                                                 {/* <Button 
                                                 color='primary' 

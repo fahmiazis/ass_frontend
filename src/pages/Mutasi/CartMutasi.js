@@ -324,12 +324,19 @@ class CartMutasi extends Component {
                     this.openConfirm()
                 }
             } else {
-                await this.props.addMutasi(token, dataRinci.no_asset, kode)
-                await this.props.getAsset(token, limit, search, page.currentPage, 'mutasi')
-                await this.props.getCart(token)
-                this.openRinciAdmin()
-                this.setState({confirm: 'add'})
-                this.openConfirm()
+                const cekKategori =  dataRinci.kategori ? ((dataRinci.kategori.toLowerCase() === 'it' || dataRinci.kategori.toLowerCase() === 'non it') ? true : false) : false
+                if (!cekKategori) {
+                    this.setState({confirm: 'falseKategori'})
+                    this.openConfirm()
+                } else {
+                    await this.props.addMutasi(token, dataRinci.no_asset, kode)
+                    await this.props.getAsset(token, limit, search, page.currentPage, 'mutasi')
+                    await this.props.getCart(token)
+                    this.openRinciAdmin()
+                    this.setState({confirm: 'add'})
+                    this.openConfirm()
+                }
+                
             }
             
         }
