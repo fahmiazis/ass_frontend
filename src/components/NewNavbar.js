@@ -429,6 +429,10 @@ class NewNavbar extends Component {
                   <BsClipboardData className={styleTrans.icon} size={sidebarOpen && 20} /> 
                   {(!sidebarOpen || isMobile) &&  <span>Setting Approval</span>}
                 </div>
+                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('clossing')} >
+                  <BsClipboardData className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Setting Clossing</span>}
+                </div>
               </Collapse>
 
               <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('release-apk')} >

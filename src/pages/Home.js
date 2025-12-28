@@ -584,6 +584,10 @@ class Home extends Component {
                                 <BsClipboardData className="mr-2"/>
                                 Setting Approval
                             </li>
+                            <li onClick={() => this.goRoute('clossing')} className={styleHome.alignCenter}>
+                                <BsClipboardData className="mr-2"/>
+                                Setting Clossing
+                            </li>
                             {/* <li onClick={() => this.goRoute('pic')} className={styleHome.alignCenter}>
                                 <FiUsers className="mr-2"/>
                                 Master PIC

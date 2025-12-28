@@ -99,9 +99,13 @@ export default {
         type: 'SUBMIT_ASET',
         payload: http(token).patch(`/stock/subaset`, qs.stringify({no: no}))
     }),
-    addStock: (token, data) => ({
+    addStock: (token, data, type) => ({
         type: 'ADD_STOCK',
-        payload: http(token).post(`/stock/add`, qs.stringify(data))
+        payload: http(token).post(`/stock/add?type=${type ? type : 'draft'}`, type && type === 'revisi' ? data : qs.stringify(data))
+    }),
+    deleteAdd: (token, id) => ({
+        type: 'DELETE_ADDSTOCK',
+        payload: http(token).delete(`/stock/deleteAdd/${id}`),
     }),
     resetStock: () => ({
         type: 'RESET_STOCK'

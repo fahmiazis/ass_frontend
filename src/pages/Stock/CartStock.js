@@ -129,7 +129,9 @@ class Stock extends Component {
             upPict: [],
             crashAsset: [],
             openCrashDraft: false,
-            asetPart: 'all'
+            asetPart: 'all',
+            openDelete: false,
+            detailData: {}
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -516,6 +518,24 @@ class Stock extends Component {
         this.getDataStock()
     }
 
+    prosesDeleteStock = async (val) => {
+        const token = localStorage.getItem("token")
+        await this.props.deleteAdd(token, val.id);
+        await this.props.getStockArea(token, '', 1000, 1, 'draft');
+        this.openDelete();
+        this.setState({confirm: 'delete'});
+        this.openConfirm();
+    }
+
+    prosesOpenDelete = (val) => {
+        this.setState({detailData: val})
+        this.openDelete()
+    }
+
+    openDelete = () => {
+        this.setState({openDelete: !this.state.openDelete})
+    }
+
     showAlert = () => {
         this.setState({alert: true})
        
@@ -839,17 +859,18 @@ class Stock extends Component {
 
     updateAsset = async (value) => {
         const token = localStorage.getItem("token")
-        const { dataRinci } = this.state
+        const { dataRinci, fisik, kondisi } = this.state
         const { detailAsset } = this.props.asset
         const data = {
+            deskripsi: value.deskripsi,
             merk: value.merk,
             satuan: value.satuan,
             unit: value.unit,
             lokasi: value.lokasi,
-            grouping: detailAsset.grouping,
+            grouping: value.grouping,
             keterangan: value.keterangan,
-            status_fisik: detailAsset.fisik,
-            kondisi: detailAsset.kondisi
+            status_fisik: fisik,
+            kondisi: kondisi
         }
         if (dataRinci.no_asset === null) {
             await this.props.updateStock(token, dataRinci.id, data)
@@ -1037,7 +1058,7 @@ class Stock extends Component {
 
     getRinciStock = async (val) => {
         const token = localStorage.getItem("token")
-        this.setState({dataRinci: val, dataId: val.id})
+        this.setState({dataRinci: val, dataId: val.id, fisik: val.status_fisik, kondisi: val.kondisi})
         await this.props.getDetailItem(token, val.id)
         this.openModalStock()
     }
@@ -1787,6 +1808,7 @@ class Stock extends Component {
                             </div>
                             <Formik
                             initialValues = {{
+                                deskripsi: detRinci.deskripsi === null ? '' : detRinci.deskripsi,
                                 merk: detRinci.merk === null ? '' : detRinci.merk,
                                 satuan: detRinci.satuan === null ? '' : detRinci.satuan,
                                 unit: detRinci.unit === null ? '' : detRinci.unit,
@@ -1808,7 +1830,15 @@ class Stock extends Component {
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Deskripsi</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.deskripsi} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input 
+                                                disabled={level === '5' || level === '9' ? false : true}
+                                                type= "text" 
+                                                className="inputRinci" 
+                                                value={values.deskripsi} 
+                                                onBlur={handleBlur("deskripsi")}
+                                                onChange={handleChange("deskripsi")} 
+                                                />
+                                            </Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Merk</Col>
@@ -1882,14 +1912,14 @@ class Stock extends Component {
                                                 disabled={level === '5' || level === '9' ? false : true}
                                                 type="select"
                                                 className="inputRinci" 
-                                                value={detRinci.fisik} 
+                                                value={this.state.fisik} 
                                                 onBlur={handleBlur("status_fisik")}
-                                                // onChange={e => { handleChange("status_fisik"); this.selectStatus(e.target.value, this.state.kondisi)} }
+                                                onChange={e => { handleChange("status_fisik"); this.selectStatus(e.target.value, this.state.kondisi)} }
                                                 >
-                                                    <option>{values.status_fisik}</option>
+                                                    {/* <option>{values.status_fisik}</option> */}
                                                     <option>-Pilih Status Fisik-</option>
                                                     <option value="ada">Ada</option>
-                                                    <option value="tidak ada">Tidak Ada</option>
+                                                    {/* <option value="tidak ada">Tidak Ada</option> */}
                                                 </Input>
                                             </Col>
                                         </Row>
@@ -1902,15 +1932,15 @@ class Stock extends Component {
                                                 disabled={level === '5' || level === '9' ? false : true}
                                                 type="select"
                                                 className="inputRinci" 
-                                                value={values.kondisi} 
+                                                value={this.state.kondisi} 
                                                 onBlur={handleBlur("kondisi")}
-                                                // onChange={e => { handleChange("kondisi"); this.selectStatus(this.state.fisik, e.target.value)} }
+                                                onChange={e => { handleChange("kondisi"); this.selectStatus(this.state.fisik, e.target.value)} }
                                                 >
-                                                    <option>{values.kondisi}</option>
+                                                    {/* <option>{values.kondisi}</option> */}
                                                     <option>-Pilih Kondisi-</option>
                                                     <option value="baik">Baik</option>
-                                                    <option value="rusak">Rusak</option>
-                                                    <option value="">-</option>
+                                                    {/* <option value="rusak">Rusak</option>
+                                                    <option value="">-</option> */}
                                                 </Input>
                                             </Col>
                                         </Row>
@@ -1924,17 +1954,17 @@ class Stock extends Component {
                                                 type= "select" 
                                                 className="inputRinci"
                                                 value={values.grouping}
-                                                // onBlur={handleBlur("grouping")}
-                                                // onChange={handleChange("grouping")}
-                                                onClick={() => this.listStatus(detRinci)}
+                                                onBlur={handleBlur("grouping")}
+                                                onChange={handleChange("grouping")}
+                                                // onClick={() => this.listStatus(detailAsset.no_asset)}
                                                 >
                                                     <option>{values.grouping}</option>
                                                     {/* <option>-Pilih Status Aset-</option> */}
-                                                    {/* {dataStatus.length > 0 && dataStatus.map(item => {
+                                                    {dataStatus.length > 0 && dataStatus.map(item => {
                                                         return (
                                                             <option value={item.status}>{item.status}</option>
                                                         )
-                                                    })} */}
+                                                    })}
                                                 </Input>
                                             </Col>
                                         </Row>
@@ -2452,6 +2482,21 @@ class Stock extends Component {
                         </div>
                     </ModalBody>
                 </Modal>
+                <Modal isOpen={this.state.openDelete} toggle={this.openDelete} centered={true}>
+                    <ModalBody>
+                        <div className={style.modalApprove}>
+                            <div>
+                                <text>
+                                    Anda yakin untuk delete asset tambahan ?
+                                </text>
+                            </div>
+                            <div className={style.btnApprove}>
+                                <Button color="primary" onClick={() => this.prosesDeleteStock(this.state.detailData)}>Ya</Button>
+                                <Button color="secondary" onClick={this.openDelete}>Tidak</Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                </Modal>
                 <Modal isOpen={this.state.openConfirm} toggle={this.openModalConfirm} centered={true}>
                     <ModalBody>
                         <div className={style.modalApprove}>
@@ -2664,13 +2709,14 @@ class Stock extends Component {
                                         <th>LOKASI</th>
                                         <th>GROUPING</th>
                                         <th>KETERANGAN</th>
+                                        <th>OPSI</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {stockArea.length !== 0 && stockArea.filter(item => item.status_doc === 1 && item.status_form < 2).map((item, index) => {
                                         return (
                                             item.status_doc === 1 && (
-                                                <tr onClick={() => this.getRinciStock(item)}>
+                                                <tr>
                                                     <th scope="row">{index + 1}</th>
                                                     <td>{item.deskripsi}</td>
                                                     <td>{item.merk}</td>
@@ -2681,6 +2727,10 @@ class Stock extends Component {
                                                     <td>{item.lokasi}</td>
                                                     <td>{item.grouping}</td>
                                                     <td>{item.keterangan}</td>
+                                                    <td>
+                                                        <Button className='ml-1 mt-1' color='primary' onClick={() => this.getRinciStock(item)}>Update</Button>
+                                                        <Button className='ml-1 mt-1' color='danger' onClick={() => this.prosesOpenDelete(item)}>Delete</Button>
+                                                    </td>
                                                 </tr>
                                             )
                                         )})}
@@ -2802,6 +2852,13 @@ class Stock extends Component {
                             <div className={style.cekUpdate}>
                                 <AiFillCheckCircle size={80} className={style.green} />
                                 <div className={[style.sucUpdate, style.green]}>Berhasil Reject</div>
+                            </div>
+                        </div> 
+                    ) : this.state.confirm === 'delete' ?(
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Delete</div>
                             </div>
                         </div> 
                     ) : this.state.confirm === 'subReject' ?(
@@ -3038,6 +3095,7 @@ const mapDispatchToProps = {
     getRole: user.getRole,
     notifStock: notif.notifStock,
     addNewNotif: newnotif.addNewNotif,
+    deleteAdd: stock.deleteAdd,
     getDraftEmail: tempmail.getDraftEmail,
     sendEmail: tempmail.sendEmail,
 }
