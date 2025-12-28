@@ -91,7 +91,12 @@ class EditStock extends Component {
             modalStock: false,
             openSubmit: false,
             message: '',
-            subject: ''
+            subject: '',
+            preview: null,
+            modalAdd: false,
+            fileUpload: null,
+            detailData: {},
+            openDelete: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -207,6 +212,125 @@ class EditStock extends Component {
                 }
             }
         }
+    }
+
+    uploadGambar = e => {
+        const file = e.target.files[0]
+        if (file === undefined) {
+            console.log('error file tidak ditemukan')
+        } else {
+            const {size, type, lastModified} = e.target.files[0]
+            this.setState({fileUpload: e.target.files[0]})
+            if (size >= 20000000) {
+                this.setState({errMsg: "Maximum upload size 20 MB"})
+                // this.uploadAlert()
+            } else if (type !== 'image/jpeg' && type !== 'image/png') {
+                this.setState({errMsg: 'Invalid file type. Only image files are allowed.'})
+                // this.uploadAlert()
+            } else {
+                const date1 = moment(lastModified)
+                const date2 = moment()
+                const diffTime = Math.abs(date2 - date1)
+                const day = 1000 * 60 * 60 * 24
+                const finDiff = Math.round(diffTime / day)
+                console.log(finDiff)
+                if (finDiff > 10) {
+                    this.setState({confirm: 'oldPict'})
+                    this.openConfirm()
+                } else {
+                    const { dataId } = this.state
+                    const token = localStorage.getItem('token')
+                    const data = new FormData()
+                    data.append('document', e.target.files[0])
+                    this.props.uploadImage(token, dataId, data)
+                }
+            }
+        }
+    }
+
+    openAdd = () => {
+        this.setState({modalAdd: !this.state.modalAdd})
+    }
+
+    handleGambar = e => {
+        const file = e.target.files[0]
+        if (file === undefined) {
+            console.log('error file tidak ditemukan')
+        } else {
+            const {size, type, lastModified} = e.target.files[0]
+            
+            if (size >= 20000000) {
+                this.setState({errMsg: "Maximum upload size 20 MB"})
+                // this.uploadAlert()
+            } else if (type !== 'image/jpeg' && type !== 'image/png') {
+                this.setState({errMsg: 'Invalid file type. Only image files are allowed.'})
+                // this.uploadAlert()
+            } else {
+                const date1 = moment(lastModified)
+                const date2 = moment()
+                const diffTime = Math.abs(date2 - date1)
+                const day = 1000 * 60 * 60 * 24
+                const finDiff = Math.round(diffTime / day)
+                console.log(finDiff)
+                if (finDiff > 10) {
+                    this.setState({confirm: 'oldPict'})
+                    this.openConfirm()
+                }  else {
+                    this.setState({
+                        fileUpload: e.target.files[0],
+                        preview: URL.createObjectURL(e.target.files[0])
+                    })
+                }
+            }
+        }
+    }
+
+    addStock = async (val) => {
+        const token = localStorage.getItem("token")
+        const { kondisi, fisik } = this.state
+        const { stockArea } = this.props.stock
+        const data = {
+            idStock: stockArea[0].id,
+            deskripsi: val.deskripsi,
+            merk: val.merk,
+            satuan: val.satuan,
+            unit: val.unit,
+            lokasi: val.lokasi,
+            grouping: this.state.stat,
+            keterangan: val.keterangan,
+            kondisi: val.kondisi,
+            status_fisik: val.status_fisik
+        }
+        const formData = new FormData();
+
+        formData.append('document', this.state.fileUpload)
+        Object.entries(data).forEach(([key, value]) => {
+            formData.append(key, value);
+        });
+
+        await this.props.addOpname(token, formData, 'revisi')
+        await this.props.getDetailStock(token, stockArea[0].no_stock)
+        this.openAdd()
+        this.setState({confirm: 'add'})
+        this.openConfirm()
+    }
+
+    prosesDeleteStock = async (val) => {
+        const token = localStorage.getItem("token")
+        await this.props.deleteAdd(token, val.id);
+        await this.props.getDetailStock(token, val.no_stock)
+        this.openDelete();
+        this.setState({confirm: 'delete'});
+        this.openConfirm();
+    }
+
+    prosesOpenDelete = (val) => {
+        this.setState({detailData: val})
+        this.openDelete()
+    }
+
+    openDelete = () => {
+        this.setState({openDelete: !this.state.openDelete})
     }
 
     getApproveStock = async (value) => { 
@@ -344,7 +468,7 @@ class EditStock extends Component {
         //     this.openConfirm(this.setState({confirm: 'isApprove'}))
         // } 
         // else if (isUpdateNew) {
-        //     this.openConfirm(this.setState({confirm: 'approve'}))
+        //     this.openConfirm(this.setState({confirm: 'update'}))
         //     this.props.resetStock()
         //     this.props.getDetailItem(token, dataRinci.id)
         //     this.getDataAsset()
@@ -454,7 +578,7 @@ class EditStock extends Component {
         await this.props.appRevisi(token, dataRinci.id)
         await this.props.getDetailItem(token, dataRinci.id)
         await this.props.getDetailStock(token, dataRinci.no_stock)
-        this.openConfirm(this.setState({confirm: 'approve'}))
+        this.openConfirm(this.setState({confirm: 'update'}))
         this.getDataAsset()
     }
 
@@ -578,7 +702,8 @@ class EditStock extends Component {
                 await this.props.getStatus(token, '', '')
                 this.modalStatus()
             } else {
-                await this.props.getStatus(token, val.fisik === null ? '' : val.fisik, val.kondisi === null ? '' : val.kondisi, 'true')
+                const cekSap = !val.noAsset ? 'false' : 'true'
+                await this.props.getStatus(token, !val.fisik ? '' : val.fisik, !val.kondisi ? '' : val.kondisi, cekSap)
                 this.modalStatus()
             }
         }
@@ -734,331 +859,6 @@ class EditStock extends Component {
           };
         return (
             <>
-                {/* <Sidebar {...sidebarProps}>
-                    <MaterialTitlePanel title={contentHeader}>
-                    <div className={style.backgroundLogo}>
-                        <div className={style.bodyDashboard}>
-                            <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
-                                <div>{alertM}</div>
-                            </Alert>
-                            <div className={style.headMaster}>
-                                <div className={style.titleDashboard}>Revisi Stock Opname Asset</div>
-                            </div>
-                            <div className={style.secEmail3}>
-                                    {level === '5' ? (
-                                        <div className={style.headEmail}>
-                                        </div>
-                                    ) : level === '2' && (
-                                        <div className={style.headEmail}>
-                                            {this.state.view === 'list' ? (
-                                                <Button color="primary" className="transBtn ml-2" onClick={() => this.changeView('card')}><FaTh size={35} className="mr-2"/> Gallery View</Button>
-                                            ) : (
-                                                <Button color="primary" className="transBtn ml-3" onClick={() => this.changeView('list')}><FaList size={30} className="mr-2"/> List View</Button>
-                                            )}
-                                        </div>
-                                    )}
-                                    <div className={style.searchEmail}>
-                                        <text>Search: </text>
-                                        <Input 
-                                        className={style.search}
-                                        onChange={this.onSearch}
-                                        value={this.state.search}
-                                        onKeyPress={this.onSearch}
-                                        >
-                                            <FaSearch size={20} />
-                                        </Input>
-                                    </div>
-                                </div>
-                                {level === '5' ? (
-                                    <div>
-                                        <div className="stockTitle">kertas kerja opname aset kantor</div>
-                                        <div className="ptStock">pt. pinus merah abadi</div>
-                                        <Row className="ptStock inputStock">
-                                            <Col md={3} xl={3} sm={3}>kantor pusat/cabang</Col>
-                                            <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={stockArea.length > 0 ? stockArea[0].area : ''} className="ml-3"  /></Col>
-                                        </Row>
-                                        <Row className="ptStock inputStock">
-                                            <Col md={3} xl={3} sm={3}>depo/cp</Col>
-                                            <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={stockArea.length > 0 ? stockArea[0].area : ''} className="ml-3" /></Col>
-                                        </Row>
-                                        <Row className="ptStock inputStock">
-                                            <Col md={3} xl={3} sm={3}>opname per tanggal</Col>
-                                            <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={stockArea.length > 0 ? moment(stockArea[0].tanggalStock).format('LL') : '-'} className="ml-3"  /></Col>
-                                        </Row>
-                                    </div>
-                                ) : (
-                                    <div></div>
-                                )}
-                                {level === '5' ? (
-                                    isStockArea === false ? (
-                                        <div className={style.tableDashboard}>
-                                            <Table bordered responsive hover className={style.tab}>
-                                                <thead>
-                                                    <tr>
-                                                        <th>No</th>
-                                                        <th>NO. ASET</th>
-                                                        <th>DESKRIPSI</th>
-                                                        <th>MERK</th>
-                                                        <th>SATUAN</th>
-                                                        <th>UNIT</th>
-                                                        <th>LOKASI</th>
-                                                        <th>STATUS FISIK</th>
-                                                        <th>KONDISI</th>
-                                                        <th>STATUS ASET</th>
-                                                        <th>KETERANGAN</th>
-                                                        <th>Picture</th>
-                                                        <th>Action</th>
-                                                    </tr>
-                                                </thead>
-                                            </Table>
-                                            <div className={style.spin}>
-                                                <div>Tidak ada data revisi</div>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className={style.tableDashboard}>
-                                        <Table bordered responsive hover className={style.tab}>
-                                            <thead>
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>NO. ASET</th>
-                                                    <th>DESKRIPSI</th>
-                                                    <th>MERK</th>
-                                                    <th>SATUAN</th>
-                                                    <th>UNIT</th>
-                                                    <th>LOKASI</th>
-                                                    <th>STATUS FISIK</th>
-                                                    <th>KONDISI</th>
-                                                    <th>STATUS ASET</th>
-                                                    <th>KETERANGAN</th>
-                                                    <th>Picture</th>
-                                                    <th>Action</th>
-                                                    <th>Alasan Reject</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {stockArea.length !== 0 && stockArea.map(item => {
-                                                    return (
-                                                    <tr>
-                                                        <th scope="row">{stockArea.indexOf(item) + 1}</th>
-                                                        <td>{item.no_asset}</td>
-                                                        <td>{item.nama_asset}</td>
-                                                        <td>
-                                                            <Input
-                                                            type= "text"
-                                                            name="merk"
-                                                            className="inputRinci"
-                                                            value={this.state.idTab == item.id ? null : item.merk !== null ? item.merk : ''}
-                                                            onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
-                                                            onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
-                                                            />
-                                                        </td>
-                                                        <td>
-                                                            <Input 
-                                                            type="select"
-                                                            className="inputRinci"
-                                                            name="satuan"
-                                                            value={item.satuan}
-                                                            defaultValue={item.satuan}
-                                                            onChange={e => {this.updateNewAsset({item: item, target: e.target})} }
-                                                            >
-                                                                <option>-Pilih Satuan-</option>
-                                                                <option value="Unit">UNIT</option>
-                                                                <option value="Paket">PAKET</option>
-                                                            </Input>
-                                                        </td>
-                                                        <td>{item.unit}</td>
-                                                        <td>
-                                                            <Input
-                                                            type= "text"
-                                                            name="lokasi"
-                                                            className="inputRinci"
-                                                            value={this.state.idTab == item.id ? null : item.lokasi !== null ? item.lokasi : ''}
-                                                            onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
-                                                            onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
-                                                            />
-                                                        </td>
-                                                        <td>
-                                                            <Input 
-                                                            type="select"
-                                                            className="inputRinci"
-                                                            name="status_fisik"
-                                                            value={item.status_fisik}
-                                                            defaultValue={item.status_fisik === null ? '' : item.status_fisik}
-                                                            onChange={e => {this.updateNewAsset({item: item, target: e.target})} }
-                                                            >
-                                                                <option value={null}>-Pilih Status Fisik-</option>
-                                                                <option value="ada">Ada</option>
-                                                                <option value="tidak ada">Tidak Ada</option>
-                                                            </Input>
-                                                        </td>
-                                                        <td>
-                                                            <Input 
-                                                            type="select"
-                                                            name="kondisi"
-                                                            className="inputRinci"
-                                                            value={item.kondisi}
-                                                            defaultValue={item.kondisi === null ? 'null' : item.kondisi} 
-                                                            onChange={e => {this.updateNewAsset({item: item, target: e.target})} }
-                                                            >
-                                                                <option>-Pilih Kondisi-</option>
-                                                                <option value="baik">Baik</option>
-                                                                <option value="rusak">Rusak</option>
-                                                                <option value="">-</option>
-                                                            </Input>
-                                                        </td>
-                                                        <td>
-                                                            <ButtonDropdown className={style.drop2} isOpen={this.state.dropOp && item.no_asset === this.state.noAsset} toggle={() => this.dropOpen(item)}>
-                                                                <DropdownToggle caret color="light">
-                                                                    {item.grouping === null || item.grouping === '' || item.grouping === undefined ? '-Pilih Status Aset-' : item.grouping }
-                                                                </DropdownToggle>
-                                                                <DropdownMenu>
-                                                                    {dataStatus.length > 0 && dataStatus.map(x => {
-                                                                        return (
-                                                                            <DropdownItem onClick={() => this.updateGrouping({item: item, target: x.status})} className={style.item}>{x.status}</DropdownItem>
-                                                                        )
-                                                                    })}
-                                                                </DropdownMenu>
-                                                            </ButtonDropdown>
-                                                        </td>
-                                                        <td>
-                                                            <Input
-                                                            type= "text"
-                                                            name="keterangan"
-                                                            className="inputRinci"
-                                                            value={this.state.idTab == item.id ? null : item.keterangan !== null ? item.keterangan : ''}
-                                                            defaultValue={item.keterangan === null ? '' : item.keterangan}
-                                                            onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
-                                                            onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
-                                                            />
-                                                        </td>
-                                                        <td>
-                                                            {item.pict === undefined || item.pict.length === 0 ? 
-                                                            <Input type="file" onChange={this.uploadPicture} onClick={() => this.setState({dataRinci: item})}>Upload</Input> : 
-                                                            <div className="">
-                                                                <img src={`${REACT_APP_BACKEND_URL}/${item.pict[item.pict.length - 1].path}`} className="imgTable" />
-                                                                <text className='textPict'>{moment(item.pict[item.pict.length - 1].createdAt).format('DD MMMM YYYY')}</text>
-                                                                <Input type="file" onChange={this.uploadPicture} onClick={() => this.setState({dataRinci: item})}>Upload</Input>
-                                                            </div>
-                                                            }
-                                                        </td>
-                                                        <td>
-                                                            <Button color="primary" onClick={() => this.getRincian(item)}>Rincian</Button>
-                                                            <Button className='mt-2' color="success" onClick={() => this.submitRev(item)}>Submit</Button>
-                                                        </td>
-                                                        <td>
-                                                            {item.reason}
-                                                        </td>
-                                                    </tr>
-                                                    )})}
-                                            </tbody>
-                                        </Table>
-                                    </div>
-                                    )
-                                ) : (
-                                    dataStock.length === 0 && dataDepo.length === 0 ? (
-                                        <div></div>
-                                    ) : (
-                                        this.state.view === 'card' ? (
-                                            <Row className="bodyDispos">
-                                                {dataStock.length !== 0 && dataStock.map(item => {
-                                                    return (
-                                                        <div className="bodyCard">
-                                                            <img src={item.no_asset === '4100000150' ? b : item.no_asset === '4300001770' ? e : placeholder} className="imgCard1" />
-                                                            <Button size="sm" color="success" className="labelBut">Stock Opname</Button>
-                                                            <div className="btnDispos ml-2">
-                                                                <div className="txtDoc mb-2">
-                                                                    Pengajuan Stock Opname
-                                                                </div>
-                                                                <Row className="mb-2">
-                                                                    <Col md={5} className="txtDoc">
-                                                                    Kode Plant
-                                                                    </Col>
-                                                                    <Col md={7} className="txtDoc">
-                                                                    : {item.kode_plant}
-                                                                    </Col>
-                                                                </Row>
-                                                                <Row className="mb-2">
-                                                                    <Col md={5} className="txtDoc">
-                                                                    Area
-                                                                    </Col>
-                                                                    <Col md={7} className="txtDoc">
-                                                                    : {item.area}
-                                                                    </Col>
-                                                                </Row>
-                                                                <Row className="mb-2">
-                                                                    <Col md={5} className="txtDoc">
-                                                                    Tanggal Stock
-                                                                    </Col>
-                                                                    <Col md={7} className="txtDoc">
-                                                                    : {moment(item.tanggalStock).format('LL')}
-                                                                    </Col>
-                                                                </Row>
-                                                                <Row className="mb-2">
-                                                                    <Col md={5} className="txtDoc">
-                                                                    No Opname
-                                                                    </Col>
-                                                                    <Col md={7} className="txtDoc">
-                                                                    : {item.no_stock}
-                                                                    </Col>
-                                                                </Row>
-                                                            </div>
-                                                            <Row className="footCard mb-3 mt-3">
-                                                                <Col md={12} xl={12} className="colFoot">
-                                                                    <Button className="btnSell" color="primary" onClick={() => {this.getDetailStock(item); this.getApproveStock({nama: 'stock opname', no: item.no_stock})}}>Proses</Button>
-                                                                    <Button className="btnSell ml-2" color="danger" onClick={() => this.deleteStock(item)}>Delete</Button>
-                                                                </Col>
-                                                            </Row>
-                                                        </div>
-                                                    )
-                                                })}
-                                            </Row>
-                                        ) : (
-                                            <div className={style.tableDashboard}>
-                                                <Table bordered responsive hover className={style.tab}>
-                                                    <thead>
-                                                        <tr>
-                                                            <th>No</th>
-                                                            <th>Area</th>
-                                                            <th>Kode Plant</th>
-                                                            <th>Tanggal Stock Opname</th>
-                                                            <th>No Stock Opname</th>
-                                                            <th>Status Approve</th>
-                                                            <th>Dokumentasi Aset</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {dataDepo.length !== 0 && dataDepo.map(item => {
-                                                            return (
-                                                            <tr>
-                                                                <th scope="row">{(dataDepo.indexOf(item) + (((pages.currentPage - 1) * pages.limitPerPage) + 1))}</th>
-                                                                <td>{item.nama_area}</td>
-                                                                <td>{item.kode_plant}</td>
-                                                                <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : moment(dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).tanggalStock).format('DD MMMM YYYY')}</td>
-                                                                <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).no_stock}</td>
-                                                                <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : <AiOutlineCheck color="primary" size={20} />}</td>
-                                                                <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : <AiOutlineCheck color="primary" size={20} />}</td>
-                                                            </tr>
-                                                            )})}
-                                                    </tbody>
-                                                </Table>
-                                            </div>
-                                        )
-                                    )
-                                )}
-                                <div>
-                                    <div className={style.infoPageEmail1}>
-                                        <text>Showing {page.currentPage} of {page.pages} pages</text>
-                                        <div className={style.pageButton}>
-                                            <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
-                                            <button className={style.btnPrev} color="info" disabled={page.nextLink === null ? true : false} onClick={this.next}>Next</button>
-                                        </div>
-                                    </div>
-                                </div>
-                        </div>
-                    </div>
-                    </MaterialTitlePanel>
-                </Sidebar> */}
                 <div className={styleTrans.app}>
                     <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
 
@@ -1141,37 +941,35 @@ class EditStock extends Component {
                         )}
                     </div>
                 </div>
-                <Modal isOpen={this.state.modalEdit} toggle={this.openModalEdit} size="lg">
+                <Modal isOpen={this.state.modalAdd} toggle={this.openAdd} size="lg">
                     <ModalHeader>
-                        Rincian
+                        Tambah Data Asset
                     </ModalHeader>
                     <ModalBody>
                         <div className="mainRinci2">
                             <div className="leftRinci2 mb-5">
                                 <div className="titRinci">{dataRinci.nama_asset}</div>
-                                {detailAsset.image !== undefined && detailAsset.image !== null && detailAsset.image !== '' ? (
-                                    <img src={`${REACT_APP_BACKEND_URL}/${detailAsset.image}`} className="imgRinci" />
-                                ) : detailAsset.pict === undefined || detailAsset.pict.length === 0 ? (
-                                    <img src={detailAsset.img === undefined || detailAsset.img.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detailAsset.img[detailAsset.img.length - 1].path}`} className="imgRinci" />
-                                ) : (
-                                    <img src={detailAsset.pict === undefined || detailAsset.pict.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detailAsset.pict[detailAsset.pict.length - 1].path}`} className="imgRinci" />
+                                <img src={this.state.preview} className="imgRinci" />
+                                {(level === '5' || level === '9') && (
+                                    <Input accept="image/*" type="file" className='mt-2' onChange={this.handleGambar}>Upload Picture</Input>
                                 )}
-                                <Input type="file" className='mt-2' onChange={this.uploadPicture}>Upload Picture</Input>
                             </div>
                             <Formik
                             initialValues = {{
-                                merk: detailAsset.merk === null ? '' : detailAsset.merk,
-                                satuan: detailAsset.satuan === null ? '' : detailAsset.satuan,
-                                unit: 1,
-                                lokasi: detailAsset.lokasi === null ? '' : detailAsset.lokasi,
-                                keterangan: detailAsset.keterangan === null ? '' : detailAsset.keterangan,
-                                status_fisik: detailAsset.status_fisik === null ? '' : detailAsset.status_fisik,
-                                kondisi: detailAsset.kondisi === null ? '' : detailAsset.kondisi
+                                deskripsi: '',
+                                merk: '',
+                                satuan: '',
+                                unit: '',
+                                lokasi: '',
+                                keterangan: '',
+                                status_fisik: '',
+                                kondisi: ''
                             }}
                             validationSchema = {stockSchema}
-                            onSubmit={(values) => {this.updateDataStock(values)}}
+                            onSubmit={(values) => {this.addStock(values)}}
                             >
                             {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                                <>
                                 <div className="rightRinci2">
                                     <div>
                                         <Row className="mb-2 rowRinci">
@@ -1180,11 +978,20 @@ class EditStock extends Component {
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Deskripsi</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={level === '5' ? dataRinci.nama_asset : dataRinci.deskripsi} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input
+                                                disabled={level === '5' || level === '9' ? false : true}
+                                                type= "text" 
+                                                className="inputRinci"
+                                                value={values.deskripsi}
+                                                onBlur={handleBlur("deskripsi")}
+                                                onChange={handleChange("deskripsi")}
+                                                />
+                                            </Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Merk</Col>
                                             <Col md={9} className="colRinci">:  <Input
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.merk}
@@ -1199,6 +1006,7 @@ class EditStock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Satuan</Col>
                                             <Col md={9} className="colRinci">:  <Input
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "select" 
                                                 className="inputRinci"
                                                 value={values.satuan}
@@ -1218,6 +1026,7 @@ class EditStock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Unit</Col>
                                             <Col md={9} className="colRinci">:  <Input
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.unit}
@@ -1233,6 +1042,7 @@ class EditStock extends Component {
                                             <Col md={3}>Lokasi</Col>
                                             <Col md={9} className="colRinci">:
                                             <Input
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.lokasi}
@@ -1247,17 +1057,18 @@ class EditStock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Status Fisik</Col>
                                             <Col md={9} className="colRinci">:  <Input 
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type="select"
                                                 className="inputRinci" 
-                                                disabled={(level === '5' || level === '9') && (detailAsset.grouping === null || detailAsset.grouping === '') ? false : true}
-                                                value={detailAsset.fisik} 
+                                                value={values.status_fisik} 
                                                 onBlur={handleBlur("status_fisik")}
-                                                onChange={e => {handleChange("status_fisik"); this.updateCond({tipe: "status_fisik", val: e.target.value})}}
+                                                onChange={handleChange("status_fisik")}
+                                                // onChange={e => { handleChange("status_fisik"); this.selectStatus(e.target.value, this.state.kondisi)} }
                                                 >
                                                     <option>{values.status_fisik}</option>
                                                     <option>-Pilih Status Fisik-</option>
                                                     <option value="ada">Ada</option>
-                                                    <option value="tidak ada">Tidak Ada</option>
+                                                    {/* <option value="tidak ada">Tidak Ada</option> */}
                                                 </Input>
                                             </Col>
                                         </Row>
@@ -1267,18 +1078,19 @@ class EditStock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Kondisi</Col>
                                             <Col md={9} className="colRinci">:  <Input 
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type="select"
                                                 className="inputRinci" 
-                                                disabled={(level === '5' || level === '9') && (detailAsset.grouping === null || detailAsset.grouping === '') ? false : true}
-                                                value={detailAsset.fisik}
+                                                value={values.kondisi} 
                                                 onBlur={handleBlur("kondisi")}
-                                                onChange={e => {handleChange("kondisi"); this.updateCond({tipe: "kondisi", val: e.target.value})}}
+                                                onChange={handleChange("kondisi")}
+                                                // onChange={e => { handleChange("kondisi"); this.selectStatus(this.state.fisik, e.target.value)} }
                                                 >
-                                                    <option>{values.kondisi === "" ? "-" : values.kondisi}</option>
+                                                    <option>{values.kondisi}</option>
                                                     <option>-Pilih Kondisi-</option>
                                                     <option value="baik">Baik</option>
-                                                    <option value="rusak">Rusak</option>
-                                                    <option value="">-</option>
+                                                    {/* <option value="rusak">Rusak</option>
+                                                    <option value="">-</option> */}
                                                 </Input>
                                             </Col>
                                         </Row>
@@ -1288,14 +1100,18 @@ class EditStock extends Component {
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Status Aset</Col>
                                             <Col md={9} className="colRinci">:  <Input
+                                                disabled={
+                                                    values.status_fisik === null 
+                                                    || values.kondisi === null
+                                                    || values.status_fisik === '' ? true : false}
                                                 type= "select" 
                                                 className="inputRinci"
-                                                value={detailAsset.grouping}
+                                                value={this.state.stat}
                                                 // onBlur={handleBlur("grouping")}
                                                 // onChange={handleChange("grouping")}
-                                                onClick={() => this.listStatus(detailAsset.id)}
+                                                onClick={() => this.listStatus({fisik: values.status_fisik, kondisi: values.kondisi, no_asset: null})}
                                                 >
-                                                    <option>{detailAsset.grouping}</option>
+                                                    <option>{this.state.stat}</option>
                                                     {/* <option>-Pilih Status Aset-</option> */}
                                                     {/* {dataStatus.length > 0 && dataStatus.map(item => {
                                                         return (
@@ -1305,12 +1121,13 @@ class EditStock extends Component {
                                                 </Input>
                                             </Col>
                                         </Row>
-                                        {detailAsset.grouping === null || detailAsset.grouping ===  "" ? (
-                                            <text className={style.txtError}>Must be filled</text>
+                                        {errors.grouping ? (
+                                            <text className={style.txtError}>{errors.grouping}</text>
                                         ) : null}
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Keterangan</Col>
                                             <Col md={9} className="colRinci">:  <Input
+                                                disabled={level === '5' || level === '9' ? false : true}
                                                 type= "text" 
                                                 className="inputRinci"
                                                 value={values.keterangan}
@@ -1323,16 +1140,19 @@ class EditStock extends Component {
                                             <text className={style.txtError}>{errors.keterangan}</text>
                                         ) : null}
                                     </div>
-                                    <ModalFooter>
-                                        {detailAsset.grouping === 'DIPINJAM SEMENTARA' ? (
-                                            <Button className="btnFootRinci1 mr-3" color='success' size="md" onClick={this.openProsesModalDoc}>Dokumen</Button>
+                                    <ModalFooter className='mt-4'>
+                                        {detRinci.grouping === 'DIPINJAM SEMENTARA' ? (
+                                            <Button className=" mr-3" color='success' size="md" onClick={this.openProsesModalDoc}>Dokumen</Button>
                                         ) : (
                                             <div></div>
                                         )}
-                                        <Button className="btnFootRinci1 mr-3" size="md" disabled={(level === '5' || level === '9') && (detailAsset.grouping !== null && detailAsset.grouping !==  "") ? false : true} color="primary" onClick={handleSubmit}>Save</Button>
-                                        <Button className="btnFootRinci1" size="md" color="secondary" onClick={() => this.openModalEdit()}>Close</Button>
+                                        <div className='rowGeneral'>
+                                            <Button className=" mr-2" size="md" disabled={this.state.fileUpload ? false : true} color="primary" onClick={handleSubmit}>Save</Button>
+                                            <Button className="" size="md" color="secondary" onClick={() => this.openAdd()}>Close</Button>
+                                        </div>
                                     </ModalFooter>
                                 </div>
+                                </>
                             )}
                             </Formik>
                         </div>
@@ -1392,9 +1212,18 @@ class EditStock extends Component {
                                                 {item.isreject === 1 || item.isreject === 0 ? 
                                                 <>
                                                     <div>{item.isreject === 1 ? 'Perlu Diperbaiki' : 'Telah diperbaiki'}</div>
-                                                    <Button className='mt-2' color="info" size='sm' onClick={() => this.getRinciStock(item)}>Update</Button>
+                                                    <Button className='mt-2 ml-1' color="info" size='sm' onClick={() => this.getRinciStock(item)}>Update</Button>
+                                                    {!item.no_asset && (
+                                                        <Button className='mt-2 ml-1' color="danger" size='sm' onClick={() => this.prosesOpenDelete(item)}>Delete</Button>
+                                                    )}
                                                 </>
-                                                :'-'}
+                                                : !item.no_asset ? 
+                                                <>
+                                                    <div>Asset Tambahan</div>
+                                                    <Button className='mt-2 ml-1' color="info" size='sm' onClick={() => this.getRinciStock(item)}>Update</Button>
+                                                    <Button className='mt-2 ml-1' color="danger" size='sm' onClick={() => this.prosesOpenDelete(item)}>Delete</Button>
+                                                </>
+                                                : '-'}
                                             </td>
                                         </tr>
                                         )})}
@@ -1403,7 +1232,11 @@ class EditStock extends Component {
                         </div>
                     </ModalBody>
                     <div className="modalFoot ml-3">
-                        <Button color="primary"  onClick={() => this.openPreview(detailStock[0])}>Preview</Button>
+                        <div className='rowGeneral'>
+                            <Button color="primary"  onClick={() => this.openPreview(detailStock[0])}>Preview</Button>
+                            <Button className='ml-2' onClick={() => this.openAdd()} color='warning'>Tambah Data Asset</Button>
+                        </div>
+                        
                         <div className="btnFoot">
                             <Button className="mr-2" color="success" onClick={this.cekSubmitRevisi}>
                                 Submit Revisi
@@ -1631,7 +1464,7 @@ class EditStock extends Component {
                                     <img src={detRinci.pict === undefined || detRinci.pict.length === 0 ? placeholder : `${REACT_APP_BACKEND_URL}/${detRinci.pict[detRinci.pict.length - 1].path}`} className="imgRinci" />
                                 )}
                                 {(level === '5' || level === '9') && (
-                                    <Input type="file" className='mt-2' onChange={this.uploadPicture}>Upload Picture</Input>
+                                    <Input accept="image/*" type="file" className='mt-2' onChange={this.uploadPicture}>Upload Picture</Input>
                                 )}
                             </div>
                             <Formik
@@ -1782,7 +1615,7 @@ class EditStock extends Component {
                                                 value={this.state.stat}
                                                 // onBlur={handleBlur("grouping")}
                                                 // onChange={handleChange("grouping")}
-                                                onClick={() => this.listStatus({fisik: values.status_fisik, kondisi: values.kondisi})}
+                                                onClick={() => this.listStatus({fisik: values.status_fisik, kondisi: values.kondisi, no_asset: dataRinci.no_asset})}
                                                 >
                                                     <option>{this.state.stat}</option>
                                                     {/* <option>-Pilih Status Aset-</option> */}
@@ -1864,103 +1697,6 @@ class EditStock extends Component {
                         </div>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.state.submitPre} toggle={this.modalSubmitPre} size="xl">
-                    <ModalHeader>
-                        Rincian
-                    </ModalHeader>
-                    <ModalBody>
-                        <div>
-                            <div className="stockTitle">kertas kerja opname aset kantor</div>
-                            <div className="ptStock">pt. pinus merah abadi</div>
-                            <Row className="ptStock inputStock">
-                                <Col md={3} xl={3} sm={3}>kantor pusat/cabang</Col>
-                                <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={dataAsset.length > 0 ? dataAsset[0].area : ''} className="ml-3"  /></Col>
-                            </Row>
-                            <Row className="ptStock inputStock">
-                                <Col md={3} xl={3} sm={3}>depo/cp</Col>
-                                <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={dataAsset.length > 0 ? dataAsset[0].area : ''} className="ml-3" /></Col>
-                            </Row>
-                            <Row className="ptStock inputStock">
-                                <Col md={3} xl={3} sm={3}>opname per tanggal</Col>
-                                <Col md={4} xl={4} sm={4} className="inputStock">:<Input value={moment().format('LL')} className="ml-3"  /></Col>
-                            </Row>
-                        </div>
-                        {dataAsset.length === 0 ? (
-                            <div className={style.tableDashboard}>
-                                <Table bordered responsive hover className={style.tab}>
-                                    <thead>
-                                        <tr>
-                                            <th>No</th>
-                                            <th>NO. ASET</th>
-                                            <th>DESKRIPSI</th>
-                                            <th>MERK</th>
-                                            <th>SATUAN</th>
-                                            <th>UNIT</th>
-                                            <th>KONDISI</th>
-                                            <th>LOKASI</th>
-                                            <th>GROUPING</th>
-                                            <th>KETERANGAN</th>
-                                        </tr>
-                                    </thead>
-                                </Table>
-                                <div className={style.spin}>
-                                        <Spinner type="grow" color="primary"/>
-                                        <Spinner type="grow" className="mr-3 ml-3" color="success"/>
-                                        <Spinner type="grow" color="warning"/>
-                                        <Spinner type="grow" className="mr-3 ml-3" color="danger"/>
-                                        <Spinner type="grow" color="info"/>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className={style.tableDashboard}>
-                            <Table bordered responsive hover className={style.tab}>
-                                <thead>
-                                    <tr>
-                                        <th>No</th>
-                                        <th>NO. ASET</th>
-                                        <th>DESKRIPSI</th>
-                                        <th>MERK</th>
-                                        <th>SATUAN</th>
-                                        <th>UNIT</th>
-                                        <th>KONDISI</th>
-                                        <th>LOKASI</th>
-                                        <th>GROUPING</th>
-                                        <th>KETERANGAN</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {dataAsset.length !== 0 && dataAsset.map(item => {
-                                        return (
-                                        <tr onClick={() => this.openModalEdit(this.setState({dataRinci: item}))}>
-                                            <th scope="row">{(dataAsset.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</th>
-                                            <td>{item.no_asset}</td>
-                                            <td>{item.deskripsi}</td>
-                                            <td>{item.merk}</td>
-                                            <td>{item.satuan}</td>
-                                            <td>{item.unit}</td>
-                                            <td>{item.kondisi}</td>
-                                            <td>{item.lokasi}</td>
-                                            <td>{item.grouping}</td>
-                                            <td>{item.keterangan}</td>
-                                        </tr>
-                                        )})}
-                                </tbody>
-                            </Table>
-                        </div>
-                        )}
-                    </ModalBody>
-                    <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
-                        <div>{alertM}</div>
-                    </Alert>
-                    <div className="modalFoot ml-3">
-                        <div></div>
-                        <div className="btnFoot">
-                            <Button className="mr-2" color="success" onClick={this.submitStock}>
-                                Submit
-                            </Button>
-                        </div>
-                    </div>
-                </Modal>
                 <Modal isOpen={this.state.openStatus} toggle={this.modalStatus}>
                     <Alert color="danger" className={style.alertWrong} isOpen={this.state.stat === 'DIPINJAM SEMENTARA' && (dataDoc.length === 0 || dataDoc.find(({status}) => status === 1) === undefined) ? true : false}>
                         <div>Mohon upload dokumen terlebih dahulu</div>
@@ -2023,107 +1759,147 @@ class EditStock extends Component {
                         </div>
                     </ModalBody>
                 </Modal>
+                <Modal isOpen={this.state.openDelete} toggle={this.openDelete} centered={true}>
+                    <ModalBody>
+                        <div className={style.modalApprove}>
+                            <div>
+                                <text>
+                                    Anda yakin untuk delete asset tambahan ?
+                                </text>
+                            </div>
+                            <div className={style.btnApprove}>
+                                <Button color="primary" onClick={() => this.prosesDeleteStock(this.state.detailData)}>Ya</Button>
+                                <Button color="secondary" onClick={this.openDelete}>Tidak</Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                </Modal>
                 <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm}>
-                <ModalBody>
-                    {this.state.confirm === 'approve' ? (
-                        <div>
-                            <div className={style.cekUpdate}>
-                                <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={[style.sucUpdate, style.green]}>Berhasil Update</div>
+                    <ModalBody>
+                        {this.state.confirm === 'update' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Update</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'delete' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Delete</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'add' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Create Asset Tambahan</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'reject' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Reject</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'rejApprove' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Approve</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'rejReject' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Reject</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'falseRev' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
+                                <div className="errApprove mt-2">Mohon perbaiki data ajuan terlebih dahulu</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'isApprove' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Submit Revisi</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'oldPict' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green]}>Gagal Upload Gambar</div>
+                                <div className="errApprove mt-2">Pastikan dokumentasi yang diupload tidak lebih dari 10 hari saat revisi stock opname</div>
+                            </div>
+                            </div>
+                        ) : (
+                            <div></div>
+                        )}
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.openDraft} size='xl'>
+                    <ModalHeader>Email Pemberitahuan</ModalHeader>
+                    <ModalBody>
+                        <Email handleData={this.getMessage}/>
+                        <div className={style.foot}>
+                            <div></div>
+                            <div>
+                                <Button
+                                    disabled={this.state.message === '' ? true : false} 
+                                    className="mr-2"
+                                    onClick={() => this.submitDataRevisi()} 
+                                    color="primary"
+                                >
+                                Submit & Send Email
+                                </Button>
+                                <Button className="mr-3" onClick={this.openDraftEmail}>Cancel</Button>
                             </div>
                         </div>
-                    ) : this.state.confirm === 'reject' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                                <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={[style.sucUpdate, style.green]}>Berhasil Reject</div>
-                            </div>
-                        </div>
-                    ) : this.state.confirm === 'rejApprove' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Gagal Approve</div>
-                        </div>
-                        </div>
-                    ) : this.state.confirm === 'rejReject' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Gagal Reject</div>
-                        </div>
-                        </div>
-                    ) : this.state.confirm === 'falseRev' ?(
-                        <div>
-                            <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Gagal Submit</div>
-                            <div className="errApprove mt-2">Mohon perbaiki data ajuan terlebih dahulu</div>
-                        </div>
-                        </div>
-                    ) : this.state.confirm === 'isApprove' ? (
-                        <div>
-                            <div className={style.cekUpdate}>
-                                <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={[style.sucUpdate, style.green]}>Berhasil Submit Revisi</div>
-                            </div>
-                        </div>
-                    ) : this.state.confirm === 'oldPict' ? (
-                        <div>
-                            <div className={style.cekUpdate}>
-                            <AiOutlineClose size={80} className={style.red} />
-                            <div className={[style.sucUpdate, style.green]}>Gagal Upload Gambar</div>
-                            <div className="errApprove mt-2">Pastikan dokumentasi yang diupload tidak lebih dari 10 hari saat revisi stock opname</div>
-                        </div>
-                        </div>
-                    ) : (
-                        <div></div>
-                    )}
-                </ModalBody>
-            </Modal>
-            <Modal isOpen={this.state.openDraft} size='xl'>
-                <ModalHeader>Email Pemberitahuan</ModalHeader>
-                <ModalBody>
-                    <Email handleData={this.getMessage}/>
-                    <div className={style.foot}>
-                        <div></div>
-                        <div>
-                            <Button
-                                disabled={this.state.message === '' ? true : false} 
-                                className="mr-2"
-                                onClick={() => this.submitDataRevisi()} 
-                                color="primary"
-                            >
-                               Submit & Send Email
-                            </Button>
-                            <Button className="mr-3" onClick={this.openDraftEmail}>Cancel</Button>
-                        </div>
-                    </div>
-                </ModalBody>
-            </Modal>
-            <Modal size="xl" isOpen={this.state.modalDoc} toggle={this.openModalDoc}>
-                <ModalHeader>
-                   Kelengkapan Dokumen
-                </ModalHeader>
-                <ModalBody>
-                    <Container>
-                        {dataDoc !== undefined && dataDoc.map(x => {
-                            return (
-                                <Row className="mt-3 mb-4">
-                                    <Col md={6} lg={6} >
-                                        <text>{x.nama_dokumen}</text>
-                                    </Col>
-                                    {x.path !== null ? (
+                    </ModalBody>
+                </Modal>
+                <Modal size="xl" isOpen={this.state.modalDoc} toggle={this.openModalDoc}>
+                    <ModalHeader>
+                    Kelengkapan Dokumen
+                    </ModalHeader>
+                    <ModalBody>
+                        <Container>
+                            {dataDoc !== undefined && dataDoc.map(x => {
+                                return (
+                                    <Row className="mt-3 mb-4">
                                         <Col md={6} lg={6} >
-                                            {x.status === 0 ? (
-                                                <AiOutlineClose size={20} />
-                                            ) : x.status === 3 ? (
-                                                <AiOutlineCheck size={20} />
-                                            ) : (
-                                                <BsCircle size={20} />
-                                            )}
-                                            <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
-                                            <div className="colDoc">
+                                            <text>{x.nama_dokumen}</text>
+                                        </Col>
+                                        {x.path !== null ? (
+                                            <Col md={6} lg={6} >
+                                                {x.status === 0 ? (
+                                                    <AiOutlineClose size={20} />
+                                                ) : x.status === 3 ? (
+                                                    <AiOutlineCheck size={20} />
+                                                ) : (
+                                                    <BsCircle size={20} />
+                                                )}
+                                                <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
+                                                <div className="colDoc">
+                                                    <input
+                                                    className="ml-4"
+                                                    type="file"
+                                                    onClick={() => this.setState({detail: x})}
+                                                    onChange={this.onChangeUpload}
+                                                    />
+                                                    <text className="txtError ml-4">Maximum file upload is 20 Mb</text>
+                                                </div>
+                                            </Col>
+                                        ) : (
+                                            <Col md={6} lg={6} className="colDoc">
                                                 <input
                                                 className="ml-4"
                                                 type="file"
@@ -2131,48 +1907,37 @@ class EditStock extends Component {
                                                 onChange={this.onChangeUpload}
                                                 />
                                                 <text className="txtError ml-4">Maximum file upload is 20 Mb</text>
-                                            </div>
-                                        </Col>
-                                    ) : (
-                                        <Col md={6} lg={6} className="colDoc">
-                                            <input
-                                            className="ml-4"
-                                            type="file"
-                                            onClick={() => this.setState({detail: x})}
-                                            onChange={this.onChangeUpload}
-                                            />
-                                            <text className="txtError ml-4">Maximum file upload is 20 Mb</text>
-                                        </Col>
-                                    )}
-                                </Row>
-                            )
-                        })}
-                    </Container>
-                </ModalBody>
-                <ModalFooter>
-                    <Button className="mr-2" color="secondary" onClick={this.openModalDoc}>
-                            Close
+                                            </Col>
+                                        )}
+                                    </Row>
+                                )
+                            })}
+                        </Container>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button className="mr-2" color="secondary" onClick={this.openModalDoc}>
+                                Close
+                            </Button>
+                            <Button color="primary" onClick={this.openModalDoc}>
+                                Save 
                         </Button>
-                        <Button color="primary" onClick={this.openModalDoc}>
-                            Save 
-                    </Button>
-                </ModalFooter>
-            </Modal>
-            <Modal isOpen={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
-                <ModalHeader>Dokumen</ModalHeader>
-                <ModalBody>
-                    <div className={style.readPdf}>
-                        <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
-                    </div>
-                    <hr/>
-                    <div className={style.foot}>
-                        <div>
-                            <Button color="success" onClick={() => this.downloadData()}>Download</Button>
+                    </ModalFooter>
+                </Modal>
+                <Modal isOpen={this.state.openPdf} size="xl" toggle={this.openModalPdf} centered={true}>
+                    <ModalHeader>Dokumen</ModalHeader>
+                    <ModalBody>
+                        <div className={style.readPdf}>
+                            <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${this.state.idDoc}`} />
                         </div>
-                        <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
-                    </div>
-                </ModalBody>
-            </Modal>
+                        <hr/>
+                        <div className={style.foot}>
+                            <div>
+                                <Button color="success" onClick={() => this.downloadData()}>Download</Button>
+                            </div>
+                            <Button color="primary" onClick={() => this.setState({openPdf: false})}>Close</Button>
+                        </div>
+                    </ModalBody>
+                </Modal>
             </>
         )
     }
@@ -2222,12 +1987,14 @@ const mapDispatchToProps = {
     resetData: asset.resetData,
     getStockArea: stock.getStockArea,
     updateStock: stock.updateStock,
+    deleteAdd: stock.deleteAdd,
     updateStockNew: stock.updateStockNew,
     getDetailItem: stock.getDetailItem,
     showDokumen: pengadaan.showDokumen,
     submitRevisi: stock.submitRevisi,
     appRevisi: stock.appRevisi,
     getDraftEmail: tempmail.getDraftEmail,
+    addOpname: stock.addStock,
     sendEmail: tempmail.sendEmail,
     addNewNotif: newnotif.addNewNotif,
 }

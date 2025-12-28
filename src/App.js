@@ -70,6 +70,7 @@ import MasterTempmail from './pages/Master/MasterTempmail'
 import MasterUser from './pages/Master/MasterUser'
 import MasterRole from './pages/Master/MasterRole'
 import MasterStatus from './pages/Master/MasterStatus'
+import MasterClossing from './pages/Master/MasterClossing'
 import MasterEmail from './pages/Master/MasterEmail'
 import MasterDokumen from './pages/Master/MasterDokumen'
 import ReleaseApk from './pages/Master/ReleaseApk'
@@ -105,30 +106,7 @@ class App extends Component {
                 <PrivateRoute path='/formio'>
                     <FormIo />
                 </PrivateRoute>
-                <PrivateRoute path='/depo'>
-                    <MasterDepo />
-                </PrivateRoute>
-                <PrivateRoute path='/release-apk'>
-                    <ReleaseApk />
-                </PrivateRoute>
-                <PrivateRoute path='/user'>
-                    <MasterUser />
-                </PrivateRoute>
-                <PrivateRoute path='/role'>
-                    <MasterRole />
-                </PrivateRoute>
-                <PrivateRoute path='/email'>
-                    <MasterTempmail />
-                </PrivateRoute>
-                <PrivateRoute path='/menu'>
-                    <MasterMenu />
-                </PrivateRoute>
-                <PrivateRoute path='/tempmail'>
-                    <MasterTempmail />
-                </PrivateRoute>
-                <PrivateRoute path='/dokumen'>
-                    <MasterDokumen />
-                </PrivateRoute>
+                
                 <PrivateRoute path='/disposal'>
                     <Disposal />
                 </PrivateRoute>
@@ -150,9 +128,7 @@ class App extends Component {
                 <PrivateRoute path='/rev-disposal'>
                     <EditDisposal />
                 </PrivateRoute>
-                <PrivateRoute path='/approval'>
-                    <MasterApproval />
-                </PrivateRoute>
+                
                 <PrivateRoute path='/formset'>
                     <FormPersetujuanDis />
                 </PrivateRoute>
@@ -246,8 +222,41 @@ class App extends Component {
                 <PrivateRoute path='/notif'>
                     <Notif />
                 </PrivateRoute>
+
+                {/* Master Data */}
+                <PrivateRoute path='/approval'>
+                    <MasterApproval />
+                </PrivateRoute>
+                <PrivateRoute path='/depo'>
+                    <MasterDepo />
+                </PrivateRoute>
+                <PrivateRoute path='/user'>
+                    <MasterUser />
+                </PrivateRoute>
+                <PrivateRoute path='/role'>
+                    <MasterRole />
+                </PrivateRoute>
+                <PrivateRoute path='/email'>
+                    <MasterTempmail />
+                </PrivateRoute>
+                <PrivateRoute path='/menu'>
+                    <MasterMenu />
+                </PrivateRoute>
+                <PrivateRoute path='/tempmail'>
+                    <MasterTempmail />
+                </PrivateRoute>
+                <PrivateRoute path='/dokumen'>
+                    <MasterDokumen />
+                </PrivateRoute>
                 <PrivateRoute path='/status-stock'>
                     <MasterStatus />
+                </PrivateRoute>
+                <PrivateRoute path='/clossing'>
+                    <MasterClossing />
+                </PrivateRoute>
+
+                <PrivateRoute path='/release-apk'>
+                    <ReleaseApk />
                 </PrivateRoute>
             </Switch>
         </BrowserRouter>

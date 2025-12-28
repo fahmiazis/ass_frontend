@@ -673,6 +673,31 @@ export default (state=stockState, action) => {
                 alertM: action.payload.response !== undefined ? action.payload.response.data.message : ''
             };
         }
+        case 'DELETE_ADDSTOCK_PENDING': {
+            return {
+                ...state,
+                isDelete: false,
+                isLoading: true,
+                alertMsg: 'Waiting ...',
+            };
+            }
+        case 'DELETE_ADDSTOCK_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isError: false,
+                isDeleteAdd: true,
+                alertMsg: 'delete stock Succesfully',
+            };
+        }
+        case 'DELETE_ADDSTOCK_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isDeleteAdd: false,
+                alertMsg: 'Unable connect to server',
+            };
+        }
         case 'RESET_STOCK': {
             return {
                 ...state,
