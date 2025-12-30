@@ -290,6 +290,7 @@ class EditStock extends Component {
         const { kondisi, fisik } = this.state
         const { stockArea } = this.props.stock
         const data = {
+            no_asset: val.no_asset,
             idStock: stockArea[0].id,
             deskripsi: val.deskripsi,
             merk: val.merk,
@@ -565,6 +566,8 @@ class EditStock extends Component {
         const { dataRinci } = this.state
         const { detailAsset } = this.props.asset
         const data = {
+            no_asset: value.no_asset,
+            deskripsi: value.deskripsi,
             merk: value.merk,
             satuan: value.satuan,
             unit: value.unit,
@@ -956,6 +959,7 @@ class EditStock extends Component {
                             </div>
                             <Formik
                             initialValues = {{
+                                no_asset: '',
                                 deskripsi: '',
                                 merk: '',
                                 satuan: '',
@@ -974,7 +978,15 @@ class EditStock extends Component {
                                     <div>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>No Asset</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input 
+                                                disabled={level === '5' || level === '9' ? false : true}
+                                                className="inputRinci" 
+                                                type='text'
+                                                value={values.no_asset}
+                                                onBlur={handleBlur("no_asset")}
+                                                onChange={handleChange("no_asset")}
+                                                />
+                                            </Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Deskripsi</Col>
@@ -1217,7 +1229,7 @@ class EditStock extends Component {
                                                         <Button className='mt-2 ml-1' color="danger" size='sm' onClick={() => this.prosesOpenDelete(item)}>Delete</Button>
                                                     )}
                                                 </>
-                                                : !item.no_asset ? 
+                                                : item.status_doc === 1 ? 
                                                 <>
                                                     <div>Asset Tambahan</div>
                                                     <Button className='mt-2 ml-1' color="info" size='sm' onClick={() => this.getRinciStock(item)}>Update</Button>
@@ -1469,6 +1481,8 @@ class EditStock extends Component {
                             </div>
                             <Formik
                             initialValues = {{
+                                no_asset: detRinci.no_asset === null ? '' : detRinci.no_asset,
+                                deskripsi: detRinci.deskripsi === null ? '' : detRinci.deskripsi,
                                 merk: detRinci.merk === null ? '' : detRinci.merk,
                                 satuan: detRinci.satuan === null ? '' : detRinci.satuan,
                                 unit: detRinci.unit === null ? '' : detRinci.unit,
@@ -1486,11 +1500,27 @@ class EditStock extends Component {
                                     <div>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>No Asset</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input 
+                                                type= "text" 
+                                                className="inputRinci"
+                                                value={values.no_asset}
+                                                onBlur={handleBlur("no_asset")}
+                                                onChange={handleChange("no_asset")}
+                                                disabled={detRinci.status_doc === 1 ? false : true}
+                                                />
+                                            </Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Deskripsi</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.deskripsi} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input 
+                                                type= "text" 
+                                                className="inputRinci"
+                                                value={values.deskripsi}
+                                                onBlur={handleBlur("deskripsi")}
+                                                onChange={handleChange("deskripsi")}
+                                                disabled={detRinci.status_doc === 1 ? false : true}
+                                                />
+                                            </Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Merk</Col>
