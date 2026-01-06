@@ -31,9 +31,9 @@ export default {
         type: 'NEXT_DATA_DEPO',
         payload: http(token).get(`${link}`)
     }),
-    deleteDepo: (token, id) => ({
+    deleteDepo: (token, data) => ({
         type: 'DELETE_DEPO',
-        payload: http(token).delete(`/depo/delete/${id}`)
+        payload: http(token).patch(`/depo/delete`, data)
     }),
     resetError: () => ({
         type: 'RESET'

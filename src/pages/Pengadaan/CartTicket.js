@@ -210,16 +210,23 @@ class CartMutasi extends Component {
         const { dataCart } = this.props.pengadaan
         const cek = []
         for (let i = 0; i < dataCart.length; i++) {
-            const doc = dataCart[i].doc
-            if (doc === null || doc === undefined || doc.length === 0) {
-                cek.push(1)
-            } else {
-                for (let j = 0; j < doc.length; j++) {
-                    if (doc[j].path === null || doc[j].path === '') {
-                        cek.push(1)
-                    }
+            await this.props.getDocCart(token, dataCart[i].id)
+            const {dataDocCart} = this.props.pengadaan
+            for (let x = 0; x < dataDocCart.length; x++) {
+                if (dataDocCart[x].path === null || !dataDocCart[x].path) {
+                    cek.push(1)
                 }
             }
+            // const doc = dataCart[i].doc
+            // if (doc === null || doc === undefined || doc.length === 0) {
+            //     cek.push(1)
+            // } else {
+            //     for (let j = 0; j < doc.length; j++) {
+            //         if (doc[j].path === null || doc[j].path === '') {
+            //             cek.push(1)
+            //         }
+            //     }
+            // }
         }
         if (cek.length > 0) {
             this.setState({confirm: 'rejSubmit'})

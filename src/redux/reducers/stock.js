@@ -49,6 +49,7 @@ const stockState = {
     noStock: '',
     isApprev: null,
     dataDepo: [],
+    dataAset: [],
     isDocStock: null,
     dataSearch: []
 };
@@ -71,6 +72,7 @@ export default (state=stockState, action) => {
                 getStock: true,
                 dataStock: action.payload.data.result.rows,
                 dataDepo: action.payload.data.dataDepo,
+                dataAset: action.payload.data.dataAset,
                 alertMsg: 'get stock Succesfully',
                 page: action.payload.data.pageInfo
             };

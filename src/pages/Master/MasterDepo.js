@@ -79,7 +79,8 @@ class MasterDepo extends Component {
             limit: 10,
             search: '',
             listDepo: [],
-            tipeModal: 'add'
+            tipeModal: 'add',
+            modalDelete: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -483,6 +484,23 @@ class MasterDepo extends Component {
         this.setState({ open });
     }
 
+    openModalDelete = () => {
+        this.setState({modalDelete: !this.state.modalDelete})
+    }
+
+    prosesDelete = async () => {
+        const token = localStorage.getItem("token")
+        const { listDepo } = this.state
+        const data = {
+            listId: listDepo
+        }
+        await this.props.deleteDepo(token, data)
+        this.getDataDepo()
+        this.openModalDelete()
+        this.setState({confirm: 'delete'})
+        this.openConfirm()
+    }
+
     render() {
         const {dropOpen, detail, upload, errMsg, listDepo, tipeModal} = this.state
         const {dataDepo, isGet, alertM, alertMsg, alertUpload, page } = this.props.depo
@@ -548,6 +566,7 @@ class MasterDepo extends Component {
                         <div className={styleTrans.searchContainer}>
                             <div className='rowCenter'>
                                 <Button onClick={() => this.prosesOpen('add')} color="primary" size="lg" className='mr-1'>Add</Button>
+                                <Button className='mr-1' disabled={listDepo.length === 0 ? true : false} onClick={this.openModalDelete} color="danger" size="lg">Delete</Button>
                                 <Button onClick={this.openModalUpload} color="warning" size="lg" className='mr-1'>Upload</Button>
                                 <Button color="success" size="lg" onClick={this.downloadData}>Download</Button>
                             </div>
@@ -1183,6 +1202,13 @@ class MasterDepo extends Component {
                                 <div className={style.sucUpdate}>Berhasil Mengupload Master Depo</div>
                             </div>
                             </div>
+                        ) : this.state.confirm === 'delete' ?(
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={style.sucUpdate}>Berhasil Delete Depo</div>
+                            </div>
+                            </div>
                         ) : this.state.confirm === 'failUpload' ? (
                             <div>
                                 <div className={style.cekUpdate}>
@@ -1214,14 +1240,29 @@ class MasterDepo extends Component {
                         </ModalBody>
                 </Modal>
                 <Modal isOpen={this.props.depo.isUpload ? true: false} size="sm">
-                        <ModalBody>
-                        <div>
-                            <div className={style.cekUpdate}>
-                                <AiFillCheckCircle size={80} className={style.green} />
-                                <div className={style.sucUpdate}>Berhasil Mengupload Master</div>
+                    <ModalBody>
+                    <div>
+                        <div className={style.cekUpdate}>
+                            <AiFillCheckCircle size={80} className={style.green} />
+                            <div className={style.sucUpdate}>Berhasil Mengupload Master</div>
+                        </div>
+                    </div>
+                    </ModalBody>
+                </Modal>
+                <Modal isOpen={this.state.modalDelete} size="md" toggle={this.openModalDelete} centered={true}>
+                    <ModalBody>
+                        <div className={style.modalApprove}>
+                            <div>
+                                <text>
+                                    Anda yakin untuk delete depo ?
+                                </text>
+                            </div>
+                            <div className={style.btnApproveIo}>
+                                <Button color="primary" className='mr-2' onClick={this.prosesDelete}>Ya</Button>
+                                <Button color="secondary" onClick={this.openModalDelete}>Tidak</Button>
                             </div>
                         </div>
-                        </ModalBody>
+                    </ModalBody>
                 </Modal>
             </>
         )
@@ -1240,7 +1281,8 @@ const mapDispatchToProps = {
     resetError: depo.resetError,
     uploadMaster: depo.uploadMaster,
     nextPage: depo.nextPage,
-    exportMaster: depo.exportMaster
+    exportMaster: depo.exportMaster,
+    deleteDepo: depo.deleteDepo
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(MasterDepo)

@@ -54,6 +54,7 @@ const stockSchema = Yup.object().shape({
 })
 
 const addStockSchema = Yup.object().shape({
+    no_asset: Yup.string(),
     deskripsi: Yup.string().required("must be filled"),
     merk: Yup.string().required("must be filled"),
     satuan: Yup.string().required("must be filled"),
@@ -744,6 +745,7 @@ class Stock extends Component {
         const data = {
             area: detailDepo.nama_area,
             kode_plant: dataAsset[0].kode_plant,
+            no_asset: val.no_asset,
             deskripsi: val.deskripsi,
             merk: val.merk,
             satuan: val.satuan,
@@ -862,6 +864,7 @@ class Stock extends Component {
         const { dataRinci, fisik, kondisi } = this.state
         const { detailAsset } = this.props.asset
         const data = {
+            no_asset: value.no_asset,
             deskripsi: value.deskripsi,
             merk: value.merk,
             satuan: value.satuan,
@@ -872,7 +875,7 @@ class Stock extends Component {
             status_fisik: fisik,
             kondisi: kondisi
         }
-        if (dataRinci.no_asset === null) {
+        if (dataRinci.status_doc === 1) {
             await this.props.updateStock(token, dataRinci.id, data)
         } else {
             await this.props.updateAssetNew(token, dataRinci.id, data)
@@ -1023,7 +1026,7 @@ class Stock extends Component {
     }
 
     openModalAdd = () => {
-        this.setState({modalAdd: !this.state.modalAdd})
+        this.setState({modalAdd: !this.state.modalAdd, kondisi: '', fisik: ''})
     }
 
     getRincian = async (val) => {
@@ -1385,6 +1388,7 @@ class Stock extends Component {
                             </div> */}
                             <Formik
                             initialValues = {{
+                                no_asset: '',
                                 deskripsi: '',
                                 merk: '',
                                 satuan: '',
@@ -1399,6 +1403,17 @@ class Stock extends Component {
                             {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
                                 <div className="rightRinci2">
                                     <div>
+                                        <Row className="mb-2 rowRinci">
+                                            <Col md={3}>No Asset</Col>
+                                            <Col md={9} className="colRinci">:  <Input 
+                                                type='text'
+                                                className="inputRinci" 
+                                                value={values.no_asset}
+                                                onBlur={handleBlur("no_asset")}
+                                                onChange={handleChange("no_asset")}
+                                                />
+                                            </Col>
+                                        </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Deskripsi</Col>
                                             <Col md={9} className="colRinci">:  <Input 
@@ -1808,6 +1823,7 @@ class Stock extends Component {
                             </div>
                             <Formik
                             initialValues = {{
+                                no_asset: detRinci.no_asset === null ? '' : detRinci.no_asset,
                                 deskripsi: detRinci.deskripsi === null ? '' : detRinci.deskripsi,
                                 merk: detRinci.merk === null ? '' : detRinci.merk,
                                 satuan: detRinci.satuan === null ? '' : detRinci.satuan,
@@ -1826,7 +1842,14 @@ class Stock extends Component {
                                     <div>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>No Asset</Col>
-                                            <Col md={9} className="colRinci">:  <Input className="inputRinci" value={dataRinci.no_asset} disabled /></Col>
+                                            <Col md={9} className="colRinci">:  <Input 
+                                                disabled={dataRinci.status_doc === 1 ? false : true}
+                                                className="inputRinci" 
+                                                value={values.no_asset}
+                                                onBlur={handleBlur("no_asset")}
+                                                onChange={handleChange("no_asset")} 
+                                                />
+                                            </Col>
                                         </Row>
                                         <Row className="mb-2 rowRinci">
                                             <Col md={3}>Deskripsi</Col>
@@ -2664,7 +2687,7 @@ class Stock extends Component {
                         )}
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.state.modalSum} toggle={this.openSum} size="xl">
+                <Modal isOpen={this.state.modalSum} toggle={this.openSum} size="xl" className='xl'>
                     <ModalHeader>
                         <div className="stockTitle">asset tambahan</div>
                     </ModalHeader>
@@ -2672,34 +2695,12 @@ class Stock extends Component {
                         <div className={style.headEmail}>
                             <Button onClick={this.openModalAdd} color="primary" size="lg">Add</Button>
                         </div>
-                        {stockArea.length === 0 ? (
-                            <div className={style.tableDashboard}>
-                                <Table bordered responsive hover className={style.tab}>
-                                    <thead>
-                                        <tr>
-                                            <th>No</th>
-                                            <th>DESKRIPSI</th>
-                                            <th>MERK</th>
-                                            <th>SATUAN</th>
-                                            <th>UNIT</th>
-                                            <th>STATUS FISIK</th>
-                                            <th>KONDISI</th>
-                                            <th>LOKASI</th>
-                                            <th>GROUPING</th>
-                                            <th>KETERANGAN</th>
-                                        </tr>
-                                    </thead>
-                                </Table>
-                                <div className={style.spin}>
-                                    <h3>Tidak ada data asset tambahan</h3>
-                                </div>
-                            </div>
-                        ) : (
                             <div className={style.tableDashboard}>
                             <Table bordered responsive hover className={style.tab}>
                                 <thead>
                                     <tr>
                                         <th>No</th>
+                                        <th>NO. ASET</th>
                                         <th>DESKRIPSI</th>
                                         <th>MERK</th>
                                         <th>SATUAN</th>
@@ -2709,35 +2710,48 @@ class Stock extends Component {
                                         <th>LOKASI</th>
                                         <th>GROUPING</th>
                                         <th>KETERANGAN</th>
+                                        <th>Picture</th>
                                         <th>OPSI</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {stockArea.length !== 0 && stockArea.filter(item => item.status_doc === 1 && item.status_form < 2).map((item, index) => {
                                         return (
-                                            item.status_doc === 1 && (
-                                                <tr>
-                                                    <th scope="row">{index + 1}</th>
-                                                    <td>{item.deskripsi}</td>
-                                                    <td>{item.merk}</td>
-                                                    <td>{item.satuan}</td>
-                                                    <td>{item.unit}</td>
-                                                    <td>{item.status_fisik}</td>
-                                                    <td>{item.kondisi}</td>
-                                                    <td>{item.lokasi}</td>
-                                                    <td>{item.grouping}</td>
-                                                    <td>{item.keterangan}</td>
-                                                    <td>
-                                                        <Button className='ml-1 mt-1' color='primary' onClick={() => this.getRinciStock(item)}>Update</Button>
-                                                        <Button className='ml-1 mt-1' color='danger' onClick={() => this.prosesOpenDelete(item)}>Delete</Button>
-                                                    </td>
-                                                </tr>
-                                            )
-                                        )})}
+                                        item.status_doc === 1 && (
+                                            <tr>
+                                                <th scope="row">{index + 1}</th>
+                                                <td>{item.no_asset}</td>
+                                                <td>{item.deskripsi}</td>
+                                                <td>{item.merk}</td>
+                                                <td>{item.satuan}</td>
+                                                <td>{item.unit}</td>
+                                                <td>{item.status_fisik}</td>
+                                                <td>{item.kondisi}</td>
+                                                <td>{item.lokasi}</td>
+                                                <td>{item.grouping}</td>
+                                                <td>{item.keterangan}</td>
+                                                <td>
+                                                    {item.image !== '' && item.image !== null 
+                                                    ? <div className="">
+                                                        <img src={`${REACT_APP_BACKEND_URL}/${item.image}`} className="imgTable" />
+                                                        <text className='textPict'>{moment(item.date_img).format('DD MMMM YYYY')}</text>
+                                                    </div> : null}
+                                                </td>
+                                                <td>
+                                                    <Button className='ml-1 mt-1' color='primary' onClick={() => this.getRinciStock(item)}>Update</Button>
+                                                    <Button className='ml-1 mt-1' color='danger' onClick={() => this.prosesOpenDelete(item)}>Delete</Button>
+                                                </td>
+                                            </tr>
+                                        )
+                                    )})}
                                 </tbody>
                             </Table>
+                            {stockArea.length === 0 && (
+                                <div className={style.spin}>
+                                    <h3>Tidak ada data asset tambahan</h3>
+                                </div>
+                            )}
                         </div>
-                        )}
                     </ModalBody>
                     {/* <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
                         <div>{alertM}</div>

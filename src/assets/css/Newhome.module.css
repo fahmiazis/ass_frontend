@@ -1,0 +1,457 @@
+/* App Container */
+.appContainer {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #f0f4f8 0%, #d9e2ec 100%);
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 1.5rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+/* Hero Section */
+.heroSection {
+  background: linear-gradient(135deg, #a01e2a 0%, #eb1d24 100%);
+  padding: 5rem 0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.heroSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
+  opacity: 0.3;
+}
+
+.heroContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.heroTitle {
+  font-size: 3.5rem;
+  font-weight: 800;
+  text-align: center;
+  color: #ffffff;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+  letter-spacing: -0.02em;
+}
+
+.heroDescription {
+  font-size: 1.25rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 3.5rem;
+  font-weight: 400;
+}
+
+/* Menu Grid */
+.menuGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem;
+  margin-top: 2.5rem;
+}
+
+.menuCard {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 2.5rem 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.menuCard:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+.menuIconWrapper {
+  display: inline-flex;
+  margin-bottom: 1.5rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.menuIcon {
+  width: auto;
+  height: 10vh; /* 10% dari tinggi viewport */
+  min-height: 100px; /* Minimal height untuk layar kecil */
+  max-height: 150px; /* Maksimal height agar tidak terlalu besar */
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+  transition: transform 0.3s ease;
+}
+
+.menuCard:hover .menuIcon {
+  transform: scale(1.15) rotate(5deg);
+}
+
+.menuCardTitle {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
+}
+
+.menuCardDescription {
+  font-size: 0.95rem;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+/* Asset Section */
+.assetSection {
+  padding: 5rem 0;
+  position: relative;
+  /* border-radius: 10%; */
+}
+
+.assetSection:nth-child(even) {
+  background: linear-gradient(to right, #ffffff 0%, #f9fafb 100%);
+}
+
+.assetSection:nth-child(odd) {
+  background: linear-gradient(to left, #ffffff 0%, #f9fafb 100%);
+}
+
+.assetSectionContent {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 3rem;
+}
+
+.assetGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5rem;
+  align-items: center;
+}
+
+.iconLeft {
+  order: 1;
+}
+
+.iconRight {
+  order: 2;
+}
+
+.chartRight {
+  order: 2;
+}
+
+.chartLeft {
+  order: 1;
+}
+
+/* Icon Side */
+.assetIconSide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+.assetIconLarge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+.assetIconLarge img {
+  width: auto;
+  height: 30vh; /* 30% dari tinggi viewport */
+  max-width: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.15));
+}
+
+.assetTotalBox {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 2rem 3rem;
+  border-radius: 1.25rem;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  border: 2px solid #e5e7eb;
+  min-width: 280px;
+  position: relative;
+  overflow: hidden;
+}
+
+.assetTotalBox::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, currentColor, transparent);
+  opacity: 0.5;
+}
+
+.assetTotalLabel {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #6b7280;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.75rem;
+}
+
+.assetTotalNumber {
+  font-size: 3.5rem;
+  font-weight: 900;
+  margin: 0.5rem 0;
+  line-height: 1;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.assetTotalBar {
+  height: 6px;
+  border-radius: 3px;
+  margin-top: 1.25rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Chart Side */
+.assetChartSide {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.assetTitleSection {
+  text-align: center;
+  padding-bottom: 1.5rem;
+  border-bottom: 3px solid #e5e7eb;
+}
+
+.assetTitle {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+.assetSubtitle {
+  font-size: 1.1rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.assetChartWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.chartContainer {
+  width: 100%;
+  max-width: 450px;
+  height: 450px;
+  position: relative;
+}
+
+/* Footer */
+.footer {
+  background: linear-gradient(135deg, #a01e2a 0%, #eb1d24 100%);
+  color: #ffffff;
+  padding: 2.5rem 0;
+  margin-top: 3rem;
+}
+
+.footerContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  text-align: center;
+}
+
+.footerContent p {
+  margin: 0;
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .heroTitle {
+    font-size: 2.75rem;
+  }
+  
+  .assetGrid {
+    gap: 3rem;
+  }
+  
+  .assetIconLarge img {
+    width: auto;
+    height: 25vh; /* Lebih kecil di tablet */
+    max-width: 100%;
+  }
+  
+  .assetTotalNumber {
+    font-size: 3rem;
+  }
+  
+  .assetTitle {
+    font-size: 2rem;
+  }
+  
+  .chartContainer {
+    max-width: 400px;
+    height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .heroTitle {
+    font-size: 2rem;
+  }
+  
+  .heroDescription {
+    font-size: 1rem;
+  }
+  
+  .heroSection {
+    padding: 3rem 0;
+  }
+  
+  .assetSection {
+    padding: 3rem 0;
+  }
+  
+  .assetSectionContent {
+    padding: 0 1.5rem;
+  }
+  
+  .assetGrid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+  
+  .iconLeft,
+  .iconRight,
+  .chartLeft,
+  .chartRight {
+    order: unset !important;
+  }
+  
+  .menuGrid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .menuIcon {
+    width: 4rem;
+    height: 4rem;
+  }
+  
+  .assetIconLarge img {
+    width: auto;
+    height: 20vh; /* Lebih kecil di mobile */
+    max-width: 90%;
+  }
+  
+  .assetTotalNumber {
+    font-size: 2.5rem;
+  }
+  
+  .assetTotalBox {
+    min-width: 240px;
+    padding: 1.5rem 2.5rem;
+  }
+  
+  .assetTitle {
+    font-size: 1.75rem;
+  }
+  
+  .assetSubtitle {
+    font-size: 1rem;
+  }
+  
+  .chartContainer {
+    max-width: 350px;
+    height: 350px;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroTitle {
+    font-size: 1.75rem;
+  }
+  
+  .heroDescription {
+    font-size: 0.9rem;
+  }
+  
+  .heroSection {
+    padding: 2.5rem 0;
+  }
+  
+  .heroContent {
+    padding: 0 1.5rem;
+  }
+  
+  .assetSection {
+    padding: 2.5rem 0;
+  }
+  
+  .menuCard {
+    padding: 2rem 1.5rem;
+  }
+  
+  .assetIconLarge img {
+    width: auto;
+    height: 18vh; /* Smallest untuk mobile kecil */
+    max-width: 85%;
+  }
+  
+  .assetTotalNumber {
+    font-size: 2rem;
+  }
+  
+  .assetTotalBox {
+    min-width: 200px;
+    padding: 1.25rem 2rem;
+  }
+  
+  .assetTitle {
+    font-size: 1.5rem;
+  }
+  
+  .chartContainer {
+    max-width: 300px;
+    height: 300px;
+  }
+}

@@ -31,8 +31,12 @@
     background-position: center;
     background-attachment: fixed; /* Membuat gambar background tetap */
     min-height: 100vh; /* Agar background memenuhi layar */
-    padding: 2rem;
+    /* padding: 2rem; */
     overflow: hidden;
+  }
+  
+  .body {
+    padding: 2rem;
   }
   
   .header {

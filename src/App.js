@@ -8,6 +8,7 @@ import PrivateRoute from './components/PrivateRoute'
 import Login from './pages/Login'
 import AccessDenied from './components/AccessDenied'
 import Home from './pages/Home'
+import Newhome from './pages/Newhome'
 import Sidebar from './components/Sidebar'
 import Tes from './pages/Tes'
 import Transaksi from './pages/Transaksi'
@@ -99,6 +100,9 @@ class App extends Component {
                 </PrivateRoute>
                 <PrivateRoute path='/' exact>
                     <Home />
+                </PrivateRoute>
+                <PrivateRoute path='/newhome' exact>
+                    <Newhome />
                 </PrivateRoute>
                 <PrivateRoute path='/pengadaan'>
                     <Pengadaan />

@@ -607,7 +607,7 @@ class Asset extends Component {
         const { page } = this.props.asset
         const search = value === undefined ? '' : this.state.search
         const limit = value === undefined ? this.state.limit : value.limit
-        await this.props.getAsset(token, limit, search, page.currentPage)
+        await this.props.getAsset(token, limit, search, page.currentPage, 'master')
         this.setState({limit: value === undefined ? 10 : value.limit})
     }
 

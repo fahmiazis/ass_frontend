@@ -360,7 +360,7 @@ class NewNavbar extends Component {
                   {(!sidebarOpen || isMobile) &&  <span>Terima Stock Opname</span>}
                 </div>
               )}
-              {level === '2' && (
+              {(level === '2' || level === '1') && (
                 <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('monstock')} >
                   <FiEye className={styleTrans.icon} size={sidebarOpen && 20} /> 
                   {(!sidebarOpen || isMobile) &&  <span>Monitoring Stock Opname</span>}
@@ -446,7 +446,7 @@ class NewNavbar extends Component {
               <FaBars />
             </div>
             <div className={styleTrans.navTitle}>
-              <marquee>WEB ASSET</marquee>
+              <marquee>Asset Management PMA</marquee>
             </div>
             <div className={styleTrans.navIcons}>
               {/* <FaBell className={styleTrans.navIcon} />

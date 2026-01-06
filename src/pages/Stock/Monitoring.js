@@ -84,11 +84,11 @@ class Stock extends Component {
             pullRight: false,
             touchHandleWidth: 20,
             dragToggleDistance: 30,
-            limit: 10,
+            limit: 100,
             search: '',
-            time1: moment().subtract(1, 'month').startOf('month').format('YYYY-MM-26'),
+            time1: moment().subtract(1, 'month').startOf('month').format('YYYY-MM-DD'),
             // time1: moment().startOf('month').format('YYYY-MM-DD'),
-            time2: moment().endOf('month').format('YYYY-MM-25'),
+            time2: moment().endOf('month').format('YYYY-MM-DD'),
             time: 'pilih',
             dataRinci: {},
             dataItem: {},
@@ -1305,7 +1305,7 @@ class Stock extends Component {
 
         await this.props.getStockAll(token, search, 100, 1, '', val, cekTime1, cekTime2)
 
-        const {dataStock, dataDepo} = this.props.stock
+        const {dataStock, dataDepo, dataAset} = this.props.stock
         const {dataRole} = this.props.user
         const level = localStorage.getItem('level')
         const role = level === '16' || level === '13' ? dataRole.find(({nomor}) => nomor === '27').name : localStorage.getItem('role')
@@ -1352,11 +1352,20 @@ class Stock extends Component {
                 const newStock = []
                 for (let i = 0; i < dataDepo.length; i++) {
                     const cek = dataStock.find(item => item.kode_plant === dataDepo[i].kode_plant)
+                    const cekAset = dataAset.find(item => item.kode_plant === dataDepo[i].kode_plant)
                     if (cek !== undefined) {
                         newStock.push(cek)
+                    } else if (cekAset) {
+                        const data = {
+                            status_form: 'false',
+                            status_stock: 'Telah Isi Belum Submit',
+                            ...dataDepo[i]
+                        }
+                        newStock.push(data)
                     } else {
                         const data = {
                             status_form: 'false',
+                            status_stock: 'Belum Mengajukan Stock Opname',
                             ...dataDepo[i]
                         }
                         newStock.push(data)
@@ -1421,11 +1430,20 @@ class Stock extends Component {
                 const newStock = []
                 for (let i = 0; i < dataDepo.length; i++) {
                     const cek = dataStock.find(item => item.kode_plant === dataDepo[i].kode_plant)
+                    const cekAset = dataAset.find(item => item.kode_plant === dataDepo[i].kode_plant)
                     if (cek !== undefined) {
                         newStock.push(cek)
+                    } else if (cekAset) {
+                        const data = {
+                            status_form: 'false',
+                            status_stock: 'Telah Isi Belum Submit',
+                            ...dataDepo[i]
+                        }
+                        newStock.push(data)
                     } else {
                         const data = {
                             status_form: 'false',
+                            status_stock: 'Belum Mengajukan Stock Opname',
                             ...dataDepo[i]
                         }
                         newStock.push(data)
@@ -1994,6 +2012,30 @@ class Stock extends Component {
             ...boldStyle
         }
 
+        ws.mergeCells(`M4`, `M4`)
+        ws.getCell(`M4`).value = 'STATUS'
+        ws.getCell(`M4`).alignment = { 
+            ...tbStyle
+        }
+        ws.getCell(`M4`).border = { 
+            ...borderStyles
+        }
+        ws.getCell(`M4`).font = { 
+            ...boldStyle
+        }
+
+        ws.mergeCells(`N4`, `N4`)
+        ws.getCell(`N4`).value = 'COST CENTER'
+        ws.getCell(`N4`).alignment = { 
+            ...tbStyle
+        }
+        ws.getCell(`N4`).border = { 
+            ...borderStyles
+        }
+        ws.getCell(`N4`).font = { 
+            ...boldStyle
+        }
+
         for (let i = 0; i < dataDownload.length; i++) {
             const item = dataDownload[i]
             if (item.status_form === 'false') {
@@ -2115,7 +2157,7 @@ class Stock extends Component {
                 }
 
                 ws.mergeCells(`L${i + 5}`, `L${i + 5}`)
-                ws.getCell(`L${i + 5}`).value = 'Belum Mengajukan Stock Opname'
+                ws.getCell(`L${i + 5}`).value = item.status_stock
                 ws.getCell(`L${i + 5}`).alignment = { 
                     ...tbStyle
                 }
@@ -2123,6 +2165,30 @@ class Stock extends Component {
                     ...borderStyles
                 }
                 ws.getCell(`L${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`M${i + 5}`, `M${i + 5}`)
+                ws.getCell(`M${i + 5}`).value = item.status_stock
+                ws.getCell(`M${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`M${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`M${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`N${i + 5}`, `N${i + 5}`)
+                ws.getCell(`N${i + 5}`).value = item.cost_center
+                ws.getCell(`N${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`N${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`N${i + 5}`).font = { 
                     ...boldStyle
                 }
             } else {
@@ -2244,7 +2310,7 @@ class Stock extends Component {
                 }
 
                 ws.mergeCells(`L${i + 5}`, `L${i + 5}`)
-                ws.getCell(`L${i + 5}`).value = moment(item.tanggalStock).format('DD') > 5 && moment(item.tanggalStock).format('DD') < 26 ? 'TELAT' : 'Tepat Waktu'
+                ws.getCell(`L${i + 5}`).value = moment(item.tanggalStock).format('DD') > 6 && moment(item.tanggalStock).format('DD') < 26 ? 'TELAT' : 'Tepat Waktu'
                 ws.getCell(`L${i + 5}`).alignment = { 
                     ...tbStyle
                 }
@@ -2254,10 +2320,34 @@ class Stock extends Component {
                 ws.getCell(`L${i + 5}`).font = { 
                     ...boldStyle
                 }
+
+                ws.mergeCells(`M${i + 5}`, `M${i + 5}`)
+                ws.getCell(`M${i + 5}`).value = item.status_form === 8 ? 'Finish' : 'In progress'
+                ws.getCell(`M${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`M${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`M${i + 5}`).font = { 
+                    ...boldStyle
+                }
+
+                ws.mergeCells(`N${i + 5}`, `N${i + 5}`)
+                ws.getCell(`N${i + 5}`).value = item.depo.cost_center
+                ws.getCell(`N${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`N${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`N${i + 5}`).font = { 
+                    ...boldStyle
+                }
             }
         }
 
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 12; i++) {
             console.log(i)
             if (i === 1) {
                 ws.columns[2+i].width = 10
@@ -2503,142 +2593,6 @@ class Stock extends Component {
           };
         return (
             <>
-                {/* <Sidebar {...sidebarProps}>
-                    <MaterialTitlePanel title={contentHeader}>
-                    <div className={style.backgroundLogo}>
-                        <div className={style.bodyDashboard}>
-                            <div className={style.headMaster}>
-                                <div className={style.titleDashboard}>Stock Opname Asset</div>
-                            </div>
-                            <div className={style.secEmail3}>
-                                {level === '5' || level === '9' ? (
-                                    <div className={style.headEmail}>
-                                        <Button onClick={this.prosesSubmitPre} color="info" size="lg">Create</Button>
-                                    </div>
-                                ) : (level === '2' || level === '12' || level === '7') && (
-                                    <div className={style.headEmail}>
-                                    </div>
-                                )}
-                                {this.state.view === 'list' ? (
-                                    <div>
-                                        <Button className='marDown' color='primary' onClick={() => this.getDokumentasi({no: 'all'})} >Download All</Button>
-                                        <ReactHtmlToExcel
-                                            id="test-table-xls-button"
-                                            className="btn btn-success marDown ml-2"
-                                            table="table-tracking"
-                                            filename="Dokumentasi Tracking Stock Opname"
-                                            sheet="Dokumentasi"
-                                            buttonText="Download Tracking"
-                                        />
-                                    </div>
-                                ) : level !== '5' && level !== '9' && level !== '2' && (
-                                    <div className='mt-4'>
-                                        <Input type="select" value={this.state.filter} onChange={e => this.changeFilter(e.target.value)}>
-                                            <option value="available">Available To Approve</option>
-                                            <option value="not available">All</option>
-                                        </Input>
-                                    </div>
-                                )}
-                            </div>
-                            <div className={style.secEmail3}>
-                                {level !== '5' && level !== '9' ? (
-                                    <div className='mt-4 ml-3'>
-                                        <text>Periode: </text>
-                                        <ButtonDropdown className={style.drop} isOpen={drop} toggle={this.dropDown}>
-                                        <DropdownToggle caret color="light">
-                                            {this.state.bulan}
-                                        </DropdownToggle>
-                                        <DropdownMenu>
-                                            {moment.months().map(item => {
-                                                return (
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 10, search: ''})}>{item}</DropdownItem>
-                                                )
-                                            })}
-                                        </DropdownMenu>
-                                        </ButtonDropdown>
-                                    </div>
-                                ) : (
-                                    <div></div>
-                                )}
-                                <div className={style.searchEmail2}>
-                                    <text>Search: </text>
-                                    <Input 
-                                    className={style.search}
-                                    onChange={this.onSearch}
-                                    value={this.state.search}
-                                    onKeyPress={this.onSearch}
-                                    >
-                                        <FaSearch size={20} />
-                                    </Input>
-                                </div>
-                            </div>
-                            {newStock.length === 0 && dataDepo.length === 0 ? (
-                                <div></div>
-                            ) : (
-                                <div className={style.tableDashboard}>
-                                    <Table bordered responsive hover className={style.tab} id="table-tracking">
-                                        <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>Area</th>
-                                                <th>Kode Area</th>
-                                                <th>Tanggal Stock Opname</th>
-                                                <th>No Stock Opname</th>
-                                                {level === '2' ? (
-                                                    <>
-                                                        <th>Status Approve</th>
-                                                        <th>Dokumentasi Aset</th>
-                                                    </>
-                                                ) : (
-                                                    <th>Status Approve</th>
-                                                )}
-                                                <th>Nama OM</th>
-                                                <th>Nama BM</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {dataDepo.length !== 0 && dataDepo.map(item => {
-                                                return (
-                                                <tr>
-                                                    <th scope="row">{(dataDepo.indexOf(item) + (((pages.currentPage - 1) * pages.limitPerPage) + 1))}</th>
-                                                    <td>{item.nama_area}</td>
-                                                    <td>{item.kode_plant}</td>
-                                                    <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : moment(dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).tanggalStock).format('DD MMMM YYYY')}</td>
-                                                    <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).no_stock}</td>
-                                                    {level === '2' ? (
-                                                        <>
-                                                            <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : <AiOutlineCheck color="primary" size={20} />}</td>
-                                                            <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : <AiOutlineCheck color="primary" size={20} />}</td>
-                                                        </>
-                                                    ) : (
-                                                        <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).appForm.find(({status}) => status === 0) !== undefined ? 'Reject ' + dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).appForm.find(({status}) => status === 0).jabatan : dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).appForm.find(({status}) => status === 1) !== undefined ? 'Approve ' + dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).appForm.find(({status}) => status === 1).jabatan : '-'}</td>
-                                                    )}
-                                                    <td>{item.nama_om}</td>
-                                                    <td>{item.nama_bm}</td>
-                                                    <td>
-                                                        <Button size='small' className='mb-2 btnprev' color="primary" disabled={dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? true : false} onClick={() => {this.getDetailStock(dataStock.find(({kode_plant}) => kode_plant === item.kode_plant)); this.getApproveStock({nama: item.kode_plant.split('').length === 4 ? 'stock opname' : 'stock opname HO', no: dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).no_stock})}}>Preview</Button>
-                                                        <Button className='btnprev' size='small' color="success" onClick={() => this.getDokumentasi({no: dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? '' : dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).no_stock})} disabled={dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? true : false}>Download</Button>
-                                                    </td>
-                                                </tr>
-                                                )})}
-                                        </tbody>
-                                    </Table>
-                                </div>
-                            )}
-                            <div>
-                                <div className={style.infoPageEmail1}>
-                                    <text>Showing {page.currentPage} of {page.pages} pages</text>
-                                    <div className={style.pageButton}>
-                                        <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
-                                        <button className={style.btnPrev} color="info" disabled={page.nextLink === null ? true : false} onClick={this.next}>Next</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    </MaterialTitlePanel>
-                </Sidebar> */}
                 <div className={styleTrans.app}>
                     <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
 
@@ -2715,6 +2669,7 @@ class Stock extends Component {
                                     <th>No</th>
                                     <th>No Stock Opname</th>
                                     <th>Kode Area</th>
+                                    <th>Cost Center</th>
                                     <th>Area</th>
                                     <th>Tanggal Stock Opname</th>
                                     {level === '2' && (
@@ -2728,7 +2683,7 @@ class Stock extends Component {
                                     <th>APPROVED BY</th>
                                     <th>TGL APPROVED</th>
                                     <th>STATUS WAKTU</th>
-                                    {/* <th>STATUS</th> */}
+                                    <th>STATUS</th>
                                     <th>OPSI</th>
                                 </tr>
                             </thead>
@@ -2736,73 +2691,75 @@ class Stock extends Component {
                                 {newStock.length > 0 && newStock.map((item, index) => {
                                     return (
                                         item.status_form === 'false' ? (
-                                        <tr className={item.status_form === 0 ? 'fail' : item.status_reject === 0 ? 'note' : item.status_reject === 1 && 'bad'}>
-                                            <td> 
-                                                <Input
-                                                    addon
-                                                    checked={listMon.find(element => element === item.kode_plant) ? true : false}
-                                                    type="checkbox"
-                                                    onClick={listMon.find(element => element === item.kode_plant) === undefined ? () => this.monApp(item.kode_plant) : () => this.monRej(item.kode_plant)}
-                                                />
-                                            </td>
-                                            <td>{index + 1}</td>
-                                            <td>-</td>
-                                            <td className='tdPlant'>{item.kode_plant}</td>
-                                            <td className='tdArea'>{item.nama_area}</td>
-                                            <td className='tdTime'>-</td>
-                                            {level === '2' && (
-                                                <>
-                                                    {/* <td>{parseInt(item.status_form) > 1 ? 'Full Approve' : item.history !== null && item.history.split(',').reverse()[0]}</td> */}
-                                                    <td>{'-'}</td>
-                                                </>
-                                            )}
-                                            <td className='tdPlant'>{item.nama_om}</td>
-                                            <td className='tdPlant'>{item.nama_bm}</td>
-                                            <td>-</td>
-                                            <td>-</td>
-                                            <td>Belum Mengajukan Stock Opname</td>
-                                            {/* <td>{item.history !== null && item.history.split(',').reverse()[0]}</td> */}
-                                            <td className='tdOpsi'>
-                                                -
-                                            </td>
-                                        </tr>
+                                            <tr className={item.status_form === 0 ? 'fail' : item.status_reject === 0 ? 'note' : item.status_reject === 1 && 'bad'}>
+                                                <td> 
+                                                    <Input
+                                                        addon
+                                                        checked={listMon.find(element => element === item.kode_plant) ? true : false}
+                                                        type="checkbox"
+                                                        onClick={listMon.find(element => element === item.kode_plant) === undefined ? () => this.monApp(item.kode_plant) : () => this.monRej(item.kode_plant)}
+                                                    />
+                                                </td>
+                                                <td>{index + 1}</td>
+                                                <td>-</td>
+                                                <td className='tdPlant'>{item.kode_plant}</td>
+                                                <td className='tdPlant'>{item.cost_center}</td>
+                                                <td className='tdArea'>{item.nama_area}</td>
+                                                <td className='tdTime'>-</td>
+                                                {level === '2' && (
+                                                    <>
+                                                        {/* <td>{parseInt(item.status_form) > 1 ? 'Full Approve' : item.history !== null && item.history.split(',').reverse()[0]}</td> */}
+                                                        <td>{'-'}</td>
+                                                    </>
+                                                )}
+                                                <td className='tdPlant'>{item.nama_om}</td>
+                                                <td className='tdPlant'>{item.nama_bm}</td>
+                                                <td>-</td>
+                                                <td>-</td>
+                                                <td>{item.status_stock}</td>
+                                                <td>{item.status_stock}</td>
+                                                <td className='tdOpsi'>
+                                                    -
+                                                </td>
+                                            </tr>
                                         ) : (
-                                        <tr className={item.status_form === 0 ? 'fail' : item.status_reject === 0 ? 'note' : item.status_reject === 1 && 'bad'}>
-                                            <td> 
-                                                <Input
-                                                    addon
-                                                    checked={listMon.find(element => element === item.kode_plant) ? true : false}
-                                                    type="checkbox"
-                                                    onClick={listMon.find(element => element === item.kode_plant) === undefined ? () => this.monApp(item.kode_plant) : () => this.monRej(item.kode_plant)}
-                                                />
-                                            </td>
-                                            <td>{index + 1}</td>
-                                            <td>{item.no_stock}</td>
-                                            <td className='tdPlant'>{item.kode_plant}</td>
-                                            <td className='tdArea'>{item.depo === null ? '' : item.area === null ? `${item.depo.nama_area} ${item.depo.channel}` : item.area}</td>
-                                            <td className='tdTime'>{moment(item.tanggalStock).format('DD MMMM YYYY')}</td>
-                                            {level === '2' && (
-                                                <>
-                                                    {/* <td>{parseInt(item.status_form) > 1 ? 'Full Approve' : item.history !== null && item.history.split(',').reverse()[0]}</td> */}
-                                                    <td>{<AiOutlineCheck color="primary" size={20} />}</td>
-                                                </>
-                                            )}
-                                            <td className='tdPlant'>{item.depo === null ? '-' :  `${item.depo.nama_om}`}</td>
-                                            <td className='tdPlant'>{item.depo === null ? '-' :  `${item.depo.nama_bm}`}</td>
-                                            <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? item.appForm.find(item => item.status === 1).nama + ` (${item.appForm.find(item => item.status === 1).jabatan === 'area' ? 'AOS' : item.appForm.find(item => item.status === 1).jabatan})` : '-' }</td>
-                                            <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? moment(item.appForm.find(item => item.status === 1).updatedAt).format('DD/MM/YYYY HH:mm:ss') : '-' }</td>
-                                            <td>{moment(item.tanggalStock).format('DD') > 5 && moment(item.tanggalStock).format('DD') < 26 ? 'TELAT' : 'Tepat Waktu'}</td>
-                                            {/* <td>{item.history !== null && item.history.split(',').reverse()[0]}</td> */}
-                                            <td className='tdOpsi'>
-                                                <Button 
-                                                color='primary' 
-                                                className='mr-1 mt-1'
-                                                onClick={() => this.getDetailStock(item)}>
-                                                    Detail
-                                                </Button>
-                                                <Button className='mt-1' color='warning' onClick={() => this.getDetailTrack(item)}>Tracking</Button>
-                                            </td>
-                                        </tr>
+                                            <tr className={item.status_form === 0 ? 'fail' : item.status_reject === 0 ? 'note' : item.status_reject === 1 && 'bad'}>
+                                                <td> 
+                                                    <Input
+                                                        addon
+                                                        checked={listMon.find(element => element === item.kode_plant) ? true : false}
+                                                        type="checkbox"
+                                                        onClick={listMon.find(element => element === item.kode_plant) === undefined ? () => this.monApp(item.kode_plant) : () => this.monRej(item.kode_plant)}
+                                                    />
+                                                </td>
+                                                <td>{index + 1}</td>
+                                                <td>{item.no_stock}</td>
+                                                <td className='tdPlant'>{item.kode_plant}</td>
+                                                <td className='tdPlant'>{item.depo === null ? '' : item.area === null ? '' : item.depo.cost_center}</td>
+                                                <td className='tdArea'>{item.depo === null ? '' : item.area === null ? `${item.depo.nama_area} ${item.depo.channel}` : item.area}</td>
+                                                <td className='tdTime'>{moment(item.tanggalStock).format('DD MMMM YYYY')}</td>
+                                                {level === '2' && (
+                                                    <>
+                                                        {/* <td>{parseInt(item.status_form) > 1 ? 'Full Approve' : item.history !== null && item.history.split(',').reverse()[0]}</td> */}
+                                                        <td>{<AiOutlineCheck color="primary" size={20} />}</td>
+                                                    </>
+                                                )}
+                                                <td className='tdPlant'>{item.depo === null ? '-' :  `${item.depo.nama_om}`}</td>
+                                                <td className='tdPlant'>{item.depo === null ? '-' :  `${item.depo.nama_bm}`}</td>
+                                                <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? item.appForm.find(item => item.status === 1).nama + ` (${item.appForm.find(item => item.status === 1).jabatan === 'area' ? 'AOS' : item.appForm.find(item => item.status === 1).jabatan})` : '-' }</td>
+                                                <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? moment(item.appForm.find(item => item.status === 1).updatedAt).format('DD/MM/YYYY HH:mm:ss') : '-' }</td>
+                                                <td>{moment(item.tanggalStock).format('DD') > 6 && moment(item.tanggalStock).format('DD') < 26 ? 'TELAT' : 'Tepat Waktu'}</td>
+                                                <td>{item.status_form === 8 ? 'Finish' : 'In progress'}</td>
+                                                <td className='tdOpsi'>
+                                                    <Button 
+                                                    color='primary' 
+                                                    className='mr-1 mt-1'
+                                                    onClick={() => this.getDetailStock(item)}>
+                                                        Detail
+                                                    </Button>
+                                                    <Button className='mt-1' color='warning' onClick={() => this.getDetailTrack(item)}>Tracking</Button>
+                                                </td>
+                                            </tr>
                                         )
                                     )
                                 })}

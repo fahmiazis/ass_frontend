@@ -95,7 +95,7 @@ class MasterUser extends Component {
             listRole: [],
             sortType: 'asc',
             sortName: 'username',
-            typeData: 'verif',
+            typeData: 'master',
             listStat: [],
             typeReject: '',
             menuRev: '',

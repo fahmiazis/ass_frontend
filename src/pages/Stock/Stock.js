@@ -706,7 +706,7 @@ class Stock extends Component {
         }
     }
 
-    downloadForm = async (val) => {
+    downloadFormOld = async (val) => {
         this.setState({isLoading: true})
         const { detailStock, stockApp } = this.props.stock
         const dataApp = stockApp
@@ -1258,6 +1258,396 @@ class Stock extends Component {
         this.setState({isLoading: false})
     }
 
+    downloadForm = async (val) => {
+        this.setState({isLoading: true})
+        const { detailStock, stockApp } = this.props.stock
+        const dataApp = stockApp
+
+        const alpha = Array.from(Array(26)).map((e, i) => i + 65)
+        const alphabet = alpha.map((x) => String.fromCharCode(x))
+
+        const workbook = new ExcelJS.Workbook();
+        const ws = workbook.addWorksheet('form stock opname', {
+            pageSetup: { orientation:'landscape', paperSize: 8 }
+        })
+
+        const borderStyles = {
+            top: {style:'thin'},
+            left: {style:'thin'},
+            bottom: {style:'thin'},
+            right: {style:'thin'}
+        }
+
+        const tbStyle = {
+            wrapText: true,
+            vertical: 'middle',
+            shrinkToFit: true
+        }
+
+        const appStyle = {
+            horizontal:'center',
+            wrapText: true,
+            vertical: 'middle'
+        }
+
+        const boldStyle = {
+            bold: true
+        }
+
+        const titleStyle = {
+            bold: true,
+            size: 12,
+        }
+
+        const alignStyle = {
+            horizontal:'left',
+            vertical: 'middle'
+        }
+
+        // Header info (baris 1-10)
+        ws.getCell(`B2`).value = 'KERTAS KERJA OPNAME ASET'
+        ws.getCell(`B2`).alignment = { ...alignStyle }
+        ws.getCell(`B2`).font = { ...titleStyle }
+
+        ws.getCell(`B4`).value = 'PT. PINUS MERAH ABADI'
+        ws.getCell(`B4`).alignment = { ...alignStyle }
+        ws.getCell(`B4`).font = { ...titleStyle }
+
+        ws.getCell(`B6`).value = 'KANTOR PUSAT/CABANG'
+        ws.getCell(`B6`).alignment = { ...alignStyle }
+        ws.getCell(`B6`).font = { ...titleStyle }
+
+        ws.getCell(`E6`).value = `: ${detailStock[0].area.toUpperCase()}`
+        ws.getCell(`E6`).alignment = { ...alignStyle }
+        ws.getCell(`E6`).font = { ...titleStyle }
+
+        ws.getCell(`B8`).value = 'DEPO/CP'
+        ws.getCell(`B8`).alignment = { ...alignStyle }
+        ws.getCell(`B8`).font = { ...titleStyle }
+
+        ws.getCell(`E8`).value = `: ${detailStock[0].area.toUpperCase()}`
+        ws.getCell(`E8`).alignment = { ...alignStyle }
+        ws.getCell(`E8`).font = { ...titleStyle }
+
+        ws.getCell(`B10`).value = 'OPNAME PER TANGGAL'
+        ws.getCell(`B10`).alignment = { ...alignStyle }
+        ws.getCell(`B10`).font = { ...titleStyle }
+
+        ws.getCell(`E10`).value = `: ${moment(detailStock[0].tanggalStock).format('DD MMMM YYYY')}`
+        ws.getCell(`E10`).alignment = { ...alignStyle }
+        ws.getCell(`E10`).font = { ...titleStyle }
+
+        // === HELPER FUNCTION: Create table header ===
+        const createTableHeader = (startRow) => {
+            const headerRow = startRow
+            
+            // NO
+            ws.getCell(`B${headerRow}`).value = 'NO'
+            ws.getCell(`B${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`B${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`B${headerRow}`).font = { ...boldStyle }
+
+            // NO. ASET
+            ws.mergeCells(`C${headerRow}:D${headerRow}`)
+            ws.getCell(`C${headerRow}`).value = 'NO. ASET'
+            ws.getCell(`C${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`C${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`C${headerRow}`).font = { ...boldStyle }
+
+            // DESKRIPSI
+            ws.mergeCells(`E${headerRow}:H${headerRow}`)
+            ws.getCell(`E${headerRow}`).value = 'DESKRIPSI'
+            ws.getCell(`E${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`E${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`E${headerRow}`).font = { ...boldStyle }
+
+            // MERK
+            ws.mergeCells(`I${headerRow}:J${headerRow}`)
+            ws.getCell(`I${headerRow}`).value = 'MERK'
+            ws.getCell(`I${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`I${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`I${headerRow}`).font = { ...boldStyle }
+
+            // SATUAN
+            ws.getCell(`K${headerRow}`).value = 'SATUAN'
+            ws.getCell(`K${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`K${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`K${headerRow}`).font = { ...boldStyle }
+
+            // UNIT
+            ws.getCell(`L${headerRow}`).value = 'UNIT'
+            ws.getCell(`L${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`L${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`L${headerRow}`).font = { ...boldStyle }
+
+            // STATUS FISIK
+            ws.getCell(`M${headerRow}`).value = 'STATUS FISIK'
+            ws.getCell(`M${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`M${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`M${headerRow}`).font = { ...boldStyle }
+
+            // KONDISI
+            ws.getCell(`N${headerRow}`).value = 'KONDISI'
+            ws.getCell(`N${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`N${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`N${headerRow}`).font = { ...boldStyle }
+
+            // LOKASI
+            ws.mergeCells(`O${headerRow}:P${headerRow}`)
+            ws.getCell(`O${headerRow}`).value = 'LOKASI'
+            ws.getCell(`O${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`O${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`O${headerRow}`).font = { ...boldStyle }
+
+            // GROUPING
+            ws.mergeCells(`Q${headerRow}:R${headerRow}`)
+            ws.getCell(`Q${headerRow}`).value = 'GROUPING'
+            ws.getCell(`Q${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`Q${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`Q${headerRow}`).font = { ...boldStyle }
+
+            // KETERANGAN
+            ws.mergeCells(`S${headerRow}:U${headerRow}`)
+            ws.getCell(`S${headerRow}`).value = 'KETERANGAN'
+            ws.getCell(`S${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`S${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`S${headerRow}`).font = { ...boldStyle }
+        }
+
+        // === HELPER FUNCTION: Create data row ===
+        const createDataRow = (item, rowNum, dataRow) => {
+            // NO
+            ws.getCell(`B${dataRow}`).value = rowNum
+            ws.getCell(`B${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`B${dataRow}`).border = { ...borderStyles }
+
+            // NO. ASET
+            ws.mergeCells(`C${dataRow}:D${dataRow}`)
+            ws.getCell(`C${dataRow}`).value = item.no_asset || ''
+            ws.getCell(`C${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`C${dataRow}`).border = { ...borderStyles }
+
+            // DESKRIPSI
+            ws.mergeCells(`E${dataRow}:H${dataRow}`)
+            ws.getCell(`E${dataRow}`).value = item.deskripsi || ''
+            ws.getCell(`E${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`E${dataRow}`).border = { ...borderStyles }
+
+            // MERK
+            ws.mergeCells(`I${dataRow}:J${dataRow}`)
+            ws.getCell(`I${dataRow}`).value = item.merk || ''
+            ws.getCell(`I${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`I${dataRow}`).border = { ...borderStyles }
+
+            // SATUAN
+            ws.getCell(`K${dataRow}`).value = item.satuan || ''
+            ws.getCell(`K${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`K${dataRow}`).border = { ...borderStyles }
+
+            // UNIT
+            ws.getCell(`L${dataRow}`).value = item.unit || ''
+            ws.getCell(`L${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`L${dataRow}`).border = { ...borderStyles }
+
+            // STATUS FISIK
+            ws.getCell(`M${dataRow}`).value = item.status_fisik || ''
+            ws.getCell(`M${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`M${dataRow}`).border = { ...borderStyles }
+
+            // KONDISI
+            ws.getCell(`N${dataRow}`).value = item.kondisi || ''
+            ws.getCell(`N${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`N${dataRow}`).border = { ...borderStyles }
+
+            // LOKASI
+            ws.mergeCells(`O${dataRow}:P${dataRow}`)
+            ws.getCell(`O${dataRow}`).value = item.lokasi || ''
+            ws.getCell(`O${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`O${dataRow}`).border = { ...borderStyles }
+
+            // GROUPING
+            ws.mergeCells(`Q${dataRow}:R${dataRow}`)
+            ws.getCell(`Q${dataRow}`).value = item.grouping || ''
+            ws.getCell(`Q${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`Q${dataRow}`).border = { ...borderStyles }
+
+            // KETERANGAN
+            ws.mergeCells(`S${dataRow}:U${dataRow}`)
+            ws.getCell(`S${dataRow}`).value = item.keterangan || ''
+            ws.getCell(`S${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`S${dataRow}`).border = { ...borderStyles }
+        }
+
+        // === TABLE dengan DIFFERENT LIMIT per PAGE ===
+        const firstPageLimit = 37  // Page 1 max 37 rows
+        const nextPageLimit = 47   // Page 2+ max 50 rows
+
+        let currentRow = 12  // Mulai dari baris 12
+        let dataIndex = 0    // Index data detailStock
+        let isFirstPage = true
+
+        while (dataIndex < detailStock.length) {
+            // Tentukan berapa banyak rows di section ini
+            const rowsLimit = isFirstPage ? firstPageLimit : nextPageLimit
+            const rowsInThisSection = Math.min(rowsLimit, detailStock.length - dataIndex)
+
+            // Create table header
+            createTableHeader(currentRow)
+            currentRow++
+
+            // Create data rows untuk section ini
+            for (let i = 0; i < rowsInThisSection; i++) {
+                const item = detailStock[dataIndex]
+                createDataRow(item, dataIndex + 1, currentRow)
+                currentRow++
+                dataIndex++
+            }
+
+            // Tambah spacing sebelum section berikutnya (1 baris kosong)
+            currentRow++
+            
+            isFirstPage = false // Setelah page 1, sisanya pakai nextPageLimit
+        }
+
+        // === APPROVAL SECTION dengan DYNAMIC COLUMN ===
+        const sumRow = currentRow + 1
+        const headRow = sumRow + 1
+        const botRow = sumRow + 7
+
+        // Cek data approval mana yang ada
+        const hasPembuat = dataApp.pembuat && dataApp.pembuat.length > 0
+        const hasPemeriksa = dataApp.pemeriksa && dataApp.pemeriksa.length > 0
+        const hasPenyetuju = dataApp.penyetuju && dataApp.penyetuju.length > 0
+
+        // Hitung total approval yang ada
+        const totalApprovers = (hasPembuat ? dataApp.pembuat.length : 0) + 
+                            (hasPemeriksa ? dataApp.pemeriksa.length : 0) + 
+                            (hasPenyetuju ? dataApp.penyetuju.length : 0)
+
+        const distCol = totalApprovers > 5 ? 3 : 4
+
+        let currentColIndex = 1 // mulai dari B (index 1)
+
+        // === HELPER FUNCTION untuk render nama ===
+        const renderName = (item) => {
+            if (!item.nama) return null
+            
+            const name = item.nama.length <= 30 
+                ? item.nama.split(" ").map((word) => word[0].toUpperCase() + word.substring(1)).join(" ")
+                : item.nama.slice(0, 29).split(" ").map((word) => word[0].toUpperCase() + word.substring(1)).join(" ") + '.'
+            
+            return name
+        }
+
+        const renderApprovalText = (item) => {
+            const name = renderName(item)
+            const jabatan = item.jabatan === null ? "-" : item.jabatan === 'area' ? 'AOS' : item.jabatan.toUpperCase()
+            
+            if (name === null) {
+                return `\n\n\n - \n\n\n ${jabatan}`
+            }
+            
+            if (item.status === 0) {
+                return `\n Reject (${moment(item.updatedAt).format('DD/MM/YYYY')}) \n\n ${name} \n ${jabatan}`
+            }
+            
+            return `\n Approve (${moment(item.updatedAt).format('DD/MM/YYYY')}) \n\n ${name} \n ${jabatan}`
+        }
+
+        // Helper untuk get column name (handle AA, AB, dst)
+        const getColName = (idx) => {
+            if (idx < 26) return alphabet[idx]
+            const firstLetter = alphabet[Math.floor(idx / 26) - 1]
+            const secondLetter = alphabet[idx % 26]
+            return firstLetter + secondLetter
+        }
+
+        // === 1. DIBUAT OLEH ===
+        if (hasPembuat) {
+            const startCol = alphabet[currentColIndex]
+            const endCol = alphabet[currentColIndex + distCol - 1]
+
+            ws.mergeCells(`${startCol}${sumRow}:${endCol}${sumRow}`)
+            ws.getCell(`${startCol}${sumRow}`).value = 'Dibuat oleh,'
+            ws.getCell(`${startCol}${sumRow}`).alignment = { horizontal:'center' }
+            ws.getCell(`${startCol}${sumRow}`).border = { ...borderStyles }
+
+            ws.mergeCells(`${startCol}${headRow}:${endCol}${botRow}`)
+            ws.getCell(`${startCol}${headRow}`).value = renderApprovalText(dataApp.pembuat[0])
+            ws.getCell(`${startCol}${headRow}`).alignment = { ...appStyle }
+            ws.getCell(`${startCol}${headRow}`).border = { ...borderStyles }
+
+            currentColIndex += distCol
+        }
+
+        // === 2. DIPERIKSA OLEH ===
+        if (hasPemeriksa) {
+            const numPemeriksa = dataApp.pemeriksa.length
+            const startColIdx = currentColIndex
+            const endColIdx = currentColIndex + (distCol * numPemeriksa) - 1
+            
+            const startCol = getColName(startColIdx)
+            const endCol = getColName(endColIdx)
+
+            ws.mergeCells(`${startCol}${sumRow}:${endCol}${sumRow}`)
+            ws.getCell(`${startCol}${sumRow}`).value = 'Diperiksa oleh,'
+            ws.getCell(`${startCol}${sumRow}`).alignment = { horizontal:'center' }
+            ws.getCell(`${startCol}${sumRow}`).border = { ...borderStyles }
+
+            dataApp.pemeriksa.forEach((item, index) => {
+                const colStartIdx = currentColIndex + (distCol * index)
+                const colEndIdx = colStartIdx + distCol - 1
+                const colStart = getColName(colStartIdx)
+                const colEnd = getColName(colEndIdx)
+
+                ws.mergeCells(`${colStart}${headRow}:${colEnd}${botRow}`)
+                ws.getCell(`${colStart}${headRow}`).value = renderApprovalText(item)
+                ws.getCell(`${colStart}${headRow}`).alignment = { ...appStyle }
+                ws.getCell(`${colStart}${headRow}`).border = { ...borderStyles }
+            })
+
+            currentColIndex += (distCol * numPemeriksa)
+        }
+
+        // === 3. DISETUJUI OLEH ===
+        if (hasPenyetuju) {
+            const numPenyetuju = dataApp.penyetuju.length
+            const startColIdx = currentColIndex
+            const endColIdx = currentColIndex + (distCol * numPenyetuju) - 1
+            
+            const startCol = getColName(startColIdx)
+            const endCol = getColName(endColIdx)
+
+            ws.mergeCells(`${startCol}${sumRow}:${endCol}${sumRow}`)
+            ws.getCell(`${startCol}${sumRow}`).value = 'Disetujui oleh,'
+            ws.getCell(`${startCol}${sumRow}`).alignment = { horizontal:'center' }
+            ws.getCell(`${startCol}${sumRow}`).border = { ...borderStyles }
+
+            dataApp.penyetuju.forEach((item, index) => {
+                const colStartIdx = startColIdx + (distCol * index)
+                const colEndIdx = colStartIdx + distCol - 1
+                const colStart = getColName(colStartIdx)
+                const colEnd = getColName(colEndIdx)
+
+                ws.mergeCells(`${colStart}${headRow}:${colEnd}${botRow}`)
+                ws.getCell(`${colStart}${headRow}`).value = renderApprovalText(item)
+                ws.getCell(`${colStart}${headRow}`).alignment = { ...appStyle }
+                ws.getCell(`${colStart}${headRow}`).border = { ...borderStyles }
+            })
+        }
+
+        await ws.protect('As5etPm4')
+
+        workbook.xlsx.writeBuffer().then(function(buffer) {
+            fs.saveAs(
+            new Blob([buffer], { type: "application/octet-stream" }),
+            `Form Stock Opname Asset ${detailStock[0].no_stock} ${moment().format('DD MMMM YYYY')}.xlsx`
+            )
+        })
+        
+        this.setState({isLoading: false})
+    }
+
     toDataURL = (url) => {
         const promise = new Promise((resolve, reject) => {
           var xhr = new XMLHttpRequest();
@@ -1340,12 +1730,6 @@ class Stock extends Component {
         this.setState({kondisi: '', fisik: '', dataId: dataAdd.id})
         this.openModalAdd()
         this.openModalUpload()
-    }
-
-    openModalSum = async () => {
-        const token = localStorage.getItem('token')
-        await this.props.getStockArea(token, '', 1000, 1, 'null')
-        this.openSum()
     }
 
     openModalSub = () => {
@@ -2101,142 +2485,6 @@ class Stock extends Component {
           };
         return (
             <>
-                {/* <Sidebar {...sidebarProps}>
-                    <MaterialTitlePanel title={contentHeader}>
-                    <div className={style.backgroundLogo}>
-                        <div className={style.bodyDashboard}>
-                            <div className={style.headMaster}>
-                                <div className={style.titleDashboard}>Stock Opname Asset</div>
-                            </div>
-                            <div className={style.secEmail3}>
-                                {level === '5' || level === '9' ? (
-                                    <div className={style.headEmail}>
-                                        <Button onClick={this.prosesSubmitPre} color="info" size="lg">Create</Button>
-                                    </div>
-                                ) : (level === '2' || level === '12' || level === '7') && (
-                                    <div className={style.headEmail}>
-                                    </div>
-                                )}
-                                {this.state.view === 'list' ? (
-                                    <div>
-                                        <Button className='marDown' color='primary' onClick={() => this.getDokumentasi({no: 'all'})} >Download All</Button>
-                                        <ReactHtmlToExcel
-                                            id="test-table-xls-button"
-                                            className="btn btn-success marDown ml-2"
-                                            table="table-tracking"
-                                            filename="Dokumentasi Tracking Stock Opname"
-                                            sheet="Dokumentasi"
-                                            buttonText="Download Tracking"
-                                        />
-                                    </div>
-                                ) : level !== '5' && level !== '9' && level !== '2' && (
-                                    <div className='mt-4'>
-                                        <Input type="select" value={this.state.filter} onChange={e => this.changeFilter(e.target.value)}>
-                                            <option value="available">Available To Approve</option>
-                                            <option value="not available">All</option>
-                                        </Input>
-                                    </div>
-                                )}
-                            </div>
-                            <div className={style.secEmail3}>
-                                {level !== '5' && level !== '9' ? (
-                                    <div className='mt-4 ml-3'>
-                                        <text>Periode: </text>
-                                        <ButtonDropdown className={style.drop} isOpen={drop} toggle={this.dropDown}>
-                                        <DropdownToggle caret color="light">
-                                            {this.state.bulan}
-                                        </DropdownToggle>
-                                        <DropdownMenu>
-                                            {moment.months().map(item => {
-                                                return (
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 10, search: ''})}>{item}</DropdownItem>
-                                                )
-                                            })}
-                                        </DropdownMenu>
-                                        </ButtonDropdown>
-                                    </div>
-                                ) : (
-                                    <div></div>
-                                )}
-                                <div className={style.searchEmail2}>
-                                    <text>Search: </text>
-                                    <Input 
-                                    className={style.search}
-                                    onChange={this.onSearch}
-                                    value={this.state.search}
-                                    onKeyPress={this.onSearch}
-                                    >
-                                        <FaSearch size={20} />
-                                    </Input>
-                                </div>
-                            </div>
-                            {newStock.length === 0 && dataDepo.length === 0 ? (
-                                <div></div>
-                            ) : (
-                                <div className={style.tableDashboard}>
-                                    <Table bordered responsive hover className={style.tab} id="table-tracking">
-                                        <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>Area</th>
-                                                <th>Kode Area</th>
-                                                <th>Tanggal Stock Opname</th>
-                                                <th>No Stock Opname</th>
-                                                {level === '2' ? (
-                                                    <>
-                                                        <th>Status Approve</th>
-                                                        <th>Dokumentasi Aset</th>
-                                                    </>
-                                                ) : (
-                                                    <th>Status Approve</th>
-                                                )}
-                                                <th>Nama OM</th>
-                                                <th>Nama BM</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {dataDepo.length !== 0 && dataDepo.map(item => {
-                                                return (
-                                                <tr>
-                                                    <th scope="row">{(dataDepo.indexOf(item) + (((pages.currentPage - 1) * pages.limitPerPage) + 1))}</th>
-                                                    <td>{item.nama_area}</td>
-                                                    <td>{item.kode_plant}</td>
-                                                    <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : moment(dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).tanggalStock).format('DD MMMM YYYY')}</td>
-                                                    <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).no_stock}</td>
-                                                    {level === '2' ? (
-                                                        <>
-                                                            <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : <AiOutlineCheck color="primary" size={20} />}</td>
-                                                            <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : <AiOutlineCheck color="primary" size={20} />}</td>
-                                                        </>
-                                                    ) : (
-                                                        <td>{dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? "" : dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).appForm.find(({status}) => status === 0) !== undefined ? 'Reject ' + dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).appForm.find(({status}) => status === 0).jabatan : dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).appForm.find(({status}) => status === 1) !== undefined ? 'Approve ' + dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).appForm.find(({status}) => status === 1).jabatan : '-'}</td>
-                                                    )}
-                                                    <td>{item.nama_om}</td>
-                                                    <td>{item.nama_bm}</td>
-                                                    <td>
-                                                        <Button size='small' className='mb-2 btnprev' color="primary" disabled={dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? true : false} onClick={() => {this.getDetailStock(dataStock.find(({kode_plant}) => kode_plant === item.kode_plant)); this.getApproveStock({nama: item.kode_plant.split('').length === 4 ? 'stock opname' : 'stock opname HO', no: dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).no_stock})}}>Preview</Button>
-                                                        <Button className='btnprev' size='small' color="success" onClick={() => this.getDokumentasi({no: dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? '' : dataStock.find(({kode_plant}) => kode_plant === item.kode_plant).no_stock})} disabled={dataStock.find(({kode_plant}) => kode_plant === item.kode_plant) === undefined ? true : false}>Download</Button>
-                                                    </td>
-                                                </tr>
-                                                )})}
-                                        </tbody>
-                                    </Table>
-                                </div>
-                            )}
-                            <div>
-                                <div className={style.infoPageEmail1}>
-                                    <text>Showing {page.currentPage} of {page.pages} pages</text>
-                                    <div className={style.pageButton}>
-                                        <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
-                                        <button className={style.btnPrev} color="info" disabled={page.nextLink === null ? true : false} onClick={this.next}>Next</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    </MaterialTitlePanel>
-                </Sidebar> */}
                 <div className={styleTrans.app}>
                     <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
 
@@ -2351,7 +2599,7 @@ class Stock extends Component {
                                             <td className='tdPlant'>{item.depo === null ? '-' :  `${item.depo.nama_bm}`}</td>
                                             <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? item.appForm.find(item => item.status === 1).nama + ` (${item.appForm.find(item => item.status === 1).jabatan === 'area' ? 'AOS' : item.appForm.find(item => item.status === 1).jabatan})` : '-' }</td>
                                             <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? moment(item.appForm.find(item => item.status === 1).updatedAt).format('DD/MM/YYYY HH:mm:ss') : '-' }</td>
-                                            <td>{moment(item.tanggalStock).format('DD') > 5 && moment(item.tanggalStock).format('DD') < 26 ? 'TELAT' : 'Tepat Waktu'}</td>
+                                            <td>{moment(item.tanggalStock).format('DD') > 6 && moment(item.tanggalStock).format('DD') < 26 ? 'TELAT' : 'Tepat Waktu'}</td>
                                             <td>{item.history !== null ? item.history.split(',').reverse()[0] : '-'}</td>
                                             <td className='tdOpsi'>
                                                 {/* <Button 
@@ -2933,6 +3181,7 @@ class Stock extends Component {
                                             <tr>
                                                 <th>Select</th>
                                                 <th>No</th>
+                                                <th>NO. ASET</th>
                                                 <th>DESKRIPSI</th>
                                                 <th>MERK</th>
                                                 <th>SATUAN</th>
@@ -2942,6 +3191,7 @@ class Stock extends Component {
                                                 <th>LOKASI</th>
                                                 <th>GROUPING</th>
                                                 <th>KETERANGAN</th>
+                                                <th>Picture</th>
                                                 {/* <th>Status</th> */}
                                             </tr>
                                         </thead>
@@ -2960,6 +3210,7 @@ class Stock extends Component {
                                                             />
                                                         </td>
                                                         <td onClick={() => this.getRinciStock(item)} scope="row">{index + 1}</td>
+                                                        <td onClick={() => this.getRinciStock(item)} >{item.no_asset}</td>
                                                         <td onClick={() => this.getRinciStock(item)} >{item.deskripsi}</td>
                                                         <td onClick={() => this.getRinciStock(item)} >{item.merk}</td>
                                                         <td onClick={() => this.getRinciStock(item)} >{item.satuan}</td>
@@ -2969,6 +3220,24 @@ class Stock extends Component {
                                                         <td onClick={() => this.getRinciStock(item)} >{item.lokasi}</td>
                                                         <td onClick={() => this.getRinciStock(item)} >{item.grouping}</td>
                                                         <td onClick={() => this.getRinciStock(item)} >{item.keterangan}</td>
+                                                        <td onClick={() => this.getRinciStock(item)} >
+                                                            {item.image !== '' && item.image !== null 
+                                                            ? <div className="">
+                                                                <img src={`${REACT_APP_BACKEND_URL}/${item.image}`} className="imgTable" />
+                                                                <text className='textPict'>{moment(item.date_img).format('DD MMMM YYYY')}</text>
+                                                            </div> 
+                                                            : item.pict !== undefined && item.pict.length !== 0 
+                                                            ? <div className="">
+                                                                <img src={`${REACT_APP_BACKEND_URL}/${item.pict[item.pict.length - 1].path}`} className="imgTable" />
+                                                                <text className='textPict'>{moment(item.pict[item.pict.length - 1].createdAt).format('DD MMMM YYYY')}</text>
+                                                            </div> 
+                                                            : item.img !== undefined && item.img.length !== 0 
+                                                            ? <div className="">
+                                                                <img src={`${REACT_APP_BACKEND_URL}/${item.img[item.img.length - 1].path}`} className="imgTable" />
+                                                                <text className='textPict'>{moment(item.img[item.img.length - 1].createdAt).format('DD MMMM YYYY')}</text>
+                                                            </div> : null
+                                                            }
+                                                        </td>
                                                         {/* <td>{item.status_app === 0 ? 'reject' : item.status_app === 1 ? 'revisi' : '-'}</td> */}
                                                     </tr>
                                                 )
@@ -3496,6 +3765,7 @@ class Stock extends Component {
                                     <thead>
                                         <tr>
                                             <th>No</th>
+                                            <th>NO. ASET</th>
                                             <th>DESKRIPSI</th>
                                             <th>MERK</th>
                                             <th>SATUAN</th>

@@ -574,8 +574,8 @@ class EditStock extends Component {
             lokasi: value.lokasi,
             grouping: this.state.stat,
             keterangan: value.keterangan,
-            status_fisik: value.fisik,
-            kondisi: value.kondisi
+            status_fisik: value.status_fisik,
+            kondisi: value.kondisi === '-' ? '' : value.kondisi
         }
         await this.props.updateStockNew(token, dataRinci.id, data)
         await this.props.appRevisi(token, dataRinci.id)
@@ -705,8 +705,9 @@ class EditStock extends Component {
                 await this.props.getStatus(token, '', '')
                 this.modalStatus()
             } else {
-                const cekSap = !val.noAsset ? 'false' : 'true'
-                await this.props.getStatus(token, !val.fisik ? '' : val.fisik, !val.kondisi ? '' : val.kondisi, cekSap)
+                const cekSap = val.status_doc === 1 ? 'false' : 'true'
+                const kondisi = !val.kondisi || val.kondisi === '-' ? '' : val.kondisi
+                await this.props.getStatus(token, !val.fisik ? '' : val.fisik, kondisi, cekSap)
                 this.modalStatus()
             }
         }
@@ -1121,7 +1122,7 @@ class EditStock extends Component {
                                                 value={this.state.stat}
                                                 // onBlur={handleBlur("grouping")}
                                                 // onChange={handleChange("grouping")}
-                                                onClick={() => this.listStatus({fisik: values.status_fisik, kondisi: values.kondisi, no_asset: null})}
+                                                onClick={() => this.listStatus({fisik: values.status_fisik, kondisi: values.kondisi, status_doc: 1})}
                                                 >
                                                     <option>{this.state.stat}</option>
                                                     {/* <option>-Pilih Status Aset-</option> */}
@@ -1198,10 +1199,12 @@ class EditStock extends Component {
                                         <th>MERK</th>
                                         <th>SATUAN</th>
                                         <th>UNIT</th>
+                                        <th>STATUS FISIK</th>
                                         <th>KONDISI</th>
                                         <th>LOKASI</th>
                                         <th>GROUPING</th>
                                         <th>KETERANGAN</th>
+                                        <th>Picture</th>
                                         <th>Opsi</th>
                                     </tr>
                                 </thead>
@@ -1216,16 +1219,35 @@ class EditStock extends Component {
                                             <td>{item.merk}</td>
                                             <td>{item.satuan}</td>
                                             <td>{item.unit}</td>
-                                            <td>{item.kondisi}</td>
+                                            <td>{item.status_fisik}</td>
+                                            <td>{item.kondisi === '' ? '-' : item.kondisi}</td>
                                             <td>{item.lokasi}</td>
                                             <td>{item.grouping}</td>
                                             <td>{item.keterangan}</td>
+                                            <td>
+                                                {item.image !== '' && item.image !== null 
+                                                ? <div className="">
+                                                    <img src={`${REACT_APP_BACKEND_URL}/${item.image}`} className="imgTable" />
+                                                    <text className='textPict'>{moment(item.date_img).format('DD MMMM YYYY')}</text>
+                                                </div> 
+                                                : item.pict !== undefined && item.pict.length !== 0 
+                                                ? <div className="">
+                                                    <img src={`${REACT_APP_BACKEND_URL}/${item.pict[item.pict.length - 1].path}`} className="imgTable" />
+                                                    <text className='textPict'>{moment(item.pict[item.pict.length - 1].createdAt).format('DD MMMM YYYY')}</text>
+                                                </div> 
+                                                : item.img !== undefined && item.img.length !== 0 
+                                                ? <div className="">
+                                                    <img src={`${REACT_APP_BACKEND_URL}/${item.img[item.img.length - 1].path}`} className="imgTable" />
+                                                    <text className='textPict'>{moment(item.img[item.img.length - 1].createdAt).format('DD MMMM YYYY')}</text>
+                                                </div> : null
+                                                }
+                                            </td>
                                             <td>
                                                 {item.isreject === 1 || item.isreject === 0 ? 
                                                 <>
                                                     <div>{item.isreject === 1 ? 'Perlu Diperbaiki' : 'Telah diperbaiki'}</div>
                                                     <Button className='mt-2 ml-1' color="info" size='sm' onClick={() => this.getRinciStock(item)}>Update</Button>
-                                                    {!item.no_asset && (
+                                                    {item.status_doc === 1 && (
                                                         <Button className='mt-2 ml-1' color="danger" size='sm' onClick={() => this.prosesOpenDelete(item)}>Delete</Button>
                                                     )}
                                                 </>
@@ -1489,7 +1511,7 @@ class EditStock extends Component {
                                 lokasi: detRinci.lokasi === null ? '' : detRinci.lokasi,
                                 keterangan: detRinci.keterangan === null ? '' : detRinci.keterangan,
                                 status_fisik: detRinci.status_fisik === null ? '' : detRinci.status_fisik,
-                                kondisi: detRinci.kondisi === null ? '' : detRinci.kondisi
+                                kondisi: detRinci.kondisi === null ? '' : detRinci.kondisi === '' ? '-' : detRinci.kondisi
                             }}
                             validationSchema = {stockSchema}
                             onSubmit={(values) => {this.updateDataStock(values)}}
@@ -1626,7 +1648,7 @@ class EditStock extends Component {
                                                         <option value="baik">Baik</option>
                                                     )}
                                                     <option value="rusak">Rusak</option>
-                                                    <option value="">-</option>
+                                                    <option value="-">-</option>
                                                 </Input>
                                             </Col>
                                         </Row>
@@ -1645,7 +1667,7 @@ class EditStock extends Component {
                                                 value={this.state.stat}
                                                 // onBlur={handleBlur("grouping")}
                                                 // onChange={handleChange("grouping")}
-                                                onClick={() => this.listStatus({fisik: values.status_fisik, kondisi: values.kondisi, no_asset: dataRinci.no_asset})}
+                                                onClick={() => this.listStatus({fisik: values.status_fisik, kondisi: values.kondisi, status_doc: detRinci.status_doc})}
                                                 >
                                                     <option>{this.state.stat}</option>
                                                     {/* <option>-Pilih Status Aset-</option> */}
