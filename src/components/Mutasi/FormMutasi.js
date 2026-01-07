@@ -39,7 +39,12 @@ class FormMutasi extends Component {
     }
 
     downloadForm = async (val) => {
-        const { dataMut, noMut, mutApp, dataDoc, detailMut } = this.props.mutasi
+        const { dataMut, noMut, mutApp, dataDoc, detailMut, infoApp } = this.props.mutasi
+
+        const splitApp = infoApp.info ? infoApp.info.split(']') : []
+        const pembuatApp = splitApp.length > 0 ? splitApp[0] : ''
+        const pemeriksaApp = splitApp.length > 0 ? splitApp[1] : ''
+        const penyetujuApp = splitApp.length > 0 ? splitApp[2] : ''
 
         const alpha = Array.from(Array(26)).map((e, i) => i + 65)
         const alphabet = alpha.map((x) => String.fromCharCode(x))
@@ -589,7 +594,7 @@ class FormMutasi extends Component {
             ...fontStyle
         }
 
-        ws.getCell(`G${reasonTh + 2}`).value = '1. Dibuat : AOS'
+        ws.getCell(`G${reasonTh + 2}`).value = `1. Dibuat : ${pembuatApp.split(';')[4] && pembuatApp.split(';')[4]}`
         ws.getCell(`G${reasonTh + 2}`).alignment = {
             ...leftStyle
         }
@@ -597,7 +602,7 @@ class FormMutasi extends Component {
             ...fontStyle
         }
 
-        ws.getCell(`G${reasonTh + 3}`).value = '2. Diperiksa : BM, ROM, GAAM/IT OSM (aset IT)'
+        ws.getCell(`G${reasonTh + 3}`).value = `2. Diperiksa : ${pemeriksaApp.split(';')[4] && pemeriksaApp.split(';')[4]}`
         ws.getCell(`G${reasonTh + 3}`).alignment = {
             ...leftStyle
         }
@@ -606,7 +611,7 @@ class FormMutasi extends Component {
         }
 
         ws.mergeCells(`G${reasonTh + 4}`, `K${reasonTh + 4}`)
-        ws.getCell(`G${reasonTh + 4}`).value = '3. Disetujui  : Head of Ops Excellence, Treasury Operation Senior Manager'
+        ws.getCell(`G${reasonTh + 4}`).value = `3. Disetujui  : ${penyetujuApp.split(';')[4] && penyetujuApp.split(';')[4]}`
         ws.getCell(`G${reasonTh + 4}`).alignment = {
             ...leftStyle,
             ...wrapStyle,
@@ -626,7 +631,7 @@ class FormMutasi extends Component {
             ...fontStyle
         }
 
-        ws.getCell(`M${reasonTh + 2}`).value = '1. Dibuat : GA SPV/IT SPV (aset IT)'
+        ws.getCell(`M${reasonTh + 2}`).value = `1. Dibuat : ${pembuatApp.split(';')[2] && pembuatApp.split(';')[2]}`
         ws.getCell(`M${reasonTh + 2}`).alignment = {
             ...leftStyle
         }
@@ -634,7 +639,7 @@ class FormMutasi extends Component {
             ...fontStyle
         }
 
-        ws.getCell(`M${reasonTh + 3}`).value = ' 2. Diperiksa : BM, ROM, NFAC, GAAM, IT OSM (aset IT)'
+        ws.getCell(`M${reasonTh + 3}`).value = ` 2. Diperiksa : ${pemeriksaApp.split(';')[2] && pemeriksaApp.split(';')[2]}`
         ws.getCell(`M${reasonTh + 3}`).alignment = {
             ...leftStyle
         }
@@ -643,7 +648,7 @@ class FormMutasi extends Component {
         }
 
         ws.mergeCells(`M${reasonTh + 4}`, `R${reasonTh + 4}`)
-        ws.getCell(`M${reasonTh + 4}`).value = '3. Disetujui : Head of Ops Excellence, Head of HC S&D Domestic, Treasury Operation Senior Manager'
+        ws.getCell(`M${reasonTh + 4}`).value = `3. Disetujui : ${penyetujuApp.split(';')[2] && penyetujuApp.split(';')[2]}`
         ws.getCell(`M${reasonTh + 4}`).alignment = {
             ...leftStyle,
             ...wrapStyle,

@@ -2263,7 +2263,7 @@ class Pengadaan extends Component {
                                     <tr>
                                         <th className="buatPre" colSpan={dataApp.pembuat?.length || 1}>Dibuat oleh,</th>
                                         <th className="buatPre" colSpan={
-                                            dataApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').length || 1
+                                            dataApp.pemeriksa?.filter(item => item.status_view !== 'hidden').length || 1
                                         }>Diperiksa oleh,</th>
                                         <th className="buatPre" colSpan={dataApp.penyetuju?.length || 1}>Disetujui oleh,</th>
                                     </tr>
@@ -2274,7 +2274,7 @@ class Pengadaan extends Component {
                                                 <div>{item.nama ?? '-'}</div>
                                             </th>
                                         ))}
-                                        {dataApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                        {dataApp.pemeriksa?.filter(item => item.status_view !== 'hidden').map(item => (
                                             <th className="headPre">
                                                 <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
                                                 <div>{item.nama ?? '-'}</div>
@@ -2293,7 +2293,7 @@ class Pengadaan extends Component {
                                         {dataApp.pembuat?.map(item => (
                                             <td className="footPre">{item.jabatan ?? '-'}</td>
                                         ))}
-                                        {dataApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                        {dataApp.pemeriksa?.filter(item => item.status_view !== 'hidden').map(item => (
                                             <td className="footPre">{item.jabatan ?? '-'}</td>
                                         ))}
                                         {dataApp.penyetuju?.map(item => (
@@ -2521,7 +2521,7 @@ class Pengadaan extends Component {
                                 <tr>
                                     <th className="buatPre" colSpan={dataApp.pembuat?.length || 1}>Dibuat oleh,</th>
                                     <th className="buatPre" colSpan={
-                                        dataApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').length || 1
+                                        dataApp.pemeriksa?.filter(item => item.status_view !== 'hidden').length || 1
                                     }>Diperiksa oleh,</th>
                                     <th className="buatPre" colSpan={dataApp.penyetuju?.length || 1}>Disetujui oleh,</th>
                                 </tr>
@@ -2532,7 +2532,7 @@ class Pengadaan extends Component {
                                             <div>{item.nama ?? '-'}</div>
                                         </th>
                                     ))}
-                                    {dataApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                    {dataApp.pemeriksa?.filter(item => item.status_view !== 'hidden').map(item => (
                                         <th className="headPre">
                                             <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
                                             <div>{item.nama ?? '-'}</div>
@@ -2551,7 +2551,7 @@ class Pengadaan extends Component {
                                     {dataApp.pembuat?.map(item => (
                                         <td className="footPre">{item.jabatan ?? '-'}</td>
                                     ))}
-                                    {dataApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                    {dataApp.pemeriksa?.filter(item => item.status_view !== 'hidden').map(item => (
                                         <td className="footPre">{item.jabatan ?? '-'}</td>
                                     ))}
                                     {dataApp.penyetuju?.map(item => (

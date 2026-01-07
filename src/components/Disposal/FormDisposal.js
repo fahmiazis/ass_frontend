@@ -49,7 +49,17 @@ class FormDisposal extends Component {
     }
 
     downloadForm = async (val) => {
-        const { disApp, detailNew } = this.props.disposal
+        const { disApp, detailNew, infoApp } = this.props.disposal
+
+        const splitApp = infoApp.info ? infoApp.info.split(']') : []
+        const pembuatApp = splitApp.length > 0 ? splitApp[0] : ''
+        const pemeriksaApp = splitApp.length > 0 ? splitApp[1] : ''
+        const penyetujuApp = splitApp.length > 0 ? splitApp[2] : ''
+
+        const areaAppIt = `${pembuatApp.split(';')[4] && pembuatApp.split(';')[4]}, ${pemeriksaApp.split(';')[4] && pemeriksaApp.split(';')[4]}, ${penyetujuApp.split(';')[4] && penyetujuApp.split(';')[4]}`
+        const areaApp = `${pembuatApp.split(';')[3] && pembuatApp.split(';')[3]}, ${pemeriksaApp.split(';')[3] && pemeriksaApp.split(';')[3]}, ${penyetujuApp.split(';')[3] && penyetujuApp.split(';')[3]}`
+        const hoAppIt = `${pembuatApp.split(';')[2] && pembuatApp.split(';')[2]}, ${pemeriksaApp.split(';')[2] && pemeriksaApp.split(';')[2]}, ${penyetujuApp.split(';')[2] && penyetujuApp.split(';')[2]}`
+        const hoApp = `${pembuatApp.split(';')[1] && pembuatApp.split(';')[1]}, ${pemeriksaApp.split(';')[1] && pemeriksaApp.split(';')[1]}, ${penyetujuApp.split(';')[1] && penyetujuApp.split(';')[1]}`
 
         const alpha = Array.from(Array(26)).map((e, i) => i + 65)
         const alphabet = alpha.map((x) => String.fromCharCode(x))
@@ -655,7 +665,7 @@ class FormDisposal extends Component {
         const mainRow = 3 + sumRow
         const footRow = 5 + sumRow
 
-        const cekApp = disApp.pembuat.length + disApp.pemeriksa.filter(x => x.id_role !== 2).length + disApp.penyetuju.length
+        const cekApp = disApp.pembuat.length + disApp.pemeriksa.filter(x => x.status_view !== 'hidden').length + disApp.penyetuju.length
         const compCol = 'D'
         const distCol = 4
         const botRow = 6 + sumRow
@@ -703,7 +713,7 @@ class FormDisposal extends Component {
 
         // Approval Diperiksa
         const cekRowRec = alphabet[alphabet.indexOf(alphabet.find(item => item === compCol.toUpperCase())) + 1]
-        const cekRowRec2 = alphabet[alphabet.indexOf(alphabet.find(item => item === cekRowRec.toUpperCase())) + (distCol * (disApp.pemeriksa.filter(x => x.id_role !== 2).length === 0 ? 1 : disApp.pemeriksa.filter(x => x.id_role !== 2).length)) - 1]
+        const cekRowRec2 = alphabet[alphabet.indexOf(alphabet.find(item => item === cekRowRec.toUpperCase())) + (distCol * (disApp.pemeriksa.filter(x => x.status_view !== 'hidden').length === 0 ? 1 : disApp.pemeriksa.filter(x => x.status_view !== 'hidden').length)) - 1]
         ws.mergeCells(`${cekRowRec}${sumRow}`, `${cekRowRec2}${sumRow}`)
         ws.getCell(`${cekRowRec}${sumRow}`).value = 'Diperiksa oleh,'
         ws.getCell(`${cekRowRec}${sumRow}`).alignment = { horizontal: 'center' }
@@ -714,7 +724,7 @@ class FormDisposal extends Component {
             ...fontTtd
         }
 
-        disApp.pemeriksa !== undefined && disApp.pemeriksa.filter(x => x.id_role !== 2).map((item, index) => {
+        disApp.pemeriksa !== undefined && disApp.pemeriksa.filter(x => x.status_view !== 'hidden').map((item, index) => {
             const name = item.nama === undefined || item.nama === null ? null
                 : item.nama.length <= 15 ? item.nama.split(" ").map((word) => {
                     return word[0] === undefined ? '' : word[0].toUpperCase() + word.substring(1)
@@ -864,7 +874,7 @@ class FormDisposal extends Component {
             ...fontStyle
         }
 
-        ws.getCell(`A${expRow + 2}`).value = '1. Area :  AOS, BM GT/MT, IT OSM, IRM, AM, NFAM, HEAD OF OPS, HEAD OF HC, CM'
+        ws.getCell(`A${expRow + 2}`).value = `1. Area :  ${areaAppIt}`
         ws.getCell(`A${expRow + 2}`).alignment = {
             ...leftStyle
         }
@@ -872,7 +882,7 @@ class FormDisposal extends Component {
             ...fontStyle
         }
 
-        ws.getCell(`A${expRow + 3}`).value = '2. Head Office : IT SPV , IT OSM, IRM, AM, NFAM, HEAD OF OPS, HEAD OF HC, CM'
+        ws.getCell(`A${expRow + 3}`).value = `2. Head Office : ${hoAppIt}`
         ws.getCell(`A${expRow + 3}`).alignment = {
             ...leftStyle
         }
@@ -880,28 +890,28 @@ class FormDisposal extends Component {
             ...fontStyle
         }
 
-        ws.getCell(`P${expRow + 1}`).value = 'Aset (Nilai ≥ Rp 1.000.00, Barang Non IT)'
-        ws.getCell(`P${expRow + 1}`).alignment = {
+        ws.getCell(`S${expRow + 1}`).value = 'Aset (Nilai ≥ Rp 1.000.00, Barang Non IT)'
+        ws.getCell(`S${expRow + 1}`).alignment = {
             ...leftStyle
         }
-        ws.getCell(`P${expRow + 1}`).font = {
+        ws.getCell(`S${expRow + 1}`).font = {
             ...boldStyle,
             ...fontStyle
         }
 
-        ws.getCell(`P${expRow + 2}`).value = '1. Area :  AOS, BM GT/MT, IRM, AM, NFAM, HEAD OF OPS, HEAD OF  HC, CM'
-        ws.getCell(`P${expRow + 2}`).alignment = {
+        ws.getCell(`S${expRow + 2}`).value = ` 1. Area :  ${areaApp}`
+        ws.getCell(`S${expRow + 2}`).alignment = {
             ...leftStyle
         }
-        ws.getCell(`P${expRow + 2}`).font = {
+        ws.getCell(`S${expRow + 2}`).font = {
             ...fontStyle
         }
 
-        ws.getCell(`P${expRow + 3}`).value = ' 2. Head Office : GA SPV,  IRM, AM, NFAM, HEAD OF OPS, HEAD OF HC, CM'
-        ws.getCell(`P${expRow + 3}`).alignment = {
+        ws.getCell(`S${expRow + 3}`).value = ` 2. Head Office : ${hoApp}`
+        ws.getCell(`S${expRow + 3}`).alignment = {
             ...leftStyle
         }
-        ws.getCell(`P${expRow + 3}`).font = {
+        ws.getCell(`S${expRow + 3}`).font = {
             ...fontStyle
         }
 

@@ -239,8 +239,9 @@ class MasterDepo extends Component {
             {header: 'PIC Finance', key: 'c21'},
             {header: 'PIC Tax', key: 'c22'},
             {header: 'PIC Purchasing', key: 'c23'},
-            {header: 'Asman HO', key: 'c24'},
-            {header: 'Manager HO', key: 'c25'}
+            {header: 'PIC IT', key: 'c24'},
+            {header: 'Asman HO', key: 'c25'},
+            {header: 'Manager HO', key: 'c26'}
         ]
 
         dataDownload.map((item, index) => { return ( ws.addRow(
@@ -267,8 +268,9 @@ class MasterDepo extends Component {
                 c21: item.pic_finance,
                 c22: item.pic_tax,
                 c23: item.pic_purchasing,
-                c24: item.asman_ho,
-                c25: item.manager_ho,
+                c24: item.pic_it,
+                c25: item.asman_ho,
+                c26: item.manager_ho,
             }
         )
         ) })
@@ -619,6 +621,7 @@ class MasterDepo extends Component {
                                     <th>PIC Finance</th>
                                     <th>PIC Tax</th>
                                     <th>PIC Purchasing</th>
+                                    <th>PIC IT</th>
                                     <th>Asman HO</th>
                                     <th>Manager HO</th>
                                 </tr>
@@ -662,6 +665,7 @@ class MasterDepo extends Component {
                                             <td>{item.pic_finance}</td>
                                             <td>{item.pic_tax}</td>
                                             <td>{item.pic_purchasing}</td>
+                                            <td>{item.pic_it}</td>
                                             <td>{item.asman_ho}</td>
                                             <td>{item.manager_ho}</td>
                                         </tr>

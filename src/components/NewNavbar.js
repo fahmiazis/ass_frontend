@@ -446,7 +446,7 @@ class NewNavbar extends Component {
               <FaBars />
             </div>
             <div className={styleTrans.navTitle}>
-              <marquee>Asset Management PMA</marquee>
+              <marquee>ASSET MANAGEMENT PINUS MERAH ABADI</marquee>
             </div>
             <div className={styleTrans.navIcons}>
               {/* <FaBell className={styleTrans.navIcon} />

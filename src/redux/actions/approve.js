@@ -35,9 +35,9 @@ export default {
         type: 'GET_PLANTAPP',
         payload: http(token).get(`/approve/plant?kode=${kode}`)
     }),
-    updateApprove: (token, id, data) => ({
+    updateApprove: (token, id, data, type) => ({
         type: 'UPDATE_APPROVE',
-        payload: http(token).patch(`/approve/update/${id}`, qs.stringify(data))
+        payload: http(token).patch(`/approve/update/${id}?type=${type ? type : 'update'}`, qs.stringify(data))
     }),
     deleteApprove: (token, id) => ({
         type: 'DELETE_APPROVE',

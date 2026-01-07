@@ -1698,7 +1698,7 @@ class EksekusiDisposal extends Component {
                                 <tr>
                                     <th className="buatPre" colSpan={disApp.pembuat?.length || 1}>Dibuat oleh,</th>
                                     <th className="buatPre" colSpan={
-                                        disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').length || 1
+                                        disApp.pemeriksa?.filter(item => item.status_view !== 'hidden').length || 1
                                     }>Diperiksa oleh,</th>
                                     <th className="buatPre" colSpan={disApp.penyetuju?.length || 1}>Disetujui oleh,</th>
                                 </tr>
@@ -1709,7 +1709,7 @@ class EksekusiDisposal extends Component {
                                             <div>{item.nama ?? '-'}</div>
                                         </th>
                                     ))}
-                                    {disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                    {disApp.pemeriksa?.filter(item => item.status_view !== 'hidden').map(item => (
                                         <th className="headPre">
                                             <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
                                             <div>{item.nama ?? '-'}</div>
@@ -1728,7 +1728,7 @@ class EksekusiDisposal extends Component {
                                     {disApp.pembuat?.map(item => (
                                         <td className="footPre">{item.jabatan ?? '-'}</td>
                                     ))}
-                                    {disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                    {disApp.pemeriksa?.filter(item => item.status_view !== 'hidden').map(item => (
                                         <td className="footPre">{item.jabatan ?? '-'}</td>
                                     ))}
                                     {disApp.penyetuju?.map(item => (

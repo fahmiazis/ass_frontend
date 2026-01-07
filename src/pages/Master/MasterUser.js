@@ -237,7 +237,7 @@ class MasterUser extends Component {
             kode_plant: values.user_level == '5' || values.user_level == '9' ? values.depo : '',
             email: values.email,
             status: values.status,
-            status_it: values.user_level == '9' ? values.status_it : '',
+            status_it: values.user_level == '9' || values.user_level == '41' ? values.status_it : '',
             multi_role: values.user_level == '5' || values.user_level == '9' ? '' : listRole.toString()
         }
         await this.props.addUser(token, data)
@@ -263,7 +263,7 @@ class MasterUser extends Component {
             email: values.email,
             kode_plant: type === 'reject' ? '' : (values.user_level == '5' || values.user_level == '9') ? values.depo : '',
             status: values.status,
-            status_it: values.user_level == '9' ? values.status_it : '',
+            status_it: values.user_level == '9' || values.user_level == '41' ? values.status_it : '',
             multi_role: values.user_level == '5' || values.user_level == '9' ? '' : listRole.toString(),
             status_request: type === 'verif' ? 2 : type === 'reject' ? 0 : detail.status_request,
         }
@@ -1151,7 +1151,7 @@ class MasterUser extends Component {
                                 ) : null}
                             </div>
                         </div>
-                        {values.user_level == '9' && (
+                        {(values.user_level == '9' || values.user_level == '41') && (
                             <div className={style.addModalDepo}>
                                 <text className="col-md-3">
                                     Status IT
@@ -1398,7 +1398,7 @@ class MasterUser extends Component {
                                 ) : null}
                             </div>
                         </div> */}
-                        {(detail.user_level == '9' || detail.user_level === 9) && (
+                        {(detail.user_level == '9' || detail.user_level == '41') && (
                             <div className={style.addModalDepo}>
                                 <text className="col-md-3">
                                     Status IT

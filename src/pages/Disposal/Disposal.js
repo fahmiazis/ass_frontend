@@ -337,8 +337,10 @@ class Disposal extends Component {
         const token = localStorage.getItem('token')
         const level = localStorage.getItem('level')
         const { detailDis } = this.props.disposal
+        const { detailUser } = this.props.user
         const tempdoc = []
         const arrDoc = []
+        const uploadDoc = []
         console.log(detailDis)
         for (let i = 0; i < detailDis.length; i++) {
             const data = {
@@ -349,7 +351,9 @@ class Disposal extends Component {
             await this.props.getDocumentDis(token, data, 'disposal', 'pengajuan')
             const {dataDoc} = this.props.disposal
             for (let j = 0; j < dataDoc.length; j++) {
-                if (dataDoc[j].path !== null) {
+                if (dataDoc[j].jenis_dokumen === 'it' && detailUser.user_level == '41' && dataDoc[j].path === null) {
+                    uploadDoc.push(dataDoc[j])
+                } else if (dataDoc[j].path !== null) {
                     const arr = dataDoc[j]
                     const stat = arr.status_dokumen
                     const cekLevel = stat !== null && stat !== '1' ? stat.split(',').reverse()[0].split(';')[0] : ''
@@ -363,7 +367,10 @@ class Disposal extends Component {
                 }
             }
         }
-        if (tempdoc.length === arrDoc.length) {
+        if (uploadDoc.length > 0) {
+            this.setState({ confirm: 'falseUploadDok' })
+            this.openConfirm()
+        } else if (tempdoc.length === arrDoc.length) {
             this.openModalApprove()
         } else {
             this.setState({ confirm: 'falseAppDok' })
@@ -421,7 +428,7 @@ class Disposal extends Component {
         this.openModalPdf()
     }
 
-    openProsesModalDoc = async () => {
+    openProsesModalDoc = async (val) => {
         const token = localStorage.getItem('token')
         const { dataRinci } = this.state
         const data = {
@@ -429,7 +436,18 @@ class Disposal extends Component {
             noAsset: dataRinci.no_asset
         }
         await this.props.getDocumentDis(token, data, 'disposal', 'pengajuan')
-        this.closeProsesModalDoc()
+        if (val === 'upload') {
+            this.modalUploadDoc()
+        } else {
+            this.closeProsesModalDoc()
+        }
+    }
+
+    uploadDocIt = (val) => {
+        this.setState({dataRinci: val})
+        setTimeout(() => {
+            this.openProsesModalDoc('upload')
+         }, 100)
     }
 
     prosesOpenDokumen = (val) => {
@@ -747,11 +765,11 @@ class Disposal extends Component {
                 noAsset: dataRinci.no_asset
             }
             await this.props.getDocumentDis(token, data, 'disposal', tipeDis, dataRinci.npwp)
-            this.modalDocEksekusi()
+            this.modalUploadDoc()
         }
     }
 
-    modalDocEksekusi = () => {
+    modalUploadDoc = () => {
         this.setState({openDoc: !this.state.openDoc})
     }
 
@@ -815,6 +833,7 @@ class Disposal extends Component {
         const {isError, isExport} = this.props.asset
         const {isRoute} = this.props.auth
         const {isAdd, isAppDoc, isRejDoc, approve, reject, rejReject, rejApprove, isUpload} = this.props.disposal
+        const { detailUser } = this.props.user
         const token = localStorage.getItem('token')
         const { dataRinci } = this.state
         const data = {
@@ -840,8 +859,13 @@ class Disposal extends Component {
             this.props.getDocumentDis(token, data, 'disposal', 'pengajuan')
         } else if (isUpload) {
             this.props.resetDis()
-            const tipeDis = dataRinci.nilai_jual === "0" ? 'dispose' : 'sell'
-            this.props.getDocumentDis(token, data, 'disposal', tipeDis, dataRinci.npwp)
+            if (detailUser.user_level == '41') {
+                this.props.getDocumentDis(token, data, 'disposal', 'pengajuan')
+            } else {
+                const tipeDis = dataRinci.nilai_jual === "0" ? 'dispose' : 'sell'
+                this.props.getDocumentDis(token, data, 'disposal', tipeDis, dataRinci.npwp)
+            }
+            
         }
         // else if (reject) {
         //     this.openConfirm(this.setState({confirm: 'reject'}))
@@ -1237,6 +1261,7 @@ class Disposal extends Component {
         const kode = localStorage.getItem('kode')
         const dataNotif = this.props.notif.data
         const role = localStorage.getItem('role')
+        const {detailUser} = this.props.user
 
         const splitApp = infoApp.info ? infoApp.info.split(']') : []
         const pembuatApp = splitApp.length > 0 ? splitApp[0] : ''
@@ -1556,7 +1581,12 @@ class Disposal extends Component {
                                                     {this.state.filter === 'submit' ? (
                                                         <Button color='primary' onClick={() => this.prosesOpenRinci(item)}>Proses</Button>
                                                     ) : (
-                                                        <Button color='success' onClick={() => this.prosesOpenDokumen(item)}>Dokumen</Button>
+                                                        <>
+                                                            <Button className='mr-1 mt-1' color='success' onClick={() => this.prosesOpenDokumen(item)}>Dokumen Area</Button>
+                                                            {(this.state.filter === 'available' && detailUser.user_level == '41') && (
+                                                                <Button className='mr-1 mt-1' onClick={() => this.uploadDocIt(item)} color='warning'>Upload Dokumen</Button>
+                                                            )}
+                                                        </>
                                                     )}
                                                 </td>
                                             </tr>
@@ -1564,13 +1594,13 @@ class Disposal extends Component {
                                     })}
                                 </tbody>
                             </Table>
-                            <div className="mb-3">Demikianlah hal yang kami sampaikan, atas perhatiannya kami mengucapkan terima kasih</div>
+                            <div className="mb-3">Demikianlah hal yang kami sampaikan, atas perhatiannya kami mengucapkan terima kasih king</div>
                             <Table bordered responsive className="tabPreview">
                                 <thead>
                                     <tr>
                                         <th className="buatPre" colSpan={disApp.pembuat?.length || 1}>Dibuat oleh,</th>
                                         <th className="buatPre" colSpan={
-                                            disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').length || 1
+                                            disApp.pemeriksa?.filter(item => item.status_view !== 'hidden').length || 1
                                         }>Diperiksa oleh,</th>
                                         <th className="buatPre" colSpan={disApp.penyetuju?.length || 1}>Disetujui oleh,</th>
                                     </tr>
@@ -1581,13 +1611,13 @@ class Disposal extends Component {
                                                 <div>{item.nama ?? '-'}</div>
                                             </th>
                                         ))}
-                                        {disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                        {disApp.pemeriksa?.filter(item => item.status_view !== 'hidden').map(item => (
                                             <th className="headPre">
                                                 <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
                                                 <div>{item.nama ?? '-'}</div>
                                             </th>
                                         ))}
-                                        {disApp.penyetuju?.map(item => (
+                                        {disApp.penyetuju?.filter(item => item.status_view !== 'hidden').map(item => (
                                             <th className="headPre">
                                                 <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
                                                 <div>{item.nama ?? '-'}</div>
@@ -1597,13 +1627,13 @@ class Disposal extends Component {
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        {disApp.pembuat?.map(item => (
+                                        {disApp.pembuat?.filter(item => item.status_view !== 'hidden').map(item => (
                                             <td className="footPre">{item.jabatan ?? '-'}</td>
                                         ))}
-                                        {disApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                        {disApp.pemeriksa?.filter(item => item.status_view !== 'hidden').map(item => (
                                             <td className="footPre">{item.jabatan ?? '-'}</td>
                                         ))}
-                                        {disApp.penyetuju?.map(item => (
+                                        {disApp.penyetuju?.filter(item => item.status_view !== 'hidden').map(item => (
                                             <td className="footPre">{item.jabatan ?? '-'}</td>
                                         ))}
                                     </tr>
@@ -1948,33 +1978,45 @@ class Disposal extends Component {
                         dataDoc={dataDoc}
                     />
                 </Modal>
-                <Modal size="xl" 
-                isOpen={this.state.openDoc} 
-                toggle={this.modalDocEksekusi}
+                <Modal 
+                    size="xl" 
+                    isOpen={this.state.openDoc} 
+                    toggle={this.modalUploadDoc}
                 >
-                <ModalHeader>
-                   Kelengkapan Dokumen
-                </ModalHeader>
-                <ModalBody>
-                    <Container>
-                        <Alert color="danger" className="alertWrong" isOpen={this.state.upload}>
-                            <div>{this.state.errMsg}</div>
-                        </Alert>
-                        {dataDoc !== undefined && dataDoc.map(x => {
-                            return (
-                                <Row className="mt-3 mb-4">
-                                    <Col md={12} lg={12} >
-                                        <text className='mb-2'>{x.nama_dokumen}</text>
-                                        {x.path !== null ? (
-                                        <div >
-                                            {x.status === 0 ? (
-                                                <AiOutlineClose size={20} />
-                                            ) : x.status === 3 ? (
-                                                <AiOutlineCheck size={20} />
-                                            ) : (
-                                                <BsCircle size={20} />
-                                            )}
-                                            <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
+                    <ModalHeader>
+                    Kelengkapan Dokumen
+                    </ModalHeader>
+                    <ModalBody>
+                        <Container>
+                            <Alert color="danger" className="alertWrong" isOpen={this.state.upload}>
+                                <div>{this.state.errMsg}</div>
+                            </Alert>
+                            {dataDoc !== undefined && dataDoc.filter(item => detailUser.user_level == '41' ? item.jenis_dokumen === 'it' : item.id !== null).map(x => {
+                                return (
+                                    <Row className="mt-3 mb-4">
+                                        <Col md={12} lg={12} >
+                                            <text className='mb-2'>{x.nama_dokumen}</text>
+                                            {x.path !== null ? (
+                                            <div >
+                                                {x.status === 0 ? (
+                                                    <AiOutlineClose size={20} />
+                                                ) : x.status === 3 ? (
+                                                    <AiOutlineCheck size={20} />
+                                                ) : (
+                                                    <BsCircle size={20} />
+                                                )}
+                                                <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.nama_dokumen}</button>
+                                                <div className="colDoc">
+                                                    <input
+                                                    className="mb-1 mt-1"
+                                                    type="file"
+                                                    onClick={() => this.setState({detail: x})}
+                                                    onChange={this.onChangeUpload}
+                                                    />
+                                                    <text className="txtError mb-1">Maximum file upload is 20 Mb</text>
+                                                </div>
+                                            </div>
+                                        ) : (
                                             <div className="colDoc">
                                                 <input
                                                 className="mb-1 mt-1"
@@ -1984,42 +2026,31 @@ class Disposal extends Component {
                                                 />
                                                 <text className="txtError mb-1">Maximum file upload is 20 Mb</text>
                                             </div>
-                                        </div>
-                                    ) : (
-                                        <div className="colDoc">
-                                            <input
-                                            className="mb-1 mt-1"
-                                            type="file"
-                                            onClick={() => this.setState({detail: x})}
-                                            onChange={this.onChangeUpload}
-                                            />
-                                            <text className="txtError mb-1">Maximum file upload is 20 Mb</text>
-                                        </div>
-                                    )}
-                                    </Col>
-                                </Row>
-                            )
-                        })}
-                    </Container>
-                </ModalBody>
-                <ModalFooter>
-                    <Button className="mr-2" color="secondary" onClick={this.modalDocEksekusi}>
-                        Close
-                    </Button>
-                </ModalFooter>
-            </Modal>
-            <Modal isOpen={this.state.openReject} toggle={this.openModalReject} centered={true}>
-                <ModalBody>
-                    <Formik
-                        initialValues={{
-                            alasan: "",
-                        }}
-                        validationSchema={alasanSchema}
-                        onSubmit={(values) => {
-                            // this.rejectMutasi(values)
-                            this.prepReject(values)
-                        }}
-                    >
+                                        )}
+                                        </Col>
+                                    </Row>
+                                )
+                            })}
+                        </Container>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button className="mr-2" color="secondary" onClick={this.modalUploadDoc}>
+                            Close
+                        </Button>
+                    </ModalFooter>
+                </Modal>
+                <Modal isOpen={this.state.openReject} toggle={this.openModalReject} centered={true}>
+                    <ModalBody>
+                        <Formik
+                            initialValues={{
+                                alasan: "",
+                            }}
+                            validationSchema={alasanSchema}
+                            onSubmit={(values) => {
+                                // this.rejectMutasi(values)
+                                this.prepReject(values)
+                            }}
+                        >
                         {({ handleChange, handleBlur, handleSubmit, values, errors, touched, }) => (
                             <div className={style.modalApprove}>
                                 <div className='mb-2 quest'>Anda yakin untuk reject ?</div>
@@ -2306,6 +2337,14 @@ class Disposal extends Component {
                                     <AiOutlineClose size={80} className={style.red} />
                                     <div className={[style.sucUpdate, style.green]}>Gagal Reject</div>
                                     <div className="errApprove mt-2">Reject pembatalan hanya bisa dilakukan jika semua data ajuan terceklis</div>
+                                </div>
+                            </div>
+                        ) : this.state.confirm === 'falseUploadDok' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiOutlineClose size={80} className={style.red} />
+                                    <div className={[style.sucUpdate, style.green]}>Gagal Approve</div>
+                                    <div className="errApprove mt-2">Mohon upload dokumen terlebih dahulu</div>
                                 </div>
                             </div>
                         ) : this.state.confirm === 'falseAppDok' ? (

@@ -362,7 +362,7 @@ class CartDisposal extends Component {
                 await this.props.getDocumentDis(token, data, 'disposal', 'pengajuan')
                 const {dataDoc} = this.props.disposal
                 for (let j = 0; j < dataDoc.length; j++) {
-                    if (dataDoc[j].path === null) {
+                    if (dataDoc[j].path === null && dataDoc[j].jenis_dokumen !== 'it') {
                         cekDoc.push(dataDoc[j])
                     }
                 }
@@ -529,70 +529,6 @@ class CartDisposal extends Component {
           };
         return (
             <>
-                {/* <Sidebar {...sidebarProps}>
-                    <MaterialTitlePanel title={contentHeader}>
-                        <div className={style.backgroundLogo}>
-                            <div className={style.bodyDashboard}>
-                                <div className={style.headMaster}> 
-                                    <div className={style.titleDashboard}>Draft Pengajuan Disposal</div>
-                                </div>
-                                <div className={style.secEmail}>
-                                    <div className='rowGeneral'>
-                                        <Button size='lg' color="primary" onClick={this.prosesOpenAdd}>Add</Button>
-                                        <Button size='lg' className='ml-2' color="success" disabled={dataCart.length === 0 ? true : false } onClick={() => this.submitDis()}>Submit</Button>
-                                    </div>
-                                </div>
-                                <div className={style.tableDashboard}>
-                                    <Table bordered striped responsive hover className={style.tab}>
-                                        <thead>
-                                            <tr>
-                                                <th>NO</th>
-                                                <th>NAMA ASET</th>
-                                                <th>NOMOR ASET</th>
-                                                <th>NILAI BUKU</th>
-                                                <th>KATEGORI</th>
-                                                <th>STATUS</th>
-                                                <th>OPSI</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        {dataCart.length !== 0 && dataCart.map(item => {
-                                            return (
-                                                <tr>
-                                                    <td>{dataCart.indexOf(item) + 1}</td>
-                                                    <td>{item.nama_asset}</td>
-                                                    <td>{item.no_asset}</td>
-                                                    <td>{item.nilai_buku === null || item.nilai_buku === undefined ? 0 : item.nilai_buku.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                    <td>{item.kategori}</td>
-                                                    <td>{item.status === '1' ? 'On Proses Disposal' : item.status === '11' ? 'On Proses Mutasi' : 'available'}</td>
-                                                    <td>
-                                                        <Button color="primary" onClick={() => this.prosesRinci(item)}>Rincian</Button>
-                                                        <Button color="danger" className='ml-2' onClick={() => this.deleteItem(item.no_asset)}>Delete</Button>
-                                                    </td>
-                                                </tr>
-                                            )
-                                        })}
-                                        </tbody>
-                                    </Table>
-                                    {dataCart.length === 0 && (
-                                        <div className={style.spin}>
-                                            <text className='textInfo'>Data ajuan belum ditambahkan</text>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className='mt-4'>
-                                    <div className={style.infoPageEmail1}>
-                                        <text>Showing 1 of 1 pages</text>
-                                        <div className={style.pageButton}>
-                                            <button className={style.btnPrev} color="info" disabled>Prev</button>
-                                            <button className={style.btnPrev} color="info" disabled>Next</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </MaterialTitlePanel>
-                </Sidebar> */}
                 <div className={styleTrans.app}>
                     <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
 
@@ -947,7 +883,7 @@ class CartDisposal extends Component {
                         <Alert color="danger" className="alertWrong" isOpen={this.state.upload}>
                             <div>{this.state.errMsg}</div>
                         </Alert>
-                        {dataDoc !== undefined && dataDoc.map(x => {
+                        {dataDoc !== undefined && dataDoc.filter(item => item.jenis_dokumen !== 'it').map(x => {
                             return (
                                 <Row className="mt-3 mb-4">
                                     <Col md={6} lg={6} >

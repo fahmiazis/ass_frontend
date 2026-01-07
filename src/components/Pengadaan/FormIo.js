@@ -180,7 +180,14 @@ class FormIo extends Component {
     }
 
     downloadForm = async () => {
-        const {dataPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataDocCart} = this.props.pengadaan
+        const {dataPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataDocCart, infoApp} = this.props.pengadaan
+
+        const splitApp = infoApp.info ? infoApp.info.split(']') : []
+        const pembuatApp = splitApp.length > 0 ? splitApp[0] : ''
+        const pemeriksaApp = splitApp.length > 0 ? splitApp[1] : ''
+        const penyetujuApp = splitApp.length > 0 ? splitApp[2] : ''
+
+        const cekKode = detailIo[0] && detailIo[0].kode_plant.length > 4 ? 9 : 5
         
         const data = detailIo
         let num = 0
@@ -776,7 +783,7 @@ class FormIo extends Component {
             ...fontStyle,
         }
 
-        ws.getCell(`C${topInfoRow + 5}`).value = `- Budgeted / Return : NFAM`
+        ws.getCell(`C${topInfoRow + 5}`).value = `- Budgeted / Return : ${cekKode === 5 ? (penyetujuApp.split(';')[1] && penyetujuApp.split(';')[1]) : (penyetujuApp.split(';')[3] && penyetujuApp.split(';')[3])}`
         ws.getCell(`C${topInfoRow + 5}`).alignment = { 
             ...leftStyle
         }
@@ -784,7 +791,7 @@ class FormIo extends Component {
             ...fontStyle,
         }
 
-        ws.getCell(`C${topInfoRow + 6}`).value = `- Non Budgeted : DH OPS, NFAM, DH FA, DH HC, CM`
+        ws.getCell(`C${topInfoRow + 6}`).value = `- Non Budgeted : ${cekKode === 5 ? (penyetujuApp.split(';')[2] && penyetujuApp.split(';')[2]) : (penyetujuApp.split(';')[4] && penyetujuApp.split(';')[4])}`
         ws.getCell(`C${topInfoRow + 6}`).alignment = { 
             ...leftStyle
         }

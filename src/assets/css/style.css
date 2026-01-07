@@ -1592,7 +1592,7 @@ html,body{
     justify-content: center;
 }
 .note {
-    background-color: #ffffcc;
+    background-color: #ffffcc !important;
 }
 .bad {
     background-color: #ffccd0;

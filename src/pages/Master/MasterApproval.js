@@ -92,7 +92,8 @@ class Approve extends Component {
             namaApprove: {},
             editModalName: false,
             modalPlant: false,
-            openCreate: false
+            openCreate: false,
+            listSwitch: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -257,7 +258,8 @@ class Approve extends Component {
             tipe: this.state.namaApprove.tipe,
             kode_plant: this.state.namaApprove.kode_plant,
             struktur: values.struktur,
-            way_app: values.way_app
+            way_app: values.way_app,
+            status_view: values.status_view
         }
         await this.props.updateApprove(token, id, data)
         await this.props.getDetailApprove(token,  this.state.namaApprove.name, this.state.namaApprove.kode_plant)
@@ -347,8 +349,55 @@ class Approve extends Component {
         this.openConfirm()
     }
 
+    switchApp = async (val) => {
+        const { listSwitch } = this.state
+        const dataUp = listSwitch
+        const token = localStorage.getItem("token")
+        dataUp.push(val)
+        console.log(listSwitch)
+        const { detailApp } = this.props.approve
+        if (dataUp.length === 2) {
+            for (let i = 0; i < dataUp.length; i++) {
+                const values = detailApp.find(item => item.id === dataUp[i === 0 ? 1 : 0])
+                const data = {
+                    jabatan: values.jabatan,
+                    jenis: values.jenis,
+                    sebagai: values.sebagai,
+                    kategori: !values.kategori ? 'all' : values.kategori,
+                    nama_approve: this.state.namaApprove.name,
+                    tipe: this.state.namaApprove.tipe,
+                    kode_plant: this.state.namaApprove.kode_plant,
+                    struktur: !values.struktur ? 'all' : values.struktur,
+                    way_app: !values.way_app ? 'web' : values.way_app,
+                    status_view: !values.status_view ? 'visible' : values.status_view
+                }
+                await this.props.updateApprove(token, dataUp[i], data, 'switch') 
+            }
+            await this.props.getDetailApprove(token,  this.state.namaApprove.name, this.state.namaApprove.kode_plant)
+            this.setState({listSwitch: []})
+            // this.setState({confirm: 'switch'})
+            // this.openConfirm()
+        } else {
+            console.log('masuk else listSwitch')
+            this.setState({listSwitch: dataUp})
+        }
+    }
+
+    switchRej = (val) => {
+        const { listSwitch } = this.state
+        const data = []
+        for (let i = 0; i < listSwitch.length; i++) {
+            if (listSwitch[i] === val) {
+                data.push()
+            } else {
+                data.push(listSwitch[i])
+            }
+        }
+        this.setState({listSwitch: data})
+    }
+
     render() {
-        const {isOpen, dropOpen, dropOpenNum, detail, alert, upload, errMsg} = this.state
+        const {isOpen, dropOpen, dropOpenNum, detail, alert, upload, errMsg, listSwitch} = this.state
         const {dataApprove, dataName, alertM, alertMsg, alertUpload, page, detailApp, idName, plantApp, isPlantApp} = this.props.approve
         const { dataRole } = this.props.user
         const { dataDepo } = this.props.depo
@@ -810,15 +859,15 @@ class Approve extends Component {
                         <Button onClick={this.openPlant} color='secondary'>Close</Button>
                     </ModalFooter>
                 </Modal>
-                <Modal size="xl" toggle={this.openModalApprove} isOpen={this.state.modalApprove}>
+                <Modal size="xl" className='xl' toggle={this.openModalApprove} isOpen={this.state.modalApprove}>
                     <ModalHeader>
                         Detail Approval
                     </ModalHeader>
                     <ModalBody>
                         <div className={style.headEmail}>
-                            <Button color="success" size="lg" className="mb-4" onClick={this.openModalAdd} >Add</Button>
+                            <Button color="success" size="lg" className="mb-4" onClick={this.openModalAdd}>Add</Button>
                         </div>
-                        <Table striped bordered hover responsive className={style.tab}>
+                        <Table striped bordered responsive className={style.tab}>
                             <thead>
                                 <tr>
                                     <th>No</th>
@@ -828,30 +877,42 @@ class Approve extends Component {
                                     <th>Kategori</th>
                                     <th>Struktur User</th>
                                     <th>Cara Approve</th>
+                                    <th>View</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {detailApp.length !== 0 && detailApp.map(item => {
                                     return (
-                                        <tr>
-                                        <th>{detailApp.indexOf(item) + 1}</th>
-                                        <td>{item.jabatan}</td>
-                                        <td>{item.jenis}</td>
-                                        <td>{item.sebagai}</td>
-                                        <td>{item.kategori}</td>
-                                        <td>{item.struktur === null ? 'all' : item.struktur}</td>
-                                        <td>{item.way_app === null || item.way_app === 'web' ? 'approve web' : 'upload file'}</td>
-                                        <td>
-                                            <Button className='mt-1' color="info" onClick={() => this.openModalEdit(this.setState({detail: item}))}>Update</Button>
-                                            <Button color="danger mt-1 ml-1" onClick={() => this.deleteDataApprove(item.id)}>Delete</Button>
-                                        </td>
-                                    </tr>
+                                        <tr className={listSwitch.find(x => x === item.id) && 'note'}>
+                                            <td>{detailApp.indexOf(item) + 1}</td>
+                                            <td>{item.jabatan}</td>
+                                            <td>{item.jenis}</td>
+                                            <td>{item.sebagai}</td>
+                                            <td>{item.kategori}</td>
+                                            <td>{item.struktur === null ? 'all' : item.struktur}</td>
+                                            <td>{item.way_app === null || item.way_app === 'web' ? 'approve web' : 'upload file'}</td>
+                                            <td>{item.status_view ? item.status_view : 'visible'}</td>
+                                            <td>
+                                                <Button className='mt-1' color="success" onClick={() => this.openModalEdit(this.setState({detail: item}))}>Update</Button>
+                                                <Button 
+                                                    className='mt-1 ml-1' 
+                                                    color="info" 
+                                                    onClick={listSwitch.find(e => e === item.id) === undefined ? () => this.switchApp(item.id) : () => this.switchRej(item.id)}
+                                                >
+                                                    Switch
+                                                </Button>
+                                                <Button className='mt-1 ml-1' color="danger" onClick={() => this.deleteDataApprove(item.id)}>Delete</Button>
+                                            </td>
+                                        </tr>
                                     )
                                 })}
                             </tbody>
                         </Table>
                     </ModalBody>
+                    <ModalFooter>
+                        <Button onClick={this.openModalApprove} color="secondary" size="lg">Close</Button>
+                    </ModalFooter>
                 </Modal>
                 <Modal toggle={this.openModalAdd} isOpen={this.state.modalAdd} size="lg">
                     <ModalHeader toggle={this.openModalAdd}>Add Approval</ModalHeader>
@@ -862,7 +923,8 @@ class Approve extends Component {
                         sebagai: "",
                         kategori: "all",
                         struktur: "all",
-                        way_app: "web"
+                        way_app: "web",
+                        status_view: "visible"
                     }}
                     validationSchema={approveSchema}
                     onSubmit={(values) => {this.addApproval(values)}}
@@ -1005,6 +1067,27 @@ class Approve extends Component {
                                 ) : null}
                             </div>
                         </div>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                Status View
+                            </text>
+                            <div className="col-md-9">
+                                <Input 
+                                type="select" 
+                                name="select"
+                                value={values.status_view}
+                                onChange={handleChange("status_view")}
+                                onBlur={handleBlur("status_view")}
+                                >
+                                    <option>-Pilih-</option>
+                                    <option value="visible">Visible</option>
+                                    <option value="hidden">Hidden</option>
+                                </Input>
+                                {errors.status_view ? (
+                                    <text className={style.txtError}>{errors.status_view}</text>
+                                ) : null}
+                            </div>
+                        </div>
                         <hr/>
                         <div className={style.foot}>
                             <div></div>
@@ -1026,7 +1109,8 @@ class Approve extends Component {
                         sebagai: detail.sebagai,
                         kategori: detail.kategori,
                         struktur: detail.struktur,
-                        way_app: detail.way_app
+                        way_app: detail.way_app,
+                        status_view: detail.status_view
                     }}
                     validationSchema={approveSchema}
                     onSubmit={(values) => {this.editApproval(values, detail.id)}}
@@ -1169,6 +1253,27 @@ class Approve extends Component {
                                 ) : null}
                             </div>
                         </div>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                Status View
+                            </text>
+                            <div className="col-md-9">
+                                <Input 
+                                type="select" 
+                                name="select"
+                                value={values.status_view}
+                                onChange={handleChange("status_view")}
+                                onBlur={handleBlur("status_view")}
+                                >
+                                    <option>-Pilih-</option>
+                                    <option value="visible">Visible</option>
+                                    <option value="hidden">Hidden</option>
+                                </Input>
+                                {errors.status_view ? (
+                                    <text className={style.txtError}>{errors.status_view}</text>
+                                ) : null}
+                            </div>
+                        </div>
                         <hr/>
                         <div className={style.foot}>
                             <div></div>
@@ -1220,6 +1325,13 @@ class Approve extends Component {
                                 <div className={style.cekUpdate}>
                                     <AiFillCheckCircle size={80} className={style.green} />
                                 <div className={style.sucUpdate}>Berhasil Mereset Password</div>
+                            </div>
+                            </div>
+                        ) : this.state.confirm === 'switch' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={style.sucUpdate}>Berhasil Switch Approval</div>
                             </div>
                             </div>
                         ) : (

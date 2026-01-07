@@ -1267,7 +1267,7 @@ class EksekusiMut extends Component {
                                         <th className="buatPre" colSpan={mutApp.pembuat?.length || 1}>Dibuat oleh,</th>
                                         <th className="buatPre" colSpan={mutApp.penerima?.length || 1}>Diterima oleh,</th>
                                         <th className="buatPre" rowSpan={2} colSpan={
-                                            mutApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').length || 1
+                                            mutApp.pemeriksa?.filter(item => item.status_view !== 'hidden').length || 1
                                         }>Diperiksa oleh,</th>
                                         <th className="buatPre" rowSpan={2} colSpan={mutApp.penyetuju?.length || 1}>Disetujui oleh,</th>
                                     </tr>
@@ -1288,7 +1288,7 @@ class EksekusiMut extends Component {
                                                 <div>{item.nama ?? '-'}</div>
                                             </th>
                                         ))}
-                                        {mutApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                        {mutApp.pemeriksa?.filter(item => item.status_view !== 'hidden').map(item => (
                                             <th className="headPre">
                                                 <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
                                                 <div>{item.nama ?? '-'}</div>
@@ -1310,7 +1310,7 @@ class EksekusiMut extends Component {
                                         {mutApp.penerima?.map(item => (
                                             <td className="footPre">{item.jabatan ?? '-'}</td>
                                         ))}
-                                        {mutApp.pemeriksa?.filter(item => item.id_role !== 2 && item.jabatan !== 'asset').map(item => (
+                                        {mutApp.pemeriksa?.filter(item => item.status_view !== 'hidden').map(item => (
                                             <td className="footPre">{item.jabatan ?? '-'}</td>
                                         ))}
                                         {mutApp.penyetuju?.map(item => (
