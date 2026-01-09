@@ -2264,19 +2264,23 @@ class Stock extends Component {
             ws.getRow(numContent).height = 200
 
             const cekPict = dataExp[i].image !== null && dataExp.image !== ''
-            const pict = cekPict ? dataExp[i].image : dataExp[i].pict[dataExp[i].pict.length - 1].path
+            const pict = cekPict ? dataExp[i].image : (dataExp[i].pict.length > 0 ? dataExp[i].pict[dataExp[i].pict.length - 1].path : '')
+            if (!pict || pict === '') {
+                ws.getCell(`Q${numContent}`).value = '-'
+            } else {
+                const result = await this.toDataURL(`${REACT_APP_BACKEND_URL}/${pict}`);
 
-            const result = await this.toDataURL(`${REACT_APP_BACKEND_URL}/${pict}`);
+                const imageId2 = workbook.addImage({
+                base64: result.base64Url,
+                extension: 'png',
+                });
 
-            const imageId2 = workbook.addImage({
-            base64: result.base64Url,
-            extension: 'png',
-            });
-
-            ws.addImage(imageId2, {
-                tl: { col: 16.2, row: i + 4.2 },
-                ext: { width: 230, height: 150 },
-            });
+                ws.addImage(imageId2, {
+                    tl: { col: 16.2, row: i + 4.2 },
+                    ext: { width: 230, height: 150 },
+                });
+            }
+            
         }
 
         await ws.protect('As5etPm4')

@@ -1174,7 +1174,7 @@ class MasterUser extends Component {
                                 </div>
                             </div>
                         )}
-                        {(values.user_level != '1' && values.user_level != '9' && values.user_level != '5' && values.user_level !== '') && (
+                        {(values.user_level != '1' && values.user_level != '5' && values.user_level !== '') && (
                             <div className='addModalMenu'>
                                 <text className="col-md-3">
                                     Role Tambahan
@@ -1421,7 +1421,7 @@ class MasterUser extends Component {
                                 </div>
                             </div>
                         )}
-                        {(values.user_level != '1' && values.user_level != '9' && values.user_level != '5' && values.user_level !== '') && (
+                        {(values.user_level != '1' && values.user_level != '5' && values.user_level !== '') && (
                             <div className='addModalMenu'>
                                 <text className="col-md-3">
                                     Role Tambahan

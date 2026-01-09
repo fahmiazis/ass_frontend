@@ -751,7 +751,7 @@ class FormMutasi extends Component {
 
         // Approval Diperiksa
         const cekRow11 = alphabet[alphabet.indexOf(alphabet.find(item => item === cekRowRec2.toUpperCase())) + 1]
-        const cekRow12 = alphabet[alphabet.indexOf(alphabet.find(item => item === cekRow11.toUpperCase())) + (distCol * (mutApp.pemeriksa.length === 0 ? 1 : mutApp.pemeriksa.length)) - 1]
+        const cekRow12 = alphabet[alphabet.indexOf(alphabet.find(item => item === cekRow11.toUpperCase())) + (distCol * (mutApp.pemeriksa.filter(x => x.status_view !== 'hidden').length === 0 ? 1 : mutApp.pemeriksa.filter(x => x.status_view !== 'hidden').length)) - 1]
         ws.mergeCells(`${cekRow11}${sumRow}`, `${cekRow12}${sumRow}`)
         ws.getCell(`${cekRow11}${sumRow}`).value = 'Diperiksa oleh,'
         ws.getCell(`${cekRow11}${sumRow}`).alignment = { horizontal: 'center' }
@@ -759,7 +759,7 @@ class FormMutasi extends Component {
             ...borderStyles
         }
 
-        mutApp.pemeriksa !== undefined && mutApp.pemeriksa.map((item, index) => {
+        mutApp.pemeriksa !== undefined && mutApp.pemeriksa.filter(x => x.status_view !== 'hidden').map((item, index) => {
             const name = item.nama === undefined || item.nama === null ? null
                 : item.nama.length <= 15 ? item.nama.split(" ").map((word) => {
                     return word[0] === undefined ? '' : word[0].toUpperCase() + word.substring(1)

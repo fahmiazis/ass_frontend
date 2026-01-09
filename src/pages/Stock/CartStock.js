@@ -39,6 +39,7 @@ import TableStock from '../../components/TableStock'
 import ReactHtmlToExcel from "react-html-table-to-excel"
 import NavBar from '../../components/NavBar'
 import styleTrans from '../../assets/css/transaksi.module.css'
+import styleStock from '../../assets/css/stock.module.css'
 import NewNavbar from '../../components/NewNavbar'
 import Email from '../../components/Stock/Email'
 import EXIF from 'exif-js'
@@ -556,6 +557,12 @@ class Stock extends Component {
     componentDidMount() {
         const level = localStorage.getItem('level')
         const kode = localStorage.getItem('kode')
+        
+        if (this.tableContainer && this.topScrollContent) {
+            const tableWidth = this.tableContainer.scrollWidth;
+            this.topScrollContent.style.width = `${tableWidth}px`;
+        }
+
         if (level === "5" || level === "9") {
             this.setState({asetPart: kode})
             this.getDataAsset({asetPart: kode})
@@ -587,6 +594,12 @@ class Stock extends Component {
         const {dataRinci, dataId, dataItem} = this.state
         const { isUpdateNew, detailAsset } = this.props.asset
         const token = localStorage.getItem('token')
+
+        if (this.tableContainer && this.topScrollContent) {
+            const tableWidth = this.tableContainer.scrollWidth;
+            this.topScrollContent.style.width = `${tableWidth}px`;
+        }
+
         if (isUpload) {
             this.props.resetStock()
              setTimeout(() => {
@@ -1125,7 +1138,7 @@ class Stock extends Component {
                 <div className={styleTrans.app}>
                     <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
 
-                    <div className={`${styleTrans.mainContentStock} ${this.state.sidebarOpen ? styleTrans.collapsedContent : ''}`}>
+                    <div className={`${styleTrans.mainContent} ${this.state.sidebarOpen ? styleTrans.collapsedContent : ''}`}>
                         <h2 className={styleTrans.pageTitle}>Draft Stock Opname Asset</h2>
 
                         <div className={styleTrans.searchContainer}>
@@ -1167,184 +1180,201 @@ class Stock extends Component {
                                 className={styleTrans.searchInput}
                             />
                         </div>
-                        <div className={styleTrans.tableContainer2}>
-                        <table className={dataAsset.length === 0 ? styleTrans.table : `${styleTrans.tableStock} ${dataAsset.length > 0 ? styleTrans.tableFull : ''}`}>
-                            <thead>
-                                <tr>
-                                    <th>No</th>
-                                    <th>NO. ASET</th>
-                                    <th>DESKRIPSI</th>
-                                    <th>MERK</th>
-                                    <th>SATUAN</th>
-                                    <th>UNIT</th>
-                                    <th>KATEGORI</th>
-                                    <th>LOKASI</th>
-                                    <th>STATUS FISIK</th>
-                                    <th>KONDISI</th>
-                                    <th className='indexStat'>STATUS ASET</th>
-                                    <th>KETERANGAN</th>
-                                    <th>PHOTO</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {dataAsset.length > 0 && dataAsset.map(item => {
-                                    return (
+                       <div 
+                            className={styleStock.scrollHelper}
+                            onScroll={(e) => {
+                                const container = this.tableContainer;
+                                if (container) {
+                                    container.scrollLeft = e.target.scrollLeft;
+                                }
+                            }}
+                            ref={el => this.topScroll = el}
+                        >
+                            <div 
+                                className={styleStock.scrollHelperContent}
+                                ref={el => this.topScrollContent = el}
+                            />
+                        </div>
+
+                        <div className={styleStock.tableWrapper}>
+                            <div 
+                                className={styleStock.tableContainer2}
+                                onScroll={(e) => {
+                                    const topScroll = this.topScroll;
+                                    if (topScroll) {
+                                        topScroll.scrollLeft = e.target.scrollLeft;
+                                    }
+                                }}
+                                ref={el => this.tableContainer = el}
+                            >
+                                <table className={dataAsset.length === 0 ? styleStock.table : styleStock.tableStock}>
+                                    <thead>
                                         <tr>
-                                            <td onClick={() => this.getRincian(item)} scope="row">{(dataAsset.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</td>
-                                            <td>{item.no_asset}</td>
-                                            <td>{item.nama_asset}</td>
-                                            {/* <td className='largeTh'>
-                                                <Input
-                                                type= "text"
-                                                name="merk"
-                                                className="inputRinci"
-                                                value={this.state.idTab == item.id ? null : item.merk !== null ? item.merk : ''}
-                                                onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
-                                                onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
-                                                />
-                                            </td> */}
-                                            <td className='largeTh'>
-                                                <Input
-                                                type="text"
-                                                name="merk"
-                                                className="inputRinci"
-                                                value={this.state.idTab == item.id ? null : item.merk !== null ? item.merk : ''}
-                                                onBlur={e => this.saveField(item, e.target)}
-                                                onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
-                                                onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
-                                            />
-                                            </td>
-                                            <td>
-                                                <Input 
-                                                type="select"
-                                                className="inputRinci"
-                                                name="satuan"
-                                                value={item.satuan}
-                                                defaultValue={item.satuan}
-                                                onChange={e => {this.updateNewAsset({item: item, target: e.target})} }
-                                                >
-                                                    <option>-Pilih Satuan-</option>
-                                                    <option value="Unit">UNIT</option>
-                                                    <option value="Paket">PAKET</option>
-                                                </Input>
-                                            </td>
-                                            <td>{item.unit}</td>
-                                            <td>
-                                                <Input 
-                                                type="select"
-                                                className="inputRinci"
-                                                name="kategori"
-                                                value={item.kategori}
-                                                defaultValue={item.kategori}
-                                                onChange={e => {this.updateNewAsset({item: item, target: e.target})} }
-                                                >
-                                                    <option>-Pilih Kategori-</option>
-                                                    <option value="IT">IT</option>
-                                                    <option value="NON IT">NON IT</option>
-                                                </Input>
-                                            </td>
-                                            <td className='largeTh'>
-                                                <Input
-                                                type= "text"
-                                                name="lokasi"
-                                                className="inputRinci"
-                                                value={this.state.idTab == item.id ? null : item.lokasi !== null ? item.lokasi : ''}
-                                                onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
-                                                onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
-                                                onBlur={e => this.saveField(item, e.target)}
-                                                />
-                                            </td>
-                                            <td>
-                                                <Input 
-                                                type="select"
-                                                className="inputRinci"
-                                                name="status_fisik"
-                                                value={item.status_fisik === null ? 'null' : item.status_fisik}
-                                                defaultValue={item.status_fisik === null ? 'null' : item.status_fisik}
-                                                onChange={e => {this.updateNewAsset({item: item, target: e.target})} }
-                                                >
-                                                    <option value={null}>-Pilih Status Fisik-</option>
-                                                    <option value="ada">Ada</option>
-                                                    <option value="tidak ada">Tidak Ada</option>
-                                                </Input>
-                                            </td>
-                                            <td>
-                                                <Input 
-                                                type="select"
-                                                name="kondisi"
-                                                className="inputRinci"
-                                                value={item.kondisi === null ? 'null' : item.kondisi}
-                                                defaultValue={item.kondisi === null ? 'null' : item.kondisi} 
-                                                onChange={e => {this.updateNewAsset({item: item, target: e.target})} }
-                                                >
-                                                    <option>-Pilih Kondisi-</option>
-                                                    <option value="baik">Baik</option>
-                                                    <option value="rusak">Rusak</option>
-                                                    <option value="">-</option>
-                                                </Input>
-                                            </td>
-                                            <td>
-                                                <ButtonDropdown className={style.drop2} isOpen={this.state.dropOp && item.no_asset === this.state.noAsset} toggle={() => this.dropOpen(item)}>
-                                                    <DropdownToggle className='indexToggle' caret color="light">
-                                                        {item.grouping === null || item.grouping === '' || item.grouping === undefined ? '-Pilih Status Aset-' : item.grouping }
-                                                    </DropdownToggle>
-                                                    <DropdownMenu className='indexMenu'>
-                                                        {dataStatus.length > 0 && dataStatus.map(x => {
-                                                            return (
-                                                                <DropdownItem onClick={() => this.updateGrouping({item: item, target: x.status})} className={style.item}>{x.status}</DropdownItem>
-                                                            )
-                                                        })}
-                                                    </DropdownMenu>
-                                                </ButtonDropdown>
-                                            </td>
-                                            <td className='largeTh'>
-                                                <Input
-                                                type= "text"
-                                                name="keterangan"
-                                                className="inputRinci"
-                                                value={this.state.idTab == item.id ? null : item.keterangan !== null ? item.keterangan : ''}
-                                                defaultValue={item.keterangan === null ? '' : item.keterangan}
-                                                onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
-                                                onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
-                                                onBlur={e => this.saveField(item, e.target)}
-                                                />
-                                            </td>
-                                            <td>
-                                                {item.pict === undefined || item.pict.length === 0 ? (
-                                                    <Input type="file" onChange={this.uploadPicture} onClick={() => this.setState({dataRinci: item})}>Upload</Input>
-                                                ) : (
-                                                    <div className="">
-                                                        <img 
-                                                            id={`img${item.id}`}
-                                                            src={`${REACT_APP_BACKEND_URL}/${item.pict[item.pict.length - 1].path}`} 
-                                                            className="imgTable"
-                                                         />
-                                                        <text className='textPict'>{moment(item.pict[item.pict.length - 1].createdAt).format('DD MMMM YYYY')}</text>
-                                                        <Input type="file" onChange={this.uploadPicture} onClick={() => this.setState({dataRinci: item})}>Upload</Input>
-                                                        <UncontrolledPopover
-                                                            placement="left"
-                                                            target={`img${item.id}`}
-                                                            trigger="legacy"
-                                                            className='popImg'
-                                                        >
-                                                            <PopoverHeader>
-                                                                Image Aset {item.no_asset}
-                                                            </PopoverHeader>
-                                                            <PopoverBody>
-                                                                <img 
-                                                                    src={`${REACT_APP_BACKEND_URL}/${item.pict[item.pict.length - 1].path}`} 
-                                                                    className="imgPop"
-                                                                />
-                                                            </PopoverBody>
-                                                        </UncontrolledPopover>
-                                                    </div>
-                                                )}
-                                            </td>
+                                            <th>No</th>
+                                            <th>NO. ASET</th>
+                                            <th>DESKRIPSI</th>
+                                            <th>MERK</th>
+                                            <th>SATUAN</th>
+                                            <th>UNIT</th>
+                                            <th>KATEGORI</th>
+                                            <th>LOKASI</th>
+                                            <th>STATUS FISIK</th>
+                                            <th>KONDISI</th>
+                                            <th className='indexStat'>STATUS ASET</th>
+                                            <th>KETERANGAN</th>
+                                            <th>PHOTO</th>
                                         </tr>
-                                    )
-                                })}
-                            </tbody>
-                        </table>
+                                    </thead>
+                                    <tbody>
+                                        {dataAsset.length > 0 && dataAsset.map(item => {
+                                            return (
+                                                <tr key={item.id}>
+                                                    <td>{(dataAsset.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</td>
+                                                    <td>{item.no_asset}</td>
+                                                    <td>{item.nama_asset}</td>
+                                                    <td className='largeTh'>
+                                                        <Input
+                                                            type="text"
+                                                            name="merk"
+                                                            className="inputRinci"
+                                                            value={this.state.idTab == item.id ? null : item.merk !== null ? item.merk : ''}
+                                                            onBlur={e => this.saveField(item, e.target)}
+                                                            onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
+                                                            onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <Input 
+                                                            type="select"
+                                                            className="inputRinci"
+                                                            name="satuan"
+                                                            value={item.satuan}
+                                                            defaultValue={item.satuan}
+                                                            onChange={e => {this.updateNewAsset({item: item, target: e.target})} }
+                                                        >
+                                                            <option>-Pilih Satuan-</option>
+                                                            <option value="Unit">UNIT</option>
+                                                            <option value="Paket">PAKET</option>
+                                                        </Input>
+                                                    </td>
+                                                    <td>{item.unit}</td>
+                                                    <td>
+                                                        <Input 
+                                                            type="select"
+                                                            className="inputRinci"
+                                                            name="kategori"
+                                                            value={item.kategori}
+                                                            defaultValue={item.kategori}
+                                                            onChange={e => {this.updateNewAsset({item: item, target: e.target})} }
+                                                        >
+                                                            <option>-Pilih Kategori-</option>
+                                                            <option value="IT">IT</option>
+                                                            <option value="NON IT">NON IT</option>
+                                                        </Input>
+                                                    </td>
+                                                    <td className='largeTh'>
+                                                        <Input
+                                                            type="text"
+                                                            name="lokasi"
+                                                            className="inputRinci"
+                                                            value={this.state.idTab == item.id ? null : item.lokasi !== null ? item.lokasi : ''}
+                                                            onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
+                                                            onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
+                                                            onBlur={e => this.saveField(item, e.target)}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <Input 
+                                                            type="select"
+                                                            className="inputRinci"
+                                                            name="status_fisik"
+                                                            value={item.status_fisik === null ? 'null' : item.status_fisik}
+                                                            defaultValue={item.status_fisik === null ? 'null' : item.status_fisik}
+                                                            onChange={e => {this.updateNewAsset({item: item, target: e.target})} }
+                                                        >
+                                                            <option value={null}>-Pilih Status Fisik-</option>
+                                                            <option value="ada">Ada</option>
+                                                            <option value="tidak ada">Tidak Ada</option>
+                                                        </Input>
+                                                    </td>
+                                                    <td>
+                                                        <Input 
+                                                            type="select"
+                                                            name="kondisi"
+                                                            className="inputRinci"
+                                                            value={item.kondisi === null ? 'null' : item.kondisi}
+                                                            defaultValue={item.kondisi === null ? 'null' : item.kondisi} 
+                                                            onChange={e => {this.updateNewAsset({item: item, target: e.target})} }
+                                                        >
+                                                            <option>-Pilih Kondisi-</option>
+                                                            <option value="baik">Baik</option>
+                                                            <option value="rusak">Rusak</option>
+                                                            <option value="">-</option>
+                                                        </Input>
+                                                    </td>
+                                                    <td>
+                                                        <ButtonDropdown className={style.drop2} isOpen={this.state.dropOp && item.no_asset === this.state.noAsset} toggle={() => this.dropOpen(item)}>
+                                                            <DropdownToggle className='indexToggle' caret color="light">
+                                                                {item.grouping === null || item.grouping === '' || item.grouping === undefined ? '-Pilih Status Aset-' : item.grouping }
+                                                            </DropdownToggle>
+                                                            <DropdownMenu className='indexMenu'>
+                                                                {dataStatus.length > 0 && dataStatus.map(x => {
+                                                                    return (
+                                                                        <DropdownItem onClick={() => this.updateGrouping({item: item, target: x.status})} className={style.item}>{x.status}</DropdownItem>
+                                                                    )
+                                                                })}
+                                                            </DropdownMenu>
+                                                        </ButtonDropdown>
+                                                    </td>
+                                                    <td className='largeTh'>
+                                                        <Input
+                                                            type="text"
+                                                            name="keterangan"
+                                                            className="inputRinci"
+                                                            value={this.state.idTab == item.id ? null : item.keterangan !== null ? item.keterangan : ''}
+                                                            defaultValue={item.keterangan === null ? '' : item.keterangan}
+                                                            onChange={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
+                                                            onKeyPress={e => this.updateNewAsset({item: item, target: e.target, key: e.key})}
+                                                            onBlur={e => this.saveField(item, e.target)}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        {item.pict === undefined || item.pict.length === 0 ? (
+                                                            <Input type="file" onChange={this.uploadPicture} onClick={() => this.setState({dataRinci: item})}>Upload</Input>
+                                                        ) : (
+                                                            <div className="">
+                                                                <img 
+                                                                    id={`img${item.id}`}
+                                                                    src={`${REACT_APP_BACKEND_URL}/${item.pict[item.pict.length - 1].path}`} 
+                                                                    className="imgTable"
+                                                                />
+                                                                <text className='textPict'>{moment(item.pict[item.pict.length - 1].createdAt).format('DD MMMM YYYY')}</text>
+                                                                <Input type="file" onChange={this.uploadPicture} onClick={() => this.setState({dataRinci: item})}>Upload</Input>
+                                                                <UncontrolledPopover
+                                                                    placement="left"
+                                                                    target={`img${item.id}`}
+                                                                    trigger="legacy"
+                                                                    className='popImg'
+                                                                >
+                                                                    <PopoverHeader>
+                                                                        Image Aset {item.no_asset}
+                                                                    </PopoverHeader>
+                                                                    <PopoverBody>
+                                                                        <img 
+                                                                            src={`${REACT_APP_BACKEND_URL}/${item.pict[item.pict.length - 1].path}`} 
+                                                                            className="imgPop"
+                                                                        />
+                                                                    </PopoverBody>
+                                                                </UncontrolledPopover>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                         {dataAsset.length === 0 && (
                             <div className={style.spinCol}>

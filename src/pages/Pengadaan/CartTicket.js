@@ -77,10 +77,15 @@ class CartMutasi extends Component {
             message: '',
             noAjuan: '',
             showOptions: false,
-            listNoIo: []
+            listNoIo: [],
+            valCart: {}
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+    }
+
+    handleAdd = (val) => {
+        this.setState({valCart: val})
     }
 
     prosesSidebar = (val) => {
@@ -660,6 +665,7 @@ class CartMutasi extends Component {
                     }}
                     validationSchema={cartSchema}
                     onSubmit={(values) => {this.addCart(values)}}
+                    // onSubmit={(values) => {this.handleAdd(values)}}
                     >
                         {({ setFieldValue, handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
                     <ModalBody>

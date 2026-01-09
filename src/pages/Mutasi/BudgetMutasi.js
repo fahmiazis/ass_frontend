@@ -690,9 +690,13 @@ class BudgetMutasi extends Component {
     render() {
         const dataNotif = this.props.notif.data
         const { dataRinci, newMut, listMut, fileName, listStat, tipeEmail, dataRej } = this.state
-        const { dataDoc, detailMut, mutApp } = this.props.mutasi
+        const { dataDoc, detailMut, mutApp, infoApp } = this.props.mutasi
         const level = localStorage.getItem('level')
 
+        const splitApp = infoApp.info ? infoApp.info.split(']') : []
+        const pembuatApp = splitApp.length > 0 ? splitApp[0] : ''
+        const pemeriksaApp = splitApp.length > 0 ? splitApp[1] : ''
+        const penyetujuApp = splitApp.length > 0 ? splitApp[2] : ''
         const contentHeader =  (
             <div className={style.navbar}>
                 <NavbarBrand
@@ -722,117 +726,6 @@ class BudgetMutasi extends Component {
           };
         return (
             <>
-                {/* <Sidebar {...sidebarProps}>
-                    <MaterialTitlePanel title={contentHeader}>
-                        <div className={style.backgroundLogo1}>
-                            <div className={style.bodyDashboard}>
-                                <div className={style.headMaster}> 
-                                    <div className={style.titleDashboard}>Mutasi Budget</div>
-                                </div>
-                                <div className={style.secEmail}>
-                                    <div className={style.headEmail}>
-                                    </div>
-                                    <div className={style.searchEmail1}>
-                                        <text>Search: </text>
-                                        <Input
-                                        className={style.search}
-                                        onChange={this.onSearch}
-                                        value={this.state.search}
-                                        onKeyPress={this.onSearch}
-                                        >
-                                            <FaSearch size={20} />
-                                        </Input>
-                                    </div>
-                                </div>
-                                <Row className="cartDisposal2">
-                                    {dataMut.length === 0 ? (
-                                        <Col md={8} xl={8} sm={12}>
-                                            <div className="txtDisposEmpty">Tidak ada data eksekusi mutasi</div>
-                                        </Col>
-                                    ) : (
-                                        <Col md={12} xl={12} sm={12} className="mb-5 mt-5">
-                                        {dataMut.length !== 0 && dataMut.map(item => {
-                                            return (
-                                                <div className="cart1">
-                                                    <div className="navCart">
-                                                        <img src={placeholder} className="cartImg" />
-                                                        <Button className="labelBut" color="warning" size="sm">{'Mutasi'}</Button>
-                                                        <div className="txtCart">
-                                                            <div>
-                                                                <div className="nameCart mb-3">{item.nama_asset}</div>
-                                                                <div className="noCart mb-3">No asset : {item.no_asset}</div>
-                                                                <div className="noCart mb-3">No mutasi : {item.no_mutasi}</div>
-                                                                <div className="noCart mb-3">{item.keterangan}</div>
-                                                                <Button color="success" onClick={() => this.submitEksDis(item)} disabled>Submit</Button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="footCart">
-                                                        <Button color="primary" onClick={() => this.openModalRinci(this.setState({dataRinci: item}))}>Rincian</Button>
-                                                        <div></div>
-                                                    </div>
-                                                </div>
-                                            )
-                                        })}
-                                    </Col>
-                                    )}
-                                </Row>
-                                <Row className="bodyDispos">
-                                    {newMut.length !== 0 && newMut.map(item => {
-                                        return (
-                                            <div className="bodyCard">
-                                                <img src={placeholder} className="imgCard1" />
-                                                <Button size="sm" color="danger" className="labelBut">Mutasi</Button>
-                                                <div className="ml-2">
-                                                    <div className="txtDoc mb-2">
-                                                        Terima Mutasi Aset
-                                                    </div>
-                                                    <Row className="mb-2">
-                                                        <Col md={6} className="txtDoc">
-                                                        Area asal
-                                                        </Col>
-                                                        <Col md={6} className="txtDoc">
-                                                        : {item.area}
-                                                        </Col>
-                                                    </Row>
-                                                    <Row className="mb-2">
-                                                        <Col md={6} className="txtDoc">
-                                                        Area tujuan
-                                                        </Col>
-                                                        <Col md={6} className="txtDoc">
-                                                        : {item.area_rec}
-                                                        </Col>
-                                                    </Row>
-                                                    <Row className="mb-2">
-                                                        <Col md={6} className="txtDoc">
-                                                        No Mutasi
-                                                        </Col>
-                                                        <Col md={6} className="txtDoc">
-                                                        : {item.no_mutasi}
-                                                        </Col>
-                                                    </Row>
-                                                    <Row className="mb-2">
-                                                        <Col md={6} className="txtDoc">
-                                                        Status Approval
-                                                        </Col>
-                                                        <Col md={6} className="txtDoc">
-                                                        : Full approve
-                                                        </Col>
-                                                    </Row>
-                                                </div>
-                                                <Row className="footCard mb-3 mt-3">
-                                                    <Col md={12} xl={12}>
-                                                        <Button className="btnSell" color="primary" onClick={() => this.openDetailMut(item.no_mutasi)}>Proses</Button>
-                                                    </Col>
-                                                </Row>
-                                            </div>
-                                        )
-                                    })}
-                                    </Row>
-                            </div>
-                        </div>
-                    </MaterialTitlePanel>
-                </Sidebar> */}
                 <div className={styleTrans.app}>
                     <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
 
@@ -1201,16 +1094,16 @@ class BudgetMutasi extends Component {
                                 <div className='colGeneral ml-4'>
                                     <div className='bold underline otoSize'>Matrix Otorisasi, ditandatangani oleh :</div>
                                     <div className='bold otoSize'>Area ke Area</div>
-                                    <div className='otoSize'>1. Dibuat : AOS</div>
-                                    <div className='otoSize'>2. Diperiksa : BM, ROM, GAAM/IT OSM (aset IT)</div>
-                                    <div className='otoSize'>3. Disetujui  : Head of Ops Excellence, Treasury Operation Senior Manager</div>
+                                    <div className='otoSize'>1. Dibuat : {pembuatApp.split(';')[4] && pembuatApp.split(';')[4]}</div>
+                                    <div className='otoSize'>2. Diperiksa : {pemeriksaApp.split(';')[4] && pemeriksaApp.split(';')[4]}</div>
+                                    <div className='otoSize'>3. Disetujui  : {penyetujuApp.split(';')[4] && penyetujuApp.split(';')[4]}</div>
                                 </div>
                                 <div className='colGeneral ml-4'>
                                     <br />
                                     <div className='bold otoSize'>HO ke Area</div>
-                                    <div className='otoSize'>1. Dibuat : GA SPV/IT SPV (aset IT)</div>
-                                    <div className='otoSize'>2. Diperiksa : BM, ROM, NFAC, GAAM, IT OSM (aset IT)</div>
-                                    <div className='otoSize'>3. Disetujui : Head of Ops Excellence, Head of HC S&D Domestic, Treasury Operation Senior Manager</div>
+                                    <div className='otoSize'>1. Dibuat : {pembuatApp.split(';')[2] && pembuatApp.split(';')[2]}</div>
+                                    <div className='otoSize'>2. Diperiksa : {pemeriksaApp.split(';')[2] && pemeriksaApp.split(';')[2]}</div>
+                                    <div className='otoSize'>3. Disetujui  : {penyetujuApp.split(';')[2] && penyetujuApp.split(';')[2]}</div>
                                 </div>
                             </div>
                             <Table bordered responsive className="tabPreview">

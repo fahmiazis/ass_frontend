@@ -1352,9 +1352,14 @@ class Stock extends Component {
                 const newStock = []
                 for (let i = 0; i < dataDepo.length; i++) {
                     const cek = dataStock.find(item => item.kode_plant === dataDepo[i].kode_plant)
+                    const cekApp = dataStock.find(item => item.kode_plant === dataDepo[i].kode_plant && item.status_reject !== 1)
                     const cekAset = dataAset.find(item => item.kode_plant === dataDepo[i].kode_plant)
                     if (cek !== undefined) {
-                        newStock.push(cek)
+                        if (cekApp !== undefined) {
+                            newStock.push(cekApp)
+                        } else {
+                            newStock.push(cek)
+                        }
                     } else if (cekAset) {
                         const data = {
                             status_form: 'false',
@@ -1430,9 +1435,14 @@ class Stock extends Component {
                 const newStock = []
                 for (let i = 0; i < dataDepo.length; i++) {
                     const cek = dataStock.find(item => item.kode_plant === dataDepo[i].kode_plant)
+                    const cekApp = dataStock.find(item => item.kode_plant === dataDepo[i].kode_plant && item.status_reject !== 1)
                     const cekAset = dataAset.find(item => item.kode_plant === dataDepo[i].kode_plant)
                     if (cek !== undefined) {
-                        newStock.push(cek)
+                        if (cekApp !== undefined) {
+                            newStock.push(cekApp)
+                        } else {
+                            newStock.push(cek)
+                        }
                     } else if (cekAset) {
                         const data = {
                             status_form: 'false',
@@ -2036,6 +2046,18 @@ class Stock extends Component {
             ...boldStyle
         }
 
+        ws.mergeCells(`O4`, `O4`)
+        ws.getCell(`O4`).value = 'LAST STATUS'
+        ws.getCell(`O4`).alignment = { 
+            ...tbStyle
+        }
+        ws.getCell(`O4`).border = { 
+            ...borderStyles
+        }
+        ws.getCell(`O4`).font = { 
+            ...boldStyle
+        }
+
         for (let i = 0; i < dataDownload.length; i++) {
             const item = dataDownload[i]
             if (item.status_form === 'false') {
@@ -2191,6 +2213,18 @@ class Stock extends Component {
                 ws.getCell(`N${i + 5}`).font = { 
                     ...boldStyle
                 }
+
+                ws.mergeCells(`O${i + 5}`, `O${i + 5}`)
+                ws.getCell(`O${i + 5}`).value = item.status_stock
+                ws.getCell(`O${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`O${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`O${i + 5}`).font = { 
+                    ...boldStyle
+                }
             } else {
                 ws.mergeCells(`B${i + 5}`, `B${i + 5}`)
                 ws.getCell(`B${i + 5}`).value = `${i + 1}`
@@ -2344,10 +2378,22 @@ class Stock extends Component {
                 ws.getCell(`N${i + 5}`).font = { 
                     ...boldStyle
                 }
+
+                ws.mergeCells(`O${i + 5}`, `O${i + 5}`)
+                ws.getCell(`O${i + 5}`).value = item.history !== null ? item.history.split(',').reverse()[0] : '-'
+                ws.getCell(`O${i + 5}`).alignment = { 
+                    ...tbStyle
+                }
+                ws.getCell(`O${i + 5}`).border = { 
+                    ...borderStyles
+                }
+                ws.getCell(`O${i + 5}`).font = { 
+                    ...boldStyle
+                }
             }
         }
 
-        for (let i = 0; i < 12; i++) {
+        for (let i = 0; i < 13; i++) {
             console.log(i)
             if (i === 1) {
                 ws.columns[2+i].width = 10
@@ -2684,6 +2730,7 @@ class Stock extends Component {
                                     <th>TGL APPROVED</th>
                                     <th>STATUS WAKTU</th>
                                     <th>STATUS</th>
+                                    <th>LAST STATUS</th>
                                     <th>OPSI</th>
                                 </tr>
                             </thead>
@@ -2718,6 +2765,7 @@ class Stock extends Component {
                                                 <td>-</td>
                                                 <td>{item.status_stock}</td>
                                                 <td>{item.status_stock}</td>
+                                                <td>{item.status_stock}</td>
                                                 <td className='tdOpsi'>
                                                     -
                                                 </td>
@@ -2749,7 +2797,8 @@ class Stock extends Component {
                                                 <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? item.appForm.find(item => item.status === 1).nama + ` (${item.appForm.find(item => item.status === 1).jabatan === 'area' ? 'AOS' : item.appForm.find(item => item.status === 1).jabatan})` : '-' }</td>
                                                 <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? moment(item.appForm.find(item => item.status === 1).updatedAt).format('DD/MM/YYYY HH:mm:ss') : '-' }</td>
                                                 <td>{moment(item.tanggalStock).format('DD') > 6 && moment(item.tanggalStock).format('DD') < 26 ? 'TELAT' : 'Tepat Waktu'}</td>
-                                                <td>{item.status_form === 8 ? 'Finish' : 'In progress'}</td>
+                                                <td>{item.status_form === 8 ? 'Finish' : item.status_form === 0 ? 'Rejected' : 'In progress'}</td>
+                                                <td>{item.history !== null ? item.history.split(',').reverse()[0] : '-'}</td>
                                                 <td className='tdOpsi'>
                                                     <Button 
                                                     color='primary' 
