@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import {  NavbarBrand, DropdownToggle, DropdownMenu,
+import {  NavbarBrand, DropdownToggle, DropdownMenu, Row, Col,
     DropdownItem, Table, ButtonDropdown, Input, Button,
     Modal, ModalHeader, ModalBody, Alert, Spinner, UncontrolledDropdown} from 'reactstrap'
 import style from '../../assets/css/input.module.css'
@@ -11,6 +11,7 @@ import {connect} from 'react-redux'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
 import auth from '../../redux/actions/auth'
+import menu from '../../redux/actions/menu'
 import {default as axios} from 'axios'
 import Sidebar from "../../components/Header";
 import MaterialTitlePanel from "../../components/material_title_panel";
@@ -259,6 +260,7 @@ class MasterUser extends Component {
     async componentDidMount() {
         const token = localStorage.getItem("token")
         this.getDataRole()
+        this.getDataMenu()
     }
 
     getDataRole = async (value) => {
@@ -267,6 +269,13 @@ class MasterUser extends Component {
         const search = value === undefined ? '' : this.state.search
         await this.props.getRole(token, search)
         this.setState({search: search})
+    }
+
+    getDataMenu = async (value) => {
+        const token = localStorage.getItem("token")
+        await this.props.getNameMenu(token)
+        await this.props.getDepo(token, 1000, '')
+        this.setState({limit: value === undefined ? 10 : value.limit})   
     }
 
     changeFilter = async (val) => {
@@ -324,6 +333,18 @@ class MasterUser extends Component {
             }
             this.setState({listUser: data})
         }
+    }
+
+    updateAccess = async (val, id) => {
+        const token = localStorage.getItem('token')
+        const { detail } = this.state
+        const data = {
+            idRole: detail.nomor,
+            idMenu: val.id,
+            access: 3
+        }
+        await this.props.updateRoleMenu(token, id, data)
+        await this.props.getRoleMenu(token, detail.nomor)
     }
 
     downloadTemplate = () => {
@@ -436,10 +457,28 @@ class MasterUser extends Component {
           });
     }
 
+    prosesOpenSetting = async (val) => {
+        const token = localStorage.getItem("token")
+        const {dataMenu, dataName, detailApp} = this.props.menu
+        await this.props.getSubMenu(token)
+        await this.props.getRoleMenu(token, val.nomor)
+        this.setState({detail: val})
+        this.openModalEdit()
+    }
+
+    getDataDetailMenu = async (value) => {
+        this.setState({namaMenu: value.name, tempMenu: value})
+        console.log(value)
+        const token = localStorage.getItem("token")
+        await this.props.getDetailMenu(token, value.name)
+        this.openModalMenu()
+    }
+
     render() {
         const {isOpen, dropOpen, dropOpenNum, detail, level, upload, errMsg, listUser} = this.state
-        const {dataRole, isGet, alertM, alertMsg, alertUpload, page} = this.props.user
+        const {dataRole, isGet, alertM, alertMsg, alertUpload, page, menuRole} = this.props.user
         const { dataDepo } = this.props.depo
+        const {dataMenu, dataName, detailApp, subMenu} = this.props.menu
         const levels = localStorage.getItem('level')
         const names = localStorage.getItem('name')
 
@@ -472,157 +511,6 @@ class MasterUser extends Component {
           };
         return (
             <>
-                {/* <Sidebar {...sidebarProps}>
-                    <MaterialTitlePanel title={contentHeader}>
-                        <div className={style.backgroundLogo}>
-                            <Alert color="danger" className={style.alertWrong} isOpen={this.state.alert}>
-                                <div>{alertMsg}</div>
-                                <div>{alertM}</div>
-                                {alertUpload !== undefined && alertUpload.map(item => {
-                                    return (
-                                        <div>{item}</div>
-                                    )
-                                })}
-                            </Alert>
-                            <Alert color="danger" className={style.alertWrong} isOpen={upload}>
-                                <div>{errMsg}</div>
-                            </Alert>
-                            <div className={style.bodyDashboard}>
-                                <div className={style.headMaster}>
-                                    <div className={style.titleDashboard}>Master Role</div>
-                                </div>
-                                <div className={style.secHeadDashboard} >
-                                    <div>
-                                        <text>Show: </text>
-                                        <ButtonDropdown className={style.drop} isOpen={dropOpen} toggle={this.dropDown}>
-                                        <DropdownToggle caret color="light">
-                                            {this.state.limit}
-                                        </DropdownToggle>
-                                        <DropdownMenu>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataRole({limit: 10, search: ''})}>10</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataRole({limit: 20, search: ''})}>20</DropdownItem>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataRole({limit: 50, search: ''})}>50</DropdownItem>
-                                        </DropdownMenu>
-                                        </ButtonDropdown>
-                                        <text className={style.textEntries}>entries</text>
-                                    </div>
-                                    <div className='filterUser'>
-                                        <text className='mr-2'>Filter:</text>
-                                        <UncontrolledDropdown className={style.drop}>
-                                            <DropdownToggle caret color="light">
-                                                {this.state.filterName}
-                                            </DropdownToggle>
-                                            <DropdownMenu 
-                                                right
-                                                modifiers={{
-                                                setMaxHeight: {
-                                                    enabled: true,
-                                                    order: 890,
-                                                    fn: (data) => {
-                                                    return {
-                                                        ...data,
-                                                        styles: {
-                                                        ...data.styles,
-                                                        overflow: 'auto',
-                                                        maxHeight: '400px',
-                                                        },
-                                                    };
-                                                    },
-                                                },
-                                            }}
-                                            >
-                                                {dataRole !== undefined && dataRole.map(item => {
-                                                    return (
-                                                        <DropdownItem onClick={() => {this.setState({filter: item.id, filterName: item.name}); this.changeFilter({name: item.name, nomor: item.id})}}>{item.name}</DropdownItem>
-                                                    )
-                                                })}
-                                            </DropdownMenu>
-                                        </UncontrolledDropdown>
-                                    </div>
-                                </div>
-                                <div className='mb-4'></div>
-                                <div className={style.secEmail2}>
-                                    <div className='rowGeneral'>
-                                        <Button onClick={this.openModalAdd} color="primary" size="lg">Add</Button>
-                                        <Button onClick={this.openModalUpload} className='ml-1' color="warning" size="lg">Upload</Button>
-                                        <Button onClick={this.ExportMaster} className='ml-1' color="success" size="lg">Download</Button>
-                                    </div>
-                                    <div className={style.searchEmail2}>
-                                        <text>Search: </text>
-                                        <Input 
-                                        className={style.search}
-                                        onChange={this.onSearch}
-                                        value={this.state.search}
-                                        onKeyPress={this.onSearch}
-                                        >
-                                            <FaSearch size={20} />
-                                        </Input>
-                                    </div>
-                                </div>
-                                {isGet === false ? (
-                                    <div className={style.tableDashboard}>
-                                    <Table bordered responsive hover className={style.tab}>
-                                        <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>User Name</th>
-                                                <th>Full Name</th>
-                                                <th>Kode Plant</th>
-                                                <th>Email</th>
-                                                <th>User Level</th>
-                                            </tr>
-                                        </thead>
-                                    </Table>
-                                        <div className={style.spin}>
-                                            <Spinner type="grow" color="primary"/>
-                                            <Spinner type="grow" className="mr-3 ml-3" color="success"/>
-                                            <Spinner type="grow" color="warning"/>
-                                            <Spinner type="grow" className="mr-3 ml-3" color="danger"/>
-                                            <Spinner type="grow" color="info"/>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className={style.tableDashboard}>
-                                    <Table bordered responsive hover className={style.tab}>
-                                        <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>User Name</th>
-                                                <th>Full Name</th>
-                                                <th>Kode Plant</th>
-                                                <th>Email</th>
-                                                <th>User Level</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        {dataRole.length !== 0 && dataRole.map(item => {
-                                                return (
-                                                <tr onClick={()=>this.openModalEdit(this.setState({detail: item}))}>
-                                                    <th scope="row">{(dataRole.indexOf(item) + (((page.currentPage - 1) * page.limitPerPage) + 1))}</th>
-                                                    <td>{item.username}</td>
-                                                    <td>{item.fullname}</td>
-                                                    <td>{item.kode_plant === 0 ? "" : item.kode_plant}</td>
-                                                    <td>{item.email}</td>
-                                                    <td>{dataRole.find(({nomor}) => nomor == item.user_level).name}</td>
-                                                </tr>
-                                                )})}
-                                        </tbody>
-                                    </Table>
-                                </div>  
-                                )}
-                                <div>
-                                    <div className={style.infoPageEmail}>
-                                        <text>Showing {page.currentPage} of {page.pages} pages</text>
-                                        <div className={style.pageButton}>
-                                            <button className={style.btnPrev} color="info" disabled={page.prevLink === null ? true : false} onClick={this.prev}>Prev</button>
-                                            <button className={style.btnPrev} color="info" disabled={page.nextLink === null ? true : false} onClick={this.next}>Next</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </MaterialTitlePanel>
-                </Sidebar> */}
                 <div className={styleTrans.app}>
                     <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
 
@@ -665,7 +553,12 @@ class MasterUser extends Component {
                                             <td>{item.type === null ? 'nasional' : item.type}</td>
                                             <td>{item.nomor}</td>
                                             <td>
-                                                <Button onClick={()=>this.openModalEdit(this.setState({detail: item}))} color='success'>Detail</Button>
+                                                <Button 
+                                                    onClick={() => this.prosesOpenSetting(item)} 
+                                                    color='success'
+                                                >
+                                                    Setting
+                                                </Button>
                                             </td>
                                         </tr>
                                     )
@@ -786,8 +679,8 @@ class MasterUser extends Component {
                         )}
                     </Formik>
                 </Modal>
-                <Modal toggle={this.openModalEdit} isOpen={this.state.modalEdit}>
-                    <ModalHeader toggle={this.openModalEdit}>Edit Master Role</ModalHeader>
+                <Modal toggle={this.openModalEdit} isOpen={this.state.modalEdit} size='xl'>
+                    <ModalHeader>Setting Hak Akses Role</ModalHeader>
                     <Formik
                     initialValues={{
                         name: detail.name,
@@ -893,6 +786,40 @@ class MasterUser extends Component {
                                 ) : null}
                             </div>
                         </div> */}
+                        {dataName.length !== 0 && dataName.filter(x => x.type === 'transaksi').map((item, index) => {
+                            const dataSub = subMenu.filter(x => x.kode_menu === item.name)
+                            const halfIndex = Math.ceil(dataSub.length / 2);
+                            const halfFirst = dataSub.slice(0, halfIndex);
+                            const halfEnd = dataSub.slice(halfIndex);
+                            
+                            return (
+                                <div key={index} className='mt-4 mb-4 ml-4'>
+                                    <div>{item.name}</div>
+                                    <Row>
+                                        {/* Kolom Kiri */}
+                                        {halfFirst.map((x, idx) => (
+                                            <Col xl={6} lg={6} md={6} key={`left-${idx}`}>
+                                                <Input 
+                                                    type='checkbox' 
+                                                    checked={menuRole.length > 0 && menuRole.find(y => y.menu_id === x.id)} 
+                                                    onChange={() => this.updateAccess(x, menuRole.length > 0 && menuRole.find(y => y.menu_id === x.id)?.id)}
+                                                />
+                                                <span>{x.name}</span>
+                                            </Col>
+                                        ))}
+                                        
+                                        {/* Kolom Kanan */}
+                                        {halfEnd.map((x, idx) => (
+                                            <Col xl={6} lg={6} md={6} key={`right-${idx}`}>
+                                                <Input type='checkbox' />
+                                                <span>{x.name}</span>
+                                            </Col>
+                                        ))}
+                                    </Row>
+                                </div>
+                            )
+                        })}
+
                         <hr/>
                         <div className={style.foot}>
                             <div>
@@ -1041,7 +968,8 @@ class MasterUser extends Component {
 
 const mapStateToProps = state => ({
     user: state.user,
-    depo: state.depo
+    depo: state.depo,
+    menu: state.menu
 })
 
 const mapDispatchToProps = {
@@ -1054,7 +982,12 @@ const mapDispatchToProps = {
     uploadMaster: user.uploadMaster,
     nextPage: user.nextPage,
     exportMaster: user.exportMaster,
-    resetPassword: user.resetPassword
+    resetPassword: user.resetPassword,
+    getNameMenu: menu.getNameMenu,
+    getDetailMenu: menu.getDetailMenu,
+    getRoleMenu: user.getRoleMenu,
+    updateRoleMenu: user.updateRoleMenu,
+    getSubMenu: menu.getSubMenu
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(MasterUser)

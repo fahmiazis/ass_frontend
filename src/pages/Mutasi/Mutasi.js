@@ -489,7 +489,7 @@ class Mutasi extends Component {
         this.changeFilter('available')
     }
 
-    changeFilter = async (val) => {
+    changeFilterOld = async (val) => {
         const level = localStorage.getItem('level')
         const kode = localStorage.getItem('kode')
         const token = localStorage.getItem('token')
@@ -528,33 +528,6 @@ class Mutasi extends Component {
             const newMut = []
             const arrApp = []
             for (let i = 0; i < dataMut.length; i++) {
-                // if (dataMut[index] !== undefined) {
-                //     const app = dataMut[index].appForm
-                //     const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
-                //     const findApp = app.indexOf(app.find(({jabatan}) => jabatan === divisi))
-                //     if (level === '12' || level === '27') {
-                //         if ((app.length === 0 || app[app.length - 1].status === null) || (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && (app[find].status === null || app[find].status === 0))) {
-                //             newMut.push(dataMut[index])
-                //         }
-                //     } else if (level === '13' || level === '16') {
-                //         if ((app.length === 0 || app[app.length - 1].status === null) || (app[find] !== undefined && app[find + 1].status === 1 && (app[find].status === null))) {
-                //             newMut.push(dataMut[index])
-                //         } else if ((app.length === 0 || app[app.length - 1].status === null) || (app[findApp - 1] !== undefined && app[findApp + 2].status === 1 && (app[findApp - 1].status === null))) {
-                //             newMut.push(dataMut[index])
-                //         } else {
-                //             console.log(findApp - 1)
-                //         }
-                //     } else if (find === 0 || find === '0') {
-                //         const index = dataMut.indexOf(dataMut.find(({no_mutasi}) => no_mutasi === noMut[i]))
-                //         if (dataMut[index] !== undefined) {
-                //             newMut.push(dataMut[index])
-                //         }
-                //     } else {
-                //         if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
-                //             newMut.push(dataMut[index])
-                //         }
-                //     }
-                // }
                 const depoFrm = dataDepo.find(item => item.kode_plant === dataMut[i].kode_plant)
                 const depoTo = dataDepo.find(item => item.kode_plant === dataMut[i].kode_plant_rec)
                 for (let x = 0; x < listRole.length; x++) {
@@ -639,23 +612,230 @@ class Mutasi extends Component {
             const newMut = []
             for (let i = 0; i < dataMut.length; i++) {
                 newMut.push(dataMut[i])
-                // const app = dataMut[i].appForm === undefined ? [] : dataMut[i].appForm
-                // const find = app.indexOf(app.find(({ jabatan }) => jabatan === role))
-                // if (find === 0 || find === '0') {
-                //     console.log('at available 8')
-                //     if (dataMut[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
-                //         newMut.push()
-                //     } else {
-                //         newMut.push(dataMut[i])
-                //     }
-                // } else {
-                //     console.log('at available 5')
-                //     if (dataMut[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
-                //         newMut.push()
-                //     } else {
-                //         newMut.push(dataMut[i])
-                //     }
-                // }
+            }
+            this.setState({ filter: val, newMut: newMut })
+        }
+    }
+
+    changeFilter = async (val) => {
+        const level = localStorage.getItem('level')
+        const kode = localStorage.getItem('kode')
+        const token = localStorage.getItem('token')
+        const { dataDepo } = this.props.depo
+        const { detailUser, dataRole } = this.props.user
+        const { time1, time2, search, limit } = this.state
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        const status = val === 'finish' ? '8' : 'all'
+
+        await this.props.getMutasi(token, status, cekTime1, cekTime2, search, 100)
+
+        const { dataMut, noMut } = this.props.mutasi
+        const role = localStorage.getItem('role')
+        
+        // Build listRole
+        const arrRole = detailUser.detail_role
+        const listRole = []
+        for (let i = 0; i < arrRole.length + 1; i++) {
+            if (detailUser.user_level === 1) {
+                const data = {fullname: 'admin', name: 'admin', nomor: '1', type: 'all'}
+                listRole.push(data)
+            } else if (i === arrRole.length) {
+                const cek = dataRole.find(item => parseInt(item.nomor) === detailUser.user_level)
+                if (cek !== undefined) {
+                    listRole.push(cek)
+                }
+            } else {
+                const cek = dataRole.find(item => parseInt(item.nomor) === arrRole[i].id_role)
+                if (cek !== undefined) {
+                    listRole.push(cek)
+                }
+            }
+        }
+        
+        // console.log('=== USER INFO ===')
+        // console.log('Level from localStorage:', level)
+        // console.log('detailUser.user_level:', detailUser.user_level)
+        // console.log('detailUser.fullname:', detailUser.fullname)
+        // console.log('detailUser.detail_role:', detailUser.detail_role)
+        // console.log('listRole built:', listRole)
+        // console.log('=================\n')
+        
+        if (val === 'available') {
+            const newMut = []
+            const arrApp = []
+            
+            for (let i = 0; i < dataMut.length; i++) {
+                const depoFrm = dataDepo.find(item => item.kode_plant === dataMut[i].kode_plant)
+                const depoTo = dataDepo.find(item => item.kode_plant === dataMut[i].kode_plant_rec)
+                
+                // console.log(`\n########## DOCUMENT ${i}: ${dataMut[i].no_mutasi} ##########`)
+                // console.log('kode_plant:', dataMut[i].kode_plant)
+                // console.log('kode_plant_rec:', dataMut[i].kode_plant_rec)
+                // console.log('status_reject:', dataMut[i].status_reject)
+                
+                for (let x = 0; x < listRole.length; x++) {
+                    console.log(`\n--- Role Iteration x=${x} ---`)
+                    console.log('Current Role:', listRole[x])
+                    
+                    const app = dataMut[i].appForm === undefined ? [] : dataMut[i].appForm
+                    
+                    // PERBAIKAN: Tambahkan pengecekan null
+                    const cekFrm = listRole[x].type === 'area' && depoFrm !== undefined ? 
+                        ((depoFrm.nama_bm && depoFrm.nama_bm.toLowerCase() === detailUser.fullname.toLowerCase()) || 
+                        (depoFrm.nama_om && depoFrm.nama_om.toLowerCase() === detailUser.fullname.toLowerCase()) || 
+                        (depoFrm.nama_aos && depoFrm.nama_aos.toLowerCase() === detailUser.fullname.toLowerCase()) ? 
+                            'pengirim' : 'not found') : 'all'
+                    
+                    // PERBAIKAN: Tambahkan pengecekan null
+                    const cekTo = listRole[x].type === 'area' && depoTo !== undefined ? 
+                        ((depoTo.nama_bm && depoTo.nama_bm.toLowerCase() === detailUser.fullname.toLowerCase()) || 
+                        (depoTo.nama_om && depoTo.nama_om.toLowerCase() === detailUser.fullname.toLowerCase()) || 
+                        (depoTo.nama_aos && depoTo.nama_aos.toLowerCase() === detailUser.fullname.toLowerCase()) ? 
+                            'penerima' : 'not found') : 'all'
+                    
+                    const cekFin = cekFrm === 'pengirim' ? 'pengirim' : cekTo === 'penerima' ? 'penerima' : 'all'
+                    
+                    // console.log('depoFrm found:', depoFrm !== undefined)
+                    // console.log('depoTo found:', depoTo !== undefined)
+                    // console.log('cekFrm:', cekFrm)
+                    // console.log('cekTo:', cekTo)
+                    // console.log('cekFin:', cekFin)
+                    
+                    // Find matching approval
+                    const cekApp = app.find(item => 
+                        (item.jabatan === listRole[x].name) && 
+                        (cekFin === 'all' ? 
+                            (item.struktur === null || item.struktur === 'all') : 
+                            (item.struktur === cekFin))
+                    )
+                    
+                    console.log('Looking for jabatan:', listRole[x].name)
+                    console.log('cekApp found:', cekApp)
+                    
+                    const find = app.indexOf(cekApp)
+                    console.log('find index:', find)
+                    
+                    if (find !== -1) {
+                        // console.log('\n>> Approval Details:')
+                        // console.log('app[find] (current):', app[find])
+                        // console.log('app[find - 1] (after in DESC):', app[find - 1])
+                        // console.log('app[find + 1] (before in DESC):', app[find + 1])
+                        
+                        // console.log('\n>> Condition Checks:')
+                        // console.log('1. status_reject !== 1:', dataMut[i].status_reject !== 1)
+                        // console.log('2. app[find] !== undefined:', app[find] !== undefined)
+                        // console.log('3. app[find].status !== 1:', app[find].status !== 1)
+                        // console.log('4. app[find + 1] exists:', app[find + 1] !== undefined)
+                        // console.log('5. app[find + 1].status === 1:', app[find + 1]?.status === 1)
+                        // console.log('6. app[find - 1] exists:', app[find - 1] !== undefined)
+                        // console.log('7. app[find - 1].status === null:', app[find - 1]?.status === null)
+                    }
+                    
+                    // console.log('dataDepo:', dataDepo)
+                    // console.log('depoFrm:', depoFrm)
+                    // console.log('detailUser:', detailUser)
+                    // console.log('app:', app)
+                    // console.log('listRole[x]:', listRole[x])
+                    // console.log('cekApp:', cekApp)
+                    // console.log('cekFrm:', cekFrm)
+                    // console.log('cekTo:', cekTo)
+                    // console.log('cekFin:', cekFin)
+                    
+                    if (level === '5' || level === '9') {
+                        console.log('>> BRANCH: level 5 or 9')
+                        if (find === 0 || find === '0') {
+                            console.log('at available 2')
+                            if (dataMut[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1 && dataMut[i].kode_plant_rec === kode) {
+                                console.log('at available 3 - CONDITION MET!')
+                                if (newMut.find(item => item.no_mutasi === dataMut[i].no_mutasi) === undefined) {
+                                    newMut.push(dataMut[i])
+                                    arrApp.push({index: find, noMut: dataMut[i].no_mutasi})
+                                    // console.log('✓ ADDED TO newMut')
+                                }
+                            } else {
+                                console.log('✗ Condition not met at available 3')
+                            }
+                        } else {
+                            console.log('at available 4')
+                            if (find !== app.length - 1) {
+                                if (dataMut[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1 && dataMut[i].kode_plant_rec === kode) {
+                                    console.log('CONDITION MET at available 4!')
+                                    if (newMut.find(item => item.no_mutasi === dataMut[i].no_mutasi) === undefined) {
+                                        newMut.push(dataMut[i])
+                                        arrApp.push({index: find, noMut: dataMut[i].no_mutasi})
+                                        console.log('✓ ADDED TO newMut')
+                                    }
+                                } else {
+                                    console.log('✗ Condition not met at available 4')
+                                }
+                            }
+                        }
+                    } else if (find === 0 || find === '0') {
+                        // console.log('>> BRANCH: find === 0')
+                        // console.log('at available 8')
+                        if (dataMut[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
+                            console.log('CONDITION MET at available 8!')
+                            if (newMut.find(item => item.no_mutasi === dataMut[i].no_mutasi) === undefined) {
+                                newMut.push(dataMut[i])
+                                arrApp.push({index: find, noMut: dataMut[i].no_mutasi})
+                                console.log('✓ ADDED TO newMut')
+                            }
+                        } else {
+                            console.log('✗ Condition not met at available 8')
+                        }
+                    } else {
+                        // console.log('>> BRANCH: else (find > 0)')
+                        // console.log('at available 5')
+                        // console.log('app[find]:', app[find])
+                        
+                        if (dataMut[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
+                            console.log('if first available 5 - CONDITION MET!')
+                            if (newMut.find(item => item.no_mutasi === dataMut[i].no_mutasi) === undefined) {
+                                console.log('if second available 5')
+                                newMut.push(dataMut[i])
+                                arrApp.push({index: find, noMut: dataMut[i].no_mutasi})
+                                console.log('✓ ADDED TO newMut')
+                            }
+                        } else {
+                            // console.log('✗ Condition not met at available 5')
+                            // console.log('  - status_reject !== 1:', dataMut[i].status_reject !== 1)
+                            // console.log('  - app[find] !== undefined:', app[find] !== undefined)
+                            // console.log('  - app[find + 1].status === 1:', app[find + 1]?.status === 1)
+                            // console.log('  - app[find - 1].status === null:', app[find - 1]?.status === null)
+                            // console.log('  - app[find].status !== 1:', app[find]?.status !== 1)
+                        }
+                    }
+                }
+            }
+            
+            // console.log('\n########## FINAL RESULT ##########')
+            // console.log('newMut length:', newMut.length)
+            // console.log('newMut:', newMut)
+            // console.log('arrApp:', arrApp)
+            // console.log('##################################\n')
+            
+            this.setState({ filter: val, newMut: newMut, arrApp: arrApp })
+        } else if (val === 'reject' && dataMut.length > 0) {
+            const newMut = []
+            for (let i = 0; i < dataMut.length; i++) {
+                if (dataMut[i].status_reject === 1) {
+                    newMut.push(dataMut[i])
+                }
+            }
+            this.setState({ filter: val, newMut: newMut })
+        } else if (val === 'finish' && dataMut.length > 0) {
+            const newMut = []
+            for (let i = 0; i < dataMut.length; i++) {
+                if (dataMut[i].status_form === 8) {
+                    newMut.push(dataMut[i])
+                }
+            }
+            this.setState({ filter: val, newMut: newMut })
+        } else {
+            const newMut = []
+            for (let i = 0; i < dataMut.length; i++) {
+                newMut.push(dataMut[i])
             }
             this.setState({ filter: val, newMut: newMut })
         }

@@ -591,7 +591,7 @@ class Account extends Component {
         </Modal>
         <Modal isOpen={this.state.modalChange} size='xl' toggle={!cekPlant && this.openChange}>
             <ModalBody>
-            <div className={styleHome.mainContent}>
+                <div className={styleHome.mainContent}>
                     <main className={styleHome.mainSection}>
                     <h1 className={styleHome.title}>Please select your user</h1>
                     <h4 className={styleHome.subtitle}></h4>

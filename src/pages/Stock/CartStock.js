@@ -44,7 +44,7 @@ import NewNavbar from '../../components/NewNavbar'
 import Email from '../../components/Stock/Email'
 import EXIF from 'exif-js'
 const {REACT_APP_BACKEND_URL} = process.env
-const exclude = 'bandung'
+const exclude = ['bandung', 'P01H140020']
 
 const stockSchema = Yup.object().shape({
     merk: Yup.string().required("must be filled"),
@@ -137,6 +137,15 @@ class Stock extends Component {
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
+    }
+
+    isExcluded = (depo) => {
+        const nama = (depo.nama_area || '').toLowerCase()
+        const profit = (depo.profit_center || '').toLowerCase()
+
+        return exclude.some(x =>
+            nama.includes(x) || profit.includes(x)
+        )
     }
 
     prosesSidebar = (val) => {
@@ -1096,6 +1105,7 @@ class Stock extends Component {
 
     render() {
         const level = localStorage.getItem('level')
+        const kode = localStorage.getItem('kode')
         const names = localStorage.getItem('name')
         const {dataRinci, dropApp, dataItem, listMut, oldPict, upPict, crashAsset} = this.state
         const { detailDepo, dataDepo } = this.props.depo
@@ -1105,6 +1115,8 @@ class Stock extends Component {
         const { dataStock, detailStock, stockApp, dataStatus, alertM, alertMsg, dataDoc, stockArea } = this.props.stock
         const pages = this.props.depo.page
         const {dataExp} = this.props.report
+
+        const isUserExcluded = exclude.some(x => (kode || '').includes(x))
 
         const contentHeader =  (
             <div className={style.navbar}>
@@ -1143,16 +1155,34 @@ class Stock extends Component {
 
                         <div className={styleTrans.searchContainer}>
                             <Button size="lg" color='primary' onClick={this.prosesSubmitPre}>Submit</Button>
-                            {level == '9' && (this.state.asetPart === 'all' || (dataDepo.find(x => x.kode_plant === this.state.asetPart) && (dataDepo.find(x => x.kode_plant === this.state.asetPart).nama_area.toLowerCase() !== exclude))) && (
-                                <select value={this.state.asetPart} onChange={e => this.getAssetPart(e.target.value)} className={styleTrans.searchInput}>
+                            {level == '9' && !isUserExcluded && (
+                                this.state.asetPart === 'all' ||
+                                (() => {
+                                    const depo = dataDepo.find(x => x.kode_plant === this.state.asetPart)
+                                    return depo && !this.isExcluded(depo)
+                                })()
+                            ) && (
+                                <select
+                                    value={this.state.asetPart}
+                                    onChange={e => this.getAssetPart(e.target.value)}
+                                    className={styleTrans.searchInput}
+                                >
                                     <option value="all">All</option>
-                                    {dataDepo.length > 0 && dataDepo.filter(x => (x.kode_plant && x.kode_plant.length > 4) && (x.nama_area && x.nama_area.toLowerCase() !== exclude)).map(item => {
-                                        return (
-                                            <option value={item.kode_plant}>{item.kode_plant}-{item.place_asset}-{item.nama_area}</option>
+                                    {dataDepo
+                                        .filter(x =>
+                                            x.kode_plant &&
+                                            x.kode_plant.length > 4 &&
+                                            !this.isExcluded(x)
                                         )
-                                    })}
+                                        .map(item => (
+                                            <option key={item.kode_plant} value={item.kode_plant}>
+                                                {item.kode_plant}-{item.place_asset}-{item.nama_area}
+                                            </option>
+                                        ))
+                                    }
                                 </select>
                             )}
+
                         </div>
                         <div className={styleTrans.searchContainer}>
                             <div>

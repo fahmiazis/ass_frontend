@@ -15,6 +15,7 @@ import {Formik} from 'formik'
 import mutasi from '../../redux/actions/mutasi'
 import pengadaan from '../../redux/actions/pengadaan'
 import tempmail from '../../redux/actions/tempmail'
+import depo from '../../redux/actions/depo'
 import auth from '../../redux/actions/auth'
 import {default as axios} from 'axios'
 import {connect} from 'react-redux'
@@ -26,10 +27,13 @@ import * as Yup from 'yup'
 import placeholder from  "../../assets/img/placeholder.png"
 import NavBar from '../../components/NavBar'
 import { MdUpload, MdDownload, MdEditSquare, MdAddCircle, MdDelete } from "react-icons/md"
+import { HiOutlineUserGroup } from "react-icons/hi"
+import { FiLogOut, FiUser } from 'react-icons/fi'
 import styleTrans from '../../assets/css/transaksi.module.css'
 import NewNavbar from '../../components/NewNavbar'
 import Email from '../../components/Pengadaan/Email'
 import NumberInput from '../../components/NumberInput'
+import styleHome from '../../assets/css/Home.module.css'
 const {REACT_APP_BACKEND_URL} = process.env
 
 const cartSchema = Yup.object().shape({
@@ -78,7 +82,14 @@ class CartMutasi extends Component {
             noAjuan: '',
             showOptions: false,
             listNoIo: [],
-            valCart: {}
+            valCart: {},
+            openType: false,
+            openCost: false,
+            typeCost: false,
+            dataItem: [],
+            cost: '',
+            qty: '',
+            nik: ''
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -86,6 +97,194 @@ class CartMutasi extends Component {
 
     handleAdd = (val) => {
         this.setState({valCart: val})
+        this.openType()
+    }
+
+    openType = () => {
+        this.setState({openType: !this.state.openType})
+    }
+
+    prosesOpenCost = (val) => {
+        this.setState({typeCost: val})
+        this.openCost()
+    }
+
+    openCost = () => {
+        this.setState({openCost: !this.state.openCost, dataItem: []})
+    }
+
+    addItem = async (val) => {
+        const data = {
+            cost_center: val.cost_center,
+            nik: val.nik,
+            qty: val.qty
+        }
+        const { dataItem, valCart } = this.state
+        let total = parseInt(val.qty)
+        const cekCost = []
+        for (let i = 0; i < dataItem.length; i++) {
+            total += parseInt(dataItem[i].qty)
+            if (dataItem[i].cost_center === val.cost_center) {
+                cekCost.push(dataItem[i])
+            }
+        }
+        if (!val.cost_center || !val.qty || parseInt(val.qty) === 0) {
+            this.setState({confirm: 'falseAddDetail'})
+            this.openConfirm()
+        } else if (total > parseInt(valCart.qty)) {
+            this.setState({confirm: 'falseQty'})
+            this.openConfirm()
+            this.setState({cost: '', qty: ''})
+        } else if (cekCost.length > 0) {
+            this.setState({confirm: 'falseCost'})
+            this.openConfirm()
+            this.setState({cost: '', qty: ''})
+        } else {
+            if (val.pengadaan_id) {
+                const send = {
+                    idIo: val.pengadaan_id,
+                    dataItem: [data]
+                }
+                const token = localStorage.getItem('token')
+                await this.props.addDetailItem(token, send)
+                await this.props.getDetailItem(token, val.pengadaan_id)
+                const { dataDetail } = this.props.pengadaan
+                this.setState({dataItem: dataDetail, cost: '', qty: ''})
+            } else {
+                this.setState({dataItem: [...dataItem, data], cost: '', qty: ''})
+            }
+        }
+    }
+
+    updateItem = async (val, index, type) => {
+        const data = {
+            cost_center: val.cost_center,
+            nik: val.nik,
+            qty: val.qty
+        }
+        const { dataItem, valCart } = this.state
+        let total = parseInt(val.qty)
+        const cekCost = []
+        for (let i = 0; i < dataItem.length; i++) {
+            if (i !== parseInt(index)) {
+                total += parseInt(dataItem[i].qty)
+                if (dataItem[i].cost_center === val.cost_center) {
+                    cekCost.push(dataItem[i])
+                }
+            }
+        }
+        console.log(val, type, index)
+        if (total > parseInt(valCart.qty)) {
+            this.setState({confirm: 'falseQty'})
+            this.openConfirm()
+            this.setState({cost: '', qty: ''})
+        } else if (cekCost.length > 0) {
+            this.setState({confirm: 'falseCost'})
+            this.openConfirm()
+            this.setState({cost: '', qty: ''})
+        } else {
+            if (val.pengadaan_id && type && type === 'save') {
+                const send = {
+                    ...data,
+                    idData: val.id,
+                    idIo: val.pengadaan_id
+                    
+                }
+                const token = localStorage.getItem('token')
+                await this.props.updateDetailItem(token, send)
+                await this.props.getDetailItem(token, val.pengadaan_id)
+                const { dataDetail } = this.props.pengadaan
+                this.setState({dataItem: dataDetail})
+                this.setState({confirm: 'update'})
+                this.openConfirm()
+            } else {
+                const newData = []
+                for (let i = 0; i < dataItem.length; i++) {
+                    if (i === parseInt(index)) {
+                        newData.push(val)
+                    } else {
+                        newData.push(dataItem[i])
+                    }
+                }
+                this.setState({dataItem: newData})
+                if (type && type === 'save') {
+                    this.setState({confirm: 'update'})
+                    this.openConfirm()
+                }
+            }
+        }
+        
+    }
+
+    deleteDetail = async (val) => {
+        if (val.pengadaan_id) {
+            const token = localStorage.getItem('token')
+            await this.props.deleteDetailItem(token, val.id)
+            await this.props.getDetailItem(token, val.pengadaan_id)
+            const { dataDetail } = this.props.pengadaan
+            this.setState({dataItem: dataDetail})
+        } else {
+            const { dataItem } = this.state
+            const newData = dataItem.filter(x => x.cost_center !== val.cost_center)
+            this.setState({dataItem: newData})
+        }
+    }
+
+    saveAdd = async () => {
+        const {valCart, dataItem} = this.state
+        const cek = dataItem.filter(x => x.pengadaan_id)
+        if (cek.length === dataItem.length) {
+            this.setState({confirm: 'update'})
+            this.openConfirm()
+        } else {
+            let cekQty = 0
+            for (let i = 0; i < dataItem.length; i++) {
+                cekQty += parseInt(dataItem[i].qty)
+            }
+            if (cekQty !== parseInt(valCart.qty)) {
+                this.setState({confirm: 'falseQty'})
+                this.openConfirm()
+            } else {
+                const token = localStorage.getItem('token')
+                const {dataCart} = this.props.pengadaan
+                const cek = []
+                const cekName = []
+                for (let i = 0; i < dataCart.length; i++) {
+                    if (dataCart[i].kategori !== valCart.kategori || dataCart[i].tipe !== valCart.tipe || dataCart[i].jenis !== valCart.jenis) {
+                        cek.push(1)
+                    } else if (dataCart[i].nama.toLowerCase() === valCart.nama.toLowerCase()) {
+                        cekName.push(dataCart[i])
+                    }
+                }
+
+                if (cek.length > 0) {
+                    this.setState({confirm: 'falseAdd'})
+                    this.openConfirm()
+                } else if (cekName.length > 0) {
+                    this.setState({confirm: 'falseName'})
+                    this.openConfirm()
+                } else {
+                    const data = {
+                        ...valCart,
+                        no_ref: valCart.kategori === 'return' ? this.state.noAjuan : '',
+                        type_ajuan: this.state.typeCost
+                    }
+                    await this.props.addCart(token, data)
+                    const {detailCart} = this.props.pengadaan
+                    const send = {
+                        idIo: detailCart.id,
+                        dataItem
+                    }
+                    await this.props.addDetailItem(token, send)
+                    this.getDataCart()
+                    this.prosesAdd()
+                    this.openCost()
+                    this.openType()
+                    this.setState({confirm: 'add'})
+                    this.openConfirm()
+                }
+            }
+        }
     }
 
     prosesSidebar = (val) => {
@@ -170,7 +369,13 @@ class CartMutasi extends Component {
     }
 
     componentDidMount() {
+        this.getDataDepo()
         this.getDataCart()
+    }
+
+    getDataDepo = async () => {
+        const token = localStorage.getItem('token')
+        await this.props.getDepo(token, 1000, '')
     }
 
     async componentDidUpdate() {
@@ -211,9 +416,11 @@ class CartMutasi extends Component {
 
     prosesCek = async () => {
         const token = localStorage.getItem('token')
+        const level = localStorage.getItem('level')
         await this.props.getCart(token)
         const { dataCart } = this.props.pengadaan
         const cek = []
+        const cekItem = []
         for (let i = 0; i < dataCart.length; i++) {
             await this.props.getDocCart(token, dataCart[i].id)
             const {dataDocCart} = this.props.pengadaan
@@ -222,19 +429,26 @@ class CartMutasi extends Component {
                     cek.push(1)
                 }
             }
-            // const doc = dataCart[i].doc
-            // if (doc === null || doc === undefined || doc.length === 0) {
-            //     cek.push(1)
-            // } else {
-            //     for (let j = 0; j < doc.length; j++) {
-            //         if (doc[j].path === null || doc[j].path === '') {
-            //             cek.push(1)
-            //         }
-            //     }
-            // }
+
+            if (parseInt(level) !== 5 && dataCart[i].kategori !== 'return') {
+                await this.props.getDetailItem(token, dataCart[i].id)
+                const {dataDetail} = this.props.pengadaan
+                let total = 0
+                for (let x = 0; x < dataDetail.length; x++) {
+                    total += parseInt(dataDetail[x].qty)
+                }
+
+                if (total !== parseInt(dataCart[i].qty)) {
+                    cekItem.push(dataCart[i])
+                }
+            }
+            
         }
         if (cek.length > 0) {
             this.setState({confirm: 'rejSubmit'})
+            this.openConfirm()
+        } else if (cekItem.length > 0) {
+            this.setState({confirm: 'falseQty'})
             this.openConfirm()
         } else {
             this.openModalSub()
@@ -244,22 +458,42 @@ class CartMutasi extends Component {
     submitCart = async () => {
         const token = localStorage.getItem('token')
         await this.props.getCart(token)
+        const level = localStorage.getItem('level')
         const { dataCart } = this.props.pengadaan
         const cek = []
+        const cekItem = []
         for (let i = 0; i < dataCart.length; i++) {
             const doc = dataCart[i].doc
             if (doc === null || doc === undefined || doc.length === 0) {
                 cek.push(1)
             } else {
-                for (let j = 0; j < doc.length; j++) {
-                    if (doc[j].path === null || doc[j].path === '') {
+                await this.props.getDocCart(token, dataCart[i].id)
+                const {dataDocCart} = this.props.pengadaan
+                for (let x = 0; x < dataDocCart.length; x++) {
+                    if (dataDocCart[x].path === null || !dataDocCart[x].path) {
                         cek.push(1)
+                    }
+                }
+
+                if (parseInt(level) !== 5 && dataCart[i].kategori !== 'return') {
+                    await this.props.getDetailItem(token, dataCart[i].id)
+                    const {dataDetail} = this.props.pengadaan
+                    let total = 0
+                    for (let x = 0; x < dataDetail.length; x++) {
+                        total += parseInt(dataDetail[x].qty)
+                    }
+
+                    if (total !== parseInt(dataCart[i].qty)) {
+                        cekItem.push(dataCart[i])
                     }
                 }
             }
         }
         if (cek.length > 0) {
             this.setState({confirm: 'rejSubmit'})
+            this.openConfirm()
+        } else if (cekItem.length > 0) {
+            this.setState({confirm: 'falseQty'})
             this.openConfirm()
         } else {
             await this.props.submitIo(token)
@@ -349,9 +583,11 @@ class CartMutasi extends Component {
         await this.props.getApproveMut(token, nomor_mutasi, 'Mutasi')
     }
     
-    proseModalRinci = (val) => {
-        console.log(val)
-        this.setState({dataRinci: val, noAjuan: val.no_ref})
+    prosesModalRinci = async (val) => {
+        const token = localStorage.getItem('token')
+        await this.props.getDetailItem(token, val.id)
+        const { dataDetail } = this.props.pengadaan
+        this.setState({dataRinci: val, noAjuan: val.no_ref, dataItem: dataDetail, valCart: val})
         this.prosesRinci()
     }
 
@@ -385,7 +621,8 @@ class CartMutasi extends Component {
         } else {
             const data = {
                 ...val,
-                no_ref: val.kategori === 'return' ? this.state.noAjuan : ''
+                no_ref: val.kategori === 'return' ? this.state.noAjuan : '',
+                type_ajuan: this.state.typeCost
             }
             await this.props.addCart(token, data)
             this.getDataCart()
@@ -458,7 +695,7 @@ class CartMutasi extends Component {
         for (let i = 0; i < dataCart.length; i++) {
             if ((dataCart[i].kategori !== val.kategori || dataCart[i].tipe !== val.tipe || dataCart[i].jenis !== val.jenis) && dataCart.length > 1) {
                 cek.push(1)
-            } else if (dataCart[i].nama.toLowerCase() === val.nama.toLowerCase()) {
+            } else if (dataCart[i].nama.toLowerCase() === val.nama.toLowerCase() && dataRinci.id !== dataCart[i].id) {
                 cekName.push(dataCart[i])
             }
         }
@@ -491,8 +728,10 @@ class CartMutasi extends Component {
     render() {
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
-        const {dataCart, dataDocCart} = this.props.pengadaan
-        const {dataRinci} = this.state
+        const {dataCart, dataDocCart, dataDetail } = this.props.pengadaan
+        const {dataRinci, dataItem, valCart} = this.state
+        const { dataDepo } = this.props.depo
+        const listType = ['single', 'multiple']
 
         const contentHeader =  (
             <div className={style.navbar}>
@@ -523,58 +762,6 @@ class CartMutasi extends Component {
           };
         return (
             <>
-                {/* <Sidebar {...sidebarProps}>
-                    <MaterialTitlePanel title={contentHeader}>
-                        <div className={style.backgroundLogo}>
-                            <div className={style.bodyDashboard}>
-                                <div className={style.headMaster}>
-                                    <div className={style.titleDashboard}>Draft Pengadaan Asset</div>
-                                </div>
-                                <div className='pagu'></div>
-                                <div className={style.secklaim}>
-                                    <Button className='mr-2 mb-2' onClick={this.prosesAdd} color="info" size="lg">Add</Button>
-                                    <Button className='mb-2' disabled={dataCart.length === 0 ? true : false } onClick={() => this.submitCart()} color="success" size="lg">Submit</Button>
-                                </div>
-                                <div className={style.tableDashboard}>
-                                    <Table bordered responsive hover className={style.tab}>
-                                        <thead>
-                                            <tr>
-                                                <th>NO</th>
-                                                <th>NAMA ASSET</th>
-                                                <th>KATEGORI</th>
-                                                <th>PRICE</th>
-                                                <th>KUANTITAS</th>
-                                                <th>OPSI</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        {dataCart.length !== 0 && dataCart.map((item, index) => {
-                                            return (
-                                                <tr>
-                                                    <td>{index + 1}</td>
-                                                    <td>{item.nama}</td>
-                                                    <td>{item.kategori}</td>
-                                                    <td>{item.tipe === 'gudang' ? 'Sewa Gudang' : "Barang"}</td>
-                                                    <td>{item.qty}</td>
-                                                    <td className='rowCenter'>
-                                                        <Button onClick={() => this.proseModalRinci(item)} className='mb-1 mr-1' color='success'><MdEditSquare size={25}/></Button>
-                                                        <Button onClick={() => this.deleteItem(item.id)} color='danger'><MdDelete size={25}/></Button>
-                                                    </td>
-                                                </tr>
-                                            )
-                                        })}
-                                        </tbody>
-                                    </Table>
-                                    {dataCart.length === 0 && (
-                                        <div className={style.spin}>
-                                            <text className='textInfo'>Data ajuan tidak ditemukan</text>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </MaterialTitlePanel>
-                </Sidebar> */}
                 <div className={styleTrans.app}>
                     <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
 
@@ -614,7 +801,7 @@ class CartMutasi extends Component {
                                             <td>Rp {(parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                             <td>
                                                 <Button id={`tool${index}`} onClick={() => this.openDoc(item)} className='mt-1 mr-1' color='primary'><IoDocumentTextOutline size={25}/></Button>
-                                                <Button id={`toolEdit${index}`} onClick={() => this.proseModalRinci(item)} className='mt-1 mr-1' color='success'><MdEditSquare size={25}/></Button>
+                                                <Button id={`toolEdit${index}`} onClick={() => this.prosesModalRinci(item)} className='mt-1 mr-1' color='success'><MdEditSquare size={25}/></Button>
                                                 <Button id={`toolDelete${index}`} onClick={() => this.deleteItem(item.id)} className='mt-1' color='danger'><MdDelete size={25}/></Button>
                                                 <UncontrolledTooltip
                                                     placement="top"
@@ -664,8 +851,7 @@ class CartMutasi extends Component {
                         end: null
                     }}
                     validationSchema={cartSchema}
-                    onSubmit={(values) => {this.addCart(values)}}
-                    // onSubmit={(values) => {this.handleAdd(values)}}
+                    onSubmit={(values) => {values.kategori === 'return' || parseInt(level) === 5 ? this.addCart(values) : this.handleAdd(values)}}
                     >
                         {({ setFieldValue, handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
                     <ModalBody>
@@ -897,7 +1083,7 @@ class CartMutasi extends Component {
                         )}
                     </Formik>
                 </Modal>
-                <Modal isOpen={this.state.rinci} size='lg'>
+                <Modal isOpen={this.state.rinci} size='xl'>
                     <ModalHeader>Rincian item</ModalHeader>
                     <Formik
                     initialValues={{
@@ -1121,6 +1307,129 @@ class CartMutasi extends Component {
                                     </div>
                                 </>
                             )}
+
+                            {values.kategori !== 'return' && (
+                                <>
+                                    <div className='mt-4 mb-2 bold'>Detail Cost Center</div>
+                                    <Table>
+                                        <thead>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>Cost Center</th>
+                                                {this.state.typeCost === 'single' && (
+                                                    <th>NIK (opsional)</th>
+                                                )}
+                                                <th>Qty<br></br>( {parseInt(valCart.qty) - (dataItem.reduce((sum, item) => sum + parseInt(item.qty || 0), 0))} remaining )</th>
+                                                <th>Opsi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {dataItem.length > 0 && dataItem.map((item, index) => {
+                                                return (
+                                                    <tr>
+                                                        <td>{index + 1}</td>
+                                                        <td>
+                                                            <Input 
+                                                                type="select"
+                                                                name="cost_center"
+                                                                value={item.cost_center}
+                                                                onChange={e => this.updateItem({...item, cost_center: e.target.value}, index)}
+                                                            >
+                                                                <option value="">---Pilih---</option>
+                                                                {dataDepo.length > 0 && dataDepo.map(item => {
+                                                                    return (
+                                                                        <option value={`${item.place_asset}-${item.cost_center}`}>{item.place_asset}-{item.cost_center}</option>
+                                                                    )
+                                                                })}
+                                                            </Input>
+                                                        </td>
+                                                        {this.state.typeCost === 'single' && (
+                                                            <td>
+                                                                <Input 
+                                                                    value={item.nik}
+                                                                />
+                                                            </td>    
+                                                        )}
+                                                        <td>
+                                                            <Input 
+                                                                type='number'
+                                                                value={item.qty}
+                                                                onChange={e => this.updateItem({...item, qty: e.target.value}, index)}
+                                                            />
+                                                        </td>
+                                                        <td>
+                                                            <Button
+                                                                onClick={() => this.updateItem(item, index, 'save')}
+                                                                color='success'
+                                                                className='ml-1 mt-1'
+                                                            >
+                                                                Save
+                                                            </Button>
+                                                            <Button
+                                                                onClick={() => this.deleteDetail(item)}
+                                                                color='danger'
+                                                                className='ml-1 mt-1'
+                                                            >
+                                                                Delete
+                                                            </Button>
+                                                        </td>
+                                                    </tr>
+                                                )
+                                            })}
+                                            {(parseInt(valCart.qty) - (dataItem.reduce((sum, item) => sum + parseInt(item.qty || 0), 0))) !== 0 && (
+                                                <tr>
+                                                    <td>{dataItem.length + 1}</td>
+                                                    <td>
+                                                        <Input 
+                                                            type="select"
+                                                            name="cost_center"
+                                                            value={this.state.cost}
+                                                            onChange={e => this.setState({cost: e.target.value})}
+                                                        >
+                                                            <option value="">---Pilih---</option>
+                                                            {dataDepo.length > 0 && dataDepo.map(item => {
+                                                                return (
+                                                                    <option value={`${item.place_asset}-${item.cost_center}`}>{item.place_asset}-{item.cost_center}</option>
+                                                                )
+                                                            })}
+                                                        </Input>
+                                                    </td>
+                                                    {dataRinci.type_ajuan === 'single' && (
+                                                        <td>
+                                                            <Input 
+                                                                value={this.state.nik}
+                                                                onChange={e => this.setState({nik: e.target.value})}
+                                                            />
+                                                        </td>    
+                                                    )}
+                                                    <td>
+                                                        <Input 
+                                                            type='number'
+                                                            value={this.state.qty}
+                                                            onChange={e => this.setState({qty: e.target.value})}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <Button
+                                                            onClick={() => this.addItem({
+                                                                cost_center: this.state.cost,
+                                                                nik: this.state.nik,
+                                                                qty: this.state.qty,
+                                                                pengadaan_id: dataRinci.id
+                                                            })}
+                                                            color='success'
+                                                            className='ml-1 mt-1'
+                                                        >
+                                                            Save
+                                                        </Button>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </Table>
+                                </>
+                            )}
+
                             <hr/>
                             <div className={style.foot}>
                                 <div>
@@ -1274,6 +1583,172 @@ class CartMutasi extends Component {
                     </div>
                 </ModalBody>
             </Modal>
+            <Modal isOpen={this.state.openType} size='xl' toggle={this.openType}>
+                <ModalBody>
+                    <div className={styleHome.mainContent}>
+                        <main className={styleHome.mainSection}>
+                        <h1 className={styleHome.title}>Tipe pengadaan asset</h1>
+                        <h4 className={styleHome.subtitle}></h4>
+
+                        <div className={`${styleHome.assetContainer} row`}>
+                            {listType.length > 0 && listType.filter(x => parseInt(valCart.qty) === 1 ? x !== 'multiple' : x).map(item => {
+                                return (
+                                    <div 
+                                    onClick={() => this.prosesOpenCost(item)} 
+                                    className="col-12 col-md-6 col-lg-3 mb-4">
+                                        <div className={styleHome.assetCard1}>
+                                            {item === 'single' ? (
+                                                <FiUser size={150} className='mt-4 mb-4' />
+                                            ) : (
+                                                <HiOutlineUserGroup size={150} className='mt-4 mb-4' />
+                                            )}
+                                            
+                                            <p className='mt-2 mb-4 sizeCh text-uppercase'>
+                                                {item === 'single' ? 'single cost center' : 'multiple cost center'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                        </main>
+                    </div>
+                </ModalBody>
+            </Modal>
+            <Modal size='xl' isOpen={this.state.openCost}>
+                <ModalHeader>Detail Cost Center</ModalHeader>
+                <ModalBody>
+                    <Table>
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Cost Center</th>
+                                {this.state.typeCost === 'single' && (
+                                    <th>NIK (opsional)</th>
+                                )}
+                                <th>Qty<br></br>( {parseInt(valCart.qty) - (dataItem.reduce((sum, item) => sum + parseInt(item.qty || 0), 0))} remaining )</th>
+                                <th>Opsi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {dataItem.length > 0 && dataItem.map((item, index) => {
+                                return (
+                                    <tr>
+                                        <td>{index + 1}</td>
+                                        <td>
+                                            <Input 
+                                                type="select"
+                                                name="cost_center"
+                                                value={item.cost_center}
+                                                onChange={e => this.updateItem({...item, cost_center: e.target.value}, index)}
+                                            >
+                                                <option value="">---Pilih---</option>
+                                                {dataDepo.length > 0 && dataDepo.map(item => {
+                                                    return (
+                                                        <option value={`${item.place_asset}-${item.cost_center}`}>{item.place_asset}-{item.cost_center}</option>
+                                                    )
+                                                })}
+                                            </Input>
+                                        </td>
+                                        {this.state.typeCost === 'single' && (
+                                            <td>
+                                                <Input 
+                                                    value={item.nik}
+                                                />
+                                            </td>    
+                                        )}
+                                        <td>
+                                            <Input 
+                                                type='number'
+                                                value={item.qty}
+                                                onChange={e => this.updateItem({...item, qty: e.target.value}, index)}
+                                            />
+                                        </td>
+                                        <td>
+                                            <Button
+                                                onClick={() => this.updateItem(item, index, 'save')}
+                                                color='success'
+                                                className='ml-1 mt-1'
+                                            >
+                                                Save
+                                            </Button>
+                                            <Button
+                                                onClick={() => this.deleteDetail(item)}
+                                                color='danger'
+                                                className='ml-1 mt-1'
+                                            >
+                                                Delete
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                )
+                            })}
+                            {(parseInt(valCart.qty) - (dataItem.reduce((sum, item) => sum + parseInt(item.qty || 0), 0))) !== 0 && (
+                                <tr>
+                                    <td>{dataItem.length + 1}</td>
+                                    <td>
+                                        <Input 
+                                            type="select"
+                                            name="cost_center"
+                                            value={this.state.cost}
+                                            onChange={e => this.setState({cost: e.target.value})}
+                                        >
+                                            <option value="">---Pilih---</option>
+                                            {dataDepo.length > 0 && dataDepo.map(item => {
+                                                return (
+                                                    <option value={`${item.place_asset}-${item.cost_center}`}>{item.place_asset}-{item.cost_center}</option>
+                                                )
+                                            })}
+                                        </Input>
+                                    </td>
+                                    {this.state.typeCost === 'single' && (
+                                        <td>
+                                            <Input 
+                                                value={this.state.nik}
+                                                onChange={e => this.setState({nik: e.target.value})}
+                                            />
+                                        </td>    
+                                    )}
+                                    <td>
+                                        <Input 
+                                            type='number'
+                                            value={this.state.qty}
+                                            onChange={e => this.setState({qty: e.target.value})}
+                                        />
+                                    </td>
+                                    <td>
+                                        <Button
+                                            onClick={() => this.addItem({
+                                                cost_center: this.state.cost,
+                                                nik: this.state.nik,
+                                                qty: this.state.qty
+                                            })}
+                                            color='success'
+                                            className='ml-1 mt-1'
+                                        >
+                                            Save
+                                        </Button>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </Table>
+                </ModalBody>
+                <ModalFooter>
+                    <Button
+                        color='success'
+                        onClick={this.saveAdd}
+                    >
+                        Submit
+                    </Button>
+                    <Button
+                        color='secondary'
+                        onClick={this.openCost}
+                    >
+                        Close
+                    </Button>
+                </ModalFooter>
+            </Modal>
             <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="md">
                 <ModalBody>
                     {this.state.confirm === 'submit' ? (
@@ -1299,6 +1774,14 @@ class CartMutasi extends Component {
                             <div className="errApprove mt-2">Pastikan kategori, tipe, dan jenis sama di setiap item</div>
                         </div>
                         </div>
+                    ) : this.state.confirm === 'falseAddDetail' ? (
+                        <div>
+                            <div className={style.cekUpdate}>
+                            <AiOutlineClose size={80} className={style.red} />
+                            <div className={[style.sucUpdate, style.green]}>Gagal Menambahkan Detail</div>
+                            <div className="errApprove mt-2">Pastikan cost center, dan qty diisi</div>
+                        </div>
+                        </div>
                     ) : this.state.confirm === 'falseName' ? (
                         <div>
                             <div className={style.cekUpdate}>
@@ -1315,7 +1798,30 @@ class CartMutasi extends Component {
                             <div className="errApprove mt-2">Pastikan kategori, tipe, dan jenis sama di setiap item</div>
                         </div>
                         </div>
+                    ) : this.state.confirm === 'falseCost' ? (
+                        <div>
+                            <div className={style.cekUpdate}>
+                            <AiOutlineClose size={80} className={style.red} />
+                            <div className={[style.sucUpdate, style.green]}>Gagal Save</div>
+                            <div className="errApprove mt-2">Cost center telah terdaftar</div>
+                        </div>
+                        </div>
+                    ) : this.state.confirm === 'falseQty' ? (
+                        <div>
+                            <div className={style.cekUpdate}>
+                            <AiOutlineClose size={80} className={style.red} />
+                            <div className={[style.sucUpdate, style.green]}>Gagal Save</div>
+                            <div className="errApprove mt-2">Pastikan quantity match</div>
+                        </div>
+                        </div>
                     ) : this.state.confirm === 'update' ?(
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Update</div>
+                            </div>
+                        </div>
+                    ) : this.state.confirm === 'add' ?(
                         <div>
                             <div className={style.cekUpdate}>
                                 <AiFillCheckCircle size={80} className={style.green} />
@@ -1356,7 +1862,8 @@ class CartMutasi extends Component {
 const mapStateToProps = state => ({
     mutasi: state.mutasi,
     pengadaan: state.pengadaan,
-    tempmail: state.tempmail
+    tempmail: state.tempmail,
+    depo: state.depo
 })
 
 const mapDispatchToProps = {
@@ -1379,6 +1886,11 @@ const mapDispatchToProps = {
     addNewNotif: newnotif.addNewNotif,
     getApproveIo: pengadaan.getApproveIo,
     updateReason: pengadaan.updateReason,
+    getDepo: depo.getDepo,
+    addDetailItem: pengadaan.addDetailItem,
+    updateDetailItem: pengadaan.updateDetailItem,
+    deleteDetailItem: pengadaan.deleteDetailItem,
+    getDetailItem: pengadaan.getDetailItem
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(CartMutasi)

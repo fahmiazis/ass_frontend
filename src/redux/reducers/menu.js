@@ -18,7 +18,8 @@ const menuState = {
     detailApp: [],
     link: '',
     isAll: false,
-    dataAll: []
+    dataAll: [],
+    subMenu: []
 };
 
 export default (state=menuState, action) => {
@@ -99,6 +100,31 @@ export default (state=menuState, action) => {
                     ...state,
                     isLoading: false,
                     isGet: false,
+                    isError: true,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+            case 'GET_SUB_MENU_PENDING': {
+                return {
+                    ...state,
+                    isGet: false,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'GET_SUB_MENU_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: false,
+                    subMenu: action.payload.data.result,
+                    alertMsg: 'get detail approve Succesfully',
+                };
+            }
+            case 'GET_SUB_MENU_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
                     isError: true,
                     alertMsg: "Unable connect to server"
                 };

@@ -155,6 +155,25 @@ export default {
         type: 'PODS_SEND',
         payload: http(token).patch(`/ticket/send`, qs.stringify({no: no}))
     }),
+
+    // Detail Item
+    addDetailItem: (token, data) => ({
+        type: 'ADD_DETAILITEM',
+        payload: http(token).post(`/ticket/item-add`, data)
+    }),
+    updateDetailItem: (token, data) => ({
+        type: 'UPDATE_DETAILITEM',
+        payload: http(token).patch(`/ticket/item-update`, qs.stringify(data))
+    }),
+    deleteDetailItem: (token, id) => ({
+        type: 'DELETE_DETAILITEM',
+        payload: http(token).delete(`/ticket/item-delete/${id}`)
+    }),
+    getDetailItem: (token, id) => ({
+        type: 'GET_DETAILITEM',
+        payload: http(token).get(`/ticket/item-get/${id}`)
+    }),
+
     resetError: () => ({
         type: 'RESET'
     }),

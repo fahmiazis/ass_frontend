@@ -44,6 +44,8 @@ export default {
         type: 'RESET_PW',
         payload: http(token).patch(`/user/reset/${id}`, qs.stringify(data))
     }),
+
+    // Role
     getRole: (token, search) => ({
         type: 'GET_ROLE',
         payload: http(token).get(`/user/role/get?search=${search === undefined ? '' : search}`)
@@ -60,6 +62,16 @@ export default {
         type: 'GET_DETAIL_ROLE',
         payload: http(token).get(`/user/role/detail/${id}`)
     }),
+    getRoleMenu: (token, id) => ({
+        type: 'GET_MENU_ROLE',
+        payload: http(token).get(`/user/role/menu-get/${id}`)
+    }),
+    updateRoleMenu: (token, id, data) => ({
+        type: 'UPDATE_MENU_ROLE',
+        payload: http(token).patch(`/user/role/menu-update/${id}`, qs.stringify(data))
+    }),
+
+    // HC PORTAL
     syncOnboarding: (token) => ({
         type: 'SYNC_ONBOARDING',
         payload: httpsync(token).get(`/edot/sync-onboarding`),

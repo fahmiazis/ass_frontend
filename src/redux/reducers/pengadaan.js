@@ -57,7 +57,12 @@ const pengState = {
     isSubIo: null,
     isFinIo: null,
     appRevisi: null,
-    generateSap: null
+    generateSap: null,
+    addDetailItem: null,
+    updateDetailItem: null,
+    deleteDetailItem: null,
+    dataDetail: [],
+    detailCart: {}
 }
 
 export default (state=pengState, action) => {
@@ -222,6 +227,7 @@ export default (state=pengState, action) => {
                 ...state,
                 isLoading: false,
                 addCart: true,
+                detailCart: action.payload.data.result,
                 alertMsg: 'get data cart Succesfully',
             };
         }
@@ -968,6 +974,101 @@ export default (state=pengState, action) => {
                 alertMsg: "Unable connect to server"
             };
         }
+
+
+
+        case 'ADD_DETAILITEM_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'ADD_DETAILITEM_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                addDetailItem: true,
+                alertMsg: "success add detail item"
+            };
+        }
+        case 'ADD_DETAILITEM_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                addDetailItem: false,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'UPDATE_DETAILITEM_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'UPDATE_DETAILITEM_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                updateDetailItem: true,
+                alertMsg: "success add detail item"
+            };
+        }
+        case 'UPDATE_DETAILITEM_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                updateDetailItem: false,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'DELETE_DETAILITEM_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'DELETE_DETAILITEM_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                deleteDetailItem: true,
+                alertMsg: "success add detail item"
+            };
+        }
+        case 'DELETE_DETAILITEM_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                deleteDetailItem: false,
+                alertMsg: "Unable connect to server"
+            };
+        }
+        case 'GET_DETAILITEM_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'GET_DETAILITEM_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                dataDetail: action.payload.data.result,
+                alertMsg: "success add detail item"
+            };
+        }
+        case 'GET_DETAILITEM_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                alertMsg: "Unable connect to server"
+            };
+        }
+
         case 'RESET': {
             return {
                 ...state,
@@ -978,7 +1079,10 @@ export default (state=pengState, action) => {
                 isGet: false,
                 errUpload: false,
                 uploadTemp: false,
-                generateSap: null
+                generateSap: null,
+                addDetailItem: null,
+                updateDetailItem: null,
+                deleteDetailItem: null
             }
         }
         case 'APP_RESET': {

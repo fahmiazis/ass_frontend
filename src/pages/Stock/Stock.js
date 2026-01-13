@@ -714,558 +714,6 @@ class Stock extends Component {
         const alpha = Array.from(Array(26)).map((e, i) => i + 65)
         const alphabet = alpha.map((x) => String.fromCharCode(x))
 
-        const colNum = detailStock.length + 14
-        const lengthAll = []
-        const lengthDesk = []
-        const lengthIo = []
-        const lengthCost = []
-        const lengthProfit = []
-
-        for (let i = 1; i <= 25; i++) {
-            if (i <= 10) {
-                lengthIo.push(i)
-                lengthCost.push(i)
-                lengthProfit.push(i)
-                lengthDesk.push(i)
-                lengthAll.push(i)
-            } else if (i <= 11) {
-                lengthIo.push(i)
-                lengthDesk.push(i)
-                lengthAll.push(i)
-            } else if (i <= 12) {
-                lengthDesk.push(i)
-                lengthAll.push(i)
-            } else {
-                lengthAll.push(i)
-            }
-            
-        }
-
-        const workbook = new ExcelJS.Workbook();
-        const ws = workbook.addWorksheet('form stock opname', {
-            pageSetup: { orientation:'landscape', paperSize: 8 }
-        })
-
-        const borderStyles = {
-            top: {style:'thin'},
-            left: {style:'thin'},
-            bottom: {style:'thin'},
-            right: {style:'thin'}
-        }
-
-        const leftStyle = {
-            horizontal:'left'
-        }
-
-        const rightStyle = {
-            horizontal:'right'
-        }
-
-        const alignStyle = {
-            horizontal:'left',
-            // wrapText: true,
-            vertical: 'middle'
-        }
-
-        const titleStyle = {
-            bold: true,
-            size: 12,
-            
-        }
-
-        const tbStyle = {
-            // horizontal:'center',
-            wrapText: true,
-            vertical: 'middle',
-            shrinkToFit: true
-        }
-
-        const appStyle = {
-            horizontal:'center',
-            wrapText: true,
-            vertical: 'middle'
-        }
-
-        const boldStyle = {
-            bold: true
-        }
-        ws.getCell(`${alphabet[lengthAll.length]}1`).value = ''
-
-        ws.getCell(`B2`).value = 'KERTAS KERJA OPNAME ASET'
-        ws.getCell(`B2`).alignment = { 
-            ...alignStyle
-        }
-        ws.getCell(`B2`).font = { 
-            ...titleStyle
-        }
-
-        ws.getCell(`B4`).value = 'PT. PINUS MERAH ABADI'
-        ws.getCell(`B4`).alignment = { 
-            ...alignStyle
-        }
-        ws.getCell(`B4`).font = { 
-            ...titleStyle
-        }
-
-        ws.getCell(`B6`).value = 'KANTOR PUSAT/CABANG'
-        ws.getCell(`B6`).alignment = { 
-            ...alignStyle
-        }
-        ws.getCell(`B6`).font = { 
-            ...titleStyle
-        }
-
-        ws.getCell(`E6`).value = `: ${detailStock[0].area.toUpperCase()}`
-        ws.getCell(`E6`).alignment = { 
-            ...alignStyle
-        }
-        ws.getCell(`E6`).font = { 
-            ...titleStyle
-        }
-
-        ws.getCell(`B8`).value = 'DEPO/CP'
-        ws.getCell(`B8`).alignment = { 
-            ...alignStyle
-        }
-        ws.getCell(`B8`).font = { 
-            ...titleStyle
-        }
-
-        ws.getCell(`E8`).value = `: ${detailStock[0].area.toUpperCase()}`
-        ws.getCell(`E8`).alignment = { 
-            ...alignStyle
-        }
-        ws.getCell(`E8`).font = { 
-            ...titleStyle
-        }
-
-        ws.getCell(`B10`).value = 'OPNAME PER TANGGAL'
-        ws.getCell(`B10`).alignment = { 
-            ...alignStyle
-        }
-        ws.getCell(`B10`).font = { 
-            ...titleStyle
-        }
-
-        ws.getCell(`E10`).value = `: ${moment(detailStock[0].tanggalStock).format('DD MMMM YYYY')}`
-        ws.getCell(`E10`).alignment = { 
-            ...alignStyle
-        }
-        ws.getCell(`E10`).font = { 
-            ...titleStyle
-        }
-
-        // table stock
-        const limitTb = 37
-        const residu = detailStock.length % limitTb
-        const section = Math.ceil(detailStock.length / limitTb)
-        const finDistance = residu > 27 ? limitTb - residu : 0
-        
-        for (let i = 0; i < section; i++) {
-            const numTb = 12 + (i * (limitTb + 1)) 
-            console.log(numTb)
-            ws.mergeCells(`B${numTb}`, `B${numTb}`)
-            ws.getCell(`B${numTb}`).value = 'NO'
-            ws.getCell(`B${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`B${numTb}`).border = { 
-                ...borderStyles
-            }
-            ws.getCell(`B${numTb}`).font = { 
-                ...boldStyle
-            }
-
-            ws.mergeCells(`C${numTb}`, `D${numTb}`)
-            ws.getCell(`C${numTb}`).value = 'NO. ASET'
-            ws.getCell(`C${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`C${numTb}`).border = { 
-                ...borderStyles
-            }
-            ws.getCell(`C${numTb}`).font = { 
-                ...boldStyle
-            }
-
-            ws.mergeCells(`E${numTb}`, `H${numTb}`)
-            ws.getCell(`E${numTb}`).value = 'DESKRIPSI'
-            ws.getCell(`E${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`E${numTb}`).border = { 
-                ...borderStyles
-            }
-            ws.getCell(`E${numTb}`).font = { 
-                ...boldStyle
-            }
-
-            ws.mergeCells(`I${numTb}`, `J${numTb}`)
-            ws.getCell(`I${numTb}`).value = 'MERK'
-            ws.getCell(`I${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`I${numTb}`).border = { 
-                ...borderStyles
-            }
-            ws.getCell(`I${numTb}`).font = { 
-                ...boldStyle
-            }
-
-            ws.mergeCells(`K${numTb}`, `K${numTb}`)
-            ws.getCell(`K${numTb}`).value = 'SATUAN'
-            ws.getCell(`K${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`K${numTb}`).border = { 
-                ...borderStyles
-            }
-            ws.getCell(`K${numTb}`).font = { 
-                ...boldStyle
-            }
-
-            ws.mergeCells(`L${numTb}`, `L${numTb}`)
-            ws.getCell(`L${numTb}`).value = 'UNIT'
-            ws.getCell(`L${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`L${numTb}`).border = { 
-                ...borderStyles
-            }
-            ws.getCell(`L${numTb}`).font = { 
-                ...boldStyle
-            }
-
-            ws.mergeCells(`M${numTb}`, `M${numTb}`)
-            ws.getCell(`M${numTb}`).value = 'STATUS FISIK'
-            ws.getCell(`M${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`M${numTb}`).border = { 
-                ...borderStyles
-            }
-            ws.getCell(`M${numTb}`).font = { 
-                ...boldStyle
-            }
-
-            ws.mergeCells(`N${numTb}`, `N${numTb}`)
-            ws.getCell(`N${numTb}`).value = 'KONDISI'
-            ws.getCell(`N${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`N${numTb}`).border = { 
-                ...borderStyles
-            }
-            ws.getCell(`N${numTb}`).font = { 
-                ...boldStyle
-            }
-
-            ws.mergeCells(`O${numTb}`, `P${numTb}`)
-            ws.getCell(`O${numTb}`).value = 'LOKASI'
-            ws.getCell(`O${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`O${numTb}`).border = { 
-                ...borderStyles
-            }
-            ws.getCell(`O${numTb}`).font = { 
-                ...boldStyle
-            }
-
-            ws.mergeCells(`Q${numTb}`, `R${numTb}`)
-            ws.getCell(`Q${numTb}`).value = 'GROUPING'
-            ws.getCell(`Q${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`Q${numTb}`).border = { 
-                ...borderStyles
-            }
-            ws.getCell(`Q${numTb}`).font = { 
-                ...boldStyle
-            }
-
-            ws.mergeCells(`S${numTb}`, `U${numTb}`)
-            ws.getCell(`S${numTb}`).value = 'KETERANGAN'
-            ws.getCell(`S${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`S${numTb}`).border = { 
-                ...borderStyles
-            }
-            ws.getCell(`S${numTb}`).font = { 
-                ...boldStyle
-            }
-        }
-
-        for (let i = 0; i < detailStock.length; i++) {
-            // console.log(i)
-            const numTb = 13 + (i + (i >= limitTb ? 1 : 0))
-            console.log(numTb)
-            ws.mergeCells(`B${numTb}`, `B${numTb}`)
-            ws.getCell(`B${numTb}`).value = `${i + 1}`
-            ws.getCell(`B${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`B${numTb}`).border = { 
-                ...borderStyles
-            }
-    
-            ws.mergeCells(`C${numTb}`, `D${numTb}`)
-            ws.getCell(`C${numTb}`).value = `${detailStock[i].no_asset === null ? '' : detailStock[i].no_asset}`
-            ws.getCell(`C${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`C${numTb}`).border = { 
-                ...borderStyles
-            }
-    
-            ws.mergeCells(`E${numTb}`, `H${numTb}`)
-            ws.getCell(`E${numTb}`).value = `${detailStock[i].deskripsi === null ? '' : detailStock[i].deskripsi }`
-            ws.getCell(`E${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`E${numTb}`).border = { 
-                ...borderStyles
-            }
-    
-            ws.mergeCells(`I${numTb}`, `J${numTb}`)
-            ws.getCell(`I${numTb}`).value = `${detailStock[i].merk === null ? '' : detailStock[i].merk}`
-            ws.getCell(`I${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`I${numTb}`).border = { 
-                ...borderStyles
-            }
-    
-            ws.mergeCells(`K${numTb}`, `K${numTb}`)
-            ws.getCell(`K${numTb}`).value = `${detailStock[i].satuan === null ? '' : detailStock[i].satuan }`
-            ws.getCell(`K${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`K${numTb}`).border = { 
-                ...borderStyles
-            }
-    
-            ws.mergeCells(`L${numTb}`, `L${numTb}`)
-            ws.getCell(`L${numTb}`).value = `${detailStock[i].unit === null ? '' : detailStock[i].unit}`
-            ws.getCell(`L${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`L${numTb}`).border = { 
-                ...borderStyles
-            }
-    
-            ws.mergeCells(`M${numTb}`, `M${numTb}`)
-            ws.getCell(`M${numTb}`).value = `${detailStock[i].status_fisik === null ? '' : detailStock[i].status_fisik}`
-            ws.getCell(`M${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`M${numTb}`).border = { 
-                ...borderStyles
-            }
-
-            ws.mergeCells(`N${numTb}`, `N${numTb}`)
-            ws.getCell(`N${numTb}`).value = `${detailStock[i].kondisi === null ? '' : detailStock[i].kondisi}`
-            ws.getCell(`N${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`N${numTb}`).border = { 
-                ...borderStyles
-            }
-    
-            ws.mergeCells(`O${numTb}`, `P${numTb}`)
-            ws.getCell(`O${numTb}`).value = `${detailStock[i].lokasi === null ? '' : detailStock[i].lokasi}`
-            ws.getCell(`O${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`O${numTb}`).border = { 
-                ...borderStyles
-            }
-    
-            ws.mergeCells(`Q${numTb}`, `R${numTb}`)
-            ws.getCell(`Q${numTb}`).value = `${detailStock[i].grouping === null ? '' : detailStock[i].grouping}`
-            ws.getCell(`Q${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`Q${numTb}`).border = { 
-                ...borderStyles
-            }
-    
-            ws.mergeCells(`S${numTb}`, `U${numTb}`)
-            ws.getCell(`S${numTb}`).value = `${detailStock[i].keterangan === null ? '' : detailStock[i].keterangan}`
-            ws.getCell(`S${numTb}`).alignment = { 
-                ...tbStyle
-            }
-            ws.getCell(`S${numTb}`).border = { 
-                ...borderStyles
-            }
-        }
-
-        const sumRow = detailStock.length + 15 + finDistance
-        const headRow = 1 + sumRow
-        const mainRow = 3 + sumRow
-        const footRow = 5 + sumRow
-
-        const cekApp = dataApp.pembuat.length + dataApp.pemeriksa.length + dataApp.penyetuju.length
-        const compCol = cekApp > 5 ? 'D' : 'E'
-        const distCol = cekApp > 5 ? 3 : 4
-        const botRow = 7 + sumRow
-        console.log(sumRow)
-
-        // Approval Dibuat
-        
-
-        ws.mergeCells(`B${sumRow}`, `${compCol}${sumRow}`)
-        ws.getCell(`B${sumRow}`).value = 'Dibuat oleh,'
-        ws.getCell(`B${sumRow}`).alignment = { horizontal:'center'}
-        ws.getCell(`B${sumRow}`).border = { 
-            ...borderStyles
-        }
-
-        ws.mergeCells(`B${headRow}`, `${compCol}${botRow}`)
-
-        dataApp.pembuat !== undefined && dataApp.pembuat.map(item => {
-                const name = item.nama === undefined || item.nama === null ? null 
-                :item.nama.length <= 30 ?item.nama.split(" ").map((word) => { 
-                    return word[0] === undefined ? '' : word[0].toUpperCase() + word.substring(1)
-                }).join(" ")
-                :item.nama.slice(0, 29).split(" ").map((word) => { 
-                    return word[0] === undefined ? '' : word[0].toUpperCase() + word.substring(1)
-                }).join(" ") + '.'
-
-                ws.getCell(`B${headRow}`).value = name === null 
-                ? `\n\n\n - \n\n\n ${item.jabatan === null ? "-" : item.jabatan.toUpperCase()}` 
-                : item.status === 0 
-                ? `\n Reject (${moment(item.updatedAt).format('DD/MM/YYYY')}) \n\n ${name} \n ${item.jabatan === null ? "-" : item.jabatan.toUpperCase()}` 
-                : `\n Approve (${moment(item.updatedAt).format('DD/MM/YYYY')}) \n\n ${name} \n ${item.jabatan === null ? "-" : item.jabatan === 'area' ? 'AOS' : item.jabatan.toUpperCase()}`
-        })
-
-        ws.getCell(`B${headRow}`).alignment = { 
-            ...appStyle
-        }
-        ws.getCell(`B${headRow}`).border = { 
-            ...borderStyles
-        }
-
-        // Approval Diperiksa
-        const cekRow11 = alphabet[alphabet.indexOf(alphabet.find(item => item === compCol.toUpperCase())) + 1]
-        const cekRow12 = alphabet[alphabet.indexOf(alphabet.find(item => item === cekRow11.toUpperCase())) + (distCol * (dataApp.pemeriksa.length === 0 ? 1 : dataApp.pemeriksa.length)) - 1]
-        ws.mergeCells(`${cekRow11}${sumRow}`, `${cekRow12}${sumRow}`)
-        ws.getCell(`${cekRow11}${sumRow}`).value = 'Diperiksa oleh,'
-        ws.getCell(`${cekRow11}${sumRow}`).alignment = { horizontal:'center'}
-        ws.getCell(`${cekRow11}${sumRow}`).border = { 
-            ...borderStyles
-        }
-
-        dataApp.pemeriksa !== undefined && dataApp.pemeriksa.map((item, index) => {
-            const name = item.nama === undefined || item.nama === null ? null 
-            :item.nama.length <= 30 ?item.nama.split(" ").map((word) => { 
-                return word[0] === undefined ? '' : word[0].toUpperCase() + word.substring(1)
-            }).join(" ")
-            :item.nama.slice(0, 29).split(" ").map((word) => { 
-                return word[0] === undefined ? '' : word[0].toUpperCase() + word.substring(1)
-            }).join(" ") + '.'
-            const startRow = alphabet[alphabet.indexOf(alphabet.find(item => item === cekRow11.toUpperCase())) + (distCol * index)]
-            const endRow = alphabet[alphabet.indexOf(alphabet.find(item => item === cekRow11.toUpperCase())) + ((distCol * index) + (distCol - 1))]
-            
-            // console.log(alphabet.indexOf(alphabet.find(item => item === str.toUpperCase())))
-            // console.log(`${startRow}${headRow}`, `${endRow}${botRow} Quenn`)
-
-            ws.mergeCells(`${startRow}${headRow}`, `${endRow}${botRow}`)
-            ws.getCell(`${startRow}${headRow}`).value = name === null 
-            ? `\n\n\n - \n\n\n${item.jabatan === null ? "-" : item.jabatan.toUpperCase()}` 
-            : item.status === 0 
-            ? `\n Reject (${moment(item.updatedAt).format('DD/MM/YYYY')}) \n\n  ${name} \n ${item.jabatan === null ? "-" : item.jabatan.toUpperCase()}` 
-            : `\n Approve (${moment(item.updatedAt).format('DD/MM/YYYY')}) \n\n ${name} \n ${item.jabatan === null ? "-" : item.jabatan.toUpperCase()}`
-
-            ws.getCell(`${startRow}${headRow}`).alignment = { 
-                ...appStyle,
-            }
-            ws.getCell(`${startRow}${headRow}`).border = { 
-                ...borderStyles
-            }
-            // ws.getCell(`${startRow}${headRow}`).font = { 
-            //     ...fontStyle,
-            // }
-        })
-
-
-        // Approval Disetujui
-        const cekRow21 = alphabet[alphabet.indexOf(alphabet.find(item => item === cekRow12.toUpperCase())) + 1]
-        const cekLastRow = parseInt(alphabet.indexOf(alphabet.find(item => item === cekRow12.toUpperCase())) + (distCol * (dataApp.penyetuju.length === 0 ? 1 : dataApp.penyetuju.length)))
-        const cekRow22 = cekLastRow >= alphabet.length ? `A${alphabet[cekLastRow - alphabet.length]}` : alphabet[cekLastRow]
-        ws.mergeCells(`${cekRow21}${sumRow}`, `${cekRow22}${sumRow}`)
-        ws.getCell(`${cekRow21}${sumRow}`).value = 'Disetujui oleh,'
-        ws.getCell(`${cekRow21}${sumRow}`).alignment = { horizontal:'center'}
-        ws.getCell(`${cekRow21}${sumRow}`).border= { 
-            ...borderStyles
-        }
-
-        dataApp.penyetuju !== undefined && dataApp.penyetuju.map((item, index) => {
-            const name = item.nama === undefined || item.nama === null ? null 
-            :item.nama.length <= 30 ?item.nama.split(" ").map((word) => { 
-                return word[0] === undefined ? '' : word[0].toUpperCase() + word.substring(1)
-            }).join(" ")
-            :item.nama.slice(0, 29).split(" ").map((word) => { 
-                return word[0] === undefined ? '' : word[0].toUpperCase() + word.substring(1)
-            }).join(" ") + '.'
-            const cekStart = parseInt(alphabet.indexOf(alphabet.find(item => item === cekRow21.toUpperCase())) + (distCol * index))
-            const startRow = cekStart >= alphabet.length - 1 ? `A${alphabet[cekStart - alphabet.length]}` : alphabet[cekStart]
-            const cekEnd = parseInt(alphabet.indexOf(alphabet.find(item => item === cekRow21.toUpperCase())) + ((distCol * index) + (distCol - 1)))
-            const endRow = cekEnd >= alphabet.length - 1 ? `A${alphabet[cekEnd - alphabet.length]}` : alphabet[cekEnd]
-            console.log(cekStart)
-            console.log(cekEnd)
-            console.log((distCol * index) + (distCol - 1))
-            
-            // console.log(alphabet.indexOf(alphabet.find(item => item === str2.toUpperCase())))
-            // console.log(`${startRow}${headRow}`, `${endRow}${botRow} King`)
-
-            ws.mergeCells(`${startRow}${headRow}`, `${endRow}${botRow}`)
-            ws.getCell(`${startRow}${headRow}`).value = name === null 
-            ? `\n\n\n - \n\n\n${item.jabatan === null ? "-" : item.jabatan.toUpperCase()}` 
-            : item.status === 0
-            ? `\n Reject (${moment(item.updatedAt).format('DD/MM/YYYY')}) \n\n ${name} \n\ ${item.jabatan === null ? "-" : item.jabatan.toUpperCase()}` 
-            : `\n Approve (${moment(item.updatedAt).format('DD/MM/YYYY')}) \n\n ${name} \n\ ${item.jabatan === null ? "-" : item.jabatan.toUpperCase()}`
-
-            ws.getCell(`${startRow}${headRow}`).alignment = { 
-                ...appStyle
-            }
-            ws.getCell(`${startRow}${headRow}`).border= { 
-                ...borderStyles
-            }
-        })
-
-        // width kolom B
-        ws.getRow(12).height = 20
-        
-        // for (let i = 0; i < (cekLastRow < 16 ? 16 : cekLastRow - 1); i++) {
-        //     console.log(i)
-        //     ws.columns[2+i].width = 5.5
-        // }
-
-        // for (let i = 0; i < detailStock.length; i++) {
-        //     ws.getRow(i + 12).height = 20
-        // }
-
-        await ws.protect('As5etPm4')
-
-        workbook.xlsx.writeBuffer().then(function(buffer) {
-            fs.saveAs(
-              new Blob([buffer], { type: "application/octet-stream" }),
-              `Form Stock Opname Asset ${detailStock[0].no_stock} ${moment().format('DD MMMM YYYY')}.xlsx`
-            )
-        })
-        this.setState({isLoading: false})
-    }
-
-    downloadForm = async (val) => {
-        this.setState({isLoading: true})
-        const { detailStock, stockApp } = this.props.stock
-        const dataApp = stockApp
-
-        const alpha = Array.from(Array(26)).map((e, i) => i + 65)
-        const alphabet = alpha.map((x) => String.fromCharCode(x))
-
         const workbook = new ExcelJS.Workbook();
         const ws = workbook.addWorksheet('form stock opname', {
             pageSetup: { orientation:'landscape', paperSize: 8 }
@@ -1535,6 +983,444 @@ class Stock extends Component {
             const name = item.nama.length <= 30 
                 ? item.nama.split(" ").map((word) => word[0].toUpperCase() + word.substring(1)).join(" ")
                 : item.nama.slice(0, 29).split(" ").map((word) => word[0].toUpperCase() + word.substring(1)).join(" ") + '.'
+            
+            return name
+        }
+
+        const renderApprovalText = (item) => {
+            const name = renderName(item)
+            const jabatan = item.jabatan === null ? "-" : item.jabatan === 'area' ? 'AOS' : item.jabatan.toUpperCase()
+            
+            if (name === null) {
+                return `\n\n\n - \n\n\n ${jabatan}`
+            }
+            
+            if (item.status === 0) {
+                return `\n Reject (${moment(item.updatedAt).format('DD/MM/YYYY')}) \n\n ${name} \n ${jabatan}`
+            }
+            
+            return `\n Approve (${moment(item.updatedAt).format('DD/MM/YYYY')}) \n\n ${name} \n ${jabatan}`
+        }
+
+        // Helper untuk get column name (handle AA, AB, dst)
+        const getColName = (idx) => {
+            if (idx < 26) return alphabet[idx]
+            const firstLetter = alphabet[Math.floor(idx / 26) - 1]
+            const secondLetter = alphabet[idx % 26]
+            return firstLetter + secondLetter
+        }
+
+        // === 1. DIBUAT OLEH ===
+        if (hasPembuat) {
+            const startCol = alphabet[currentColIndex]
+            const endCol = alphabet[currentColIndex + distCol - 1]
+
+            ws.mergeCells(`${startCol}${sumRow}:${endCol}${sumRow}`)
+            ws.getCell(`${startCol}${sumRow}`).value = 'Dibuat oleh,'
+            ws.getCell(`${startCol}${sumRow}`).alignment = { horizontal:'center' }
+            ws.getCell(`${startCol}${sumRow}`).border = { ...borderStyles }
+
+            ws.mergeCells(`${startCol}${headRow}:${endCol}${botRow}`)
+            ws.getCell(`${startCol}${headRow}`).value = renderApprovalText(dataApp.pembuat[0])
+            ws.getCell(`${startCol}${headRow}`).alignment = { ...appStyle }
+            ws.getCell(`${startCol}${headRow}`).border = { ...borderStyles }
+
+            currentColIndex += distCol
+        }
+
+        // === 2. DIPERIKSA OLEH ===
+        if (hasPemeriksa) {
+            const numPemeriksa = dataApp.pemeriksa.length
+            const startColIdx = currentColIndex
+            const endColIdx = currentColIndex + (distCol * numPemeriksa) - 1
+            
+            const startCol = getColName(startColIdx)
+            const endCol = getColName(endColIdx)
+
+            ws.mergeCells(`${startCol}${sumRow}:${endCol}${sumRow}`)
+            ws.getCell(`${startCol}${sumRow}`).value = 'Diperiksa oleh,'
+            ws.getCell(`${startCol}${sumRow}`).alignment = { horizontal:'center' }
+            ws.getCell(`${startCol}${sumRow}`).border = { ...borderStyles }
+
+            dataApp.pemeriksa.forEach((item, index) => {
+                const colStartIdx = currentColIndex + (distCol * index)
+                const colEndIdx = colStartIdx + distCol - 1
+                const colStart = getColName(colStartIdx)
+                const colEnd = getColName(colEndIdx)
+
+                ws.mergeCells(`${colStart}${headRow}:${colEnd}${botRow}`)
+                ws.getCell(`${colStart}${headRow}`).value = renderApprovalText(item)
+                ws.getCell(`${colStart}${headRow}`).alignment = { ...appStyle }
+                ws.getCell(`${colStart}${headRow}`).border = { ...borderStyles }
+            })
+
+            currentColIndex += (distCol * numPemeriksa)
+        }
+
+        // === 3. DISETUJUI OLEH ===
+        if (hasPenyetuju) {
+            const numPenyetuju = dataApp.penyetuju.length
+            const startColIdx = currentColIndex
+            const endColIdx = currentColIndex + (distCol * numPenyetuju) - 1
+            
+            const startCol = getColName(startColIdx)
+            const endCol = getColName(endColIdx)
+
+            ws.mergeCells(`${startCol}${sumRow}:${endCol}${sumRow}`)
+            ws.getCell(`${startCol}${sumRow}`).value = 'Disetujui oleh,'
+            ws.getCell(`${startCol}${sumRow}`).alignment = { horizontal:'center' }
+            ws.getCell(`${startCol}${sumRow}`).border = { ...borderStyles }
+
+            dataApp.penyetuju.forEach((item, index) => {
+                const colStartIdx = startColIdx + (distCol * index)
+                const colEndIdx = colStartIdx + distCol - 1
+                const colStart = getColName(colStartIdx)
+                const colEnd = getColName(colEndIdx)
+
+                ws.mergeCells(`${colStart}${headRow}:${colEnd}${botRow}`)
+                ws.getCell(`${colStart}${headRow}`).value = renderApprovalText(item)
+                ws.getCell(`${colStart}${headRow}`).alignment = { ...appStyle }
+                ws.getCell(`${colStart}${headRow}`).border = { ...borderStyles }
+            })
+        }
+
+        await ws.protect('As5etPm4')
+
+        workbook.xlsx.writeBuffer().then(function(buffer) {
+            fs.saveAs(
+            new Blob([buffer], { type: "application/octet-stream" }),
+            `Form Stock Opname Asset ${detailStock[0].no_stock} ${moment().format('DD MMMM YYYY')}.xlsx`
+            )
+        })
+        
+        this.setState({isLoading: false})
+    }
+
+    downloadForm = async (val) => {
+        this.setState({isLoading: true})
+        const { detailStock, stockApp } = this.props.stock
+        const dataApp = stockApp
+
+        const alpha = Array.from(Array(26)).map((e, i) => i + 65)
+        const alphabet = alpha.map((x) => String.fromCharCode(x))
+
+        const workbook = new ExcelJS.Workbook();
+        const ws = workbook.addWorksheet('form stock opname', {
+            pageSetup: { orientation:'landscape', paperSize: 8 }
+        })
+
+        const borderStyles = {
+            top: {style:'thin'},
+            left: {style:'thin'},
+            bottom: {style:'thin'},
+            right: {style:'thin'}
+        }
+
+        const tbStyle = {
+            wrapText: true,
+            vertical: 'middle',
+            shrinkToFit: true
+        }
+
+        const appStyle = {
+            horizontal:'center',
+            wrapText: true,
+            vertical: 'middle'
+        }
+
+        const boldStyle = {
+            bold: true
+        }
+
+        const titleStyle = {
+            bold: true,
+            size: 12,
+        }
+
+        const alignStyle = {
+            horizontal:'left',
+            vertical: 'middle'
+        }
+
+        // Header info (baris 1-10)
+        ws.getCell(`B2`).value = 'KERTAS KERJA OPNAME ASET'
+        ws.getCell(`B2`).alignment = { ...alignStyle }
+        ws.getCell(`B2`).font = { ...titleStyle }
+
+        ws.getCell(`B4`).value = 'PT. PINUS MERAH ABADI'
+        ws.getCell(`B4`).alignment = { ...alignStyle }
+        ws.getCell(`B4`).font = { ...titleStyle }
+
+        ws.getCell(`B6`).value = 'KANTOR PUSAT/CABANG'
+        ws.getCell(`B6`).alignment = { ...alignStyle }
+        ws.getCell(`B6`).font = { ...titleStyle }
+
+        ws.getCell(`E6`).value = `: ${detailStock[0].area.toUpperCase()}`
+        ws.getCell(`E6`).alignment = { ...alignStyle }
+        ws.getCell(`E6`).font = { ...titleStyle }
+
+        ws.getCell(`B8`).value = 'DEPO/CP'
+        ws.getCell(`B8`).alignment = { ...alignStyle }
+        ws.getCell(`B8`).font = { ...titleStyle }
+
+        ws.getCell(`E8`).value = `: ${detailStock[0].area.toUpperCase()}`
+        ws.getCell(`E8`).alignment = { ...alignStyle }
+        ws.getCell(`E8`).font = { ...titleStyle }
+
+        ws.getCell(`B10`).value = 'OPNAME PER TANGGAL'
+        ws.getCell(`B10`).alignment = { ...alignStyle }
+        ws.getCell(`B10`).font = { ...titleStyle }
+
+        ws.getCell(`E10`).value = `: ${moment(detailStock[0].tanggalStock).format('DD MMMM YYYY')}`
+        ws.getCell(`E10`).alignment = { ...alignStyle }
+        ws.getCell(`E10`).font = { ...titleStyle }
+
+        // === HELPER FUNCTION: Create table header ===
+        const createTableHeader = (startRow) => {
+            const headerRow = startRow
+            
+            // NO
+            ws.getCell(`B${headerRow}`).value = 'NO'
+            ws.getCell(`B${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`B${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`B${headerRow}`).font = { ...boldStyle }
+
+            // NO. ASET
+            ws.mergeCells(`C${headerRow}:D${headerRow}`)
+            ws.getCell(`C${headerRow}`).value = 'NO. ASET'
+            ws.getCell(`C${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`C${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`C${headerRow}`).font = { ...boldStyle }
+
+            // DESKRIPSI
+            ws.mergeCells(`E${headerRow}:H${headerRow}`)
+            ws.getCell(`E${headerRow}`).value = 'DESKRIPSI'
+            ws.getCell(`E${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`E${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`E${headerRow}`).font = { ...boldStyle }
+
+            // MERK
+            ws.mergeCells(`I${headerRow}:J${headerRow}`)
+            ws.getCell(`I${headerRow}`).value = 'MERK'
+            ws.getCell(`I${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`I${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`I${headerRow}`).font = { ...boldStyle }
+
+            // SATUAN
+            ws.getCell(`K${headerRow}`).value = 'SATUAN'
+            ws.getCell(`K${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`K${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`K${headerRow}`).font = { ...boldStyle }
+
+            // UNIT
+            ws.getCell(`L${headerRow}`).value = 'UNIT'
+            ws.getCell(`L${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`L${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`L${headerRow}`).font = { ...boldStyle }
+
+            // STATUS FISIK
+            ws.getCell(`M${headerRow}`).value = 'STATUS FISIK'
+            ws.getCell(`M${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`M${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`M${headerRow}`).font = { ...boldStyle }
+
+            // KONDISI
+            ws.getCell(`N${headerRow}`).value = 'KONDISI'
+            ws.getCell(`N${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`N${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`N${headerRow}`).font = { ...boldStyle }
+
+            // LOKASI
+            ws.mergeCells(`O${headerRow}:P${headerRow}`)
+            ws.getCell(`O${headerRow}`).value = 'LOKASI'
+            ws.getCell(`O${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`O${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`O${headerRow}`).font = { ...boldStyle }
+
+            // GROUPING
+            ws.mergeCells(`Q${headerRow}:R${headerRow}`)
+            ws.getCell(`Q${headerRow}`).value = 'GROUPING'
+            ws.getCell(`Q${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`Q${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`Q${headerRow}`).font = { ...boldStyle }
+
+            // KETERANGAN
+            ws.mergeCells(`S${headerRow}:U${headerRow}`)
+            ws.getCell(`S${headerRow}`).value = 'KETERANGAN'
+            ws.getCell(`S${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`S${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`S${headerRow}`).font = { ...boldStyle }
+        }
+
+        // === HELPER FUNCTION: Create data row ===
+        const createDataRow = (item, rowNum, dataRow) => {
+            // NO
+            ws.getCell(`B${dataRow}`).value = rowNum
+            ws.getCell(`B${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`B${dataRow}`).border = { ...borderStyles }
+
+            // NO. ASET
+            ws.mergeCells(`C${dataRow}:D${dataRow}`)
+            ws.getCell(`C${dataRow}`).value = item.no_asset || ''
+            ws.getCell(`C${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`C${dataRow}`).border = { ...borderStyles }
+
+            // DESKRIPSI
+            ws.mergeCells(`E${dataRow}:H${dataRow}`)
+            ws.getCell(`E${dataRow}`).value = item.deskripsi || ''
+            ws.getCell(`E${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`E${dataRow}`).border = { ...borderStyles }
+
+            // MERK
+            ws.mergeCells(`I${dataRow}:J${dataRow}`)
+            ws.getCell(`I${dataRow}`).value = item.merk || ''
+            ws.getCell(`I${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`I${dataRow}`).border = { ...borderStyles }
+
+            // SATUAN
+            ws.getCell(`K${dataRow}`).value = item.satuan || ''
+            ws.getCell(`K${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`K${dataRow}`).border = { ...borderStyles }
+
+            // UNIT
+            ws.getCell(`L${dataRow}`).value = item.unit || ''
+            ws.getCell(`L${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`L${dataRow}`).border = { ...borderStyles }
+
+            // STATUS FISIK
+            ws.getCell(`M${dataRow}`).value = item.status_fisik || ''
+            ws.getCell(`M${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`M${dataRow}`).border = { ...borderStyles }
+
+            // KONDISI
+            ws.getCell(`N${dataRow}`).value = item.kondisi || ''
+            ws.getCell(`N${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`N${dataRow}`).border = { ...borderStyles }
+
+            // LOKASI
+            ws.mergeCells(`O${dataRow}:P${dataRow}`)
+            ws.getCell(`O${dataRow}`).value = item.lokasi || ''
+            ws.getCell(`O${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`O${dataRow}`).border = { ...borderStyles }
+
+            // GROUPING
+            ws.mergeCells(`Q${dataRow}:R${dataRow}`)
+            ws.getCell(`Q${dataRow}`).value = item.grouping || ''
+            ws.getCell(`Q${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`Q${dataRow}`).border = { ...borderStyles }
+
+            // KETERANGAN
+            ws.mergeCells(`S${dataRow}:U${dataRow}`)
+            ws.getCell(`S${dataRow}`).value = item.keterangan || ''
+            ws.getCell(`S${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`S${dataRow}`).border = { ...borderStyles }
+        }
+
+        // === TABLE dengan DIFFERENT LIMIT per PAGE ===
+        const firstPageLimit = 37  // Page 1 max 37 rows
+        const nextPageLimit = 47   // Page 2+ max 47 rows
+
+        let currentRow = 12  // Mulai dari baris 12
+        let dataIndex = 0    // Index data detailStock
+        let isFirstPage = true
+        let currentPageNumber = 1
+        let rowsInCurrentPage = 0
+
+        while (dataIndex < detailStock.length) {
+            // Tentukan berapa banyak rows di section ini
+            const rowsLimit = isFirstPage ? firstPageLimit : nextPageLimit
+            const rowsInThisSection = Math.min(rowsLimit, detailStock.length - dataIndex)
+
+            // Create table header
+            createTableHeader(currentRow)
+            currentRow++
+            rowsInCurrentPage++
+
+            // Create data rows untuk section ini
+            for (let i = 0; i < rowsInThisSection; i++) {
+                const item = detailStock[dataIndex]
+                createDataRow(item, dataIndex + 1, currentRow)
+                currentRow++
+                rowsInCurrentPage++
+                dataIndex++
+            }
+
+            // Tambah spacing sebelum section berikutnya (1 baris kosong)
+            currentRow++
+            rowsInCurrentPage++
+            
+            // Update tracking
+            isFirstPage = false
+            currentPageNumber++
+            rowsInCurrentPage = 0 // Reset untuk page berikutnya
+        }
+
+        // === CEK SISA SPACE DI HALAMAN TERAKHIR ===
+        // currentPageNumber sekarang = jumlah total page yang udah kepakai
+        // Hitung sisa rows di halaman terakhir
+        
+        let lastPageDataCount
+        if (detailStock.length <= firstPageLimit) {
+            // Semua data di page 1
+            lastPageDataCount = detailStock.length
+        } else {
+            // Ada data di page 2+
+            const dataAfterFirstPage = detailStock.length - firstPageLimit
+            const fullPagesAfterFirst = Math.floor(dataAfterFirstPage / nextPageLimit)
+            lastPageDataCount = dataAfterFirstPage % nextPageLimit
+            
+            // Kalau pas habis, berarti halaman terakhir penuh
+            if (lastPageDataCount === 0) {
+                lastPageDataCount = nextPageLimit
+            }
+        }
+
+        // Approval section butuh space minimal 9 baris (1 header + 1 spacing + 7 approval rows)
+        const approvalNeededRows = 9
+        
+        // Cek sisa space di halaman terakhir
+        const lastPageLimit = (detailStock.length <= firstPageLimit) ? firstPageLimit : nextPageLimit
+        const usedRowsInLastPage = lastPageDataCount + 1 // +1 untuk header table
+        const remainingSpace = lastPageLimit - usedRowsInLastPage
+
+        let sumRow, headRow, botRow
+        
+        if (remainingSpace < approvalNeededRows) {
+            // Ga cukup space, bikin page break
+            ws.getRow(currentRow).addPageBreak()
+            
+            // Approval di halaman baru
+            sumRow = currentRow + 2
+            headRow = sumRow + 1
+            botRow = sumRow + 7
+        } else {
+            // Cukup space, langsung aja
+            sumRow = currentRow + 1
+            headRow = sumRow + 1
+            botRow = sumRow + 7
+        }
+
+        // Cek data approval mana yang ada
+        const hasPembuat = dataApp.pembuat && dataApp.pembuat.length > 0
+        const hasPemeriksa = dataApp.pemeriksa && dataApp.pemeriksa.length > 0
+        const hasPenyetuju = dataApp.penyetuju && dataApp.penyetuju.length > 0
+
+        // Hitung total approval yang ada
+        const totalApprovers = (hasPembuat ? dataApp.pembuat.length : 0) + 
+                            (hasPemeriksa ? dataApp.pemeriksa.length : 0) + 
+                            (hasPenyetuju ? dataApp.penyetuju.length : 0)
+
+        const distCol = totalApprovers > 5 ? 3 : 4
+
+        let currentColIndex = 1 // mulai dari B (index 1)
+
+        // === HELPER FUNCTION untuk render nama ===
+        const renderName = (item) => {
+            if (!item.nama) return null
+            
+            const name = item.nama.length <= 30 
+                ? item.nama.split(" ").filter(word => word).map((word) => word[0].toUpperCase() + word.substring(1)).join(" ")
+                : item.nama.slice(0, 29).split(" ").filter(word => word).map((word) => word[0].toUpperCase() + word.substring(1)).join(" ") + '.'
             
             return name
         }

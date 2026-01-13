@@ -27,6 +27,7 @@ const userState = {
     detailRole: {},
     syncOnboarding: null,
     syncOffboarding: null,
+    menuRole: []
 };
 
 export default (state=userState, action) => {
@@ -160,6 +161,54 @@ export default (state=userState, action) => {
                     isDetailRole: false
                 };
             }
+
+            case 'GET_MENU_ROLE_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'GET_MENU_ROLE_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isError: false,
+                    menuRole: action.payload.data.result,
+                    alertMsg: 'get menu role Succesfully'
+                };
+            }
+            case 'GET_MENU_ROLE_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    alertMsg: 'failed get menu role'
+                };
+            }
+
+            case 'UPDATE_ROLE_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting'
+                };
+            }
+            case 'UPDATE_ROLE_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    updateRole: true,
+                    alertMsg: 'update role Succesfully'
+                };
+            }
+            case 'UPDATE_ROLE_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    updateRole: false,
+                };
+            }
+
             case 'ADD_ROLE_PENDING': {
                 return {
                     ...state,
@@ -184,26 +233,26 @@ export default (state=userState, action) => {
 
                 };
             }
-            case 'UPDATE_ROLE_PENDING': {
+            case 'UPDATE_MENU_ROLE_PENDING': {
                 return {
                     ...state,
                     isLoading: true,
                     alertMsg: 'Waiting'
                 };
             }
-            case 'UPDATE_ROLE_FULFILLED': {
+            case 'UPDATE_MENU_ROLE_FULFILLED': {
                 return {
                     ...state,
                     isLoading: false,
-                    updateRole: true,
-                    alertMsg: 'update role Succesfully'
+                    updateMenuRole: true,
+                    alertMsg: 'update Menu role Succesfully'
                 };
             }
-            case 'UPDATE_ROLE_REJECTED': {
+            case 'UPDATE_MENU_ROLE_REJECTED': {
                 return {
                     ...state,
                     isLoading: false,
-                    updateRole: false,
+                    updateMenuRole: false,
                 };
             }
             case 'NEXT_DATA_USER_PENDING': {

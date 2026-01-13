@@ -27,6 +27,10 @@ export default {
         type: 'GET_NAME_MENU',
         payload: http(token).get(`/menu/name`)
     }),
+    getSubMenu: (token) => ({
+        type: 'GET_SUB_MENU',
+        payload: http(token).get(`/menu/submenu`)
+    }),
     updateMenu: (token, id, data) => ({
         type: 'UPDATE_MENU',
         payload: http(token).patch(`/menu/update/${id}`, qs.stringify(data))
