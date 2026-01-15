@@ -793,28 +793,52 @@ class MasterUser extends Component {
                             const halfEnd = dataSub.slice(halfIndex);
                             
                             return (
-                                <div key={index} className='mt-4 mb-4 ml-4'>
-                                    <div>{item.name}</div>
-                                    <Row>
+                                <div key={index} className='menu-section'>
+                                    {/* Header Section */}
+                                    <div className='menu-header'>
+                                        {item.name}
+                                    </div>
+                                    
+                                    <Row className='g-3'>
                                         {/* Kolom Kiri */}
-                                        {halfFirst.map((x, idx) => (
-                                            <Col xl={6} lg={6} md={6} key={`left-${idx}`}>
-                                                <Input 
-                                                    type='checkbox' 
-                                                    checked={menuRole.length > 0 && menuRole.find(y => y.menu_id === x.id)} 
-                                                    onChange={() => this.updateAccess(x, menuRole.length > 0 && menuRole.find(y => y.menu_id === x.id)?.id)}
-                                                />
-                                                <span>{x.name}</span>
-                                            </Col>
-                                        ))}
+                                        <Col xl={6} lg={6} md={12}>
+                                            {halfFirst.map((x, idx) => (
+                                                <div 
+                                                    key={`left-${idx}`} 
+                                                    className={`pl-4 menu-item ${idx % 2 === 0 ? 'alternate' : ''}`}
+                                                >
+                                                    <Input 
+                                                        type='checkbox'
+                                                        className='menu-checkbox'
+                                                        checked={menuRole.length > 0 && menuRole.find(y => y.menu_id === x.id)} 
+                                                        onChange={() => this.updateAccess(x, menuRole.length > 0 && menuRole.find(y => y.menu_id === x.id)?.id)}
+                                                    />
+                                                    <span className='menu-label'>
+                                                        {x.name}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </Col>
                                         
                                         {/* Kolom Kanan */}
-                                        {halfEnd.map((x, idx) => (
-                                            <Col xl={6} lg={6} md={6} key={`right-${idx}`}>
-                                                <Input type='checkbox' />
-                                                <span>{x.name}</span>
-                                            </Col>
-                                        ))}
+                                        <Col xl={6} lg={6} md={12}>
+                                            {halfEnd.map((x, idx) => (
+                                                <div 
+                                                    key={`right-${idx}`} 
+                                                    className={`pl-4 menu-item ${idx % 2 === 0 ? 'alternate' : ''}`}
+                                                >
+                                                    <Input 
+                                                        type='checkbox'
+                                                        className='menu-checkbox'
+                                                        checked={menuRole.length > 0 && menuRole.find(y => y.menu_id === x.id)} 
+                                                        onChange={() => this.updateAccess(x, menuRole.length > 0 && menuRole.find(y => y.menu_id === x.id)?.id)}
+                                                    />
+                                                    <span className='menu-label'>
+                                                        {x.name}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </Col>
                                     </Row>
                                 </div>
                             )

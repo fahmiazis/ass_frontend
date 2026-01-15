@@ -11,7 +11,7 @@ import approve from '../../redux/actions/approve'
 import {BsCircle} from 'react-icons/bs'
 import {FaSearch, FaUserCircle, FaBars, FaCartPlus, FaTh, FaList} from 'react-icons/fa'
 import Sidebar from "../../components/Header";
-import { AiOutlineCheck, AiOutlineClose, AiFillCheckCircle, AiOutlineInbox} from 'react-icons/ai'
+import { AiOutlineCheck, AiOutlineClose, AiFillCheckCircle, AiOutlineInbox, AiOutlineFileExcel} from 'react-icons/ai'
 import MaterialTitlePanel from "../../components/material_title_panel"
 import SidebarContent from "../../components/sidebar_content"
 import style from '../../assets/css/input.module.css'
@@ -45,6 +45,7 @@ import Email from '../../components/Stock/Email'
 import EXIF from 'exif-js'
 const {REACT_APP_BACKEND_URL} = process.env
 const exclude = ['bandung', 'P01H140020']
+const accessBtn = ['P01H080002', 'P01H070001']
 
 const stockSchema = Yup.object().shape({
     merk: Yup.string().required("must be filled"),
@@ -133,7 +134,8 @@ class Stock extends Component {
             openCrashDraft: false,
             asetPart: 'all',
             openDelete: false,
-            detailData: {}
+            detailData: {},
+            uploadStock: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -1103,6 +1105,34 @@ class Stock extends Component {
         this.setState({idPop: cekId, openPop: cekOpen, dataPop: val})
     }
 
+    openUploadStock = () => {
+        this.setState({uploadStock: !this.state.uploadStock, fileUpload: ''})
+    }
+
+    prosesUploadDraftStock = async () => {
+        const token = localStorage.getItem('token')
+        const data = new FormData()
+        data.append('master', this.state.fileUpload)
+        await this.props.uploadDraftStock(token, data)
+        this.setState({confirm: 'sucUpload'})
+        this.openConfirm()
+        this.openUploadStock()
+        this.getDataAsset()
+    }
+
+    onSelectFile = e => {
+        const {size, type} = e.target.files[0]
+        if (size >= 5120000) {
+            this.setState({errMsg: "Maximum upload size 5 MB"})
+            this.uploadAlert()
+        } else if (type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && type !== 'application/vnd.ms-excel' ){
+            this.setState({errMsg: 'Invalid file type. Only excel files are allowed.'})
+            this.uploadAlert()
+        } else {
+            this.setState({fileUpload: e.target.files[0]})
+        }
+    }
+
     render() {
         const level = localStorage.getItem('level')
         const kode = localStorage.getItem('kode')
@@ -1154,7 +1184,22 @@ class Stock extends Component {
                         <h2 className={styleTrans.pageTitle}>Draft Stock Opname Asset</h2>
 
                         <div className={styleTrans.searchContainer}>
-                            <Button size="lg" color='primary' onClick={this.prosesSubmitPre}>Submit</Button>
+                            <div>
+                                <text>Show: </text>
+                                <ButtonDropdown className={style.drop} isOpen={this.state.drop} toggle={this.dropDown}>
+                                    <DropdownToggle caret color="light">
+                                        {this.state.limit}
+                                    </DropdownToggle>
+                                    <DropdownMenu>
+                                        <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 10, search: ''})}>10</DropdownItem>
+                                        <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 20, search: ''})}>20</DropdownItem>
+                                        <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 50, search: ''})}>50</DropdownItem>
+                                        <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 100, search: ''})}>100</DropdownItem>
+                                        <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 'all', search: ''})}>All</DropdownItem>
+                                    </DropdownMenu>
+                                </ButtonDropdown>
+                                <text> entries</text>
+                            </div>
                             {level == '9' && !isUserExcluded && (
                                 this.state.asetPart === 'all' ||
                                 (() => {
@@ -1185,21 +1230,11 @@ class Stock extends Component {
 
                         </div>
                         <div className={styleTrans.searchContainer}>
-                            <div>
-                                <text>Show: </text>
-                                <ButtonDropdown className={style.drop} isOpen={this.state.drop} toggle={this.dropDown}>
-                                    <DropdownToggle caret color="light">
-                                        {this.state.limit}
-                                    </DropdownToggle>
-                                    <DropdownMenu>
-                                        <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 10, search: ''})}>10</DropdownItem>
-                                        <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 20, search: ''})}>20</DropdownItem>
-                                        <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 50, search: ''})}>50</DropdownItem>
-                                        <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 100, search: ''})}>100</DropdownItem>
-                                        <DropdownItem className={style.item} onClick={() => this.getDataAsset({limit: 'all', search: ''})}>All</DropdownItem>
-                                    </DropdownMenu>
-                                </ButtonDropdown>
-                                <text> entries</text>
+                            <div className='rowGeneral'>
+                                <Button size="lg" color='primary' onClick={this.prosesSubmitPre}>Submit</Button>
+                                {accessBtn.find(x => x === kode) && (
+                                    <Button onClick={this.openUploadStock} size='lg' color='success' className='ml-2'>Upload Stock</Button>
+                                )}
                             </div>
                             <input
                                 type="text"
@@ -1278,13 +1313,13 @@ class Stock extends Component {
                                                             type="select"
                                                             className="inputRinci"
                                                             name="satuan"
-                                                            value={item.satuan}
+                                                            value={item.satuan ? item.satuan.toUpperCase() : ''}
                                                             defaultValue={item.satuan}
                                                             onChange={e => {this.updateNewAsset({item: item, target: e.target})} }
                                                         >
                                                             <option>-Pilih Satuan-</option>
-                                                            <option value="Unit">UNIT</option>
-                                                            <option value="Paket">PAKET</option>
+                                                            <option value="UNIT">UNIT</option>
+                                                            <option value="PAKET">PAKET</option>
                                                         </Input>
                                                     </td>
                                                     <td>{item.unit}</td>
@@ -2887,6 +2922,35 @@ class Stock extends Component {
                         </div>
                     </ModalBody>
                 </Modal>
+                <Modal toggle={this.openUploadStock} isOpen={this.state.uploadStock} >
+                    <ModalHeader>Upload Draft Stock Opname</ModalHeader>
+                    <ModalBody className={style.modalUpload}>
+                        <div className={style.titleModalUpload}>
+                            <text>Upload File: </text>
+                            <div className={style.uploadFileInput}>
+                                <AiOutlineFileExcel size={35} />
+                                <div className="ml-3">
+                                    <Input
+                                    type="file"
+                                    name="file"
+                                    accept=".xls,.xlsx"
+                                    onChange={this.onSelectFile}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="selfCenter mt-4 mb-4">
+                            <Button 
+                                color="primary mr-2" 
+                                disabled={this.state.fileUpload === "" ? true : false } 
+                                onClick={this.prosesUploadDraftStock}
+                            >
+                                Upload
+                            </Button>
+                            <Button onClick={this.openUploadStock}>Cancel</Button>
+                        </div>
+                    </ModalBody>
+                </Modal>
                 <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="md">
                 <ModalBody>
                     {this.state.confirm === 'approve' ? (
@@ -2962,6 +3026,13 @@ class Stock extends Component {
                             <div className={style.cekUpdate}>
                                 <AiFillCheckCircle size={80} className={style.green} />
                                 <div className={[style.sucUpdate, style.green]}>Berhasil Approve</div>
+                            </div>
+                        </div>
+                    ) : this.state.confirm === 'sucUpload' ? (
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Upload Draft Stock</div>
                             </div>
                         </div>
                     ) : this.state.confirm === 'submit' ? (
@@ -3172,6 +3243,7 @@ const mapDispatchToProps = {
     deleteAdd: stock.deleteAdd,
     getDraftEmail: tempmail.getDraftEmail,
     sendEmail: tempmail.sendEmail,
+    uploadDraftStock: stock.uploadDraftStock
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Stock)

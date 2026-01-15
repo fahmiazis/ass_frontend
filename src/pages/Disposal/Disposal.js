@@ -132,7 +132,6 @@ class Disposal extends Component {
             openDraft: false,
             subject: '',
             message: '',
-            listStat: [],
             typeReject: '',
             menuRev: '',
             tipeEmail: '',

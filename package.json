@@ -20,6 +20,7 @@
     "jszip": "^3.10.1",
     "lodash.debounce": "^4.0.8",
     "moment": "^2.29.1",
+    "pdfjs-dist": "2.6.347",
     "querystring": "^0.2.1",
     "react": "^17.0.2",
     "react-barcode": "1.4.1",

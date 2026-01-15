@@ -9,6 +9,7 @@ import MaterialTitlePanel from "../../components/material_title_panel"
 import Sidebar from "../../components/Header";
 import SidebarContent from "../../components/sidebar_content"
 import stock from '../../redux/actions/stock'
+import asset from '../../redux/actions/asset'
 import auth from '../../redux/actions/auth'
 import depo from '../../redux/actions/depo'
 import {connect} from 'react-redux'
@@ -37,7 +38,7 @@ class ReportStock extends Component {
             fisik: '',
             sap: '',
             kondisi: '',
-            limit: 10,
+            limit: 'all',
             dropOpen: false,
             nilai_buku: 0,
             accum_dep: 0,
@@ -48,9 +49,13 @@ class ReportStock extends Component {
             plant: '',
             areaDrop: false,
             time: 'pilih',
-            time1: moment().subtract(1, 'month').startOf('month').format('YYYY-MM-DD'),
+            // time1: moment().subtract(1, 'month').startOf('month').format('YYYY-MM-26'),
+            time1: moment().subtract(1, 'month').format('YYYY-MM-26'),
             // time1: moment().startOf('month').format('YYYY-MM-DD'),
-            time2: moment().endOf('month').format('YYYY-MM-DD'),
+            // time2: moment().endOf('month').format('YYYY-MM-DD'),
+            time2: moment().endOf('month').format('YYYY-MM-25'),
+            newReport: [],
+            isLoading: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -79,8 +84,9 @@ class ReportStock extends Component {
 
     async componentDidMount () {
         const token = localStorage.getItem("token")
-        await this.props.getDepo(token, 400, '', 1)
-        this.getDataStock({limit: 10, search: '', group: 'all', sap: 'all', fisik: 'all', kondisi: 'all', plant: 'all'})
+        await this.props.getDepo(token, 10000, '', 1)
+        await this.props.getAsset(token, 'all', '', 1, 'master')
+        this.getDataStock({limit: 'all', search: '', group: 'all', sap: 'all', fisik: 'all', kondisi: 'all', plant: 'all'})
     }
 
     dropBut = () => {
@@ -126,6 +132,7 @@ class ReportStock extends Component {
     }
 
     getDataStock = async (value) => {
+        this.setState({isLoading: true})
         const token = localStorage.getItem("token")
         const {time1, time2} = this.state
         const cekTime1 = time1 === '' ? 'undefined' : time1
@@ -136,24 +143,78 @@ class ReportStock extends Component {
         const group = value === undefined ? this.state.group : value.group
         await this.props.getReportAll(token, search, limit, pageRep === undefined ? 1 : pageRep.currentPage, group, value.fisik, value.sap, value.kondisi, value.plant, cekTime1, cekTime2)
         await this.props.getStatusAll(token)
-        const {dataRep} = this.props.stock
+        const { dataRep } = this.props.stock
+        const { dataAsset } = this.props.asset
         this.setState({group: value.group, sap: value.sap, fisik: value.fisik, kondisi: value.kondisi, plant: value.plant})
         let buku = 0
         let acquis = 0
         let accum = 0
-        for (let i = 0; i < dataRep.length; i++) {
-            if (dataRep[i].dataAsset !== null) {
-                buku += parseInt(dataRep[i].dataAsset.nilai_buku)
-                acquis += parseInt(dataRep[i].dataAsset.nilai_acquis)
-                accum += parseInt(dataRep[i].dataAsset.accum_dep)
+        const newData = []
+        const { dataDepo } = this.props.depo
+        for (let i = 0; i < dataAsset.length; i++) {
+            const asset = dataAsset[i]
+            buku += parseFloat(asset.nilai_buku)
+            acquis += parseFloat(asset.nilai_acquis)
+            accum += parseFloat(asset.accum_dep)
+            const cek = dataRep.find(x => x.no_asset === asset.no_asset && x.status_doc !== 1)
+            const cekApp = dataRep.find(x => x.no_asset === asset.no_asset && x.status_doc !== 1 && x.status_reject !== 1)
+            const dataSelect = cekApp ? 'cekApp' : cek ? 'cek' : 'not_found'
+            const dataFinal = dataSelect === 'not_found' ? {
+                ...asset,
+                new_status: asset.status === '0' ? 'Aset telah Disposal' : 'Belum submit'
+            } : dataSelect === 'cekApp' ? {
+                ...cekApp,
+                nilai_acquis: asset.nilai_acquis,
+                accum_dep: asset.accum_dep,
+                nilai_buku: asset.nilai_buku,
+                cost_center: asset.cost_center,
+                new_status: asset.status === '0' ? 'Aset telah Disposal' : cekApp.status_form === 8 ? 'Finish' : 'In Progress'
+            } : {
+                ...cek,
+                nilai_acquis: asset.nilai_acquis,
+                accum_dep: asset.accum_dep,
+                nilai_buku: asset.nilai_buku,
+                cost_center: asset.cost_center,
+                new_status: asset.status === '0' ? 'Aset telah Disposal' : cek.status_form === 0 ? 'Rejected' : cek.status_reject === 1 && cek.status_form !== 0 ? 'Revisi' : 'In Progress'
             }
+            newData.push(dataFinal)
         }
-        this.setState({limit: value === undefined ? 10 : value.limit, nilai_buku: buku, nilai_acquis: acquis, accum_dep: accum})
+
+        const newAdditional = [] 
+        const dataAdditional = dataRep.filter(item => item.status_doc === 1)
+        for (let i = 0; i < dataAdditional.length; i++) {
+            const addition = dataAdditional[i]
+            const selectDepo = dataDepo.find(x => x.kode_plant === addition.kode_plant)
+            const send = {
+                ...addition,
+                nilai_acquis: 0,
+                accum_dep: 0,
+                nilai_buku: 0,
+                cost_center: selectDepo ? selectDepo.cost_center : '',
+                new_status: addition.status_form === 0 ? 'Rejected (Asset Tambahan)' : addition.status_reject === 1 && addition.status_form !== 0 ? 'Revisi (Asset Tambahan)' : addition.status_form === 8 ? 'Finish (Asset Tambahan)': 'In Progress (Asset Tambahan)'
+            }
+            newAdditional.push(send)
+        }
+
+        const newReport = [
+            ...newData,
+            ...newAdditional
+        ]
+
+        setTimeout(() => {
+            console.log(`acquis: ${acquis}`)
+            console.log(`accum dep: ${accum}`)
+            console.log(`nbv: ${buku}`)
+            this.setState({limit: value === undefined ? 10 : value.limit, nilai_buku: buku, nilai_acquis: acquis, accum_dep: accum, newReport: newReport})
+        }, 100)
+        this.setState({isLoading: false})
     }
 
     downloadReport = async (val) => {
+        this.setState({isLoading: true})
         const { dataRep, pageRep, dataAll } = this.props.stock
-        const dataDownload = dataRep
+        const { newReport } = this.state
+        const dataDownload = newReport
 
         const workbook = new ExcelJS.Workbook();
         const ws = workbook.addWorksheet('report stock opname')
@@ -186,7 +247,8 @@ class ReportStock extends Component {
             {header: 'ACQUIS VAL', key: 'c15'},
             {header: 'ACCUM DEP', key: 'c16'},
             {header: 'BOOK VAL', key: 'c17'},
-            {header: 'KETERANGAN', key: 'c18'}
+            {header: 'KETERANGAN', key: 'c18'},
+            {header: 'STATUS', key: 'c19'}
         ]
 
         dataDownload.map((item, index) => { return ( ws.addRow(
@@ -196,48 +258,33 @@ class ReportStock extends Component {
                 c3: item.deskripsi,
                 c4: item.merk,
                 c5: item.kode_plant,
-                c6: item.depo.cost_center,
-                c7: item.depo.nama_area,
+                c6: item.cost_center,
+                c7: item.area,
                 c8: item.satuan,
                 c9: item.unit,
                 c10: item.lokasi,
-                c11: item.no_asset === null ? 'TIDAK ADA' : 'ADA',
+                c11: item.new_status === 'Belum submit' ? 'ADA' : item.status_doc === 1 ? 'TIDAK ADA' : 'ADA',
                 c12: item.status_fisik,
                 c13: item.kondisi,
                 c14: item.grouping,
-                c15: item.dataAsset === null ? '-' : item.dataAsset.nilai_acquis,
-                c16: item.dataAsset === null ? '-' : item.dataAsset.accum_dep,
-                c17: item.dataAsset === null ? '-' : item.dataAsset.nilai_buku,
-                c18: item.keterangan
+                c15: item.nilai_acquis,
+                c16: item.accum_dep,
+                c17: item.nilai_buku,
+                c18: item.keterangan,
+                c19: item.new_status
             }
         )
         ) })
         
 
-        // ws.addRow(
-        //     {
-        //         c13: 'TOTAL :',
-        //         c14: dataDownload.reduce((accumulator, object) => {
-        //             return accumulator + parseInt(object.nilai_ajuan);
-        //         }, 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."),
-        //         c15: '',
-        //         c16: '',
-        //         c17: '',
-        //         c18: '',
-        //         c19: '',
-        //         c20: '',
-        //         c21: '',
-        //         c22: '',
-        //         c23: '',
-        //         c24: '',
-        //         c25: '',
-        //         c26: '',
-        //         c27: '',
-        //         c28: '',
-        //         c29: '',
-        //         c30: ''
-        //     }
-        // )
+        ws.addRow(
+            {
+                c14: 'TOTAL :',
+                c15: this.state.nilai_acquis,
+                c16: this.state.accum_dep,
+                c17: this.state.nilai_buku,
+            }
+        )
 
         ws.eachRow({ includeEmpty: true }, function(row, rowNumber) {
             row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
@@ -256,7 +303,9 @@ class ReportStock extends Component {
               new Blob([buffer], { type: "application/octet-stream" }),
               `Report Stock Opname ${moment().format('DD MMMM YYYY')}.xlsx`
             );
-          });
+        });
+        
+        this.setState({isLoading: false})
     }
 
     render() {
@@ -264,6 +313,12 @@ class ReportStock extends Component {
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
         const { dataRep, pageRep, dataAll } = this.props.stock
+        const { dataAsset } = this.props.asset
+        const { newReport, isLoading } = this.state
+        const loadingDepo = this.props.depo.isLoading
+        const loadingAsset = this.props.asset.isLoading
+        const loadingStock = this.props.stock.isLoading
+        const isLoadingAll = loadingDepo || loadingAsset || loadingStock || isLoading
 
         const contentHeader =  (
             <div className={style.navbar}>
@@ -295,209 +350,6 @@ class ReportStock extends Component {
 
         return (
             <>
-                {/* <Sidebar {...sidebarProps}>
-                    <MaterialTitlePanel title={contentHeader}>
-                        <div className={style.backgroundLogo}>
-                            <div className={style.bodyDashboard}>
-                                <div className={style.headMaster}>
-                                    <div className={style.titleDashboard}>Report Stock Opname</div>
-                                </div>
-                                <div className={style.secEmail}>
-                                    <div className='mt-4'>
-                                        <div className={style.secHeadDashboard2}>
-                                            <div>
-                                                <text>Status Fisik: </text>
-                                                <ButtonDropdown className={style.drop} isOpen={this.state.drop} toggle={this.dropOpen}>
-                                                <DropdownToggle caret color="light">
-                                                    {this.state.fisik === '' ? 'Pilih status fisik' : this.state.fisik}
-                                                </DropdownToggle>
-                                                <DropdownMenu>
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: 'all', kondisi: this.state.kondisi, plant: this.state.plant})}>All</DropdownItem>
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: 'ada', kondisi: this.state.kondisi, plant: this.state.plant})}>Ada</DropdownItem>
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: 'tidak ada', kondisi: this.state.kondisi, plant: this.state.plant})}>Tidak Ada</DropdownItem>
-                                                </DropdownMenu>
-                                                </ButtonDropdown>
-                                            </div>
-                                            <div className='ml-3' >
-                                                <text>Kondisi: </text>
-                                                <ButtonDropdown className={style.drop} isOpen={this.state.dropCond} toggle={this.dropKondisi}>
-                                                <DropdownToggle caret color="light">
-                                                    {this.state.kondisi === '' ? 'Pilih status fisik' : this.state.kondisi}
-                                                </DropdownToggle>
-                                                <DropdownMenu>
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: 'all', plant: this.state.plant})}>All</DropdownItem>
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: '', plant: this.state.plant})}>-</DropdownItem>
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: 'baik', plant: this.state.plant})}>Baik</DropdownItem>
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: 'rusak', plant: this.state.plant})}>Rusak</DropdownItem>
-                                                </DropdownMenu>
-                                                </ButtonDropdown>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className={style.searchEmail}>
-                                        <text>Search: </text>
-                                        <Input 
-                                        className={style.search}
-                                        onChange={this.onSearch}
-                                        value={this.state.search}
-                                        onKeyPress={this.onSearch}
-                                        >
-                                            <FaSearch size={20} />
-                                        </Input>
-                                    </div>
-                                </div>
-                                <div className='sec2Head'>
-                                    <div className={style.secHeadDashboard2}>
-                                        <div className='' >
-                                            <text>Status SAP: </text>
-                                            <ButtonDropdown className={style.drop} isOpen={this.state.dropBtn} toggle={this.dropBut}>
-                                            <DropdownToggle caret color="light">
-                                                {this.state.sap === '' ? 'Pilih status sap' : this.state.sap === 'null' ? 'Tidak ada' : this.state.sap}
-                                            </DropdownToggle>
-                                            <DropdownMenu>
-                                                <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: 'all', fisik: this.state.fisik, kondisi: this.state.kondisi, plant: this.state.plant})}>All</DropdownItem>
-                                                <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: 'ada', fisik: this.state.fisik, kondisi: this.state.kondisi, plant: this.state.plant})}>Ada</DropdownItem>
-                                                <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: 'null', fisik: this.state.fisik, kondisi: this.state.kondisi, plant: this.state.plant})}>Tidak Ada</DropdownItem>
-                                            </DropdownMenu>
-                                            </ButtonDropdown>
-                                        </div>
-                                        <div className='ml-3'>
-                                            <text>Status Aset: </text>
-                                            <ButtonDropdown className={style.drop} isOpen={this.state.dropOpen} toggle={this.dropDown}>
-                                            <DropdownToggle caret color="light">
-                                                {this.state.group === '' ? 'Pilih status aset' :  this.state.group}
-                                            </DropdownToggle>
-                                            <DropdownMenu>
-                                                <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: 'all', sap: this.state.sap, fisik: this.state.fisik, kondisi: this.state.kondisi, plant: this.state.plant})}>All</DropdownItem>
-                                                {dataAll.length !== 0 && dataAll.map(item => {
-                                                    return (
-                                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: item.status, sap: this.state.sap, fisik: this.state.fisik, kondisi: this.state.kondisi, plant: this.state.plant})}>{item.status}</DropdownItem>
-                                                    )
-                                                })}
-                                            </DropdownMenu>
-                                            </ButtonDropdown>
-                                        </div>
-                                    </div>
-                                    <div className='ml-3'>
-                                        <text>Area: </text>
-                                        <ButtonDropdown className={style.drop} isOpen={this.state.areaDrop} toggle={this.dropArea}>
-                                        <DropdownToggle caret color="light">
-                                            {this.state.plant === '' ? 'Pilih Area' :  this.state.plant}
-                                        </DropdownToggle>
-                                        <DropdownMenu>
-                                            <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: this.state.kondisi, plant: 'all'})}>All</DropdownItem>
-                                            {dataDepo.length !== 0 && dataDepo.map(item => {
-                                                return (
-                                                    <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: this.state.kondisi, plant: item.kode_plant})}>{item.nama_area}</DropdownItem>
-                                                )
-                                            })}
-                                        </DropdownMenu>
-                                        </ButtonDropdown>
-                                    </div>
-                                </div>
-                                <div className={style.tableDashboard}>
-                                    {this.state.tipe === 'report' ? (
-                                        <Table bordered responsive hover className={style.tab} id="table-to-xls">
-                                            <thead>
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>ASSET</th>
-                                                    <th>DESKRIPSI</th>
-                                                    <th>MERK</th>
-                                                    <th>PLANT</th>
-                                                    <th>COST CENTER</th>
-                                                    <th>AREA</th>
-                                                    <th>SATUAN</th>
-                                                    <th>UNIT</th>
-                                                    <th>LOKASI</th>
-                                                    <th>STATUS SAP</th>
-                                                    <th>STATUS FISIK</th>
-                                                    <th>KONDISI</th>
-                                                    <th>GROUPING</th>
-                                                    <th>ACQUIS VAL</th>
-                                                    <th>ACCUM DEP</th>
-                                                    <th>BOOK VAL</th>
-                                                    <th>KETERANGAN</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {dataRep.length !== 0 && dataRep.map(item => {
-                                                    return (
-                                                    <tr>
-                                                        <th scope="row">{(dataRep.indexOf(item) + (((pageRep.currentPage - 1) * pageRep.limitPerPage) + 1))}</th>
-                                                        <td>{item.no_asset}</td>
-                                                        <td>{item.deskripsi}</td>
-                                                        <td>{item.merk}</td>
-                                                        <td>{item.kode_plant}</td>
-                                                        <td>{item.depo.cost_center}</td>
-                                                        <td>{item.depo.nama_area}</td>
-                                                        <td>{item.satuan}</td>
-                                                        <td>{item.unit}</td>
-                                                        <td>{item.lokasi}</td>
-                                                        <td>{item.no_asset === null ? 'TIDAK ADA' : 'ADA'}</td>
-                                                        <td style={{textTransform: 'uppercase'}}>{item.status_fisik}</td>
-                                                        <td style={{textTransform: 'uppercase'}}>{item.kondisi}</td>
-                                                        <td>{item.grouping}</td>
-                                                        <td>{item.dataAsset === null ? '-' : item.dataAsset.nilai_acquis}</td>
-                                                        <td>{item.dataAsset === null ? '-' : item.dataAsset.accum_dep}</td>
-                                                        <td>{item.dataAsset === null ? '-' : item.dataAsset.nilai_buku}</td>
-                                                        <td>{item.keterangan}</td>
-                                                    </tr>
-                                                    )})}
-                                                    <tr>
-                                                        <td colSpan={12} style={{textAlign: "center", fontSize: 'medium'}}>Jumlah</td>
-                                                        <td>{this.state.nilai_acquis}</td>
-                                                        <td>{this.state.accum_dep}</td>
-                                                        <td>{this.state.nilai_buku}</td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                    </tr>
-                                            </tbody>
-                                        </Table>
-                                    ) : (
-                                        <Table bordered responsive hover className={style.tab}>
-                                            <thead>
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>Rekapitulasi</th>
-                                                    <th>Acquis.val.</th>
-                                                    <th>Accum.dep.</th>
-                                                    <th>Book val.</th>
-                                                    <th>Eksekusi</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                    <tr>
-                                                        <th scope="row">1</th>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                    </tr>
-                                            </tbody>
-                                        </Table>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="mb-3">
-                                <div className={style.infoPageEmail}>
-                                    <ReactHtmlToExcel
-                                        id="test-table-xls-button"
-                                        className="btn btn-success"
-                                        table="table-to-xls"
-                                        filename="Report Stock Opname"
-                                        sheet="Report"
-                                        buttonText="Download"
-                                    />
-                                    <div className={style.pageButton}>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </MaterialTitlePanel>
-                </Sidebar> */}
                 <div className={styleTrans.app}>
                     <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
 
@@ -513,9 +365,9 @@ class ReportStock extends Component {
                                         {this.state.fisik === '' ? 'Pilih status fisik' : this.state.fisik}
                                     </DropdownToggle>
                                     <DropdownMenu>
-                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: 'all', kondisi: this.state.kondisi, plant: this.state.plant})}>All</DropdownItem>
-                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: 'ada', kondisi: this.state.kondisi, plant: this.state.plant})}>Ada</DropdownItem>
-                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: 'tidak ada', kondisi: this.state.kondisi, plant: this.state.plant})}>Tidak Ada</DropdownItem>
+                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 'all', search: '', group: this.state.group, sap: this.state.sap, fisik: 'all', kondisi: this.state.kondisi, plant: this.state.plant})}>All</DropdownItem>
+                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 'all', search: '', group: this.state.group, sap: this.state.sap, fisik: 'ada', kondisi: this.state.kondisi, plant: this.state.plant})}>Ada</DropdownItem>
+                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 'all', search: '', group: this.state.group, sap: this.state.sap, fisik: 'tidak ada', kondisi: this.state.kondisi, plant: this.state.plant})}>Tidak Ada</DropdownItem>
                                     </DropdownMenu>
                                     </ButtonDropdown>
                                 </div>
@@ -526,10 +378,10 @@ class ReportStock extends Component {
                                         {this.state.kondisi === '' ? 'Pilih status fisik' : this.state.kondisi}
                                     </DropdownToggle>
                                     <DropdownMenu>
-                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: 'all', plant: this.state.plant})}>All</DropdownItem>
-                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: '', plant: this.state.plant})}>-</DropdownItem>
-                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: 'baik', plant: this.state.plant})}>Baik</DropdownItem>
-                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: 'rusak', plant: this.state.plant})}>Rusak</DropdownItem>
+                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 'all', search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: 'all', plant: this.state.plant})}>All</DropdownItem>
+                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 'all', search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: '', plant: this.state.plant})}>-</DropdownItem>
+                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 'all', search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: 'baik', plant: this.state.plant})}>Baik</DropdownItem>
+                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 'all', search: '', group: this.state.group, sap: this.state.sap, fisik: this.state.fisik, kondisi: 'rusak', plant: this.state.plant})}>Rusak</DropdownItem>
                                     </DropdownMenu>
                                     </ButtonDropdown>
                                 </div>
@@ -549,9 +401,9 @@ class ReportStock extends Component {
                                         {this.state.sap === '' ? 'Pilih status sap' : this.state.sap === 'null' ? 'Tidak ada' : this.state.sap}
                                     </DropdownToggle>
                                     <DropdownMenu>
-                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: 'all', fisik: this.state.fisik, kondisi: this.state.kondisi, plant: this.state.plant})}>All</DropdownItem>
-                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: 'ada', fisik: this.state.fisik, kondisi: this.state.kondisi, plant: this.state.plant})}>Ada</DropdownItem>
-                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: this.state.group, sap: 'null', fisik: this.state.fisik, kondisi: this.state.kondisi, plant: this.state.plant})}>Tidak Ada</DropdownItem>
+                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 'all', search: '', group: this.state.group, sap: 'all', fisik: this.state.fisik, kondisi: this.state.kondisi, plant: this.state.plant})}>All</DropdownItem>
+                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 'all', search: '', group: this.state.group, sap: 'ada', fisik: this.state.fisik, kondisi: this.state.kondisi, plant: this.state.plant})}>Ada</DropdownItem>
+                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 'all', search: '', group: this.state.group, sap: 'null', fisik: this.state.fisik, kondisi: this.state.kondisi, plant: this.state.plant})}>Tidak Ada</DropdownItem>
                                     </DropdownMenu>
                                     </ButtonDropdown>
                                 </div>
@@ -562,10 +414,10 @@ class ReportStock extends Component {
                                         {this.state.group === '' ? 'Pilih status aset' :  this.state.group}
                                     </DropdownToggle>
                                     <DropdownMenu>
-                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: 'all', sap: this.state.sap, fisik: this.state.fisik, kondisi: this.state.kondisi, plant: this.state.plant})}>All</DropdownItem>
+                                        <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 'all', search: '', group: 'all', sap: this.state.sap, fisik: this.state.fisik, kondisi: this.state.kondisi, plant: this.state.plant})}>All</DropdownItem>
                                         {dataAll.length !== 0 && dataAll.map(item => {
                                             return (
-                                                <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 10, search: '', group: item.status, sap: this.state.sap, fisik: this.state.fisik, kondisi: this.state.kondisi, plant: this.state.plant})}>{item.status}</DropdownItem>
+                                                <DropdownItem className={style.item} onClick={() => this.getDataStock({limit: 'all', search: '', group: item.status, sap: this.state.sap, fisik: this.state.fisik, kondisi: this.state.kondisi, plant: this.state.plant})}>{item.status}</DropdownItem>
                                             )
                                         })}
                                     </DropdownMenu>
@@ -646,30 +498,32 @@ class ReportStock extends Component {
                                     <th>ACCUM DEP</th>
                                     <th>BOOK VAL</th>
                                     <th>KETERANGAN</th>
+                                    <th>STATUS</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {dataRep.length > 0 && dataRep.map(item => {
+                                {newReport.length > 0 && newReport.map((item, index) => {
                                     return (
                                         <tr className={item.status_form === '0' ? 'fail' : item.status_reject === 0 ? 'note' : item.status_reject === 1 && 'bad'}>
-                                            <td scope="row">{(dataRep.indexOf(item) + (((pageRep.currentPage - 1) * pageRep.limitPerPage) + 1))}</td>
+                                            <td>{index + 1}</td>
                                             <td>{item.no_asset}</td>
-                                            <td>{item.deskripsi}</td>
+                                            <td>{item.new_status === 'Belum submit' ? item.nama_asset : item.deskripsi}</td>
                                             <td>{item.merk}</td>
                                             <td>{item.kode_plant}</td>
-                                            <td>{item.depo.cost_center}</td>
-                                            <td>{item.depo.nama_area}</td>
+                                            <td>{item.cost_center}</td>
+                                            <td>{item.area}</td>
                                             <td>{item.satuan}</td>
                                             <td>{item.unit}</td>
                                             <td>{item.lokasi}</td>
-                                            <td>{item.no_asset === null ? 'TIDAK ADA' : 'ADA'}</td>
+                                            <td>{item.new_status === 'Belum submit' ? 'ADA' : item.status_doc === 1 ? 'TIDAK ADA' : 'ADA'}</td>
                                             <td style={{textTransform: 'uppercase'}}>{item.status_fisik}</td>
                                             <td style={{textTransform: 'uppercase'}}>{item.kondisi}</td>
                                             <td>{item.grouping}</td>
-                                            <td>{item.dataAsset === null ? '-' : item.dataAsset.nilai_acquis}</td>
-                                            <td>{item.dataAsset === null ? '-' : item.dataAsset.accum_dep}</td>
-                                            <td>{item.dataAsset === null ? '-' : item.dataAsset.nilai_buku}</td>
+                                            <td>{item.nilai_acquis}</td>
+                                            <td>{item.accum_dep}</td>
+                                            <td>{item.nilai_buku}</td>
                                             <td>{item.keterangan}</td>
+                                            <td>{item.new_status}</td>
                                         </tr>
                                     )
                                 })}
@@ -683,7 +537,7 @@ class ReportStock extends Component {
                         )}
                     </div>
                 </div>
-                <Modal isOpen={this.props.stock.isLoading || this.props.depo.isLoading ? true: false} size="sm">
+                <Modal isOpen={isLoadingAll} size="sm">
                         <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>
@@ -700,7 +554,8 @@ class ReportStock extends Component {
 
 const mapStateToProps = state => ({
     stock: state.stock,
-    depo: state.depo
+    depo: state.depo,
+    asset: state.asset
 })
 
 const mapDispatchToProps = {
@@ -708,6 +563,7 @@ const mapDispatchToProps = {
     getReportAll: stock.getReportAll,
     getStatusAll: stock.getStatusAll,
     getDepo: depo.getDepo,
+    getAsset: asset.getAsset
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(ReportStock)

@@ -27,6 +27,7 @@ import depo from '../../redux/actions/depo'
 import OtpInput from "react-otp-input";
 import moment from 'moment'
 import auth from '../../redux/actions/auth'
+import menu from '../../redux/actions/menu'
 import { default as axios } from 'axios'
 import Sidebar from "../../components/Header"
 import MaterialTitlePanel from "../../components/material_title_panel"
@@ -155,7 +156,13 @@ class Pengadaan extends Component {
             openFill: false,
             dataRej: {},
             history: false,
-            options: []
+            options: [],
+            typeCost: '',
+            listCost: [],
+            openCost: false,
+            detailData: [],
+            totalPriceDetail: 0,
+            valueIo: ''
         }
         this.onSetOpen = this.onSetOpen.bind(this)
         this.menuButtonClick = this.menuButtonClick.bind(this)
@@ -303,6 +310,24 @@ class Pengadaan extends Component {
 
     openRinciAdmin = () => {
         this.setState({ rinciAdmin: !this.state.rinciAdmin })
+    }
+
+    prosesOpenPreview = (val) => {
+        const { detailIo } = this.props.pengadaan
+        const cekData = detailIo.find(x => x.id === val.pengadaan_id)
+        const finalData = {
+            ...cekData,
+            cost_center: val.cost_center.split('-')[1],
+            nik: val.nik,
+            qty: val.qty,
+            no_io: val.no_io
+        }
+        let totalPriceDetail = parseInt(finalData.price) * parseInt(finalData.qty)
+        console.log(totalPriceDetail)
+        setTimeout(() => {
+            this.setState({detailData: [finalData], totalPriceDetail: totalPriceDetail, valueIo: val.no_io})
+            this.openPreview()
+        }, 100)
     }
 
     openPreview = () => {
@@ -783,6 +808,8 @@ class Pengadaan extends Component {
         await this.props.getApproveIo(token, val.no_pengadaan)
         const data = this.props.pengadaan.detailIo
         let num = 0
+        const listCost = []
+        const cekCost = []
         for (let i = 0; i < data.length; i++) {
             // if (data[i].isAsset !== 'true' && level !== '2' ) {
             //     const temp = 0
@@ -791,9 +818,21 @@ class Pengadaan extends Component {
             const temp = parseInt(data[i].price) * parseInt(data[i].qty)
             num += temp
             // }
+            await this.props.getDetailItem(token, data[i].id)
+            if (data[0].type_ajuan !== 'single' && data[0].type_ajuan !== 'multiple') {
+                cekCost.push('area')
+            } else {
+                const { dataDetail } = this.props.pengadaan
+                for (let x = 0; x < dataDetail.length; x++) {
+                    listCost.push(dataDetail[x])
+                    cekCost.push(dataDetail[x].cost_center)
+                }
+            }
         }
+        const uniqueCost = [...new Set(cekCost)]
+        const typeCost = cekCost[0] === 'area' ? 'area' : uniqueCost.length > 1 ? "MULTIPLE" : uniqueCost[0].split('-')[1]
         setTimeout(() => {
-            this.setState({ total: num, value: data[0].no_io })
+            this.setState({ total: num, value: data[0].no_io, typeCost: typeCost, listCost: listCost })
             this.prosesModalIo()
         }, 100)
     }
@@ -1261,6 +1300,7 @@ class Pengadaan extends Component {
     async componentDidMount() {
         // this.getNotif()
         const token = localStorage.getItem("token")
+        const level = localStorage.getItem("level")
         const id = localStorage.getItem('id')
         const filter = this.props.location.state === undefined ? '' : this.props.location.state.filter
         console.log(filter)
@@ -1270,6 +1310,7 @@ class Pengadaan extends Component {
         await this.props.getRole(token)
         await this.props.getDepo(token, 1000, '')
         await this.props.getDetailUser(token, id)
+        await this.props.getRoleMenu(token, level)
         this.getDataAsset()
     }
 
@@ -1451,128 +1492,6 @@ class Pengadaan extends Component {
         }
     }
 
-    // changeFilter = async (val) => {
-    //     const token = localStorage.getItem("token")
-    //     const role = localStorage.getItem('role')
-    //     const level = localStorage.getItem('level')
-    //     const { time1, time2, search, limit } = this.state
-    //     const cekTime1 = time1 === '' ? 'undefined' : time1
-    //     const cekTime2 = time2 === '' ? 'undefined' : time2
-    //     // const status = val === 'finish' ? '8' : val === 'available' && level === '2' ? '1' : val === 'available' && level === '8' ? '3' : 'all'
-    //     const status = val === 'finish' ? '8' : 'all'
-
-    //     await this.props.getPengadaan(token, status, cekTime1, cekTime2, search, limit)
-
-    //     if (level === '2' || level === '8') {
-    //         const { dataPeng } = this.props.pengadaan
-    //         const newIo = []
-    //         console.log(val)
-    //         for (let i = 0; i < dataPeng.length; i++) {
-    //             // const cekBudget = (dataPeng[i].status_form === '3' && dataPeng[i].kategori !== 'return') || (dataPeng[i].status_form === '4' && dataPeng[i].kategori === 'return')
-    //             // const cekAsset = dataPeng[i].status_form === '1' || (dataPeng[i].status_form === '3' && dataPeng[i].kategori === 'return')
-    //             const cekBudget = dataPeng[i].status_form === '3'
-    //             const cekAsset = dataPeng[i].status_form === '1'
-    //             if (val === 'available' ) {
-    //                 if (((level === '8' && cekBudget) || (level === '2' && cekAsset)) && dataPeng[i].status_reject !== 1) {
-    //                     newIo.push(dataPeng[i])
-    //                 }
-    //             } else if (val === 'reject') {
-    //                 if (dataPeng[i].status_reject === 1) {
-    //                     newIo.push(dataPeng[i])
-    //                 }
-    //             } else if (val === 'finish') {
-    //                 if (dataPeng[i].status_form === '8') {
-    //                     newIo.push(dataPeng[i])
-    //                 }
-    //             } else {
-    //                 if ((!cekAsset && level === '2') || (!cekBudget && level === '8')) {
-    //                     newIo.push(dataPeng[i])
-    //                 } else if (((level === '8' && cekBudget) || (level === '2' && cekAsset)) && dataPeng[i].status_reject === 1) {
-
-    //                 }
-    //             }
-    //         }
-    //         this.setState({ filter: val, newIo: newIo })
-    //     } else {
-    //         const { dataPeng } = this.props.pengadaan
-    //         if (val === 'available' && dataPeng.length > 0) {
-    //             console.log('at available')
-    //             const newIo = []
-    //             for (let i = 0; i < dataPeng.length; i++) {
-    //                 const app = dataPeng[i].appForm === undefined ? [] : dataPeng[i].appForm
-    //                 const find = app.indexOf(app.find(({ jabatan }) => jabatan === role))
-    //                 if (level === '5' || level === '9') {
-    //                     console.log('at available 2')
-    //                     if (dataPeng[i].status_reject !== 1 && dataPeng[i].status_form === '2' && (app[find] === undefined || app.length === 0)) {
-    //                         console.log('at available 3')
-    //                         newIo.push(dataPeng[i])
-    //                     } else if (dataPeng[i].status_reject !== 1 && dataPeng[i].status_form === '2' && app[find].status === null) {
-    //                         console.log('at available 4')
-    //                         newIo.push(dataPeng[i])
-    //                     }
-    //                 } else if (find === 0 || find === '0') {
-    //                     console.log('at available 8')
-    //                     if (dataPeng[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
-    //                         newIo.push(dataPeng[i])
-    //                     }
-    //                 } else {
-    //                     console.log('at available 5')
-    //                     if (dataPeng[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
-    //                         newIo.push(dataPeng[i])
-    //                     }
-    //                 }
-    //             }
-    //             this.setState({ filter: val, newIo: newIo })
-    //         } else if (val === 'reject' && dataPeng.length > 0) {
-    //             const newIo = []
-    //             for (let i = 0; i < dataPeng.length; i++) {
-    //                 if (dataPeng[i].status_reject === 1) {
-    //                     newIo.push(dataPeng[i])
-    //                 }
-    //             }
-    //             this.setState({ filter: val, newIo: newIo })
-    //         } else if (val === 'finish' && dataPeng.length > 0) {
-    //             const newIo = []
-    //             for (let i = 0; i < dataPeng.length; i++) {
-    //                 if (dataPeng[i].status_form === '8') {
-    //                     newIo.push(dataPeng[i])
-    //                 }
-    //             }
-    //             this.setState({ filter: val, newIo: newIo })
-    //         } else {
-    //             const newIo = []
-    //             for (let i = 0; i < dataPeng.length; i++) {
-    //                 const app = dataPeng[i].appForm === undefined ? [] : dataPeng[i].appForm
-    //                 const find = app.indexOf(app.find(({ jabatan }) => jabatan === role))
-    //                 if (level === '5' || level === '9') {
-    //                     if (dataPeng[i].status_form === '2' && (app[find] === undefined || app.length === 0)) {
-    //                         console.log('at all 3')
-    //                         newIo.push()
-    //                     } else if (dataPeng[i].status_form === '2' && app[find].status === null) {
-    //                         console.log('at all 4')
-    //                         newIo.push()
-    //                     } else {
-    //                         newIo.push(dataPeng[i])
-    //                     }
-    //                 } else if (find === 0 || find === '0') {
-    //                     if (app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
-    //                         newIo.push()
-    //                     } else {
-    //                         newIo.push(dataPeng[i])
-    //                     }
-    //                 } else {
-    //                     if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
-    //                         newIo.push()
-    //                     } else {
-    //                         newIo.push(dataPeng[i])
-    //                     }
-    //                 }
-    //             }
-    //             this.setState({ filter: val, newIo: newIo })
-    //         }
-    //     }
-    // }
-
     selectTime = (val) => {
         this.setState({ [val.type]: val.val })
     }
@@ -1682,9 +1601,14 @@ class Pengadaan extends Component {
         }
     }
 
+    openCost = () => {
+        this.setState({openCost: !this.state.openCost})
+    }
+
     render() {
-        const { alert, upload, errMsg, rinciIo, total, listMut, newIo, listStat, fileName, url, detailTrack, sidebarOpen, tipeEmail } = this.state
+        const { total, listMut, newIo, listStat, fileName, url, detailTrack, sidebarOpen, tipeEmail, typeCost, listCost, detailData, totalPriceDetail, valueIo } = this.state
         const { dataAsset, alertM, alertMsg, alertUpload, page } = this.props.asset
+        const { menuRole } = this.props.user
         const pages = this.props.disposal.page
         const { dataPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataDocCart, dataTemp, infoApp } = this.props.pengadaan
         const level = localStorage.getItem('level')
@@ -1734,7 +1658,7 @@ class Pengadaan extends Component {
                     <div className={`${styleTrans.mainContent} ${this.state.sidebarOpen ? styleTrans.collapsedContent : ''}`}>
                         <h2 className={styleTrans.pageTitle}>{level === '2' ? 'Verifikasi Asset' : level === '8' ? 'Verifikasi Budget' : 'Pengadaan Asset'}</h2>
                         <div className={styleTrans.searchContainer}>
-                            {(level === '5' || level === '9') ? (
+                            {(menuRole.find(x => x.menu_id === 1)) ? (
                                 <Button size="lg" color='primary' onClick={this.goCartTicket}>Create</Button>
                             ) : (
                                 <div></div>
@@ -2009,12 +1933,17 @@ class Pengadaan extends Component {
                                 <Col md={10} lg={10} className="colModal">
                                     <text className="mr-3">:</text>
                                     <OtpInput
-                                        value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.cost_center}
+                                        value={detailIo[0] === undefined ? '' 
+                                            : typeCost === 'area' ? (detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.cost_center)
+                                            : typeCost}
                                         isDisabled
                                         numInputs={10}
                                         inputStyle={style.otp}
                                         containerStyle={style.containerOtp}
                                     />
+                                    {typeCost === 'multiple' && (
+                                        <Button className='ml-2' color='success' onClick={this.openCost} >Detail</Button>
+                                    )}
                                 </Col>
                             </Row>
                             <Row className="rowModal mt-2">
@@ -2209,10 +2138,18 @@ class Pengadaan extends Component {
                                     Dokumen
                                 </Button>
                             )}
-                            {/* <Button className="ml-2" color="warning" onClick={() => this.goDownload('formio')}>
-                                Download Form
-                            </Button> */}
-                            <FormIo className='ml-2'/>
+                            {typeCost !== 'MULTIPLE' && (
+                                <FormIo 
+                                data={{ 
+                                    detailData: detailData, 
+                                    typeCost: typeCost, 
+                                    costCenter: detailIo[0] === undefined ? '' 
+                                        : typeCost === 'area' ? (detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.cost_center)
+                                        : typeCost
+                                }} 
+                                className='ml-2'
+                                />
+                            )}
                             {detailIo !== undefined && detailIo.length > 0 && detailIo[0].status_form === '8' && (
                                 <Button className="ml-2" color="primary" onClick={() => this.openTemp()}>
                                     List No.Aset
@@ -2245,9 +2182,9 @@ class Pengadaan extends Component {
                     </div>
                 </Modal>
                 <Modal size="xl" isOpen={this.state.preview} toggle={this.openPreview}>
-                    <ModalHeader toggle={this.openPreview}>{detailIo.length > 0 && detailIo[0].no_pengadaan}</ModalHeader>
+                    <ModalHeader toggle={this.openPreview}>{detailData.length > 0 && detailData[0].no_pengadaan}</ModalHeader>
                     <ModalBody className="mb-5">
-                        <Container className='mb-4'>
+                        <Container className='borderGen'>
                             <Row className="rowModal">
                                 <Col md={3} lg={3}>
                                     <img src={logo} className="imgModal" />
@@ -2271,9 +2208,9 @@ class Pengadaan extends Component {
                                 <Col md={10} lg={10} className="colModal">
                                     <text className="mr-3">:</text>
                                     <OtpInput
-                                        value={this.state.value}
+                                        value={this.state.valueIo}
                                         onChange={this.onChange}
-                                        numInputs={(this.state.value === undefined || this.state.value === null) ? 11 : this.state.value.length > 11 ? this.state.value.length : 11}
+                                        numInputs={(this.state.valueIo === undefined || this.state.valueIo === null) ? 11 : this.state.valueIo.length > 11 ? this.state.valueIo.length : 11}
                                         inputStyle={style.otp}
                                         containerStyle={style.containerOtp}
                                         isDisabled
@@ -2296,7 +2233,7 @@ class Pengadaan extends Component {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {detailIo !== undefined && detailIo.length > 0 && detailIo.map(item => {
+                                            {detailData !== undefined && detailData.length > 0 && detailData.map(item => {
                                                 return (
                                                     item.isAsset === 'false' && level !== '2' ? (
                                                         null
@@ -2321,7 +2258,7 @@ class Pengadaan extends Component {
                                 <Col md={10} lg={10} className="colModal">
                                     <text className="mr-3">:</text>
                                     <OtpInput
-                                        value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.cost_center}
+                                        value={detailData[0]?.cost_center}
                                         isDisabled
                                         numInputs={10}
                                         inputStyle={style.otp}
@@ -2336,7 +2273,7 @@ class Pengadaan extends Component {
                                 <Col md={10} lg={10} className="colModal">
                                     <text className="mr-3">:</text>
                                     <OtpInput
-                                        value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.profit_center}
+                                        value={detailData[0] === undefined ? '' : detailData[0].depo === undefined ? '' : detailData[0].depo === null ? '' : detailData[0].depo.profit_center}
                                         isDisabled
                                         numInputs={10}
                                         inputStyle={style.otp}
@@ -2354,21 +2291,21 @@ class Pengadaan extends Component {
                                         <Form.Check
                                             type="checkbox"
                                             label="Budget"
-                                            checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'budget' ? true : false}
+                                            checked={detailData[0] === undefined ? '' : detailData[0].kategori === 'budget' ? true : false}
                                         />
                                     </Col>
                                     <Col md={4} lg={4}>
                                         <Form.Check
                                             type="checkbox"
                                             label="Non Budgeted"
-                                            checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'non-budget' ? true : false}
+                                            checked={detailData[0] === undefined ? '' : detailData[0].kategori === 'non-budget' ? true : false}
                                         />
                                     </Col>
                                     <Col md={4} lg={4}>
                                         <Form.Check
                                             type="checkbox"
                                             label="Return"
-                                            checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'return' ? true : false}
+                                            checked={detailData[0] === undefined ? '' : detailData[0].kategori === 'return' ? true : false}
                                         />
                                     </Col>
                                 </Col>
@@ -2379,7 +2316,7 @@ class Pengadaan extends Component {
                                 </Col>
                                 <Col md={10} lg={10} className="colModal">
                                     <text className="mr-3">:</text>
-                                    <text>Rp {total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</text>
+                                    <text>Rp {totalPriceDetail.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</text>
                                 </Col>
                             </Row>
                             <Row className="rowModal mt-4">
@@ -2388,7 +2325,7 @@ class Pengadaan extends Component {
                                 </Col>
                                 <Col md={10} lg={10} className="colModal">
                                     <text className="mr-3"> </text>
-                                    <text className='text-capitalize'>Terbilang ( {terbilang(total)} Rupiah )</text>
+                                    <text className='text-capitalize'>Terbilang ( {terbilang(totalPriceDetail)} Rupiah )</text>
                                 </Col>
                             </Row>
                             <Row className="rowModal mt-4">
@@ -2397,54 +2334,64 @@ class Pengadaan extends Component {
                                 </Col>
                                 <Col md={10} lg={10} className="colModal">
                                     <text className="mr-3">:</text>
-                                    <text>{detailIo[0] === undefined ? '-' : detailIo[0].alasan}</text>
+                                    <text>{detailData[0] === undefined ? '-' : detailData[0].alasan}</text>
                                 </Col>
                             </Row>
+                            <Table bordered responsive className="tabPreview mt-4">
+                                <thead>
+                                    <tr>
+                                        <th className="buatPre" colSpan={dataApp.pembuat?.length || 1}>Dibuat oleh,</th>
+                                        <th className="buatPre" colSpan={
+                                            dataApp.pemeriksa?.filter(item => item.status_view !== 'hidden').length || 1
+                                        }>Diperiksa oleh,</th>
+                                        <th className="buatPre" colSpan={dataApp.penyetuju?.length || 1}>Disetujui oleh,</th>
+                                    </tr>
+                                    <tr>
+                                        {dataApp.pembuat?.map(item => (
+                                            <th className="headPre">
+                                                <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                                <div>{item.nama ?? '-'}</div>
+                                            </th>
+                                        ))}
+                                        {dataApp.pemeriksa?.filter(item => item.status_view !== 'hidden').map(item => (
+                                            <th className="headPre">
+                                                <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                                <div>{item.nama ?? '-'}</div>
+                                            </th>
+                                        ))}
+                                        {dataApp.penyetuju?.map(item => (
+                                            <th className="headPre">
+                                                <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                                <div>{item.nama ?? '-'}</div>
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        {dataApp.pembuat?.map(item => (
+                                            <td className="footPre">{item.jabatan ?? '-'}</td>
+                                        ))}
+                                        {dataApp.pemeriksa?.filter(item => item.status_view !== 'hidden').map(item => (
+                                            <td className="footPre">{item.jabatan ?? '-'}</td>
+                                        ))}
+                                        {dataApp.penyetuju?.map(item => (
+                                            <td className="footPre">{item.jabatan ?? '-'}</td>
+                                        ))}
+                                    </tr>
+                                </tbody>
+                            </Table>
+                            <div className='mt-4 bold'>Keterangan:</div>
+                            <div className=''>No. IO dan Profit Center diisi oleh Budgeting Department</div>
+                            <div className=''>Cost Center diisi oleh Asset Department</div>
+                            <div className=''>Untuk kategori Non Budgeted dan Return kolom alasan "Wajib" diisi</div>
+                            <div className=''>* Sesuai Matriks Otorisasi, disetujui oleh :</div>
+                            <div className='ml-4'>- Budgeted / Return : {cekKode === 5 ? (penyetujuApp.split(';')[1] && penyetujuApp.split(';')[1]) : (penyetujuApp.split(';')[3] && penyetujuApp.split(';')[3])}</div>
+                            <div className='ml-4 mb-3'>- Non Budgeted : {cekKode === 5 ? (penyetujuApp.split(';')[2] && penyetujuApp.split(';')[2]) : (penyetujuApp.split(';')[4] && penyetujuApp.split(';')[4])}</div>
                         </Container>
-                        <Table bordered responsive className="tabPreview mt-4">
-                            <thead>
-                                <tr>
-                                    <th className="buatPre" colSpan={dataApp.pembuat?.length || 1}>Dibuat oleh,</th>
-                                    <th className="buatPre" colSpan={
-                                        dataApp.pemeriksa?.filter(item => item.status_view !== 'hidden').length || 1
-                                    }>Diperiksa oleh,</th>
-                                    <th className="buatPre" colSpan={dataApp.penyetuju?.length || 1}>Disetujui oleh,</th>
-                                </tr>
-                                <tr>
-                                    {dataApp.pembuat?.map(item => (
-                                        <th className="headPre">
-                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
-                                            <div>{item.nama ?? '-'}</div>
-                                        </th>
-                                    ))}
-                                    {dataApp.pemeriksa?.filter(item => item.status_view !== 'hidden').map(item => (
-                                        <th className="headPre">
-                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
-                                            <div>{item.nama ?? '-'}</div>
-                                        </th>
-                                    ))}
-                                    {dataApp.penyetuju?.map(item => (
-                                        <th className="headPre">
-                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
-                                            <div>{item.nama ?? '-'}</div>
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    {dataApp.pembuat?.map(item => (
-                                        <td className="footPre">{item.jabatan ?? '-'}</td>
-                                    ))}
-                                    {dataApp.pemeriksa?.filter(item => item.status_view !== 'hidden').map(item => (
-                                        <td className="footPre">{item.jabatan ?? '-'}</td>
-                                    ))}
-                                    {dataApp.penyetuju?.map(item => (
-                                        <td className="footPre">{item.jabatan ?? '-'}</td>
-                                    ))}
-                                </tr>
-                            </tbody>
-                        </Table>
+                        <Container>
+                            <div className='mt-4'>FRM-FAD-058 REV 06</div>
+                        </Container>
                     </ModalBody>
                     <hr />
                     <div className="modalFoot">
@@ -2454,17 +2401,56 @@ class Pengadaan extends Component {
                             {/* <Button className="mr-2" color="warning" onClick={() => this.goDownload('formio')}>
                                 Download
                             </Button> */}
-                            <FormIo className='mr-2'/>
-                            <Button color="secondary" onClick={this.openPreview}>
+                            <FormIo data={{ detailData: detailData, typeCost: typeCost, costCenter: detailData[0]?.cost_center }} />
+                            <Button className='ml-2' color="secondary" onClick={this.openPreview}>
                                 Close
                             </Button>
                         </div>
                     </div>
                 </Modal>
-                <Modal>
+                <Modal size='xl' isOpen={this.state.openCost}>
+                    <ModalHeader>Detail Cost Center</ModalHeader>
                     <ModalBody>
-
+                        <Table>
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Nama Asset</th>
+                                    <th>Cost Center</th>
+                                    <th>Qty</th>
+                                    <th>Opsi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {listCost.length > 0 && listCost.map((item, index) => {
+                                    return (
+                                        <tr>
+                                            <td>{index + 1}</td>
+                                            <td>{detailIo.find(x => x.id === item.pengadaan_id)?.nama}</td>
+                                            <td>{item.cost_center}</td>
+                                            <td>{item.qty}</td>
+                                            <td>
+                                                <Button 
+                                                    onClick={() => this.prosesOpenPreview(item)}
+                                                    color='success'
+                                                >
+                                                    Form IO
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </Table>
                     </ModalBody>
+                    <ModalFooter>
+                        <Button
+                            color='secondary'
+                            onClick={this.openCost}
+                        >
+                            Close
+                        </Button>
+                    </ModalFooter>
                 </Modal>
                 <Modal size="md" isOpen={this.state.openModalTtd} toggle={this.prosesModalTtd}>
                     <ModalHeader>
@@ -3435,6 +3421,8 @@ const mapDispatchToProps = {
     getDetailUser: user.getDetailUser,
     getDepo: depo.getDepo,
     searchIo: pengadaan.searchIo,
+    getRoleMenu: user.getRoleMenu,
+    getDetailItem: pengadaan.getDetailItem
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Pengadaan)

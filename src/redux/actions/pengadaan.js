@@ -19,9 +19,9 @@ export default {
         type: 'GET_REVISI',
         payload: http(token).get(`/ticket/rev?status=${status}`)
     }),
-    getApproveIo: (token, no) => ({
+    getApproveIo: (token, no, type) => ({
         type: 'GET_APPROVEIO',
-        payload: http(token).patch(`/ticket/approve`, qs.stringify({no: no}))
+        payload: http(token).patch(`/ticket/approve`, qs.stringify({no: no, type: type || 'all'}))
     }),
     getDocumentIo: (token, no) => ({
         type: 'GET_DOCIO',

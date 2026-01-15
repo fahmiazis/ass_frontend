@@ -140,7 +140,9 @@ class Stock extends Component {
             listStat: [],
             history: false,
             isLoading: false,
-            options: []
+            options: [],
+            arrApp: [],
+            baseData: [],
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -411,7 +413,13 @@ class Stock extends Component {
     approveStock = async () => {
         const {dataItem} = this.state
         const token = localStorage.getItem('token')
-        await this.props.approveStock(token, dataItem.no_stock)
+        const { arrApp } = this.state
+        const cekApp = arrApp.find(item => item.noStock === dataItem.no_stock)
+        const data = {
+            no: dataItem.no_stock,
+            indexApp: cekApp.index
+        }
+        await this.props.approveStock(token, data)
         await this.props.getApproveStock(token, dataItem.id)
         // await this.props.notifStock(token, dataItem.no_stock, 'approve', 'HO', null, null)
         this.prosesSendEmail('approve')
@@ -425,6 +433,8 @@ class Stock extends Component {
         const {dataItem, listStat, listMut, typeReject, menuRev} = this.state
         const token = localStorage.getItem('token')
         const level = localStorage.getItem('level')
+        const { arrApp } = this.state
+        const cekApp = arrApp.find(item => item.noStock === dataItem.no_stock)
         let temp = ''
         for (let i = 0; i < listStat.length; i++) {
             temp += listStat[i] + '.'
@@ -435,7 +445,8 @@ class Stock extends Component {
             menu: typeReject === 'pembatalan' ? 'Stock opname asset' : menuRev,
             list: listMut,
             type: level === '2' ? 'verif' : 'form',
-            type_reject: typeReject
+            type_reject: typeReject,
+            indexApp: `${cekApp.index}`
         }
         await this.props.rejectStock(token, data)
         this.prosesSendEmail(`reject ${typeReject}`)
@@ -577,13 +588,14 @@ class Stock extends Component {
         this.openModalRinci()
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         const level = localStorage.getItem('level')
-        // if (level === "5" || level === "9") {
-        //     this.getDataAsset()
-        // } else {
-            this.getDataStock()
-        // }
+        const token = localStorage.getItem("token")
+        const id = localStorage.getItem('id')
+        await this.props.getDepo(token, 1000, '')
+        await this.props.getDetailUser(token, id)
+        await this.props.getRole(token)
+        this.getDataStock()
     }
 
     downloadData = () => {
@@ -704,396 +716,6 @@ class Stock extends Component {
         } else {
             this.setState({dropOp: !this.state.dropOp})   
         }
-    }
-
-    downloadFormOld = async (val) => {
-        this.setState({isLoading: true})
-        const { detailStock, stockApp } = this.props.stock
-        const dataApp = stockApp
-
-        const alpha = Array.from(Array(26)).map((e, i) => i + 65)
-        const alphabet = alpha.map((x) => String.fromCharCode(x))
-
-        const workbook = new ExcelJS.Workbook();
-        const ws = workbook.addWorksheet('form stock opname', {
-            pageSetup: { orientation:'landscape', paperSize: 8 }
-        })
-
-        const borderStyles = {
-            top: {style:'thin'},
-            left: {style:'thin'},
-            bottom: {style:'thin'},
-            right: {style:'thin'}
-        }
-
-        const tbStyle = {
-            wrapText: true,
-            vertical: 'middle',
-            shrinkToFit: true
-        }
-
-        const appStyle = {
-            horizontal:'center',
-            wrapText: true,
-            vertical: 'middle'
-        }
-
-        const boldStyle = {
-            bold: true
-        }
-
-        const titleStyle = {
-            bold: true,
-            size: 12,
-        }
-
-        const alignStyle = {
-            horizontal:'left',
-            vertical: 'middle'
-        }
-
-        // Header info (baris 1-10)
-        ws.getCell(`B2`).value = 'KERTAS KERJA OPNAME ASET'
-        ws.getCell(`B2`).alignment = { ...alignStyle }
-        ws.getCell(`B2`).font = { ...titleStyle }
-
-        ws.getCell(`B4`).value = 'PT. PINUS MERAH ABADI'
-        ws.getCell(`B4`).alignment = { ...alignStyle }
-        ws.getCell(`B4`).font = { ...titleStyle }
-
-        ws.getCell(`B6`).value = 'KANTOR PUSAT/CABANG'
-        ws.getCell(`B6`).alignment = { ...alignStyle }
-        ws.getCell(`B6`).font = { ...titleStyle }
-
-        ws.getCell(`E6`).value = `: ${detailStock[0].area.toUpperCase()}`
-        ws.getCell(`E6`).alignment = { ...alignStyle }
-        ws.getCell(`E6`).font = { ...titleStyle }
-
-        ws.getCell(`B8`).value = 'DEPO/CP'
-        ws.getCell(`B8`).alignment = { ...alignStyle }
-        ws.getCell(`B8`).font = { ...titleStyle }
-
-        ws.getCell(`E8`).value = `: ${detailStock[0].area.toUpperCase()}`
-        ws.getCell(`E8`).alignment = { ...alignStyle }
-        ws.getCell(`E8`).font = { ...titleStyle }
-
-        ws.getCell(`B10`).value = 'OPNAME PER TANGGAL'
-        ws.getCell(`B10`).alignment = { ...alignStyle }
-        ws.getCell(`B10`).font = { ...titleStyle }
-
-        ws.getCell(`E10`).value = `: ${moment(detailStock[0].tanggalStock).format('DD MMMM YYYY')}`
-        ws.getCell(`E10`).alignment = { ...alignStyle }
-        ws.getCell(`E10`).font = { ...titleStyle }
-
-        // === HELPER FUNCTION: Create table header ===
-        const createTableHeader = (startRow) => {
-            const headerRow = startRow
-            
-            // NO
-            ws.getCell(`B${headerRow}`).value = 'NO'
-            ws.getCell(`B${headerRow}`).alignment = { ...tbStyle }
-            ws.getCell(`B${headerRow}`).border = { ...borderStyles }
-            ws.getCell(`B${headerRow}`).font = { ...boldStyle }
-
-            // NO. ASET
-            ws.mergeCells(`C${headerRow}:D${headerRow}`)
-            ws.getCell(`C${headerRow}`).value = 'NO. ASET'
-            ws.getCell(`C${headerRow}`).alignment = { ...tbStyle }
-            ws.getCell(`C${headerRow}`).border = { ...borderStyles }
-            ws.getCell(`C${headerRow}`).font = { ...boldStyle }
-
-            // DESKRIPSI
-            ws.mergeCells(`E${headerRow}:H${headerRow}`)
-            ws.getCell(`E${headerRow}`).value = 'DESKRIPSI'
-            ws.getCell(`E${headerRow}`).alignment = { ...tbStyle }
-            ws.getCell(`E${headerRow}`).border = { ...borderStyles }
-            ws.getCell(`E${headerRow}`).font = { ...boldStyle }
-
-            // MERK
-            ws.mergeCells(`I${headerRow}:J${headerRow}`)
-            ws.getCell(`I${headerRow}`).value = 'MERK'
-            ws.getCell(`I${headerRow}`).alignment = { ...tbStyle }
-            ws.getCell(`I${headerRow}`).border = { ...borderStyles }
-            ws.getCell(`I${headerRow}`).font = { ...boldStyle }
-
-            // SATUAN
-            ws.getCell(`K${headerRow}`).value = 'SATUAN'
-            ws.getCell(`K${headerRow}`).alignment = { ...tbStyle }
-            ws.getCell(`K${headerRow}`).border = { ...borderStyles }
-            ws.getCell(`K${headerRow}`).font = { ...boldStyle }
-
-            // UNIT
-            ws.getCell(`L${headerRow}`).value = 'UNIT'
-            ws.getCell(`L${headerRow}`).alignment = { ...tbStyle }
-            ws.getCell(`L${headerRow}`).border = { ...borderStyles }
-            ws.getCell(`L${headerRow}`).font = { ...boldStyle }
-
-            // STATUS FISIK
-            ws.getCell(`M${headerRow}`).value = 'STATUS FISIK'
-            ws.getCell(`M${headerRow}`).alignment = { ...tbStyle }
-            ws.getCell(`M${headerRow}`).border = { ...borderStyles }
-            ws.getCell(`M${headerRow}`).font = { ...boldStyle }
-
-            // KONDISI
-            ws.getCell(`N${headerRow}`).value = 'KONDISI'
-            ws.getCell(`N${headerRow}`).alignment = { ...tbStyle }
-            ws.getCell(`N${headerRow}`).border = { ...borderStyles }
-            ws.getCell(`N${headerRow}`).font = { ...boldStyle }
-
-            // LOKASI
-            ws.mergeCells(`O${headerRow}:P${headerRow}`)
-            ws.getCell(`O${headerRow}`).value = 'LOKASI'
-            ws.getCell(`O${headerRow}`).alignment = { ...tbStyle }
-            ws.getCell(`O${headerRow}`).border = { ...borderStyles }
-            ws.getCell(`O${headerRow}`).font = { ...boldStyle }
-
-            // GROUPING
-            ws.mergeCells(`Q${headerRow}:R${headerRow}`)
-            ws.getCell(`Q${headerRow}`).value = 'GROUPING'
-            ws.getCell(`Q${headerRow}`).alignment = { ...tbStyle }
-            ws.getCell(`Q${headerRow}`).border = { ...borderStyles }
-            ws.getCell(`Q${headerRow}`).font = { ...boldStyle }
-
-            // KETERANGAN
-            ws.mergeCells(`S${headerRow}:U${headerRow}`)
-            ws.getCell(`S${headerRow}`).value = 'KETERANGAN'
-            ws.getCell(`S${headerRow}`).alignment = { ...tbStyle }
-            ws.getCell(`S${headerRow}`).border = { ...borderStyles }
-            ws.getCell(`S${headerRow}`).font = { ...boldStyle }
-        }
-
-        // === HELPER FUNCTION: Create data row ===
-        const createDataRow = (item, rowNum, dataRow) => {
-            // NO
-            ws.getCell(`B${dataRow}`).value = rowNum
-            ws.getCell(`B${dataRow}`).alignment = { ...tbStyle }
-            ws.getCell(`B${dataRow}`).border = { ...borderStyles }
-
-            // NO. ASET
-            ws.mergeCells(`C${dataRow}:D${dataRow}`)
-            ws.getCell(`C${dataRow}`).value = item.no_asset || ''
-            ws.getCell(`C${dataRow}`).alignment = { ...tbStyle }
-            ws.getCell(`C${dataRow}`).border = { ...borderStyles }
-
-            // DESKRIPSI
-            ws.mergeCells(`E${dataRow}:H${dataRow}`)
-            ws.getCell(`E${dataRow}`).value = item.deskripsi || ''
-            ws.getCell(`E${dataRow}`).alignment = { ...tbStyle }
-            ws.getCell(`E${dataRow}`).border = { ...borderStyles }
-
-            // MERK
-            ws.mergeCells(`I${dataRow}:J${dataRow}`)
-            ws.getCell(`I${dataRow}`).value = item.merk || ''
-            ws.getCell(`I${dataRow}`).alignment = { ...tbStyle }
-            ws.getCell(`I${dataRow}`).border = { ...borderStyles }
-
-            // SATUAN
-            ws.getCell(`K${dataRow}`).value = item.satuan || ''
-            ws.getCell(`K${dataRow}`).alignment = { ...tbStyle }
-            ws.getCell(`K${dataRow}`).border = { ...borderStyles }
-
-            // UNIT
-            ws.getCell(`L${dataRow}`).value = item.unit || ''
-            ws.getCell(`L${dataRow}`).alignment = { ...tbStyle }
-            ws.getCell(`L${dataRow}`).border = { ...borderStyles }
-
-            // STATUS FISIK
-            ws.getCell(`M${dataRow}`).value = item.status_fisik || ''
-            ws.getCell(`M${dataRow}`).alignment = { ...tbStyle }
-            ws.getCell(`M${dataRow}`).border = { ...borderStyles }
-
-            // KONDISI
-            ws.getCell(`N${dataRow}`).value = item.kondisi || ''
-            ws.getCell(`N${dataRow}`).alignment = { ...tbStyle }
-            ws.getCell(`N${dataRow}`).border = { ...borderStyles }
-
-            // LOKASI
-            ws.mergeCells(`O${dataRow}:P${dataRow}`)
-            ws.getCell(`O${dataRow}`).value = item.lokasi || ''
-            ws.getCell(`O${dataRow}`).alignment = { ...tbStyle }
-            ws.getCell(`O${dataRow}`).border = { ...borderStyles }
-
-            // GROUPING
-            ws.mergeCells(`Q${dataRow}:R${dataRow}`)
-            ws.getCell(`Q${dataRow}`).value = item.grouping || ''
-            ws.getCell(`Q${dataRow}`).alignment = { ...tbStyle }
-            ws.getCell(`Q${dataRow}`).border = { ...borderStyles }
-
-            // KETERANGAN
-            ws.mergeCells(`S${dataRow}:U${dataRow}`)
-            ws.getCell(`S${dataRow}`).value = item.keterangan || ''
-            ws.getCell(`S${dataRow}`).alignment = { ...tbStyle }
-            ws.getCell(`S${dataRow}`).border = { ...borderStyles }
-        }
-
-        // === TABLE dengan DIFFERENT LIMIT per PAGE ===
-        const firstPageLimit = 37  // Page 1 max 37 rows
-        const nextPageLimit = 47   // Page 2+ max 50 rows
-
-        let currentRow = 12  // Mulai dari baris 12
-        let dataIndex = 0    // Index data detailStock
-        let isFirstPage = true
-
-        while (dataIndex < detailStock.length) {
-            // Tentukan berapa banyak rows di section ini
-            const rowsLimit = isFirstPage ? firstPageLimit : nextPageLimit
-            const rowsInThisSection = Math.min(rowsLimit, detailStock.length - dataIndex)
-
-            // Create table header
-            createTableHeader(currentRow)
-            currentRow++
-
-            // Create data rows untuk section ini
-            for (let i = 0; i < rowsInThisSection; i++) {
-                const item = detailStock[dataIndex]
-                createDataRow(item, dataIndex + 1, currentRow)
-                currentRow++
-                dataIndex++
-            }
-
-            // Tambah spacing sebelum section berikutnya (1 baris kosong)
-            currentRow++
-            
-            isFirstPage = false // Setelah page 1, sisanya pakai nextPageLimit
-        }
-
-        // === APPROVAL SECTION dengan DYNAMIC COLUMN ===
-        const sumRow = currentRow + 1
-        const headRow = sumRow + 1
-        const botRow = sumRow + 7
-
-        // Cek data approval mana yang ada
-        const hasPembuat = dataApp.pembuat && dataApp.pembuat.length > 0
-        const hasPemeriksa = dataApp.pemeriksa && dataApp.pemeriksa.length > 0
-        const hasPenyetuju = dataApp.penyetuju && dataApp.penyetuju.length > 0
-
-        // Hitung total approval yang ada
-        const totalApprovers = (hasPembuat ? dataApp.pembuat.length : 0) + 
-                            (hasPemeriksa ? dataApp.pemeriksa.length : 0) + 
-                            (hasPenyetuju ? dataApp.penyetuju.length : 0)
-
-        const distCol = totalApprovers > 5 ? 3 : 4
-
-        let currentColIndex = 1 // mulai dari B (index 1)
-
-        // === HELPER FUNCTION untuk render nama ===
-        const renderName = (item) => {
-            if (!item.nama) return null
-            
-            const name = item.nama.length <= 30 
-                ? item.nama.split(" ").map((word) => word[0].toUpperCase() + word.substring(1)).join(" ")
-                : item.nama.slice(0, 29).split(" ").map((word) => word[0].toUpperCase() + word.substring(1)).join(" ") + '.'
-            
-            return name
-        }
-
-        const renderApprovalText = (item) => {
-            const name = renderName(item)
-            const jabatan = item.jabatan === null ? "-" : item.jabatan === 'area' ? 'AOS' : item.jabatan.toUpperCase()
-            
-            if (name === null) {
-                return `\n\n\n - \n\n\n ${jabatan}`
-            }
-            
-            if (item.status === 0) {
-                return `\n Reject (${moment(item.updatedAt).format('DD/MM/YYYY')}) \n\n ${name} \n ${jabatan}`
-            }
-            
-            return `\n Approve (${moment(item.updatedAt).format('DD/MM/YYYY')}) \n\n ${name} \n ${jabatan}`
-        }
-
-        // Helper untuk get column name (handle AA, AB, dst)
-        const getColName = (idx) => {
-            if (idx < 26) return alphabet[idx]
-            const firstLetter = alphabet[Math.floor(idx / 26) - 1]
-            const secondLetter = alphabet[idx % 26]
-            return firstLetter + secondLetter
-        }
-
-        // === 1. DIBUAT OLEH ===
-        if (hasPembuat) {
-            const startCol = alphabet[currentColIndex]
-            const endCol = alphabet[currentColIndex + distCol - 1]
-
-            ws.mergeCells(`${startCol}${sumRow}:${endCol}${sumRow}`)
-            ws.getCell(`${startCol}${sumRow}`).value = 'Dibuat oleh,'
-            ws.getCell(`${startCol}${sumRow}`).alignment = { horizontal:'center' }
-            ws.getCell(`${startCol}${sumRow}`).border = { ...borderStyles }
-
-            ws.mergeCells(`${startCol}${headRow}:${endCol}${botRow}`)
-            ws.getCell(`${startCol}${headRow}`).value = renderApprovalText(dataApp.pembuat[0])
-            ws.getCell(`${startCol}${headRow}`).alignment = { ...appStyle }
-            ws.getCell(`${startCol}${headRow}`).border = { ...borderStyles }
-
-            currentColIndex += distCol
-        }
-
-        // === 2. DIPERIKSA OLEH ===
-        if (hasPemeriksa) {
-            const numPemeriksa = dataApp.pemeriksa.length
-            const startColIdx = currentColIndex
-            const endColIdx = currentColIndex + (distCol * numPemeriksa) - 1
-            
-            const startCol = getColName(startColIdx)
-            const endCol = getColName(endColIdx)
-
-            ws.mergeCells(`${startCol}${sumRow}:${endCol}${sumRow}`)
-            ws.getCell(`${startCol}${sumRow}`).value = 'Diperiksa oleh,'
-            ws.getCell(`${startCol}${sumRow}`).alignment = { horizontal:'center' }
-            ws.getCell(`${startCol}${sumRow}`).border = { ...borderStyles }
-
-            dataApp.pemeriksa.forEach((item, index) => {
-                const colStartIdx = currentColIndex + (distCol * index)
-                const colEndIdx = colStartIdx + distCol - 1
-                const colStart = getColName(colStartIdx)
-                const colEnd = getColName(colEndIdx)
-
-                ws.mergeCells(`${colStart}${headRow}:${colEnd}${botRow}`)
-                ws.getCell(`${colStart}${headRow}`).value = renderApprovalText(item)
-                ws.getCell(`${colStart}${headRow}`).alignment = { ...appStyle }
-                ws.getCell(`${colStart}${headRow}`).border = { ...borderStyles }
-            })
-
-            currentColIndex += (distCol * numPemeriksa)
-        }
-
-        // === 3. DISETUJUI OLEH ===
-        if (hasPenyetuju) {
-            const numPenyetuju = dataApp.penyetuju.length
-            const startColIdx = currentColIndex
-            const endColIdx = currentColIndex + (distCol * numPenyetuju) - 1
-            
-            const startCol = getColName(startColIdx)
-            const endCol = getColName(endColIdx)
-
-            ws.mergeCells(`${startCol}${sumRow}:${endCol}${sumRow}`)
-            ws.getCell(`${startCol}${sumRow}`).value = 'Disetujui oleh,'
-            ws.getCell(`${startCol}${sumRow}`).alignment = { horizontal:'center' }
-            ws.getCell(`${startCol}${sumRow}`).border = { ...borderStyles }
-
-            dataApp.penyetuju.forEach((item, index) => {
-                const colStartIdx = startColIdx + (distCol * index)
-                const colEndIdx = colStartIdx + distCol - 1
-                const colStart = getColName(colStartIdx)
-                const colEnd = getColName(colEndIdx)
-
-                ws.mergeCells(`${colStart}${headRow}:${colEnd}${botRow}`)
-                ws.getCell(`${colStart}${headRow}`).value = renderApprovalText(item)
-                ws.getCell(`${colStart}${headRow}`).alignment = { ...appStyle }
-                ws.getCell(`${colStart}${headRow}`).border = { ...borderStyles }
-            })
-        }
-
-        await ws.protect('As5etPm4')
-
-        workbook.xlsx.writeBuffer().then(function(buffer) {
-            fs.saveAs(
-            new Blob([buffer], { type: "application/octet-stream" }),
-            `Form Stock Opname Asset ${detailStock[0].no_stock} ${moment().format('DD MMMM YYYY')}.xlsx`
-            )
-        })
-        
-        this.setState({isLoading: false})
     }
 
     downloadForm = async (val) => {
@@ -1569,11 +1191,6 @@ class Stock extends Component {
     getDataStock = async (value) => {
         const token = localStorage.getItem("token")
         const level = localStorage.getItem('level')
-        // const { page } = this.props.disposal
-        // const search = value === undefined ? '' : this.state.search
-        // const limit = value === undefined ? this.state.limit : value.limit
-        await this.props.getRole(token)
-        // this.setState({limit: value === undefined ? 10 : value.limit})
         const filter = (level === '5' || level === '9' ) ? 'all' : 'available'
         this.changeFilter(filter)
     }
@@ -1655,18 +1272,17 @@ class Stock extends Component {
         this.changeFilter(filter)
     }
 
-    changeFilter = async (val) => {
+    changeFilterStock = async (val) => {
         const token = localStorage.getItem("token")
         const {time1, time2, search, limit} = this.state
         const cekTime1 = time1 === '' ? 'undefined' : time1
         const cekTime2 = time2 === '' ? 'undefined' : time2
-
         await this.props.getStockAll(token, search, limit, 1, '', val, cekTime1, cekTime2)
 
         const {dataStock} = this.props.stock
         const {dataRole} = this.props.user
         const level = localStorage.getItem('level')
-        const role = level === '16' || level === '13' ? dataRole.find(({nomor}) => nomor === '27').name : localStorage.getItem('role')
+        const role = level === '16' || level === '13' ? dataRole.find(({nomor}) => nomor === '27')?.name : localStorage.getItem('role')
         
         if (level === '2') {
             this.setState({filter: val, newStock: dataStock})
@@ -1779,6 +1395,173 @@ class Stock extends Component {
                     }
                 }
                 this.setState({filter: val, newStock: newStock})
+            }
+        }
+    }
+
+    changeFilter = async (val) => {
+        const token = localStorage.getItem("token")
+        const role = localStorage.getItem('role')
+        const level = localStorage.getItem('level')
+        const { detailUser, dataRole } = this.props.user
+        const { dataDepo } = this.props.depo
+
+        const {time1, time2, search, limit} = this.state
+        const cekTime1 = time1 === '' ? 'undefined' : time1
+        const cekTime2 = time2 === '' ? 'undefined' : time2
+        await this.props.getStockAll(token, search, limit, 1, '', val, cekTime1, cekTime2)
+        
+        const arrRole = detailUser.detail_role
+        const listRole = []
+        for (let i = 0; i < arrRole.length + 1; i++) {
+            if (detailUser.user_level === 1) {
+                const data = {fullname: 'admin', name: 'admin', nomor: '1', type: 'all'}
+                listRole.push(data)
+            } else if (i === arrRole.length) {
+                const cek = dataRole.find(item => parseInt(item.nomor) === detailUser.user_level)
+                if (cek !== undefined) {
+                    listRole.push(cek)
+                }
+            } else {
+                const cek = dataRole.find(item => parseInt(item.nomor) === arrRole[i].id_role)
+                if (cek !== undefined) {
+                    listRole.push(cek)
+                }
+            }
+        }
+
+        const { dataStock } = this.props.stock
+        if (level === '2') {
+            this.setState({filter: val, newStock: dataStock})
+            if (val === 'available') {
+                const newStock = []
+                for (let i = 0; i < dataStock.length; i++) {
+                    if (dataStock[i].status_reject !== 1 && dataStock[i].status_form === 9) {
+                        newStock.push(dataStock[i])
+                    }
+                }
+                this.setState({filter: val, newStock: newStock})
+            } else if (val === 'selesai') {
+                const newStock = []
+                for (let i = 0; i < dataStock.length; i++) {
+                    if (dataStock[i].status_form === 8) {
+                        newStock.push(dataStock[i])
+                    }
+                }
+                this.setState({filter: val, newStock: newStock})
+            } else if (val === 'reject') {
+                const newStock = []
+                for (let i = 0; i < dataStock.length; i++) {
+                    if (dataStock[i].status_reject === 1) {
+                        newStock.push(dataStock[i])
+                    }
+                }
+                this.setState({filter: val, newStock: newStock})
+            } else {
+                const newStock = []
+                for (let i = 0; i < dataStock.length; i++) {
+                    if (dataStock[i].status_reject !== 1 && dataStock[i].status_form === 9) {
+                        console.log()
+                    } else {
+                        newStock.push(dataStock[i])
+                    }
+                }
+                this.setState({filter: val, newStock: newStock})
+            }
+        } else {
+            if (val === 'available') {
+                const newStock = []
+                const arrApp = []
+                for (let i = 0; i < dataStock.length; i++) {
+                    const depoFrm = dataDepo.find(item => item.kode_plant === dataStock[i].kode_plant)
+                    for (let x = 0; x < listRole.length; x++) {
+                        // console.log(listRole)
+                        const app = dataStock[i].appForm === undefined ? [] : dataStock[i].appForm
+                        const cekFrm = listRole[x].type === 'area' && depoFrm !== undefined ? (depoFrm.nama_bm.toLowerCase() === detailUser.fullname.toLowerCase() || depoFrm.nama_om.toLowerCase() === detailUser.fullname.toLowerCase() || depoFrm.nama_aos.toLowerCase() === detailUser.fullname.toLowerCase() ? 'pengirim' : 'not found') : 'all'
+                        // const cekFin = cekFrm === 'pengirim' ? 'pengirim' : 'all'
+                        const cekFin = cekFrm === 'pengirim' ? 'all' : 'all'
+                        const cekApp = app.find(item => (item.jabatan === listRole[x].name) && (cekFin === 'all' ? (item.struktur === null || item.struktur === 'all') : (item.struktur === cekFin)))
+                        const find = app.indexOf(cekApp)
+                        // console.log(listRole[x])
+                        // console.log(cekApp)
+                        // console.log(cekFrm)
+                        // console.log(cekTo)
+                        // console.log(cekFin)
+                        if (level === '5' || level === '9') {
+                            console.log('at available 2')
+                            if (find === 0 || find === '0') {
+                                console.log('at available 3')
+                                if (dataStock[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
+                                    if (newStock.find(item => item.no_stock === dataStock[i].no_stock) === undefined) {
+                                        newStock.push(dataStock[i])
+                                        arrApp.push({index: find, noStock: dataStock[i].no_stock})
+                                    }
+                                }
+                            } else {
+                                console.log('at available 4')
+                                if (find !== app.length - 1) {
+                                    if (dataStock[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
+                                        if (newStock.find(item => item.no_stock === dataStock[i].no_stock) === undefined) {
+                                            newStock.push(dataStock[i])
+                                            arrApp.push({index: find, noStock: dataStock[i].no_stock})
+                                        }
+                                    }
+                                }
+                            }
+                        } else if (find === 0 || find === '0') {
+                            console.log('at available 8')
+                            if (dataStock[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find].status !== 1) {
+                                if (newStock.find(item => item.no_stock === dataStock[i].no_stock) === undefined) {
+                                    newStock.push(dataStock[i])
+                                    arrApp.push({index: find, noStock: dataStock[i].no_stock})
+                                }
+                            }
+                        } else {
+                            console.log('at available 5')
+                            if (dataStock[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
+                                if (newStock.find(item => item.no_stock === dataStock[i].no_stock) === undefined) {
+                                    newStock.push(dataStock[i])
+                                    arrApp.push({index: find, noStock: dataStock[i].no_stock})
+                                }
+                            }
+                        }
+                    }
+                }
+                this.setState({filter: val, newStock: newStock, baseData: newStock, arrApp: arrApp})
+            } else if (val === 'reject') {
+                const newStock = []
+                for (let i = 0; i < dataStock.length; i++) {
+                    if (dataStock[i].status_reject === 1) {
+                        newStock.push(dataStock[i])
+                    }
+                }
+                this.setState({filter: val, newStock: newStock, baseData: newStock})
+            } else if (val === 'full') {
+                const newStock = []
+                for (let i = 0; i < dataStock.length; i++) {
+                    if (dataStock[i].status_form === 9) {
+                        newStock.push(dataStock[i])
+                    }
+                }
+                this.setState({filter: val, newStock: newStock, baseData: newStock})
+            } else if (val === 'submit') {
+                const newStock = []
+                for (let i = 0; i < dataStock.length; i++) {
+                    if (dataStock[i].status_form === 15) {
+                        newStock.push(dataStock[i])
+                    }
+                }
+                this.setState({filter: val, newStock: newStock, baseData: newStock})
+            } else if (val === 'finish') {
+                const newStock = []
+                for (let i = 0; i < dataStock.length; i++) {
+                    if (dataStock[i].status_form === 8) {
+                        newStock.push(dataStock[i])
+                    }
+                }
+                this.setState({filter: val, newStock: newStock, baseData: newStock})
+            } else {
+                this.setState({filter: val, newStock: dataStock, baseData: dataStock})
             }
         }
     }
@@ -3246,101 +3029,52 @@ class Stock extends Component {
                             </Table>
                         </div>
                         )}
-                        <Table borderless responsive className="tabPreview">
-                           <thead>
-                               <tr>
-                                   <th className="buatPre">Dibuat oleh,</th>
-                                   <th className="buatPre">Diperiksa oleh,</th>
-                                   <th className="buatPre">Disetujui oleh,</th>
-                               </tr>
-                           </thead>
-                           <tbody className="tbodyPre">
-                               <tr>
-                                   <td className="restTable">
-                                       <Table bordered responsive className="divPre">
-                                            <thead>
-                                                <tr>
-                                                    {stockApp.pembuat !== undefined && stockApp.pembuat.map(item => {
-                                                        return (
-                                                            <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                <div>{item.nama === null ? "-" : item.nama}</div>
-                                                            </th>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                {stockApp.pembuat !== undefined && stockApp.pembuat.map(item => {
-                                                    return (
-                                                        <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                    )
-                                                })}
-                                                </tr>
-                                            </tbody>
-                                       </Table>
-                                   </td>
-                                   <td className="restTable">
-                                       <Table bordered responsive className="divPre">
-                                            <thead>
-                                                <tr>
-                                                    {stockApp.pemeriksa !== undefined && stockApp.pemeriksa.length === 0 ? (
-                                                        <th className="headPre">
-                                                            <div className="mb-2">-</div>
-                                                            <div>-</div>
-                                                        </th>
-                                                    ) : stockApp.pemeriksa !== undefined && stockApp.pemeriksa.map(item => {
-                                                        return (
-                                                            <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                <div>{item.nama === null ? "-" : item.nama}</div>
-                                                            </th>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    {stockApp.pemeriksa !== undefined && stockApp.pemeriksa.length === 0 ? (
-                                                        <td className="footPre">-</td>
-                                                    ) : stockApp.pemeriksa !== undefined && stockApp.pemeriksa.map(item => {
-                                                        return (
-                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </tbody>
-                                       </Table>
-                                   </td>
-                                   <td className="restTable">
-                                       <Table bordered responsive className="divPre">
-                                            <thead>
-                                                <tr>
-                                                    {stockApp.penyetuju !== undefined && stockApp.penyetuju.map(item => {
-                                                        return (
-                                                            <th className="headPre">
-                                                                <div className="mb-2">{item.nama === null ? "-" : item.status === 0 ? 'Reject' : moment(item.updatedAt).format('LL')}</div>
-                                                                <div>{item.nama === null ? "-" : item.nama}</div>
-                                                            </th>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    {stockApp.penyetuju !== undefined && stockApp.penyetuju.map(item => {
-                                                        return (
-                                                            <td className="footPre">{item.jabatan === null ? "-" : item.jabatan}</td>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </tbody>
-                                       </Table>
-                                   </td>
-                               </tr>
-                           </tbody>
-                       </Table>
+                        <Table bordered responsive className="tabPreview">
+                            <thead>
+                                <tr>
+                                    <th className="buatPre" colSpan={stockApp.pembuat?.length || 1}>Dibuat oleh,</th>
+                                    {stockApp.pemeriksa && stockApp.pemeriksa.length > 0 && (
+                                        <th className="buatPre" colSpan={
+                                            stockApp.pemeriksa?.filter(item => item.status_view !== 'hidden').length || 1
+                                        }>Diperiksa oleh,</th>
+                                    )}
+                                    <th className="buatPre" colSpan={stockApp.penyetuju?.length || 1}>Disetujui oleh,</th>
+                                </tr>
+                                <tr>
+                                    {stockApp.pembuat?.map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
+                                    {stockApp.pemeriksa?.filter(item => item.status_view !== 'hidden').map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
+                                    {stockApp.penyetuju?.filter(item => item.status_view !== 'hidden').map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    {stockApp.pembuat?.filter(item => item.status_view !== 'hidden').map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
+                                    {stockApp.pemeriksa?.filter(item => item.status_view !== 'hidden').map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
+                                    {stockApp.penyetuju?.filter(item => item.status_view !== 'hidden').map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
+                                </tr>
+                            </tbody>
+                        </Table>
                     </ModalBody>
                     <hr />
                     <div className="modalFoot ml-3">
@@ -4196,6 +3930,7 @@ const mapDispatchToProps = {
     submitAsset: stock.submitAsset,
     exportStock: report.getExportStock,
     getRole: user.getRole,
+    getDetailUser: user.getDetailUser,
     getDraftEmail: tempmail.getDraftEmail,
     sendEmail: tempmail.sendEmail,
     notifStock: notif.notifStock,

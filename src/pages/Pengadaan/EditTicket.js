@@ -21,6 +21,7 @@ import newnotif from '../../redux/actions/newnotif'
 import OtpInput from "react-otp-input";
 import moment from 'moment'
 import auth from '../../redux/actions/auth'
+import depo from '../../redux/actions/depo'
 import {default as axios} from 'axios'
 import Sidebar from "../../components/Header"
 import MaterialTitlePanel from "../../components/material_title_panel"
@@ -142,7 +143,12 @@ class EditTicket extends Component {
             message: '',
             noAjuan: '',
             showOptions: false,
-            listNoIo: []
+            listNoIo: [],
+            dataItem: [],
+            typeCost: '',
+            listCost: [],
+            openCost: false,
+            valCart: {}
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -365,6 +371,8 @@ class EditTicket extends Component {
         await this.props.getApproveIo(token, val.no_pengadaan)
         const data = this.props.pengadaan.detailIo
         let num = 0
+        const listCost = []
+        const cekCost = []
         for (let i = 0; i < data.length; i++) {
             if (data[i].isAsset !== 'true' && level !== '2' ) {
                 const temp = 0
@@ -373,9 +381,24 @@ class EditTicket extends Component {
                 const temp = parseInt(data[i].price) * parseInt(data[i].qty)
                 num += temp
             }
+            await this.props.getDetailItem(token, data[i].id)
+            if (data[0].type_ajuan !== 'single' && data[0].type_ajuan !== 'multiple') {
+                cekCost.push('area')
+            } else {
+                const { dataDetail } = this.props.pengadaan
+                for (let x = 0; x < dataDetail.length; x++) {
+                    listCost.push(dataDetail[x])
+                    cekCost.push(dataDetail[x].cost_center)
+                }
+            }
         }
-        this.setState({total: num, value: data[0].no_io})
-        this.prosesModalIo()
+        const uniqueCost = [...new Set(cekCost)]
+        const typeCost = cekCost[0] === 'area' ? 'area' : uniqueCost.length > 1 ? "MULTIPLE" : uniqueCost[0].split('-')[1]
+        setTimeout(() => {
+            console.log(typeCost)
+            this.setState({ total: num, value: data[0].no_io, typeCost: typeCost, listCost: listCost })
+            this.prosesModalIo()
+        }, 100)
     }
 
     rejectDisposal = async (value) => {
@@ -643,9 +666,11 @@ class EditTicket extends Component {
         await this.props.getNotif(token)
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         // this.getNotif()
+        const token = localStorage.getItem("token")
         this.getDataAsset()
+        await this.props.getDepo(token, 1000, '')
     }
 
     getDataAsset = async (value) => {
@@ -747,7 +772,7 @@ class EditTicket extends Component {
     }
 
     openDataRinci = (val) => {
-        this.setState({dataRinci: val})
+        this.setState({dataRinci: val, valCart: val})
         const role = localStorage.getItem('role')
         const app = val.appForm
         const find = app.indexOf(app.find(({jabatan}) => jabatan === role))
@@ -789,7 +814,7 @@ class EditTicket extends Component {
 
     prosesModalRinci = (val) => {
         console.log(val)
-        this.setState({dataRinci: val})
+        this.setState({dataRinci: val, valCart: val})
         this.prosesRinci()
     }
 
@@ -864,6 +889,10 @@ class EditTicket extends Component {
                 no_ref: val.kategori === 'return' ? this.state.noAjuan : ''
             }
             await this.props.updateCart(token, dataRinci.id, data)
+            if (dataRinci.kategori !== val.kategori) {
+                await this.props.getApproveIo(token, dataRinci.no_pengadaan, 'revisi')
+            }
+            await this.props.getApproveIo(token, dataRinci.no_pengadaan)
             await this.props.appRevisi(token, dataRinci.id)
             await this.props.getDetail(token, detailIo[0].no_pengadaan)
             this.prosesRinci()
@@ -956,15 +985,26 @@ class EditTicket extends Component {
         this.setState({openSubmit: !this.state.openSubmit})
     }
 
+    openCost = () => {
+        this.setState({openCost: !this.state.openCost})
+    }
+
     render() {
-        const {alert, upload, errMsg, rinciIo, total, listMut, newIo, dataRinci} = this.state
+        const {alert, upload, errMsg, rinciIo, total, listMut, newIo, dataRinci, typeCost, listCost, dataItem, valCart} = this.state
         const {dataAsset, alertM, alertMsg, alertUpload, page} = this.props.asset
         const pages = this.props.disposal.page 
-        const {revPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataDocCart} = this.props.pengadaan
+        const {revPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataDocCart, infoApp} = this.props.pengadaan
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
         const dataNotif = this.props.notif.data
+        const { dataDepo } = this.props.depo
         const role = localStorage.getItem('role')
+        const cekKode = detailIo[0] && detailIo[0].kode_plant.length > 4 ? 9 : 5
+
+        const splitApp = infoApp.info ? infoApp.info.split(']') : []
+        const pembuatApp = splitApp.length > 0 ? splitApp[0] : ''
+        const pemeriksaApp = splitApp.length > 0 ? splitApp[1] : ''
+        const penyetujuApp = splitApp.length > 0 ? splitApp[2] : ''
 
         const contentHeader =  (
             <div className={style.navbar}>
@@ -995,65 +1035,6 @@ class EditTicket extends Component {
           };
         return (
             <>
-                {/* <Sidebar {...sidebarProps}>
-                    <MaterialTitlePanel title={contentHeader}>
-                        <div className={style.backgroundLogo}>
-                                <div className={style.bodyDashboard}>
-                                    <div className={style.headMaster}> 
-                                        <div className={style.titleDashboard}>Revisi Pengadaan Asset</div>
-                                    </div>
-                                    <div className={style.secEmail}>
-                                        <div></div>
-                                        <div className={style.searchEmail2}>
-                                            <text>Search: </text>
-                                            <Input 
-                                            className={style.search}
-                                            onChange={this.onSearch}
-                                            value={this.state.search}
-                                            onKeyPress={this.onSearch}
-                                            >
-                                                <FaSearch size={20} />
-                                            </Input>
-                                        </div>
-                                    </div>
-                                    <div className="mt-4">
-                                        <Table bordered striped responsive hover className={style.tab}>
-                                            <thead>
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>No Pengadaan</th>
-                                                    <th>Kode Area</th>
-                                                    <th>Area</th>
-                                                    <th>Status</th>
-                                                    <th>Opsi</th>
-                                                </tr>
-                                            </thead>
-                                            {newIo !== undefined && newIo.map(item => {
-                                                return (
-                                                    <tbody>
-                                                        {item.status_reject === 1 ? (
-                                                            <tr>
-                                                                <td>{newIo.indexOf(item) + 1}</td>
-                                                                <td>{item.no_pengadaan}</td>
-                                                                <td>{item.kode_plant}</td>
-                                                                <td>{item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}</td>
-                                                                <td>{item.kategori === 'return' ? 'Pengajuan Return' : item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
-                                                                <td><Button color='primary' onClick={() => this.openForm(item)}>Proses</Button></td>
-                                                            </tr>
-                                                        ) : (
-                                                            null
-                                                        )}
-                                                    </tbody>
-                                                )
-                                            })}
-                                        </Table>
-                                    </div>
-                                    <div>
-                                </div>
-                            </div>
-                        </div>
-                    </MaterialTitlePanel>
-                </Sidebar> */}
                 <div className={styleTrans.app}>
                     <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
 
@@ -1209,7 +1190,9 @@ class EditTicket extends Component {
                                 <Col md={10} lg={10} className="colModal">
                                 <text className="mr-3">:</text>
                                 <OtpInput
-                                    value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.cost_center}
+                                    value={detailIo[0] === undefined ? '' 
+                                    : typeCost === 'area' ? (detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.cost_center)
+                                    : typeCost}
                                     isDisabled
                                     numInputs={10}
                                     inputStyle={style.otp}
@@ -1389,8 +1372,8 @@ class EditTicket extends Component {
                             <div className=''>Cost Center diisi oleh Asset Department</div>
                             <div className=''>Untuk kategori Non Budgeted dan Return kolom alasan "Wajib" diisi</div>
                             <div className=''>* Sesuai Matriks Otorisasi, disetujui oleh :</div>
-                            <div className='ml-4'>- Budgeted / Return : NFAM</div>
-                            <div className='ml-4 mb-3'>- Non Budgeted : DH OPS, NFAM, DH FA, DH HC, CM</div>
+                            <div className='ml-4'>- Budgeted / Return : {cekKode === 5 ? (penyetujuApp.split(';')[1] && penyetujuApp.split(';')[1]) : (penyetujuApp.split(';')[3] && penyetujuApp.split(';')[3])}</div>
+                            <div className='ml-4 mb-3'>- Non Budgeted : {cekKode === 5 ? (penyetujuApp.split(';')[2] && penyetujuApp.split(';')[2]) : (penyetujuApp.split(';')[4] && penyetujuApp.split(';')[4])}</div>
                         </Container>
                         <Container>
                             <div className='mt-4'>FRM-FAD-058 REV 06</div>
@@ -1419,211 +1402,133 @@ class EditTicket extends Component {
                         </div>
                     </div>
                 </Modal>
-                <Modal size="xl" isOpen={this.state.preview} toggle={this.openPreview}>
-                    <ModalBody className="mb-5">
-                        <Container>
-                            <Row className="rowModal">
-                                <Col md={3} lg={3}>
-                                    <img src={logo} className="imgModal" />
-                                </Col>
-                                <Col md={9} lg={9}>
-                                    <text className="titModal">FORM INTERNAL ORDER ASSET</text>
-                                </Col>
-                            </Row>
-                            <div className="mt-4 mb-3">Io type:</div>
-                            <div className="mb-4">
-                                <Form.Check 
-                                    type="checkbox"
-                                    label="CB-20 IO Capex"
-                                />
-                            </div>
-                            <Row className="rowModal">
-                                <Col md={2} lg={2}>
-                                    Nomor IO
-                                </Col>
-                                <Col md={10} lg={10} className="colModal">
-                                <text className="mr-3">:</text>
-                                <OtpInput
-                                    value={this.state.value}
-                                    onChange={this.onChange}
-                                    numInputs={(this.state.value === undefined || this.state.value === null) ? 11 : this.state.value.length > 11 ? this.state.value.length : 11}
-                                    inputStyle={style.otp}
-                                    containerStyle={style.containerOtp}
-                                    isDisabled
-                                />
-                                </Col>
-                            </Row>
-                            <Row className="mt-4">
-                                <Col md={2} lg={2}>
-                                    Deskripsi
-                                </Col>
-                                <Col md={10} lg={10} className="colModalTab">
-                                    <text className="mr-3">:</text>
-                                    <Table bordered stripped responsive>
-                                        <thead>
-                                            <tr>
-                                                <th>Qty</th>
-                                                <th>Description</th>
-                                                <th>Price/unit</th>
-                                                <th>Total Amount</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {detailIo !== undefined && detailIo.length > 0 && detailIo.map(item => {
-                                                return (
-                                                    item.isAsset === 'false' && level !== '2' ? (
-                                                        null
-                                                    ) : (
-                                                    <tr onClick={() => this.openModalRinci()}>
-                                                        <td>{item.qty}</td>
-                                                        <td>{item.nama}</td>
-                                                        <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
-                                                        <td>Rp {(parseInt(item.price) * parseInt(item.qty).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."))}</td>
-                                                    </tr>
-                                                    )
-                                                )
-                                            })}
-                                        </tbody>
-                                    </Table>
-                                </Col>
-                            </Row>
-                            <Row className="rowModal mt-4">
-                                <Col md={2} lg={2}>
-                                    Cost Center
-                                </Col>
-                                <Col md={10} lg={10} className="colModal">
-                                <text className="mr-3">:</text>
-                                <OtpInput
-                                    value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.cost_center}
-                                    isDisabled
-                                    numInputs={10}
-                                    inputStyle={style.otp}
-                                    containerStyle={style.containerOtp}
-                                />
-                                </Col>
-                            </Row>
-                            <Row className="rowModal mt-2">
-                                <Col md={2} lg={2}>
-                                    Profit Center
-                                </Col>
-                                <Col md={10} lg={10} className="colModal">
-                                <text className="mr-3">:</text>
-                                <OtpInput
-                                    value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.profit_center}
-                                    isDisabled
-                                    numInputs={10}
-                                    inputStyle={style.otp}
-                                    containerStyle={style.containerOtp}
-                                />
-                                </Col>
-                            </Row>
-                            <Row className="rowModal mt-4">
-                                <Col md={2} lg={2}>
-                                    Kategori
-                                </Col>
-                                <Col md={10} lg={10} className="colModal">
-                                <text className="mr-3">:</text>
-                                    <Col md={4} lg={4}>
-                                        <Form.Check 
-                                            type="checkbox"
-                                            label="Budget"
-                                            checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'budget' ? true : false}
-                                        />
-                                    </Col>
-                                    <Col md={4} lg={4}>
-                                        <Form.Check 
-                                            type="checkbox"
-                                            label="Non Budgeted"
-                                            checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'non-budget' ? true : false}
-                                        />
-                                    </Col>
-                                    <Col md={4} lg={4}>
-                                        <Form.Check 
-                                            type="checkbox"
-                                            label="Return"
-                                            checked={detailIo[0] === undefined ? '' : detailIo[0].kategori === 'return' ? true : false}
-                                        />
-                                    </Col>
-                                </Col>
-                            </Row>
-                            <Row className="rowModal mt-4">
-                                <Col md={2} lg={2}>
-                                    Amount
-                                </Col>
-                                <Col md={10} lg={10} className="colModal">
-                                <text className="mr-3">:</text>
-                                <text>Rp {total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</text>
-                                </Col>
-                            </Row>
-                            <Row className="rowModal mt-4">
-                                <Col md={2} lg={2}>
-                                    Alasan
-                                </Col>
-                                <Col md={10} lg={10} className="colModal">
-                                <text className="mr-3">:</text>
-                                <text>-</text>
-                                </Col>
-                            </Row>
-                        </Container>
-                        <Table bordered responsive className="tabPreview mt-4">
+                <Modal size='xl' isOpen={this.state.openCost}>
+                    <ModalHeader>Detail Cost Center</ModalHeader>
+                    <ModalBody>
+                        <Table>
                             <thead>
                                 <tr>
-                                    <th className="buatPre" colSpan={dataApp.pembuat?.length || 1}>Dibuat oleh,</th>
-                                    <th className="buatPre" colSpan={
-                                        dataApp.pemeriksa?.filter(item => item.status_view !== 'hidden').length || 1
-                                    }>Diperiksa oleh,</th>
-                                    <th className="buatPre" colSpan={dataApp.penyetuju?.length || 1}>Disetujui oleh,</th>
-                                </tr>
-                                <tr>
-                                    {dataApp.pembuat?.map(item => (
-                                        <th className="headPre">
-                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
-                                            <div>{item.nama ?? '-'}</div>
-                                        </th>
-                                    ))}
-                                    {dataApp.pemeriksa?.filter(item => item.status_view !== 'hidden').map(item => (
-                                        <th className="headPre">
-                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
-                                            <div>{item.nama ?? '-'}</div>
-                                        </th>
-                                    ))}
-                                    {dataApp.penyetuju?.map(item => (
-                                        <th className="headPre">
-                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
-                                            <div>{item.nama ?? '-'}</div>
-                                        </th>
-                                    ))}
+                                    <th>No</th>
+                                    <th>Cost Center</th>
+                                    {this.state.typeCost === 'single' && (
+                                        <th>NIK (opsional)</th>
+                                    )}
+                                    <th>Qty<br></br>( {parseInt(valCart.qty) - (dataItem.reduce((sum, item) => sum + parseInt(item.qty || 0), 0))} remaining )</th>
+                                    <th>Opsi</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    {dataApp.pembuat?.map(item => (
-                                        <td className="footPre">{item.jabatan ?? '-'}</td>
-                                    ))}
-                                    {dataApp.pemeriksa?.filter(item => item.status_view !== 'hidden').map(item => (
-                                        <td className="footPre">{item.jabatan ?? '-'}</td>
-                                    ))}
-                                    {dataApp.penyetuju?.map(item => (
-                                        <td className="footPre">{item.jabatan ?? '-'}</td>
-                                    ))}
-                                </tr>
+                                {dataItem.length > 0 && dataItem.map((item, index) => {
+                                    return (
+                                        <tr>
+                                            <td>{index + 1}</td>
+                                            <td>
+                                                <Input 
+                                                    type="select"
+                                                    name="cost_center"
+                                                    value={item.cost_center}
+                                                    onChange={e => this.updateItem({...item, cost_center: e.target.value}, index)}
+                                                >
+                                                    <option value="">---Pilih---</option>
+                                                    {dataDepo.length > 0 && dataDepo.map(item => {
+                                                        return (
+                                                            <option value={`${item.place_asset}-${item.cost_center}`}>{item.place_asset}-{item.cost_center}</option>
+                                                        )
+                                                    })}
+                                                </Input>
+                                            </td>
+                                            {this.state.typeCost === 'single' && (
+                                                <td>
+                                                    <Input 
+                                                        value={item.nik}
+                                                    />
+                                                </td>    
+                                            )}
+                                            <td>
+                                                <Input 
+                                                    type='number'
+                                                    value={item.qty}
+                                                    onChange={e => this.updateItem({...item, qty: e.target.value}, index)}
+                                                />
+                                            </td>
+                                            <td>
+                                                <Button
+                                                    onClick={() => this.updateItem(item, index, 'save')}
+                                                    color='success'
+                                                    className='ml-1 mt-1'
+                                                >
+                                                    Save
+                                                </Button>
+                                                <Button
+                                                    onClick={() => this.deleteDetail(item)}
+                                                    color='danger'
+                                                    className='ml-1 mt-1'
+                                                >
+                                                    Delete
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                                {(parseInt(valCart.qty) - (dataItem.reduce((sum, item) => sum + parseInt(item.qty || 0), 0))) !== 0 && (
+                                    <tr>
+                                        <td>{dataItem.length + 1}</td>
+                                        <td>
+                                            <Input 
+                                                type="select"
+                                                name="cost_center"
+                                                value={this.state.cost}
+                                                onChange={e => this.setState({cost: e.target.value})}
+                                            >
+                                                <option value="">---Pilih---</option>
+                                                {dataDepo.length > 0 && dataDepo.map(item => {
+                                                    return (
+                                                        <option value={`${item.place_asset}-${item.cost_center}`}>{item.place_asset}-{item.cost_center}</option>
+                                                    )
+                                                })}
+                                            </Input>
+                                        </td>
+                                        {this.state.typeCost === 'single' && (
+                                            <td>
+                                                <Input 
+                                                    value={this.state.nik}
+                                                    onChange={e => this.setState({nik: e.target.value})}
+                                                />
+                                            </td>    
+                                        )}
+                                        <td>
+                                            <Input 
+                                                type='number'
+                                                value={this.state.qty}
+                                                onChange={e => this.setState({qty: e.target.value})}
+                                            />
+                                        </td>
+                                        <td>
+                                            <Button
+                                                onClick={() => this.addItem({
+                                                    cost_center: this.state.cost,
+                                                    nik: this.state.nik,
+                                                    qty: this.state.qty
+                                                })}
+                                                color='success'
+                                                className='ml-1 mt-1'
+                                            >
+                                                Save
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </Table>
                     </ModalBody>
-                    <hr />
-                    <div className="modalFoot">
-                        <div className="btnFoot">
-                        </div>
-                        <div className="btnFoot">
-                            {/* <Button className="mr-2" color="warning" onClick={() => this.goDownload('formio')}>
-                                Download
-                            </Button> */}
-                            <FormIo />
-                            <Button color="secondary" onClick={this.openPreview}>
-                                Close 
-                            </Button>
-                        </div>
-                    </div>
+                    <ModalFooter>
+                        <Button
+                            color='secondary'
+                            onClick={this.openCost}
+                        >
+                            Close
+                        </Button>
+                    </ModalFooter>
                 </Modal>
                 <Modal isOpen={this.state.openSubmit} centered={true}>
                     <ModalBody>
@@ -1866,7 +1771,9 @@ class EditTicket extends Component {
                             <hr/>
                             <div className={style.foot}>
                                 <div>
-                                    {/* <Button color="success" className="mr-3" onClick={() => this.prosesModalDoc(dataRinci)}>Dokumen</Button> */}
+                                    {typeCost === 'MULTIPLE' && (
+                                        <Button color="success" className="mr-3" onClick={() => this.openCost()}>Detail Cost Center</Button>
+                                    )}
                                 </div>
                                 <div>
                                     <Button 
@@ -2282,6 +2189,7 @@ const mapStateToProps = state => ({
     dokumen: dokumen,
     tempmail: state.tempmail,
     newnotif: state.newnotif,
+    depo: state.depo
 })
 
 const mapDispatchToProps = {
@@ -2315,6 +2223,11 @@ const mapDispatchToProps = {
     sendEmail: tempmail.sendEmail,
     addNewNotif: newnotif.addNewNotif,
     searchIo: pengadaan.searchIo,
+    addDetailItem: pengadaan.addDetailItem,
+    updateDetailItem: pengadaan.updateDetailItem,
+    deleteDetailItem: pengadaan.deleteDetailItem,
+    getDetailItem: pengadaan.getDetailItem,
+    getDepo: depo.getDepo,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EditTicket)

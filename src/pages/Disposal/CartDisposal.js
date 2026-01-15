@@ -362,7 +362,8 @@ class CartDisposal extends Component {
                 await this.props.getDocumentDis(token, data, 'disposal', 'pengajuan')
                 const {dataDoc} = this.props.disposal
                 for (let j = 0; j < dataDoc.length; j++) {
-                    if (dataDoc[j].path === null && dataDoc[j].jenis_dokumen !== 'it') {
+                    // if (dataDoc[j].path === null && dataDoc[j].jenis_dokumen !== 'it') {
+                    if (dataDoc[j].path === null) {
                         cekDoc.push(dataDoc[j])
                     }
                 }
@@ -883,7 +884,8 @@ class CartDisposal extends Component {
                         <Alert color="danger" className="alertWrong" isOpen={this.state.upload}>
                             <div>{this.state.errMsg}</div>
                         </Alert>
-                        {dataDoc !== undefined && dataDoc.filter(item => item.jenis_dokumen !== 'it').map(x => {
+                        {/* {dataDoc !== undefined && dataDoc.filter(item => item.jenis_dokumen !== 'it').map(x => { */}
+                        {dataDoc !== undefined && dataDoc.filter(item => item).map(x => {
                             return (
                                 <Row className="mt-3 mb-4">
                                     <Col md={6} lg={6} >

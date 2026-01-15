@@ -775,7 +775,8 @@ class ModalDokumen extends Component {
             </Container>
         </ModalBody>
         <ModalFooter className='modalFoot'>
-            {filter === 'available' && (level === '2' || level === '8') ? (
+            {/* {filter === 'available' && (level === '2' || level === '8') ? ( */}
+            {filter === 'available' ? (
                 <div className='rowCenter'>
                     <Button 
                     color="success"

@@ -181,15 +181,17 @@ class FormIo extends Component {
 
     downloadForm = async () => {
         const {dataPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataDocCart, infoApp} = this.props.pengadaan
+        const { detailData, typeCost, costCenter } = this.props.data
 
+        const finalData = typeCost === "MULTIPLE" ? detailData : detailIo 
         const splitApp = infoApp.info ? infoApp.info.split(']') : []
         const pembuatApp = splitApp.length > 0 ? splitApp[0] : ''
         const pemeriksaApp = splitApp.length > 0 ? splitApp[1] : ''
         const penyetujuApp = splitApp.length > 0 ? splitApp[2] : ''
 
-        const cekKode = detailIo[0] && detailIo[0].kode_plant.length > 4 ? 9 : 5
+        const cekKode = finalData[0] && finalData[0].kode_plant.length > 4 ? 9 : 5
         
-        const data = detailIo
+        const data = finalData
         let num = 0
         for (let i = 0; i < data.length; i++) {
             // if (data[i].isAsset !== 'true' && level !== '2' ) {
@@ -206,7 +208,7 @@ class FormIo extends Component {
         const alpha = Array.from(Array(26)).map((e, i) => i + 65)
         const alphabet = alpha.map((x) => String.fromCharCode(x))
         
-        const colNum = detailIo.length + 14
+        const colNum = finalData.length + 14
         const lengthAll = []
         const lengthDesk = []
         const lengthIo = []
@@ -328,8 +330,8 @@ class FormIo extends Component {
             ...rightStyle
         }
 
-        for (let i = 0; i < (detailIo.length > 0 && detailIo[0].no_io !== null ? detailIo[0].no_io.split('').length : lengthIo.length); i++) {
-            ws.getCell(`${alphabet[i + 5]}12`).value = detailIo.length > 0 && detailIo[0].no_io !== null ? detailIo[0].no_io.split('')[i] : ''
+        for (let i = 0; i < (finalData.length > 0 && finalData[0].no_io !== null ? finalData[0].no_io.split('').length : lengthIo.length); i++) {
+            ws.getCell(`${alphabet[i + 5]}12`).value = finalData.length > 0 && finalData[0].no_io !== null ? finalData[0].no_io.split('')[i] : ''
             ws.getCell(`${alphabet[i + 5]}12`).alignment = { 
                 ...alignStyle
             }
@@ -398,9 +400,9 @@ class FormIo extends Component {
             ...boldStyle
         }
 
-        for (let i = 0; i < detailIo.length; i++) {
+        for (let i = 0; i < finalData.length; i++) {
             ws.mergeCells(`F${i + 15}`, `G${i + 15}`)
-            ws.getCell(`F${i + 15}`).value = detailIo[i].qty
+            ws.getCell(`F${i + 15}`).value = finalData[i].qty
             ws.getCell(`F${i + 15}`).alignment = { 
                 ...alignStyle
             }
@@ -409,7 +411,7 @@ class FormIo extends Component {
             }
 
             ws.mergeCells(`H${i + 15}`, `K${i + 15}`)
-            ws.getCell(`H${i + 15}`).value = detailIo[i].nama
+            ws.getCell(`H${i + 15}`).value = finalData[i].nama
             ws.getCell(`H${i + 15}`).alignment = { 
                 ...alignStyle
             }
@@ -418,7 +420,7 @@ class FormIo extends Component {
             }
             
             ws.mergeCells(`L${i + 15}`, `N${i + 15}`)
-            ws.getCell(`L${i + 15}`).value = `Rp.${detailIo[i].price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`
+            ws.getCell(`L${i + 15}`).value = `Rp.${finalData[i].price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`
             ws.getCell(`L${i + 15}`).alignment = { 
                 ...alignStyle
             }
@@ -427,7 +429,7 @@ class FormIo extends Component {
             }
 
             ws.mergeCells(`O${i + 15}`, `Q${i + 15}`)
-            ws.getCell(`O${i + 15}`).value = `Rp.${((parseInt(detailIo[i].price) * parseInt(detailIo[i].qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."))}`
+            ws.getCell(`O${i + 15}`).value = `Rp.${((parseInt(finalData[i].price) * parseInt(finalData[i].qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."))}`
             ws.getCell(`O${i + 15}`).alignment = { 
                 ...alignStyle
             }
@@ -447,9 +449,10 @@ class FormIo extends Component {
             ...rightStyle
         }
 
-        const cekCost = detailIo.length === 0 || detailIo[0].depo === undefined || detailIo[0].depo === null ? 'length' : 'cost'
-        for (let i = 0; i < (cekCost === 'length' ? lengthCost.length : detailIo[0].depo.cost_center.split('').length); i++) {
-            ws.getCell(`${alphabet[i + 5]}${colNum + 2}`).value = cekCost === 'length' ? '' : detailIo[0].depo.cost_center.split('')[i]
+        const cekCost = !costCenter ? 'length' : 'cost'
+        
+        for (let i = 0; i < (cekCost === 'length' ? lengthCost.length : costCenter.length); i++) {
+            ws.getCell(`${alphabet[i + 5]}${colNum + 2}`).value = cekCost === 'length' ? '' : costCenter.split('')[i]
             ws.getCell(`${alphabet[i + 5]}${colNum + 2}`).alignment = { 
                 ...alignStyle
             }
@@ -469,9 +472,9 @@ class FormIo extends Component {
             ...rightStyle
         }
 
-        const cekProfit = detailIo.length === 0 || detailIo[0].depo === undefined || detailIo[0].depo === null ? 'length' : 'cost'
-        for (let i = 0; i < (cekProfit === 'length' ? lengthProfit.length : detailIo[0].depo.profit_center.split('').length); i++) {
-            ws.getCell(`${alphabet[i + 5]}${colNum + 4}`).value = cekProfit === 'length' ? '' : detailIo[0].depo.profit_center.split('')[i]
+        const cekProfit = finalData.length === 0 || finalData[0].depo === undefined || finalData[0].depo === null ? 'length' : 'cost'
+        for (let i = 0; i < (cekProfit === 'length' ? lengthProfit.length : finalData[0].depo.profit_center.split('').length); i++) {
+            ws.getCell(`${alphabet[i + 5]}${colNum + 4}`).value = cekProfit === 'length' ? '' : finalData[0].depo.profit_center.split('')[i]
             ws.getCell(`${alphabet[i + 5]}${colNum + 4}`).alignment = { 
                 ...alignStyle
             }
@@ -491,7 +494,7 @@ class FormIo extends Component {
             ...rightStyle
         }
 
-        ws.getCell(`F${colNum + 6}`).value = detailIo[0] === undefined ? '' : detailIo[0].kategori === 'budget' ? 'V' : ''
+        ws.getCell(`F${colNum + 6}`).value = finalData[0] === undefined ? '' : finalData[0].kategori === 'budget' ? 'V' : ''
         ws.getCell(`F${colNum + 6}`).alignment = { 
             ...alignStyle
         }
@@ -504,7 +507,7 @@ class FormIo extends Component {
             ...leftStyle
         }
 
-        ws.getCell(`J${colNum + 6}`).value = detailIo[0] === undefined ? '' : detailIo[0].kategori === 'non-budget' ? 'V' : ''
+        ws.getCell(`J${colNum + 6}`).value = finalData[0] === undefined ? '' : finalData[0].kategori === 'non-budget' ? 'V' : ''
         ws.getCell(`J${colNum + 6}`).alignment = { 
             ...alignStyle
         }
@@ -517,7 +520,7 @@ class FormIo extends Component {
             ...leftStyle
         }
 
-        ws.getCell(`N${colNum + 6}`).value = detailIo[0] === undefined ? '' : detailIo[0].kategori === 'return' ? 'V' : ''
+        ws.getCell(`N${colNum + 6}`).value = finalData[0] === undefined ? '' : finalData[0].kategori === 'return' ? 'V' : ''
         ws.getCell(`N${colNum + 6}`).alignment = { 
             ...alignStyle
         }
@@ -562,18 +565,18 @@ class FormIo extends Component {
             ...rightStyle
         }
 
-        ws.getCell(`F${colNum + 11}`).value = `${detailIo[0] === undefined || detailIo[0].alasan === null ? '-' : detailIo[0].alasan}`
+        ws.getCell(`F${colNum + 11}`).value = `${finalData[0] === undefined || finalData[0].alasan === null ? '-' : finalData[0].alasan}`
         ws.getCell(`F${colNum + 11}`).alignment = { 
             ...leftStyle
         }
 
-        const dateRow = detailIo.length + 27
-        ws.getCell(`B${dateRow}`).value = `${detailIo[0].area}, ${moment(detailIo[0].tglIo).format('DD MMMM YYYY')}`
+        const dateRow = finalData.length + 27
+        ws.getCell(`B${dateRow}`).value = `${finalData[0].area}, ${moment(finalData[0].tglIo).format('DD MMMM YYYY')}`
         ws.getCell(`B${dateRow}`).alignment = { 
             ...leftStyle
         }
 
-        const sumRow = detailIo.length + 29
+        const sumRow = finalData.length + 29
         const headRow = 1 + sumRow
         const mainRow = 3 + sumRow
         const footRow = 5 + sumRow
@@ -859,13 +862,13 @@ class FormIo extends Component {
             ws.columns[2+i].width = 5.5
         }
 
-        for (let i = 0; i < detailIo.length; i++) {
+        for (let i = 0; i < finalData.length; i++) {
             ws.getRow(i + 15).height = 30
         }
 
         await ws.protect('As5etPm4')
 
-        if (detailIo[0].status_form === '8') {
+        if (finalData[0].status_form === '8') {
             const { dataTemp } = this.props.pengadaan
             const dataDownload = dataTemp
             
@@ -909,14 +912,14 @@ class FormIo extends Component {
             workbook.xlsx.writeBuffer().then(function(buffer) {
                 fs.saveAs(
                   new Blob([buffer], { type: "application/octet-stream" }),
-                  `Form Internal Order Asset ${detailIo[0].no_pengadaan} ${moment().format('DD MMMM YYYY')}.xlsx`
+                  `Form Internal Order Asset ${finalData[0].no_pengadaan} ${moment().format('DD MMMM YYYY')}.xlsx`
                 )
             })
         } else {
             workbook.xlsx.writeBuffer().then(function(buffer) {
                 fs.saveAs(
                   new Blob([buffer], { type: "application/octet-stream" }),
-                  `Form Internal Order Asset ${detailIo[0].no_pengadaan} ${moment().format('DD MMMM YYYY')}.xlsx`
+                  `Form Internal Order Asset ${finalData[0].no_pengadaan} ${moment().format('DD MMMM YYYY')}.xlsx`
                 )
             })
         }

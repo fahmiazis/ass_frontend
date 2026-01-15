@@ -1,10 +1,12 @@
 /* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable jsx-a11y/no-distracting-elements */
 import React, { Component } from 'react'
-import { FaUserCircle, FaBars, FaTrash, FaCartPlus } from 'react-icons/fa'
+import { FaUserCircle, FaBars, FaTrash, FaCartPlus, FaCheck } from 'react-icons/fa'
 import style from '../../assets/css/input.module.css'
 import {NavbarBrand, Row, Col, Button, Input, Modal, ModalBody, UncontrolledTooltip,
     ModalHeader, Spinner, Alert, Container, ModalFooter, Table} from 'reactstrap'
+import { Form } from 'react-bootstrap'
+import { CiWarning } from "react-icons/ci"
 import SidebarContent from "../../components/sidebar_content"
 import Sidebar from "../../components/Header"
 import {AiOutlineCheck, AiOutlineClose, AiFillCheckCircle, AiOutlineInbox} from 'react-icons/ai'
@@ -19,6 +21,7 @@ import depo from '../../redux/actions/depo'
 import auth from '../../redux/actions/auth'
 import {default as axios} from 'axios'
 import {connect} from 'react-redux'
+import logo from '../../assets/img/logo.png'
 import moment from 'moment'
 import Pdf from "../../components/Pdf"
 import newnotif from '../../redux/actions/newnotif'
@@ -27,6 +30,7 @@ import * as Yup from 'yup'
 import placeholder from  "../../assets/img/placeholder.png"
 import NavBar from '../../components/NavBar'
 import { MdUpload, MdDownload, MdEditSquare, MdAddCircle, MdDelete } from "react-icons/md"
+import OtpInput from "react-otp-input";
 import { HiOutlineUserGroup } from "react-icons/hi"
 import { FiLogOut, FiUser } from 'react-icons/fi'
 import styleTrans from '../../assets/css/transaksi.module.css'
@@ -34,7 +38,12 @@ import NewNavbar from '../../components/NewNavbar'
 import Email from '../../components/Pengadaan/Email'
 import NumberInput from '../../components/NumberInput'
 import styleHome from '../../assets/css/Home.module.css'
+import terbilang from '@develoka/angka-terbilang-js'
 const {REACT_APP_BACKEND_URL} = process.env
+
+const alasanSchema = Yup.object().shape({
+    alasan: Yup.string()
+});
 
 const cartSchema = Yup.object().shape({
     nama: Yup.string().required(),
@@ -89,7 +98,9 @@ class CartMutasi extends Component {
             dataItem: [],
             cost: '',
             qty: '',
-            nik: ''
+            nik: '',
+            openModalIo: false,
+            total: 0
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -111,6 +122,11 @@ class CartMutasi extends Component {
 
     openCost = () => {
         this.setState({openCost: !this.state.openCost, dataItem: []})
+    }
+
+    prosesModalIo = () => {
+        this.setState({ openModalIo: !this.state.openModalIo, listMut: [] })
+
     }
 
     addItem = async (val) => {
@@ -455,8 +471,17 @@ class CartMutasi extends Component {
         }
     }
 
+    updateAlasan = async (val) => {
+        const token = localStorage.getItem('token')
+        const { noIo } = this.props.pengadaan
+        await this.props.updateReason(token, noIo, val)
+        this.setState({ confirm: 'upreason' })
+        this.openConfirm()
+    }
+
     submitCart = async () => {
         const token = localStorage.getItem('token')
+        const kode = localStorage.getItem('kode')
         await this.props.getCart(token)
         const level = localStorage.getItem('level')
         const { dataCart } = this.props.pengadaan
@@ -496,8 +521,19 @@ class CartMutasi extends Component {
             this.setState({confirm: 'falseQty'})
             this.openConfirm()
         } else {
+            let num = 0
+            for (let i = 0; i < dataCart.length; i++) {
+                const temp = parseInt(dataCart[i].price) * parseInt(dataCart[i].qty)
+                num += temp
+                // }
+            }
+            this.setState({total: num})
             await this.props.submitIo(token)
-            this.prepSendEmail()
+            if (kode) {
+                this.prepSendEmail()
+            } else {
+
+            }
         }
     }
 
@@ -728,8 +764,8 @@ class CartMutasi extends Component {
     render() {
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
-        const {dataCart, dataDocCart, dataDetail } = this.props.pengadaan
-        const {dataRinci, dataItem, valCart} = this.state
+        const {dataCart, dataDocCart, dataDetail, noIo, dataApp } = this.props.pengadaan
+        const {dataRinci, dataItem, valCart, total} = this.state
         const { dataDepo } = this.props.depo
         const listType = ['single', 'multiple']
 
@@ -1083,7 +1119,7 @@ class CartMutasi extends Component {
                         )}
                     </Formik>
                 </Modal>
-                <Modal isOpen={this.state.rinci} size='xl'>
+                <Modal isOpen={this.state.rinci} size='xl' className='xl'>
                     <ModalHeader>Rincian item</ModalHeader>
                     <Formik
                     initialValues={{
@@ -1095,7 +1131,8 @@ class CartMutasi extends Component {
                         jenis: dataRinci.jenis,
                         akta: dataRinci.akta,
                         start: dataRinci.start === null || dataRinci.start === undefined ? '' : dataRinci.start.slice(0, 10),
-                        end: dataRinci.end === null || dataRinci.end === undefined ? '' : dataRinci.end.slice(0, 10)
+                        end: dataRinci.end === null || dataRinci.end === undefined ? '' : dataRinci.end.slice(0, 10),
+                        type_ajuan: dataRinci.type_ajuan
                     }}
                     validationSchema={cartSchema}
                     onSubmit={(values) => {this.editCart(values)}}
@@ -1310,13 +1347,13 @@ class CartMutasi extends Component {
 
                             {values.kategori !== 'return' && (
                                 <>
-                                    <div className='mt-4 mb-2 bold'>Detail Cost Center</div>
+                                    <div className='mt-4 mb-2 bold'>Detail Cost Center {dataRinci.type_ajuan}</div>
                                     <Table>
                                         <thead>
                                             <tr>
                                                 <th>No</th>
                                                 <th>Cost Center</th>
-                                                {this.state.typeCost === 'single' && (
+                                                {dataRinci.type_ajuan === 'single' && (
                                                     <th>NIK (opsional)</th>
                                                 )}
                                                 <th>Qty<br></br>( {parseInt(valCart.qty) - (dataItem.reduce((sum, item) => sum + parseInt(item.qty || 0), 0))} remaining )</th>
@@ -1343,10 +1380,12 @@ class CartMutasi extends Component {
                                                                 })}
                                                             </Input>
                                                         </td>
-                                                        {this.state.typeCost === 'single' && (
+                                                        {dataRinci.type_ajuan === 'single' && (
                                                             <td>
                                                                 <Input 
+                                                                    name="nik"
                                                                     value={item.nik}
+                                                                    onChange={e => this.updateItem({...item, nik: e.target.value}, index)}
                                                                 />
                                                             </td>    
                                                         )}
@@ -1749,6 +1788,328 @@ class CartMutasi extends Component {
                     </Button>
                 </ModalFooter>
             </Modal>
+            <Modal size="xl" isOpen={this.state.openModalIo} toggle={this.prosesModalIo} className='large'>
+                <ModalHeader toggle={this.prosesModalIo}>{noIo}</ModalHeader>
+                <ModalBody className="mb-5">
+                    <Container className='borderGen'>
+                        <Row className="rowModal">
+                            <Col md={3} lg={3}>
+                                <img src={logo} className="imgModal" />
+                            </Col>
+                            <Col md={9} lg={9}>
+                                <text className="titModal">FORM INTERNAL ORDER ASSET</text>
+                            </Col>
+                        </Row>
+                        <div className="mt-4 mb-3">Io type:</div>
+                        <div className="mb-4">
+                            <Form.Check
+                                type="checkbox"
+                                checked
+                                label="CB-20 IO Capex"
+                            />
+                        </div>
+                        <Row className="rowModal">
+                            <Col md={2} lg={2}>
+                                Nomor IO
+                            </Col>
+                            <Col md={10} lg={10} className="colModal">
+                                <text className="mr-3">:</text>
+                                <OtpInput
+                                    value={this.state.value}
+                                    onChange={this.onChange}
+                                    numInputs={(this.state.value === undefined || this.state.value === null) ? 11 : this.state.value.length > 11 ? this.state.value.length : 11}
+                                    inputStyle={style.otp}
+                                    containerStyle={style.containerOtp}
+                                    // isDisabled={level === '8' ? false : true}
+                                    // isDisabled
+                                />
+                            </Col>
+                        </Row>
+                        <Row className="mt-4">
+                            <Col md={2} lg={2}>
+                                Deskripsi
+                            </Col>
+                            <Col md={10} lg={10} className="colModalTab">
+                                <text className="mr-3">:</text>
+                                <Table bordered stripped responsive>
+                                    <thead>
+                                        <tr>
+                                            <th>Qty</th>
+                                            <th>Description</th>
+                                            <th>Price/unit</th>
+                                            <th>Total Amount</th>
+                                            {/* <th>OPSI</th> */}
+                                            {level === '2' && (
+                                                <th><text className='red star'>*</text> Asset</th>
+                                            )}
+                                            <th>Status IT</th>
+                                            {dataCart !== undefined && dataCart.length > 0 && dataCart[0].asset_token === null ? (
+                                                <th>Dokumen</th>
+                                            ) : (
+                                                null
+                                            )}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {dataCart !== undefined && dataCart.length > 0 && dataCart.map(item => {
+                                            return (
+                                                item.isAsset === 'false' && level !== '2' ? (
+                                                    null
+                                                ) : (
+                                                    <tr >
+                                                        <td>{item.qty}</td>
+                                                        <td className='tdDesc'>{item.nama}</td>
+                                                        <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                        <td>Rp {(parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                        {/* <td><Button onClick={() => this.openModalRinci()}>Detail</Button></td> */}
+                                                        {level === '2' && (
+                                                            <td className='colTable'>
+                                                                <div className='mb-1'>
+                                                                    <Input
+                                                                        addon
+                                                                        disabled={item.status_app === null ? false : true}
+                                                                        checked={item.isAsset === 'true' ? true : false}
+                                                                        type="checkbox"
+                                                                        onClick={() => this.updateIo({ item: item, value: 'true' })}
+                                                                        className='mr-1'
+                                                                        value={item.no_asset} />
+                                                                    <text>Ya</text>
+                                                                </div>
+                                                                <div>
+                                                                    <Input
+                                                                        addon
+                                                                        disabled={item.status_app === null ? false : true}
+                                                                        checked={item.isAsset === 'false' ? true : false}
+                                                                        type="checkbox"
+                                                                        onClick={() => this.updateIo({ item: item, value: 'false' })}
+                                                                        className='mr-1'
+                                                                        value={item.no_asset} />
+                                                                    <text>Tidak</text>
+                                                                </div>
+                                                            </td>
+                                                        )}
+                                                        <td>
+                                                            {item.jenis === 'it' ? 'IT' : item.jenis === 'non-it' ? 'NON IT' : '-'}
+                                                        </td>
+                                                        {dataCart !== undefined && dataCart.length > 0 && dataCart[0].asset_token === null ? (
+                                                            <td>
+                                                                <Button color='success' size='sm' onClick={() => this.prosesModalDoc(item)}>Show Dokumen</Button>
+                                                            </td>
+                                                        ) : (
+                                                            null
+                                                        )}
+                                                    </tr>
+                                                )
+                                            )
+                                        })}
+                                    </tbody>
+                                </Table>
+                            </Col>
+                        </Row>
+                        <Row className="rowModal mt-4">
+                            <Col md={2} lg={2}>
+                                Cost Center
+                            </Col>
+                            <Col md={10} lg={10} className="colModal">
+                                <text className="mr-3">:</text>
+                                <OtpInput
+                                    value={dataCart[0] === undefined ? '' : dataCart[0].depo === undefined ? '' : dataCart[0].depo === null ? '' : dataCart[0].depo.cost_center}
+                                    isDisabled
+                                    numInputs={10}
+                                    inputStyle={style.otp}
+                                    containerStyle={style.containerOtp}
+                                />
+                            </Col>
+                        </Row>
+                        <Row className="rowModal mt-2">
+                            <Col md={2} lg={2}>
+                                Profit Center
+                            </Col>
+                            <Col md={10} lg={10} className="colModal">
+                                <text className="mr-3">:</text>
+                                <OtpInput
+                                    value={dataCart[0] === undefined ? '' : dataCart[0].depo === undefined ? '' : dataCart[0].depo === null ? '' : dataCart[0].depo.profit_center}
+                                    isDisabled
+                                    numInputs={10}
+                                    inputStyle={style.otp}
+                                    containerStyle={style.containerOtp}
+                                />
+                            </Col>
+                        </Row>
+                        <Row className="rowModal mt-4">
+                            <Col md={2} lg={2}>
+                                Kategori
+                            </Col>
+                            <Col md={10} lg={10} className="colModal">
+                                <text className="mr-3">:</text>
+                                <Col md={4} lg={4}>
+                                    <Form.Check
+                                        type="checkbox"
+                                        label="Budget"
+                                        checked={dataCart[0] === undefined ? '' : dataCart[0].kategori === 'budget' ? true : false}
+                                    />
+                                </Col>
+                                <Col md={4} lg={4}>
+                                    <Form.Check
+                                        type="checkbox"
+                                        label="Non Budgeted"
+                                        checked={dataCart[0] === undefined ? '' : dataCart[0].kategori === 'non-budget' ? true : false}
+                                    />
+                                </Col>
+                                <Col md={4} lg={4}>
+                                    <Form.Check
+                                        type="checkbox"
+                                        label="Return"
+                                        checked={dataCart[0] === undefined ? '' : dataCart[0].kategori === 'return' ? true : false}
+                                    />
+                                </Col>
+                            </Col>
+                        </Row>
+                        <Row className="rowModal mt-4">
+                            <Col md={2} lg={2}>
+                                Amount
+                            </Col>
+                            <Col md={10} lg={10} className="colModal">
+                                <text className="mr-3">:</text>
+                                <text>Rp {total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</text>
+                            </Col>
+                        </Row>
+                        <Row className="rowModal mt-4">
+                            <Col md={2} lg={2}>
+                            </Col>
+                            <Col md={10} lg={10} className="colModal">
+                                <text className="mr-3"> </text>
+                                <text className='text-capitalize'>Terbilang ( {terbilang(total)} Rupiah )</text>
+                            </Col>
+                        </Row>
+                        <Formik
+                            initialValues={{
+                                alasan: dataCart[0] === undefined ? '' : dataCart[0].alasan === null || dataCart[0].alasan === '' || dataCart[0].alasan === '-' ? '' : dataCart[0].alasan,
+                            }}
+                            validationSchema={alasanSchema}
+                            onSubmit={(values) => { this.updateAlasan(values) }}
+                        >
+                            {({ handleChange, handleBlur, handleSubmit, values, errors, touched, }) => (
+                                <div>
+                                    <Row className="rowModal mt-4">
+                                        <Col md={2} lg={2}>
+                                            Alasan
+                                        </Col>
+                                        <Col md={10} lg={10} className="colModal">
+                                            <text className="mr-3">:</text>
+                                            {level === '5' || level === '9' ? (
+                                                <>
+                                                    <Input
+                                                        type='textarea'
+                                                        name='alasan'
+                                                        className='inputRecent'
+                                                        value={values.alasan}
+                                                        onChange={handleChange('alasan')}
+                                                        onBlur={handleBlur('alasan')}
+                                                    />
+                                                </>
+                                            ) : (
+                                                <text>{dataCart[0] === undefined ? '-' : dataCart[0].alasan}</text>
+                                            )}
+                                        </Col>
+                                    </Row>
+                                    <Row>
+                                        <Col md={2} lg={2}></Col>
+                                        <Col md={10} lg={10} >
+                                            <text className="mr-3"></text>
+                                            {errors.alasan ? (
+                                                <text className={style.txtError}>Must be filled</text>
+                                            ) : null}
+                                        </Col>
+                                    </Row>
+                                    {this.state.filter === 'available' ? (
+                                        <Row className="rowModal mt-1">
+                                            <Col md={2} lg={2}>
+                                            </Col>
+                                            <Col md={10} lg={10} className="colModal1">
+                                                <text className="mr-3"></text>
+                                                {level === '5' || level === '9' ? (
+                                                    <Button onClick={handleSubmit} color='success'>Update</Button>
+                                                ) : (
+                                                    null
+                                                )}
+                                            </Col>
+                                        </Row>
+                                    ) : (
+                                        <Row></Row>
+                                    )}
+
+                                </div>
+                            )}
+                        </Formik>
+                        <Row className="rowModal mt-4">
+                            <Col md={12} lg={12}>
+                                {dataCart[0] === undefined ? '' : `${dataCart[0].area}, ${moment(dataCart[0].tglIo).format('DD MMMM YYYY')}`}
+                            </Col>
+                        </Row>
+                        <Table bordered responsive className="tabPreview mt-4">
+                            <thead>
+                                <tr>
+                                    <th className="buatPre" colSpan={dataApp.pembuat?.length || 1}>Dibuat oleh,</th>
+                                    <th className="buatPre" colSpan={
+                                        dataApp.pemeriksa?.filter(item => item.status_view !== 'hidden').length || 1
+                                    }>Diperiksa oleh,</th>
+                                    <th className="buatPre" colSpan={dataApp.penyetuju?.length || 1}>Disetujui oleh,</th>
+                                </tr>
+                                <tr>
+                                    {dataApp.pembuat?.map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
+                                    {dataApp.pemeriksa?.filter(item => item.status_view !== 'hidden').map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
+                                    {dataApp.penyetuju?.map(item => (
+                                        <th className="headPre">
+                                            <div>{item.status === 0 ? 'Reject' : item.status === 1 ? moment(item.updatedAt).format('LL') : '-'}</div>
+                                            <div>{item.nama ?? '-'}</div>
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    {dataApp.pembuat?.map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
+                                    {dataApp.pemeriksa?.filter(item => item.status_view !== 'hidden').map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
+                                    {dataApp.penyetuju?.map(item => (
+                                        <td className="footPre">{item.jabatan ?? '-'}</td>
+                                    ))}
+                                </tr>
+                            </tbody>
+                        </Table>
+                    </Container>
+                    {/* <Container>
+                        <div className='mt-4'>FRM-FAD-058 REV 06</div>
+                    </Container> */}
+                </ModalBody>
+                <hr />
+                <div className="modalFoot">
+                    <div className="btnFoot">
+                    </div>
+                    <div className="btnFoot">
+                        <Button className="mr-2" color="danger" onClick={this.prosesModalIo}>
+                            Close
+                        </Button>
+                        <Button color="success" onClick={() => this.cekProsesApprove('submit')}>
+                            Submit
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
             <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="md">
                 <ModalBody>
                     {this.state.confirm === 'submit' ? (
@@ -1821,11 +2182,18 @@ class CartMutasi extends Component {
                                 <div className={[style.sucUpdate, style.green]}>Berhasil Update</div>
                             </div>
                         </div>
-                    ) : this.state.confirm === 'add' ?(
+                    ) : this.state.confirm === 'add' ? (
                         <div>
                             <div className={style.cekUpdate}>
                                 <AiFillCheckCircle size={80} className={style.green} />
                                 <div className={[style.sucUpdate, style.green]}>Berhasil Update</div>
+                            </div>
+                        </div>
+                    ) : this.state.confirm === 'upreason' ? (
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiFillCheckCircle size={80} className={style.green} />
+                                <div className={[style.sucUpdate, style.green]}>Berhasil Update Alasan</div>
                             </div>
                         </div>
                     ) : (

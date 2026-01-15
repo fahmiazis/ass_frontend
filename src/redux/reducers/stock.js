@@ -51,7 +51,8 @@ const stockState = {
     dataDepo: [],
     dataAset: [],
     isDocStock: null,
-    dataSearch: []
+    dataSearch: [],
+    isUploadDraft: null
 };
 
 export default (state=stockState, action) => {
@@ -700,6 +701,30 @@ export default (state=stockState, action) => {
                 alertMsg: 'Unable connect to server',
             };
         }
+
+        case 'UPLOAD_DRAFTSTOCK_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...',
+            };
+            }
+        case 'UPLOAD_DRAFTSTOCK_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isUploadDraft: true,
+                alertMsg: 'delete stock Succesfully',
+            };
+        }
+        case 'UPLOAD_DRAFTSTOCK_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isUploadDraft: false,
+                alertMsg: 'Unable connect to server',
+            };
+        }
         case 'RESET_STOCK': {
             return {
                 ...state,
@@ -716,6 +741,7 @@ export default (state=stockState, action) => {
                 isUpdateStock: false,
                 isSubrev: null,
                 isApprev: null,
+                isUploadDraft: null,
                 isAdd: false,
                 isImage: false,
                 isSubmit: null,

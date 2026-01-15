@@ -55,9 +55,9 @@ export default {
         type: 'DELETE_STOCK',
         payload: http(token).delete(`/stock/delete/${id}`)
     }),
-    approveStock: (token, no) => ({
+    approveStock: (token, data) => ({
         type: 'APPROVE_STOCK',
-        payload: http(token).patch(`/stock/app`, qs.stringify({no: no}))
+        payload: http(token).patch(`/stock/app`, qs.stringify(data))
     }),
     rejectStock: (token, data) => ({
         type: 'REJECT_STOCK',
@@ -106,6 +106,10 @@ export default {
     deleteAdd: (token, id) => ({
         type: 'DELETE_ADDSTOCK',
         payload: http(token).delete(`/stock/deleteAdd/${id}`),
+    }),
+    uploadDraftStock: (token, data) => ({
+        type: 'UPLOAD_DRAFTSTOCK',
+        payload: http(token).post(`/stock/draft-upload`, data)
     }),
     resetStock: () => ({
         type: 'RESET_STOCK'

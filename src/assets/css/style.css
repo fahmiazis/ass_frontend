@@ -38,6 +38,12 @@ html,body{
     flex-direction: row;
     align-items: center;
 }
+.selfCenter {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    align-self: center;
+}
 .fillAset {
     width: 30% !important;
 }
@@ -1732,4 +1738,48 @@ input:checked + .slider:before {
 .nullPading {
     padding: 0 !important;
     margin: 0 !important;
+}
+
+/* Menu Access Styles */
+.menu-section {
+    margin-bottom: 2rem;
+}
+
+.menu-header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e0e0e0;
+    font-weight: 600;
+    font-size: 16px;
+    color: #333;
+}
+
+.menu-item {
+    margin-bottom: 0.5rem;
+    padding: 8px 12px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+.menu-item.alternate {
+    background-color: #f8f9fa;
+}
+
+.menu-item:hover {
+    background-color: #e9ecef;
+}
+
+.menu-checkbox {
+    width: 18px;
+    height: 18px;
+    margin-right: 0.5rem;
+    cursor: pointer;
+}
+
+.menu-label {
+    font-size: 14px;
+    color: #495057;
+    user-select: none;
 }
