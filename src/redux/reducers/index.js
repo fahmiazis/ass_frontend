@@ -23,6 +23,7 @@ import apk from './apk'
 import status_stock from './status_stock'
 import clossing from './clossing'
 import dashboard from './dashboard'
+import asset_stock from './asset_stock'
 
 export default combineReducers({
   pengadaan,
@@ -46,5 +47,6 @@ export default combineReducers({
   apk,
   status_stock,
   clossing,
-  dashboard
+  dashboard,
+  asset_stock
 })

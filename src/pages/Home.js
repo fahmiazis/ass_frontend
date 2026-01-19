@@ -235,7 +235,8 @@ class Home extends Component {
         openStock: false,
         openMut: false,
         selectedYear: new Date(),
-        loading: false
+        loading: false,
+        openAset: false
     }
 
     menuItems = [
@@ -271,6 +272,10 @@ class Home extends Component {
 
     toggleTicket = () => {
         this.setState({openTicket: !this.state.openTicket})
+    }
+
+    toggleAset = () => {
+        this.setState({openAset: !this.state.openAset})
     }
 
     toggleDis = () => {
@@ -536,11 +541,35 @@ class Home extends Component {
                                 Home
                             </li>
                             {(level === '1' || level === '2' || level === '5' || level === '9') && (
-                                <li className={styleHome.alignCenter} onClick={() => this.goRoute('asset')}>
+                                level === '1' || level === '2' ? (
+                                <li className={styleHome.alignCenter} 
+                                    // onClick={() => this.goRoute('navtick')}
+                                    onClick={this.toggleAset}
+                                >
                                     <RiMoneyDollarCircleFill className='mr-2' />
-                                    My Asset
+                                    Data Asset
                                 </li>
+                                ) : (
+<                                   li className={styleHome.alignCenter} onClick={() => this.goRoute('asset')}>
+                                        <RiMoneyDollarCircleFill className='mr-2' />
+                                        My Asset
+                                    </li>
+                                )
                             )}
+                            <Collapse isOpen={this.state.openAset} className="ml-3 mt-3">
+                                {(level === '1' || level === '2') && (
+                                    <li onClick={() => this.goRoute('asset')} className={styleHome.alignCenter}>
+                                        <RiMoneyDollarCircleFill className="mr-2"/>
+                                        My Asset
+                                    </li>
+                                )}
+                                {(level === '1' || level === '2') && (
+                                    <li onClick={() => this.goRoute('asset-stock')} className={styleHome.alignCenter}>
+                                        <RiMoneyDollarCircleFill className="mr-2"/>
+                                        Asset Opname
+                                    </li>
+                                )}
+                            </Collapse>
                             <li className={styleHome.alignCenter} 
                             // onClick={() => this.goRoute('navtick')}
                             onClick={this.toggleTicket}

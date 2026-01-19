@@ -446,7 +446,7 @@ class Stock extends Component {
             list: listMut,
             type: level === '2' ? 'verif' : 'form',
             type_reject: typeReject,
-            indexApp: `${cekApp.index}`
+            indexApp: level === '2' ? '0' : `${cekApp.index}`
         }
         await this.props.rejectStock(token, data)
         this.prosesSendEmail(`reject ${typeReject}`)

@@ -46,6 +46,7 @@ class NewNavbar extends Component {
       openDis: false,
       openStock: false,
       openMut: false,
+      openAset: false,
     };
   }
 
@@ -91,7 +92,7 @@ class NewNavbar extends Component {
       console.log(this.state.isLogo)
       const {sidebarOpen} = this.state
       if (sidebarOpen === true) {
-        this.setState({isOpen: false, openTicket: false, openDis: false, openMut: false, openStock: false})
+        this.setState({isOpen: false, openTicket: false, openDis: false, openMut: false, openStock: false, openAset: false})
         this.props.handleSidebar(sidebarOpen)
       } else {
         this.props.handleSidebar(sidebarOpen)
@@ -113,6 +114,10 @@ class NewNavbar extends Component {
 
   toggleMaster = () => {
     this.setState({isOpen: !this.state.isOpen})
+  }
+
+  toggleAset = () => {
+    this.setState({openAset: !this.state.openAset})
   }
 
   toggleTicket = () => {
@@ -164,11 +169,36 @@ class NewNavbar extends Component {
               {(!sidebarOpen || isMobile) &&  <span>Home</span>}
             </div>
             {(level === '1' || level === '2' || level === '5' || level === '9') && (
-              <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('asset')} >
-                <BsTable className={styleTrans.icon} size={sidebarOpen && 20} /> 
-                {(!sidebarOpen || isMobile) &&  <span>My Asset</span>}
-              </div>
+              level === '1' || level === '2' ? (
+                <div href="#" className={styleTrans.menuLink} 
+                  // onClick={() => this.goRoute('navtick')} 
+                  onClick={this.toggleAset}
+                >
+                  <BsTable className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Data Asset</span>}
+                </div>
+              ) : (
+                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('asset')} >
+                  <BsTable className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>My Asset</span>}
+                </div>
+              )
             )}
+            <Collapse isOpen={this.state.openAset} className="ml-3 mt-2">
+              {(level === '2' || level === '1') && (
+                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('asset')} >
+                  <BsTable className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>My Asset</span>}
+                </div>
+              )}
+
+              {(level === '2' || level === '1') && (
+                <div href="#" className={styleTrans.menuLink} onClick={() => this.goRoute('asset-stock')} >
+                  <BsTable className={styleTrans.icon} size={sidebarOpen && 20} /> 
+                  {(!sidebarOpen || isMobile) &&  <span>Asset Opname</span>}
+                </div>
+              )}
+            </Collapse>
             <div href="#" className={styleTrans.menuLink} 
             // onClick={() => this.goRoute('navtick')} 
             onClick={this.toggleTicket}

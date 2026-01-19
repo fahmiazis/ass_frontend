@@ -1601,6 +1601,24 @@ class Pengadaan extends Component {
         }
     }
 
+    prosesOpenCost = async () => {
+        const token = localStorage.getItem("token")
+        const { detailIo } = this.props.pengadaan
+        const data = detailIo
+        const listCost = []
+        for (let i = 0; i < data.length; i++) {
+            await this.props.getDetailItem(token, data[i].id)
+            const { dataDetail } = this.props.pengadaan
+            for (let x = 0; x < dataDetail.length; x++) {
+                listCost.push(dataDetail[x])
+            }
+        }
+        setTimeout(() => {
+            this.setState({ listCost: listCost })
+            this.openCost()
+        }, 100)
+    }
+
     openCost = () => {
         this.setState({openCost: !this.state.openCost})
     }
@@ -1615,6 +1633,7 @@ class Pengadaan extends Component {
         const names = localStorage.getItem('name')
         const dataNotif = this.props.notif.data
         const role = localStorage.getItem('role')
+        const idUser = localStorage.getItem('id')
 
         const splitApp = infoApp.info ? infoApp.info.split(']') : []
         const pembuatApp = splitApp.length > 0 ? splitApp[0] : ''
@@ -1759,8 +1778,8 @@ class Pengadaan extends Component {
                                                 <Button
                                                     color='primary'
                                                     className='mr-1 mt-1'
-                                                    onClick={item.status_reject === 1 && item.status_form !== '0' && level === '5' ? this.goRevisi : () => this.openForm(item)}>
-                                                    {this.state.filter === 'available' ? 'Proses' : item.status_reject === 1 && item.status_form !== '0' && level === '5' ? 'Revisi' : 'Detail'}
+                                                    onClick={item.status_reject === 1 && item.status_form !== '0' && (item.id_applicant === parseInt(idUser)) ? this.goRevisi : () => this.openForm(item)}>
+                                                    {this.state.filter === 'available' ? 'Proses' : item.status_reject === 1 && item.status_form !== '0' && (item.id_applicant === parseInt(idUser)) ? 'Revisi' : 'Detail'}
                                                 </Button>
                                                 <Button className='mt-1' color='warning' onClick={() => this.getDetailTrack(item.no_pengadaan)}>Tracking</Button>
                                             </td>
@@ -1804,7 +1823,7 @@ class Pengadaan extends Component {
                                 <Col md={10} lg={10} className="colModal">
                                     <text className="mr-3">:</text>
                                     <OtpInput
-                                        value={this.state.value}
+                                        value={this.state.value ? this.state.value.toUpperCase() : this.state.value}
                                         onChange={this.onChange}
                                         numInputs={(this.state.value === undefined || this.state.value === null) ? 11 : this.state.value.length > 11 ? this.state.value.length : 11}
                                         inputStyle={style.otp}
@@ -1815,11 +1834,18 @@ class Pengadaan extends Component {
                                     {level === '8' && (
                                         <div className='rowGeneral'>
                                             {/* <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo({val: detailIo[0], type: 'web'})}>Save</Button> */}
-                                            <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo({val: detailIo[0], type: 'sap'})}>Generate By SAP</Button>
-                                            {detailIo.length > 0 &&  detailIo[0].no_io !== null && detailIo[0].no_io.length > 0 ? (
-                                                <FaCheck size={30} className='green ml-2' />
+                                            {detailIo.length > 0 && detailIo[0].no_io !== null && detailIo[0].no_io.length > 0 ? (
+                                                <>
+                                                    <FaCheck size={30} className='green ml-2' />
+                                                    {typeCost === 'MULTIPLE' && (
+                                                        <Button className='ml-2' color='success' onClick={this.prosesOpenCost} >Detail</Button>
+                                                    )}
+                                                </>
                                             ) : (
-                                                <CiWarning size={30} className='red ml-2' />
+                                                <>
+                                                    <Button className='ml-3' size='sm' color='success' onClick={() => this.updateNomorIo({val: detailIo[0], type: 'sap'})}>Generate By SAP</Button>
+                                                    <CiWarning size={30} className='red ml-2' />
+                                                </>
                                             )}
                                         </div>
                                     )}
@@ -1941,8 +1967,8 @@ class Pengadaan extends Component {
                                         inputStyle={style.otp}
                                         containerStyle={style.containerOtp}
                                     />
-                                    {typeCost === 'multiple' && (
-                                        <Button className='ml-2' color='success' onClick={this.openCost} >Detail</Button>
+                                    {typeCost === 'MULTIPLE' && (
+                                        <Button className='ml-2' color='success' onClick={this.prosesOpenCost} >Detail</Button>
                                     )}
                                 </Col>
                             </Row>
@@ -2181,7 +2207,7 @@ class Pengadaan extends Component {
                         )}
                     </div>
                 </Modal>
-                <Modal size="xl" isOpen={this.state.preview} toggle={this.openPreview}>
+                <Modal size="xl" isOpen={this.state.preview} toggle={this.openPreview} className='large'>
                     <ModalHeader toggle={this.openPreview}>{detailData.length > 0 && detailData[0].no_pengadaan}</ModalHeader>
                     <ModalBody className="mb-5">
                         <Container className='borderGen'>
@@ -2411,12 +2437,13 @@ class Pengadaan extends Component {
                 <Modal size='xl' isOpen={this.state.openCost}>
                     <ModalHeader>Detail Cost Center</ModalHeader>
                     <ModalBody>
-                        <Table>
+                        <Table responsive hover striped>
                             <thead>
                                 <tr>
                                     <th>No</th>
                                     <th>Nama Asset</th>
                                     <th>Cost Center</th>
+                                    <th>NO IO</th>
                                     <th>Qty</th>
                                     <th>Opsi</th>
                                 </tr>
@@ -2428,6 +2455,7 @@ class Pengadaan extends Component {
                                             <td>{index + 1}</td>
                                             <td>{detailIo.find(x => x.id === item.pengadaan_id)?.nama}</td>
                                             <td>{item.cost_center}</td>
+                                            <td>{item.no_io}</td>
                                             <td>{item.qty}</td>
                                             <td>
                                                 <Button 
@@ -2449,29 +2477,6 @@ class Pengadaan extends Component {
                             onClick={this.openCost}
                         >
                             Close
-                        </Button>
-                    </ModalFooter>
-                </Modal>
-                <Modal size="md" isOpen={this.state.openModalTtd} toggle={this.prosesModalTtd}>
-                    <ModalHeader>
-                        Proses Tanda Tangan
-                    </ModalHeader>
-                    <ModalBody>
-                        <Row>
-                            <Col md={3} lg={3}>
-                                Nama
-                            </Col>
-                            <Col md={9} lg={9}>
-                                : <input />
-                            </Col>
-                        </Row>
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button color="secondary" onClick={this.prosesModalTtd}>
-                            Close
-                        </Button>
-                        <Button color="primary" onClick={this.prosesModalTtd}>
-                            Save
                         </Button>
                     </ModalFooter>
                 </Modal>

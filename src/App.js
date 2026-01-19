@@ -64,6 +64,7 @@ import MonitoringStock from './pages/Stock/Monitoring'
 
 // Master
 import Asset from './pages/Master/Asset'
+import AssetStock from './pages/Master/AssetStock'
 import MasterApproval from './pages/Master/MasterApproval'
 import MasterDepo from './pages/Master/MasterDepo'
 import MasterMenu from './pages/Master/MasterMenu'
@@ -113,9 +114,6 @@ class App extends Component {
                 
                 <PrivateRoute path='/disposal'>
                     <Disposal />
-                </PrivateRoute>
-                <PrivateRoute path='/asset'>
-                    <Asset />
                 </PrivateRoute>
                 <PrivateRoute path='/stock'>
                     <Stock />
@@ -228,6 +226,12 @@ class App extends Component {
                 </PrivateRoute>
 
                 {/* Master Data */}
+                <PrivateRoute path='/asset'>
+                    <Asset />
+                </PrivateRoute>
+                <PrivateRoute path='/asset-stock'>
+                    <AssetStock />
+                </PrivateRoute>
                 <PrivateRoute path='/approval'>
                     <MasterApproval />
                 </PrivateRoute>
