@@ -9,7 +9,7 @@ import MaterialTitlePanel from "../../components/material_title_panel"
 import Sidebar from "../../components/Header";
 import SidebarContent from "../../components/sidebar_content"
 import stock from '../../redux/actions/stock'
-import asset from '../../redux/actions/asset'
+import asset_stock from '../../redux/actions/asset_stock'
 import auth from '../../redux/actions/auth'
 import depo from '../../redux/actions/depo'
 import {connect} from 'react-redux'
@@ -144,7 +144,7 @@ class ReportStock extends Component {
         await this.props.getReportAll(token, search, limit, pageRep === undefined ? 1 : pageRep.currentPage, group, value.fisik, value.sap, value.kondisi, value.plant, cekTime1, cekTime2)
         await this.props.getStatusAll(token)
         const { dataRep } = this.props.stock
-        const { dataAsset } = this.props.asset
+        const { dataAsset } = this.props.asset_stock
         this.setState({group: value.group, sap: value.sap, fisik: value.fisik, kondisi: value.kondisi, plant: value.plant})
         let buku = 0
         let acquis = 0
@@ -313,10 +313,10 @@ class ReportStock extends Component {
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
         const { dataRep, pageRep, dataAll } = this.props.stock
-        const { dataAsset } = this.props.asset
+        const { dataAsset } = this.props.asset_stock
         const { newReport, isLoading } = this.state
         const loadingDepo = this.props.depo.isLoading
-        const loadingAsset = this.props.asset.isLoading
+        const loadingAsset = this.props.asset_stock.isLoading
         const loadingStock = this.props.stock.isLoading
         const isLoadingAll = loadingDepo || loadingAsset || loadingStock || isLoading
 
@@ -555,7 +555,7 @@ class ReportStock extends Component {
 const mapStateToProps = state => ({
     stock: state.stock,
     depo: state.depo,
-    asset: state.asset
+    asset_stock: state.asset_stock
 })
 
 const mapDispatchToProps = {
@@ -563,7 +563,7 @@ const mapDispatchToProps = {
     getReportAll: stock.getReportAll,
     getStatusAll: stock.getStatusAll,
     getDepo: depo.getDepo,
-    getAsset: asset.getAsset
+    getAsset: asset_stock.getAsset
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(ReportStock)
