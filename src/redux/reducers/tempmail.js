@@ -126,6 +126,30 @@ export default (state=tempmailState, action) => {
                     alertMsg: "Unable connect to server"
                 };
             }
+            case 'DRAFTHO_TEMPMAIL_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'DRAFTHO_TEMPMAIL_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    draftEmail: action.payload.data,
+                    isDraft: true,
+                    alertMsg: 'get email Succesfully'
+                };
+            }
+            case 'DRAFTHO_TEMPMAIL_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isDraft: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
             case 'AJUAN_TEMPMAIL_PENDING': {
                 return {
                     ...state,

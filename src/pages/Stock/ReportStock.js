@@ -161,6 +161,7 @@ class ReportStock extends Component {
             const dataSelect = cekApp ? 'cekApp' : cek ? 'cek' : 'not_found'
             const dataFinal = dataSelect === 'not_found' ? {
                 ...asset,
+                deskripsi: asset.nama_asset,
                 new_status: asset.status === '0' ? 'Aset telah Disposal' : 'Belum submit'
             } : dataSelect === 'cekApp' ? {
                 ...cekApp,

@@ -31,6 +31,7 @@ import newnotif from '../../redux/actions/newnotif'
 import placeholder from  "../../assets/img/placeholder.png"
 import TablePeng from '../../components/TablePeng'
 import notif from '../../redux/actions/notif'
+import depo from '../../redux/actions/depo'
 import NavBar from '../../components/NavBar'
 import ReactHtmlToExcel from "react-html-table-to-excel"
 import ModalDokumen from '../../components/ModalDokumen'
@@ -598,7 +599,11 @@ class EksekusiTicket extends Component {
                 menu: menu
             }
             this.setState({tipeEmail: val})
-            await this.props.getDraftEmail(token, tempno)
+            if (detailIo[0].kode_plant === 'HO') {
+                await this.props.getDraftEmailHo(token, tempno)
+            } else {
+                await this.props.getDraftEmail(token, tempno)
+            }
             this.openDraftEmail()
         } else {
             const app = detailIo[0].appForm
@@ -619,7 +624,11 @@ class EksekusiTicket extends Component {
             }
             this.setState({tipeEmail: val})
             // await this.props.getDetail(token, detailIo[0].no_pengadaan)
-            await this.props.getDraftEmail(token, tempno)
+            if (detailIo[0].kode_plant === 'HO') {
+                await this.props.getDraftEmailHo(token, tempno)
+            } else {
+                await this.props.getDraftEmail(token, tempno)
+            }
             this.openDraftEmail()
         }
     }
@@ -659,6 +668,7 @@ class EksekusiTicket extends Component {
     openForm = async (val) => {
         const token = localStorage.getItem('token')
         const level = localStorage.getItem('level')
+        const { dataDepo } = this.props.depo
         await this.props.getDetail(token, val.no_pengadaan)
         await this.props.getTempAsset(token, val.no_pengadaan)
         await this.props.getApproveIo(token, val.no_pengadaan)
@@ -687,9 +697,10 @@ class EksekusiTicket extends Component {
         }
         const uniqueCost = [...new Set(cekCost)]
         const typeCost = cekCost[0] === 'area' ? 'area' : uniqueCost.length > 1 ? "MULTIPLE" : uniqueCost[0].split('-')[1]
+        const typeProfit = cekCost[0] === 'area' ? 'area' : uniqueCost.length > 1 ? "MULTIPLE" : dataDepo.find(x => x.cost_center === typeCost).profit_center
         this.setState({total: num, value: data[0].no_io})
         setTimeout(() => {
-            this.setState({ total: num, value: data[0].no_io, typeCost: typeCost, listCost: listCost })
+            this.setState({ total: num, value: data[0].no_io, typeCost: typeCost, typeProfit: typeProfit, listCost: listCost })
             this.prosesModalIo()
         }, 100)
     }
@@ -1092,7 +1103,9 @@ class EksekusiTicket extends Component {
         await this.props.getNotif(token)
     }
 
-    componentDidMount() {
+    async componentDidMount() {
+        const token = localStorage.getItem("token")
+        await this.props.getDepo(token, 1000, '')
         this.getDataAsset()
     }
 
@@ -1247,7 +1260,7 @@ class EksekusiTicket extends Component {
     }
 
     render() {
-        const {alert, upload, errMsg, rinciIo, total, detailTrack, typeCost, listCost, detailData, totalPriceDetail, valueIo} = this.state
+        const {alert, upload, errMsg, rinciIo, total, detailTrack, typeCost, listCost, detailData, totalPriceDetail, typeProfit, valueIo} = this.state
         const {dataAsset, alertM, alertMsg, alertUpload, page} = this.props.asset
         const pages = this.props.disposal.page 
         const {dataPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataTemp, dataDocCart, infoApp} = this.props.pengadaan
@@ -1255,6 +1268,7 @@ class EksekusiTicket extends Component {
         const names = localStorage.getItem('name')
         const dataNotif = this.props.notif.data
         const role = localStorage.getItem('role')
+        const { dataDepo } = this.props.depo
 
         const splitApp = infoApp.info ? infoApp.info.split(']') : []
         const pembuatApp = splitApp.length > 0 ? splitApp[0] : ''
@@ -1380,7 +1394,7 @@ class EksekusiTicket extends Component {
                                             <td>{dataPeng.indexOf(item) + 1}</td>
                                             <td>{item.no_pengadaan}</td>
                                             <td>{item.kode_plant}</td>
-                                            <td>{item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}</td>
+                                            <td>{item.area ? item.area : item.depo ? `${item.depo.nama_area} ${item.depo.channel}` : ''}</td>
                                             <td>{moment(item.tglIo).format('DD MMMM YYYY')}</td>
                                             <td>{item.kategori === 'return' ? 'Pengajuan Return' : item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
                                             <td>{item.history !== null && item.history.split(',').reverse()[0]}</td>
@@ -1933,7 +1947,9 @@ class EksekusiTicket extends Component {
                                 <Col md={10} lg={10} className="colModal">
                                     <text className="mr-3">:</text>
                                     <OtpInput
-                                        value={detailData[0] === undefined ? '' : detailData[0].depo === undefined ? '' : detailData[0].depo === null ? '' : detailData[0].depo.profit_center}
+                                        value={detailIo[0] === undefined ? '' 
+                                        : typeProfit === 'area' ? (dataDepo.find(x => x.kode_plant === detailIo[0].kode_plant)?.profit_center)
+                                        : typeProfit}
                                         isDisabled
                                         numInputs={10}
                                         inputStyle={style.otp}
@@ -2763,7 +2779,8 @@ const mapStateToProps = state => ({
     notif: state.notif,
     auth: state.auth,
     dokumen: state.dokumen,
-    tempmail: state.tempmail
+    tempmail: state.tempmail,
+    depo: state.depo
 })
 
 const mapDispatchToProps = {
@@ -2795,11 +2812,13 @@ const mapDispatchToProps = {
     podsSend: pengadaan.podsSend,
     getDocCart: pengadaan.getDocCart,
     getDraftEmail: tempmail.getDraftEmail,
+    getDraftEmailHo: tempmail.getDraftEmailHo,
     sendEmail: tempmail.sendEmail,
     addNewNotif: newnotif.addNewNotif,
     searchIo: pengadaan.searchIo,
     generateAssetSap: pengadaan.generateAssetSap,
-    getDetailItem: pengadaan.getDetailItem
+    getDetailItem: pengadaan.getDetailItem,
+    getDepo: depo.getDepo
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EksekusiTicket)

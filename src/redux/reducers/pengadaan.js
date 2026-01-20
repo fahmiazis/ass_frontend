@@ -62,7 +62,11 @@ const pengState = {
     updateDetailItem: null,
     deleteDetailItem: null,
     dataDetail: [],
-    detailCart: {}
+    detailCart: {},
+    rawApp: [],
+    makeApproval: null,
+    delApproval: null,
+    saveApproval: null
 }
 
 export default (state=pengState, action) => {
@@ -789,6 +793,7 @@ export default (state=pengState, action) => {
                 isError: false,
                 isGet: true,
                 dataApp: action.payload.data.result,
+                rawApp: action.payload.data.raw || [],
                 alertMsg: 'get approve io Succesfully',
             };
         }
@@ -1069,6 +1074,78 @@ export default (state=pengState, action) => {
             };
         }
 
+        case 'MAKE_APPROVALIO_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'MAKE_APPROVALIO_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                makeApproval: true,
+                alertMsg: "success add detail item"
+            };
+        }
+        case 'MAKE_APPROVALIO_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                makeApproval: false,
+                alertMsg: "Unable connect to server"
+            };
+        }
+
+        case 'DELETE_APPROVALIO_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'DELETE_APPROVALIO_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                delApproval: true,
+                alertMsg: "success add detail item"
+            };
+        }
+        case 'DELETE_APPROVALIO_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                delApproval: false,
+                alertMsg: "Unable connect to server"
+            };
+        }
+
+        case 'SAVE_APPROVALIO_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...'
+            };
+        }
+        case 'SAVE_APPROVALIO_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                saveApproval: true,
+                alertMsg: "success add detail item"
+            };
+        }
+        case 'SAVE_APPROVALIO_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                saveApproval: false,
+                alertMsg: "Unable connect to server"
+            };
+        }
+
         case 'RESET': {
             return {
                 ...state,
@@ -1082,7 +1159,10 @@ export default (state=pengState, action) => {
                 generateSap: null,
                 addDetailItem: null,
                 updateDetailItem: null,
-                deleteDetailItem: null
+                deleteDetailItem: null,
+                makeApproval: null,
+                delApproval: null,
+                saveApproval: null
             }
         }
         case 'APP_RESET': {

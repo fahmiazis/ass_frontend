@@ -148,7 +148,8 @@ class EditTicket extends Component {
             typeCost: '',
             listCost: [],
             openCost: false,
-            valCart: {}
+            valCart: {},
+            typeProfit: ''
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -367,6 +368,7 @@ class EditTicket extends Component {
     openForm = async (val) => {
         const token = localStorage.getItem('token')
         const level = localStorage.getItem('level')
+        const { dataDepo } = this.props.depo
         await this.props.getDetail(token, val.no_pengadaan)
         await this.props.getApproveIo(token, val.no_pengadaan)
         const data = this.props.pengadaan.detailIo
@@ -394,9 +396,10 @@ class EditTicket extends Component {
         }
         const uniqueCost = [...new Set(cekCost)]
         const typeCost = cekCost[0] === 'area' ? 'area' : uniqueCost.length > 1 ? "MULTIPLE" : uniqueCost[0].split('-')[1]
+        const typeProfit = cekCost[0] === 'area' ? 'area' : uniqueCost.length > 1 ? "MULTIPLE" : dataDepo.find(x => x.cost_center === typeCost).profit_center
         setTimeout(() => {
             console.log(typeCost)
-            this.setState({ total: num, value: data[0].no_io, typeCost: typeCost, listCost: listCost })
+            this.setState({ total: num, value: data[0].no_io, typeCost: typeCost, typeProfit: typeProfit, listCost: listCost })
             this.prosesModalIo()
         }, 100)
     }
@@ -886,6 +889,7 @@ class EditTicket extends Component {
         } else {
             const data = {
                 ...val,
+                type_ajuan: dataRinci.type_ajuan,
                 no_ref: val.kategori === 'return' ? this.state.noAjuan : ''
             }
             await this.props.updateCart(token, dataRinci.id, data)
@@ -916,7 +920,11 @@ class EditTicket extends Component {
         }
         this.setState({tipeEmail: val})
         await this.props.getDetail(token, detailIo[0].no_pengadaan)
-        await this.props.getDraftEmail(token, tempno)
+        if (detailIo[0].kode_plant === 'HO') {
+            await this.props.getDraftEmailHo(token, tempno)
+        } else {
+            await this.props.getDraftEmail(token, tempno)
+        }
         this.openDraftEmail()
     }
 
@@ -990,7 +998,7 @@ class EditTicket extends Component {
     }
 
     render() {
-        const {alert, upload, errMsg, rinciIo, total, listMut, newIo, dataRinci, typeCost, listCost, dataItem, valCart} = this.state
+        const {alert, upload, errMsg, rinciIo, total, listMut, newIo, dataRinci, typeCost, listCost, dataItem, valCart, typeProfit} = this.state
         const {dataAsset, alertM, alertMsg, alertUpload, page} = this.props.asset
         const pages = this.props.disposal.page 
         const {revPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataDocCart, infoApp} = this.props.pengadaan
@@ -999,7 +1007,7 @@ class EditTicket extends Component {
         const dataNotif = this.props.notif.data
         const { dataDepo } = this.props.depo
         const role = localStorage.getItem('role')
-        const cekKode = detailIo[0] && detailIo[0].kode_plant.length > 4 ? 9 : 5
+        const cekKode = detailIo[0] && (detailIo[0].kode_plant.length > 4 || detailIo[0].kode_plant === 'HO') ? 9 : 5
 
         const splitApp = infoApp.info ? infoApp.info.split(']') : []
         const pembuatApp = splitApp.length > 0 ? splitApp[0] : ''
@@ -1073,7 +1081,7 @@ class EditTicket extends Component {
                                                 <td>{newIo.indexOf(item) + 1}</td>
                                                 <td>{item.no_pengadaan}</td>
                                                 <td>{item.kode_plant}</td>
-                                                <td>{item.depo === null ? '' : item.area === null ? item.depo.nama_area : item.area}</td>
+                                                <td>{item.area ? item.area : item.depo ? `${item.depo.nama_area} ${item.depo.channel}` : ''}</td>
                                                 <td>{moment(item.tglIo).format('DD MMMM YYYY')}</td>
                                                 <td>{item.kategori === 'return' ? 'Pengajuan Return' : item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
                                                 <td>{item.history !== null && item.history.split(',').reverse()[0]}</td>
@@ -1207,7 +1215,9 @@ class EditTicket extends Component {
                                 <Col md={10} lg={10} className="colModal">
                                 <text className="mr-3">:</text>
                                 <OtpInput
-                                    value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.profit_center}
+                                    value={detailIo[0] === undefined ? '' 
+                                        : typeProfit === 'area' ? (dataDepo.find(x => x.kode_plant === detailIo[0].kode_plant)?.profit_center)
+                                        : typeProfit}
                                     isDisabled
                                     numInputs={10}
                                     inputStyle={style.otp}
@@ -2220,6 +2230,7 @@ const mapDispatchToProps = {
     updateCart: pengadaan.updateCart,
     getDokumen: dokumen.getDokumen,
     getDraftEmail: tempmail.getDraftEmail,
+    getDraftEmailHo: tempmail.getDraftEmailHo,
     sendEmail: tempmail.sendEmail,
     addNewNotif: newnotif.addNewNotif,
     searchIo: pengadaan.searchIo,

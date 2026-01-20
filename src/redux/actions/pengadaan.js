@@ -19,10 +19,6 @@ export default {
         type: 'GET_REVISI',
         payload: http(token).get(`/ticket/rev?status=${status}`)
     }),
-    getApproveIo: (token, no, type) => ({
-        type: 'GET_APPROVEIO',
-        payload: http(token).patch(`/ticket/approve`, qs.stringify({no: no, type: type || 'all'}))
-    }),
     getDocumentIo: (token, no) => ({
         type: 'GET_DOCIO',
         payload: http(token).patch(`/ticket/document`, qs.stringify({no: no}))
@@ -173,6 +169,25 @@ export default {
         type: 'GET_DETAILITEM',
         payload: http(token).get(`/ticket/item-get/${id}`)
     }),
+
+    // approval
+    getApproveIo: (token, no, type) => ({
+        type: 'GET_APPROVEIO',
+        payload: http(token).patch(`/ticket/approve`, qs.stringify({no: no, type: type || 'all'}))
+    }),
+    makeApproval: (token, id, data, type) => ({
+        type: 'MAKE_APPROVALIO',
+        payload: http(token).patch(`/ticket/makeapp/${id}?type=${type ? type : 'update'}`, qs.stringify({dataApp: data}))
+    }),
+    deleteApproval: (token, id) => ({
+        type: 'DELETE_APPROVALIO',
+        payload: http(token).delete(`/ticket/delapp/${id}`)
+    }),
+    saveApproval: (token, no) => ({
+        type: 'SAVE_APPROVALIO',
+        payload: http(token).patch(`/ticket/saveapp`, qs.stringify({no: no}))
+    }),
+    
 
     resetError: () => ({
         type: 'RESET'

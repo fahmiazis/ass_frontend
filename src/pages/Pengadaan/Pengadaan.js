@@ -162,7 +162,8 @@ class Pengadaan extends Component {
             openCost: false,
             detailData: [],
             totalPriceDetail: 0,
-            valueIo: ''
+            valueIo: '',
+            typeProfit: ''
         }
         this.onSetOpen = this.onSetOpen.bind(this)
         this.menuButtonClick = this.menuButtonClick.bind(this)
@@ -411,12 +412,13 @@ class Pengadaan extends Component {
     cekProsesApprove = async (val) => {
         const token = localStorage.getItem('token')
         const level = localStorage.getItem('level')
+        const idUser = localStorage.getItem('id')
         const { detailIo } = this.props.pengadaan
 
-        if ((level === '5' || level === '9') && (detailIo[0].alasan === '' || detailIo[0].alasan === null || detailIo[0].alasan === '-')) {
+        if ((detailIo[0].id_applicant === parseInt(idUser)) && (detailIo[0].alasan === '' || detailIo[0].alasan === null || detailIo[0].alasan === '-')) {
             this.setState({ confirm: 'reason' })
             this.openConfirm()
-        } else if (level !== '5' && level !== '9') {
+        } else if (detailIo[0].id_applicant !== parseInt(idUser)) {
             if (detailIo[0].asset_token === null) {
                 const tempdoc = []
                 const arrDoc = []
@@ -736,7 +738,11 @@ class Pengadaan extends Component {
             }
             this.setState({ tipeEmail: val })
             await this.props.getDetail(token, detailIo[0].no_pengadaan)
-            await this.props.getDraftEmail(token, tempno)
+            if (detailIo[0].kode_plant === 'HO') {
+                await this.props.getDraftEmailHo(token, tempno)
+            } else {
+                await this.props.getDraftEmail(token, tempno)
+            }
             this.openDraftEmail()
         } else {
             const app = detailIo[0].appForm
@@ -757,7 +763,11 @@ class Pengadaan extends Component {
             }
             this.setState({ tipeEmail: val })
             // await this.props.getDetail(token, detailIo[0].no_pengadaan)
-            await this.props.getDraftEmail(token, tempno)
+            if (detailIo[0].kode_plant === 'HO') {
+                await this.props.getDraftEmailHo(token, tempno)
+            } else {
+                await this.props.getDraftEmail(token, tempno)
+            }
             this.openDraftEmail()
         }
     }
@@ -782,7 +792,11 @@ class Pengadaan extends Component {
                 menu: menu
             }
             this.setState({ tipeEmail: 'reject', dataRej: val })
-            await this.props.getDraftEmail(token, tempno)
+            if (detailIo[0].kode_plant === 'HO') {
+                await this.props.getDraftEmailHo(token, tempno)
+            } else {
+                await this.props.getDraftEmail(token, tempno)
+            }
             this.openDraftEmail()
         }
 
@@ -806,6 +820,7 @@ class Pengadaan extends Component {
         const level = localStorage.getItem('level')
         await this.props.getDetail(token, val.no_pengadaan)
         await this.props.getApproveIo(token, val.no_pengadaan)
+        const { dataDepo } = this.props.depo
         const data = this.props.pengadaan.detailIo
         let num = 0
         const listCost = []
@@ -831,8 +846,10 @@ class Pengadaan extends Component {
         }
         const uniqueCost = [...new Set(cekCost)]
         const typeCost = cekCost[0] === 'area' ? 'area' : uniqueCost.length > 1 ? "MULTIPLE" : uniqueCost[0].split('-')[1]
+        const typeProfit = cekCost[0] === 'area' ? 'area' : uniqueCost.length > 1 ? "MULTIPLE" : dataDepo.find(x => x.cost_center === typeCost).profit_center
+        console.log(typeProfit)
         setTimeout(() => {
-            this.setState({ total: num, value: data[0].no_io, typeCost: typeCost, listCost: listCost })
+            this.setState({ total: num, value: data[0].no_io, typeCost: typeCost, typeProfit: typeProfit, listCost: listCost })
             this.prosesModalIo()
         }, 100)
     }
@@ -1430,9 +1447,17 @@ class Pengadaan extends Component {
                                     arrApp.push({index: find, noDis: dataPeng[i].no_pengadaan})
                                 }
                             }
+                        } else if (find === (app.length - 1)) {
+                            if (dataPeng[i].status_reject !== 1 && app[find] !== undefined && app[find - 1]?.status === null && app[find]?.status !== 1) {
+                                if (newIo.find(item => item.no_pengadaan === dataPeng[i].no_pengadaan) === undefined) {
+                                    newIo.push(dataPeng[i])
+                                    arrApp.push({index: find, noDis: dataPeng[i].no_pengadaan})
+                                }
+                            }
                         } else {
                             console.log('at available 5')
-                            if (dataPeng[i].status_reject !== 1 && app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
+                            console.log(app[find])
+                            if (dataPeng[i].status_reject !== 1 && app[find] !== undefined && app[find + 1]?.status === 1 && app[find - 1]?.status === null && app[find]?.status !== 1) {
                                 if (newIo.find(item => item.no_pengadaan === dataPeng[i].no_pengadaan) === undefined) {
                                     newIo.push(dataPeng[i])
                                     arrApp.push({index: find, noDis: dataPeng[i].no_pengadaan})
@@ -1480,7 +1505,7 @@ class Pengadaan extends Component {
                             newIo.push(dataPeng[i])
                         }
                     } else {
-                        if (app[find] !== undefined && app[find + 1].status === 1 && app[find - 1].status === null && app[find].status !== 1) {
+                        if (app[find] !== undefined && app[find + 1]?.status === 1 && app[find - 1]?.status === null && app[find]?.status !== 1) {
                             newIo.push()
                         } else {
                             newIo.push(dataPeng[i])
@@ -1624,7 +1649,7 @@ class Pengadaan extends Component {
     }
 
     render() {
-        const { total, listMut, newIo, listStat, fileName, url, detailTrack, sidebarOpen, tipeEmail, typeCost, listCost, detailData, totalPriceDetail, valueIo } = this.state
+        const { total, listMut, newIo, listStat, fileName, url, detailTrack, sidebarOpen, tipeEmail, typeCost, listCost, detailData, totalPriceDetail, typeProfit } = this.state
         const { dataAsset, alertM, alertMsg, alertUpload, page } = this.props.asset
         const { menuRole } = this.props.user
         const pages = this.props.disposal.page
@@ -1634,6 +1659,7 @@ class Pengadaan extends Component {
         const dataNotif = this.props.notif.data
         const role = localStorage.getItem('role')
         const idUser = localStorage.getItem('id')
+        const { dataDepo } = this.props.depo
 
         const splitApp = infoApp.info ? infoApp.info.split(']') : []
         const pembuatApp = splitApp.length > 0 ? splitApp[0] : ''
@@ -1767,7 +1793,7 @@ class Pengadaan extends Component {
                                             <td>{item.no_pengadaan}</td>
                                             <td className='tdKat'>{item.kategori}</td>
                                             <td className='tdPlant'>{item.kode_plant}</td>
-                                            <td>{item.depo === null ? '' : item.area === null ? `${item.depo.nama_area} ${item.depo.channel}` : item.area}</td>
+                                            <td>{item.area ? item.area : item.depo ? `${item.depo.nama_area} ${item.depo.channel}` : ''}</td>
                                             <td className='tdDate'>{moment(item.tglIo).format('DD MMMM YYYY')}</td>
                                             <td>{item.kategori === 'return' ? 'Pengajuan Return' : item.asset_token === null ? 'Pengajuan Asset' : 'Pengajuan PODS'}</td>
                                             <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? item.appForm.find(item => item.status === 1).nama + ` (${item.appForm.find(item => item.status === 1).jabatan === 'area' ? 'AOS' : item.appForm.find(item => item.status === 1).jabatan})` : '-'}</td>
@@ -1979,7 +2005,9 @@ class Pengadaan extends Component {
                                 <Col md={10} lg={10} className="colModal">
                                     <text className="mr-3">:</text>
                                     <OtpInput
-                                        value={detailIo[0] === undefined ? '' : detailIo[0].depo === undefined ? '' : detailIo[0].depo === null ? '' : detailIo[0].depo.profit_center}
+                                        value={detailIo[0] === undefined ? '' 
+                                        : typeProfit === 'area' ? (dataDepo.find(x => x.kode_plant === detailIo[0].kode_plant)?.profit_center)
+                                        : typeProfit}
                                         isDisabled
                                         numInputs={10}
                                         inputStyle={style.otp}
@@ -3418,6 +3446,7 @@ const mapDispatchToProps = {
     testApiPods: pengadaan.testApiPods,
     submitNotAsset: pengadaan.submitNotAsset,
     getDraftEmail: tempmail.getDraftEmail,
+    getDraftEmailHo: tempmail.getDraftEmailHo,
     sendEmail: tempmail.sendEmail,
     getTempAsset: pengadaan.getTempAsset,
     podsSend: pengadaan.podsSend,
