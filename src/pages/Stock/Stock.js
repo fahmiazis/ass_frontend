@@ -88,9 +88,9 @@ class Stock extends Component {
             dragToggleDistance: 30,
             limit: 100,
             search: '',
-            time1: moment().subtract(1, 'month').startOf('month').format('YYYY-MM-DD'),
+            time1: moment().subtract(1, 'month').startOf('month').format('YYYY-MM-26'),
             // time1: moment().startOf('month').format('YYYY-MM-DD'),
-            time2: moment().endOf('month').format('YYYY-MM-DD'),
+            time2: moment().endOf('month').format('YYYY-MM-25'),
             time: 'pilih',
             dataRinci: {},
             dataItem: {},
@@ -2256,7 +2256,7 @@ class Stock extends Component {
                             <tbody>
                                 {newStock.length > 0 && newStock.map(item => {
                                     return (
-                                        <tr className={item.status_form === 0 ? 'fail' : item.status_reject === 0 ? 'note' : item.status_reject === 1 && 'bad'}>
+                                        <tr className={item.status_form === 0 ? 'fail' : item.status_form === 8 ? 'success' : item.status_reject === 0 ? 'note' : item.status_reject === 1 && 'bad'}>
                                             <td>{newStock.indexOf(item) + 1}</td>
                                             <td>{item.no_stock}</td>
                                             <td className='tdPlant'>{item.kode_plant}</td>
@@ -2272,7 +2272,7 @@ class Stock extends Component {
                                             <td className='tdPlant'>{item.depo === null ? '-' :  `${item.depo.nama_bm}`}</td>
                                             <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? item.appForm.find(item => item.status === 1).nama + ` (${item.appForm.find(item => item.status === 1).jabatan === 'area' ? 'AOS' : item.appForm.find(item => item.status === 1).jabatan})` : '-' }</td>
                                             <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? moment(item.appForm.find(item => item.status === 1).updatedAt).format('DD/MM/YYYY HH:mm:ss') : '-' }</td>
-                                            <td>{moment(item.tanggalStock).format('DD') > 6 && moment(item.tanggalStock).format('DD') < 26 ? 'TELAT' : 'Tepat Waktu'}</td>
+                                            <td>{moment(item.tanggalStock).format('DD') > item.end_stock && moment(item.tanggalStock).format('DD') < item.start_stock ? 'TELAT' : 'Tepat Waktu'}</td>
                                             <td>{item.history !== null ? item.history.split(',').reverse()[0] : '-'}</td>
                                             <td className='tdOpsi'>
                                                 {/* <Button 

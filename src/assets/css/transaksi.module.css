@@ -252,6 +252,7 @@
 .table tbody tr:hover {
   background-color: #e6f4ea; /* Warna saat hover */
   cursor: pointer; /* Ubah cursor saat hover */
+  color: black;
 }
 
 .table1 {
@@ -296,6 +297,7 @@
 .table1 tbody tr:hover {
   background-color: #e6f4ea; /* Warna saat hover */
   cursor: pointer; /* Ubah cursor saat hover */
+  color: black;
 }
 
 .tableContainer {

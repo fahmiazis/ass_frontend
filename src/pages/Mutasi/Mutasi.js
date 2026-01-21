@@ -1266,7 +1266,7 @@ class Mutasi extends Component {
                             <tbody>
                                 {newMut !== undefined && newMut.length > 0 && newMut.map(item => {
                                     return (
-                                        <tr className={item.status_reject === 0 ? 'note' : item.status_form === 0 ? 'fail' : item.status_reject === 1 && 'bad'}>
+                                        <tr className={item.status_reject === 0 ? 'note' : item.status_form === 8 ? 'success' : item.status_form === 0 ? 'fail' : item.status_reject === 1 && 'bad'}>
                                             <td>{newMut.indexOf(item) + 1}</td>
                                             <td>{item.no_mutasi}</td>
                                             <td>{item.area}</td>

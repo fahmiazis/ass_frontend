@@ -28,9 +28,9 @@ const {REACT_APP_BACKEND_URL} = process.env
 
 const clossingSchema = Yup.object().shape({
     type_clossing: Yup.string().required('must be filled'),
-    periode: Yup.string().required('must be filled'),
-    start: Yup.number().required('must be filled'),
-    end: Yup.number().required('must be filled')
+    periode: Yup.string(),
+    start: Yup.string().required('must be filled'),
+    end: Yup.string().required('must be filled')
 });
 
 class MasterClossing extends Component {
@@ -64,6 +64,8 @@ class MasterClossing extends Component {
             fileUpload: '',
             limit: 10,
             search: '',
+            selectMonth: moment().month() + 1,
+            selectYear: moment().year(),
             listClossing: [],
             tipeModal: 'add',
             openDelete: false
@@ -351,8 +353,17 @@ class MasterClossing extends Component {
             this.setState({tipeModal: val})
             this.openModalEdit()
         } else {
-            this.setState({tipeModal: 'edit', detail: val})
-            this.openModalEdit()
+            this.setState({
+                tipeModal: 'edit', 
+                detail: val, 
+                selectYear: moment(val.periode).year(), 
+                selectMonth: moment(val.periode).month() + 1
+            })
+            console.log(moment(val.periode).month())
+            console.log(moment(val.periode).year())
+            setTimeout(() => {
+                this.openModalEdit()
+            }, 100)
         }
     }
 
@@ -377,11 +388,20 @@ class MasterClossing extends Component {
         }, 500)
     }
 
+    handleMonth = (e) => {
+        this.setState({ selectMonth: e.target.value });
+    };
+
+    handleYear = (e) => {
+        this.setState({ selectYear: e.target.value });
+    };
+
     addClossing = async (values) => {
         const token = localStorage.getItem("token")
+        const { selectYear, selectMonth } = this.state
         const data = {
             ...values,
-            periode: values.type_clossing === 'all' ? moment().format('YYYY-MM-DD') : values.periode,
+            periode: values.type_clossing === 'all' ? moment().format('YYYY-MM-DD') : `${selectYear}-${selectMonth}-${values.start}`,
             jenis: 'stock'
         }
         await this.props.addClossing(token, data)
@@ -390,7 +410,7 @@ class MasterClossing extends Component {
         this.openModalEdit()
         setTimeout(() => {
             this.getDataClossing()
-        }, 500)
+        }, 100)
     }
 
     onChangeHandler = e => {
@@ -415,9 +435,10 @@ class MasterClossing extends Component {
 
     editClossing = async (values, id) => {
         const token = localStorage.getItem("token")
+        const { selectYear, selectMonth } = this.state
         const data = {
             ...values,
-            periode: values.type_clossing === 'all' ? moment().format('YYYY-MM-DD') : values.periode,
+            periode: values.type_clossing === 'all' ? moment().format('YYYY-MM-DD') : `${selectYear}-${selectMonth}-${values.start}`,
             jenis: 'stock'
         }
         await this.props.updateClossing(token, id, data)
@@ -496,11 +517,21 @@ class MasterClossing extends Component {
     }
 
     render() {
-        const {dropOpen, detail, upload, errMsg, listClossing, tipeModal} = this.state
+        const {dropOpen, detail, upload, errMsg, listClossing, tipeModal, selectMonth, selectYear} = this.state
         const {dataClossing, isGet, alertM, alertMsg, alertUpload, page } = this.props.clossing
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
+        const months = moment.locale("id") && moment.months();
+        const currentYear = moment().year(); 
         const days = Array.from({ length: 31 }, (_, i) => i + 1)
+        const years = [];
+
+        for (let year = 2000; year <= currentYear; year++) {
+            years.push(year);
+        }
+
+        console.log(selectMonth)
+        console.log(selectYear)
 
         const contentHeader =  (
             <div className={style.navbar}>
@@ -681,13 +712,42 @@ class MasterClossing extends Component {
                                             Periode
                                         </text>
                                         <div className="col-md-8">
-                                            <Input 
+                                            {/* <Input 
                                             type="date" 
                                             name="periode"
                                             value={values.periode}
                                             onChange={handleChange("periode")}
                                             onBlur={handleBlur("periode")}
-                                            />
+                                            /> */}
+                                            <div className='rowCenter'>
+                                                <Input
+                                                    type="select"
+                                                    name="month"
+                                                    value={this.state.selectMonth}
+                                                    onChange={this.handleMonth}
+                                                >
+                                                    <option value="">Pilih Bulan</option>
+                                                    {months.map((month, index) => (
+                                                        <option key={index} value={index + 1}>
+                                                            {month}
+                                                        </option>
+                                                    ))}
+                                                </Input>
+                                                <Input
+                                                    type="select"
+                                                    className='ml-2'
+                                                    name="month"
+                                                    value={this.state.selectYear}
+                                                    onChange={this.handleYear}
+                                                >
+                                                    <option value="">Pilih Tahun</option>
+                                                    {years.map((item, index) => (
+                                                        <option key={item} value={item}>
+                                                            {item}
+                                                        </option>
+                                                    ))}
+                                                </Input>
+                                            </div>
                                             {errors.periode ? (
                                                 <text className={style.txtError}>{errors.periode}</text>
                                             ) : null}
@@ -749,7 +809,7 @@ class MasterClossing extends Component {
                             <ModalFooter>
                                 <div></div>
                                 <div>
-                                    <Button className="mr-2" onClick={handleSubmit} color="primary">Save</Button>
+                                    <Button disabled={values.type_clossing === 'periode' && !selectMonth && !selectYear} className="mr-2" onClick={handleSubmit} color="primary">Save</Button>
                                     <Button className="mr-5" onClick={this.openModalEdit}>Cancel</Button>
                                 </div>
                             </ModalFooter>

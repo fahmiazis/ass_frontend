@@ -25,7 +25,7 @@ export default {
     }),
     deleteClossing: (token, id) => ({
         type: 'DELETE_CLOSSING',
-        payload: http(token).delete(`/clossing/del/${id}`)
+        payload: http(token).delete(`/clossing/delete/${id}`)
     }),
     nextPage: (token, link) => ({
         type: 'NEXT_DATA_CLOSSING',

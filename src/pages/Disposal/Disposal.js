@@ -1412,7 +1412,7 @@ class Disposal extends Component {
                             <tbody>
                                 {newDis.length !== 0 && newDis.map(item => {
                                     return (
-                                        <tr className={item.status_reject === 0 ? 'note' : item.status_form == 0 ? 'fail' : item.status_reject === 1 && 'bad'}>
+                                        <tr className={item.status_reject === 0 ? 'note' : item.status_form === 8 ? 'success' : item.status_form === 0 ? 'fail' : item.status_reject === 1 && 'bad'}>
                                             {(level === '2' && this.state.filter === "full" ) && (
                                                 <td> 
                                                     <Input

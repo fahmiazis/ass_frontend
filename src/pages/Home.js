@@ -3,7 +3,8 @@ import React, { Component } from 'react'
 import Sidebar from '../components/Sidebar'
 import auth from '../redux/actions/auth'
 import { Input, Button, Modal, ModalHeader, ModalBody, Alert, Collapse,
-    UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem, Dropdown, Row } from 'reactstrap'
+    UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem, Dropdown, Row, 
+    ModalFooter} from 'reactstrap'
 import {connect} from 'react-redux'
 import addPicture from '../assets/img/add.png'
 import disposPicture from '../assets/img/disposal.png'
@@ -13,6 +14,7 @@ import stockPicture from '../assets/img/stock.svg'
 import {Formik} from 'formik'
 import user from '../redux/actions/user'
 import notif from '../redux/actions/notif'
+import stock from '../redux/actions/stock'
 import * as Yup from 'yup'
 import {VscAccount} from 'react-icons/vsc'
 import '../assets/css/style.css'
@@ -41,6 +43,7 @@ import {RiDraftFill} from 'react-icons/ri'
 import {FaFileSignature} from 'react-icons/fa'
 import {BsBell, BsFillCircleFill} from 'react-icons/bs'
 import dashboard from '../redux/actions/dashboard'
+import clossing from '../redux/actions/clossing'
 import styles from '../assets/css/Newhome.module.css';
 import {
   Chart as ChartJS,
@@ -49,6 +52,8 @@ import {
   Legend,
   DoughnutController
 } from 'chart.js';
+import ReminderOpname from '../components/ReminderOpname'
+import RemainderEmail from '../components/ReminderEmail'
 
 ChartJS.register(ArcElement, Tooltip, Legend, DoughnutController);
 
@@ -236,7 +241,10 @@ class Home extends Component {
         openMut: false,
         selectedYear: new Date(),
         loading: false,
-        openAset: false
+        openAset: false,
+        typeStock: '',
+        modalStock: false,
+        dataClossing: {}
     }
 
     menuItems = [
@@ -413,8 +421,74 @@ class Home extends Component {
     getDataDashboard = async () => {
         this.setState({ loading: true });
         const token = localStorage.getItem("token")
+        const level = localStorage.getItem("level")
         await this.props.getDashboard(token);
+        await this.props.getClossing(token, 'all', '', 1)
+
+        const cekTime1 = moment().startOf('month').format('YYYY-MM-DD')
+        const cekTime2 = moment().endOf('month').format('YYYY-MM-DD')
+
+        if (level === '5' || level === '9') {
+            await this.props.getStockAll(token, '', 100, 1, '', 'all', cekTime1, cekTime2)
+        }
+
+        const { dataClossing } = this.props.clossing
+        const { dataStock } = this.props.stock
+
+        const today = moment().format('DD-MM-YYYY')
+        const monthSubmit = moment().format('MM-YYYY')
+        const findClosing = dataClossing.filter(x => x.type_clossing === 'periode')
+        const findAllClosing = dataClossing.find(x => x.type_clossing === 'all')
+        let finalClosing = null
+
+        for (let i = 0; i < findClosing.length; i++) {
+            const monthClose = moment(findClosing[i].periode).format('MM-YYYY')
+            if (monthSubmit === monthClose) {
+                const dateStart = `${findClosing[i].start}-${monthClose}`
+                const dateEnd = `${findClosing[i].end}-${monthClose}`
+                console.log(today)
+                console.log(dateStart)
+                if (today === dateStart) {
+                    finalClosing = {
+                        ...findClosing[i],
+                        typeStock: 'start'
+                    }
+                } else if (today === dateEnd) {
+                    finalClosing = {
+                        ...findClosing[i],
+                        typeStock: 'end'
+                    }
+                }
+            }
+        }
+
+        if (!finalClosing) {
+            const monthClose = moment().format('MM-YYYY')
+            if (monthSubmit === monthClose) {
+                const dateStart = `${findAllClosing.start}-${monthClose}`
+                const dateEnd = `${findAllClosing.end}-${monthClose}`
+                if (today === dateStart) {
+                    finalClosing = {
+                        ...findAllClosing,
+                        typeStock: 'start'
+                    }
+                } else if (today === dateEnd) {
+                    finalClosing = {
+                        ...findAllClosing,
+                        typeStock: 'end'
+                    }
+                }
+            }
+        }
+
+        if (finalClosing) {
+            this.setState({ dataClossing: finalClosing, modalStock: true })
+        }
         this.setState({ loading: false });
+    }
+
+    openModalStock = () => {
+        this.setState({modalStock: !this.state.modalStock})
     }
 
     processChartData = (transaksiType) => {
@@ -1082,11 +1156,21 @@ class Home extends Component {
                     )}
                 </Formik>
             </Modal>
-            <Modal>
-                <ModalBody>
-                    
-                </ModalBody>
-            </Modal>
+            {level === '5' || level === '9' ? (
+                <ReminderOpname 
+                    isOpen={this.state.modalStock}
+                    toggle={this.openModalStock}
+                    onNavigate={() => this.goRoute('cartstock')}
+                    dataClossing={this.state.dataClossing}
+                />
+            ) : (level === '1' || level === '2') && (
+                <RemainderEmail 
+                    isOpen={this.state.modalStock}
+                    toggle={this.openModalStock}
+                    onNavigate={() => this.goRoute('cartstock')}
+                    dataClossing={this.state.dataClossing}
+                />
+            )}
             <Modal isOpen={this.state.relog}>
                 <ModalBody>
                     <div className={style.modalApprove}>
@@ -1109,6 +1193,8 @@ const mapStateToProps = state => ({
     user: state.user,
     notif: state.notif,
     dashboard: state.dashboard,
+    clossing: state.clossing,
+    stock: state.stock
 })
 
 const mapDispatchToProps = {
@@ -1118,7 +1204,9 @@ const mapDispatchToProps = {
     changePassword: user.changePassword,
     getNotif: notif.getNotif,
     upNotif: notif.upNotif,
-    getDashboard: dashboard.getDashboard
+    getDashboard: dashboard.getDashboard,
+    getClossing: clossing.getClossing,
+    getStockAll: stock.getStockAll,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Home)

@@ -2344,7 +2344,7 @@ class Stock extends Component {
                 }
 
                 ws.mergeCells(`L${i + 5}`, `L${i + 5}`)
-                ws.getCell(`L${i + 5}`).value = moment(item.tanggalStock).format('DD') > 6 && moment(item.tanggalStock).format('DD') < 26 ? 'TELAT' : 'Tepat Waktu'
+                ws.getCell(`L${i + 5}`).value = moment(item.tanggalStock).format('DD') > item.end_stock && moment(item.tanggalStock).format('DD') < item.start_stock  ? 'TELAT' : 'Tepat Waktu'
                 ws.getCell(`L${i + 5}`).alignment = { 
                     ...tbStyle
                 }
@@ -2796,7 +2796,7 @@ class Stock extends Component {
                                                 <td className='tdPlant'>{item.depo === null ? '-' :  `${item.depo.nama_bm}`}</td>
                                                 <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? item.appForm.find(item => item.status === 1).nama + ` (${item.appForm.find(item => item.status === 1).jabatan === 'area' ? 'AOS' : item.appForm.find(item => item.status === 1).jabatan})` : '-' }</td>
                                                 <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? moment(item.appForm.find(item => item.status === 1).updatedAt).format('DD/MM/YYYY HH:mm:ss') : '-' }</td>
-                                                <td>{moment(item.tanggalStock).format('DD') > 6 && moment(item.tanggalStock).format('DD') < 26 ? 'TELAT' : 'Tepat Waktu'}</td>
+                                                <td>{moment(item.tanggalStock).format('DD') > item.end_stock && moment(item.tanggalStock).format('DD') < item.start_stock ? 'TELAT' : 'Tepat Waktu'}</td>
                                                 <td>{item.status_form === 8 ? 'Finish' : item.status_form === 0 ? 'Rejected' : 'In progress'}</td>
                                                 <td>{item.history !== null ? item.history.split(',').reverse()[0] : '-'}</td>
                                                 <td className='tdOpsi'>

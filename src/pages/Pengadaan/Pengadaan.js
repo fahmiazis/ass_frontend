@@ -1788,7 +1788,7 @@ class Pengadaan extends Component {
                             <tbody>
                                 {newIo.length > 0 && newIo.map(item => {
                                     return (
-                                        <tr className={item.status_form === '0' ? 'fail' : item.status_reject === 0 ? 'note' : item.status_reject === 1 && 'bad'}>
+                                        <tr className={item.status_form === '0' ? 'fail' : item.status_form === '8' ? 'success' : item.status_reject === 0 ? 'note' : item.status_reject === 1 && 'bad'}>
                                             <td>{newIo.indexOf(item) + 1}</td>
                                             <td>{item.no_pengadaan}</td>
                                             <td className='tdKat'>{item.kategori}</td>
