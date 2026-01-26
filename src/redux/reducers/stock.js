@@ -52,11 +52,20 @@ const stockState = {
     dataAset: [],
     isDocStock: null,
     dataSearch: [],
-    isUploadDraft: null
+    isUploadDraft: null,
+    typeReminder: null,
+    dateReminder: null,
 };
 
 export default (state=stockState, action) => {
     switch(action.type){
+        case 'SET_REMINDER': {
+            return {
+                ...state,
+                typeReminder: action.payload.type,
+                dateReminder: action.payload.date
+            }
+        } 
         case 'GET_STOCK_PENDING': {
             return {
                 ...state,

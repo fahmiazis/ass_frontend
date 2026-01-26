@@ -1587,8 +1587,8 @@ class Mutasi extends Component {
                                             {/* <td scope="row">{detailMut.indexOf(item) + 1}</td> */}
                                             <td>{item.no_asset}</td>
                                             <td>{item.nama_asset}</td>
-                                            <td>{item.merk}</td>
-                                            <td>{item.kategori}</td>
+                                            <td>{item.merk || ''}</td>
+                                            <td>{item.kategori || ''}</td>
                                             <td>{item.area}</td>
                                             <td>{item.cost_center}</td>
                                             <td>{item.area_rec}</td>

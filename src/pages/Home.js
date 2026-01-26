@@ -2,7 +2,7 @@
 import React, { Component } from 'react'
 import Sidebar from '../components/Sidebar'
 import auth from '../redux/actions/auth'
-import { Input, Button, Modal, ModalHeader, ModalBody, Alert, Collapse,
+import { Input, Button, Modal, ModalHeader, ModalBody, Alert, Collapse, Spinner,
     UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem, Dropdown, Row, 
     ModalFooter} from 'reactstrap'
 import {connect} from 'react-redux'
@@ -44,6 +44,7 @@ import {FaFileSignature} from 'react-icons/fa'
 import {BsBell, BsFillCircleFill} from 'react-icons/bs'
 import dashboard from '../redux/actions/dashboard'
 import clossing from '../redux/actions/clossing'
+import tempmail from '../redux/actions/tempmail'
 import styles from '../assets/css/Newhome.module.css';
 import {
   Chart as ChartJS,
@@ -418,7 +419,7 @@ class Home extends Component {
         }
     }
 
-    getDataDashboard = async () => {
+    getDataDashboardOld = async () => {
         this.setState({ loading: true });
         const token = localStorage.getItem("token")
         const level = localStorage.getItem("level")
@@ -485,6 +486,144 @@ class Home extends Component {
             this.setState({ dataClossing: finalClosing, modalStock: true })
         }
         this.setState({ loading: false });
+    }
+
+    getDataDashboard = async () => {
+        this.setState({ loading: true });
+        const token = localStorage.getItem("token")
+        const level = localStorage.getItem("level")
+        await this.props.getDashboard(token);
+        await this.props.getClossing(token, 'all', '', 1)
+
+        const cekTime1 = moment().startOf('month').format('YYYY-MM-DD')
+        const cekTime2 = moment().endOf('month').format('YYYY-MM-DD')
+
+        if (level === '5' || level === '9') {
+            await this.props.getStockAll(token, '', 100, 1, '', 'all', cekTime1, cekTime2)
+        }
+
+        const { dataClossing } = this.props.clossing
+        const { dataStock } = this.props.stock
+
+        const today = moment().format('DD-MM-YYYY')
+        const monthSubmit = moment().format('MM-YYYY')
+        const findClosing = dataClossing.filter(x => x.type_clossing === 'periode')
+        const findAllClosing = dataClossing.find(x => x.type_clossing === 'all')
+        
+        // ========== TENTUIN FINAL CLOSING ==========
+        let finalClosing = null
+
+        for (let i = 0; i < findClosing.length; i++) {
+            const monthClose = moment(findClosing[i].periode).format('MM-YYYY')
+            if (monthSubmit === monthClose) {
+                const dateStart = `${findClosing[i].start}-${monthClose}`
+                const dateEnd = `${findClosing[i].end}-${monthClose}`
+                
+                if (today >= dateStart) {
+                    finalClosing = findClosing[i]
+                    break
+                }
+            }
+        }
+
+        if (!finalClosing && findAllClosing) {
+            const monthClose = moment().format('MM-YYYY')
+            if (monthSubmit === monthClose) {
+                const dateStart = `${findAllClosing.start}-${monthClose}`
+                if (today >= dateStart) {
+                    finalClosing = findAllClosing
+                }
+            }
+        }
+
+        // ========== CEK ACTUALENDDATE (START PERIODE NEXT) ==========
+        let actualEndDate = null
+        const nextMonth = moment().add(1, 'month').format('MM-YYYY')
+        
+        const nextPeriodClosing = findClosing.find(item => {
+            return moment(item.periode).format('MM-YYYY') === nextMonth
+        })
+        
+        if (nextPeriodClosing) {
+            actualEndDate = `${nextPeriodClosing.start}-${nextMonth}`
+        } else if (findAllClosing) {
+            actualEndDate = `${findAllClosing.start}-${nextMonth}`
+        }
+
+        // ========== LOGIC MODAL BERDASARKAN LEVEL ==========
+        if (finalClosing) {
+            const dateStart = `${finalClosing.start}-${monthSubmit}`
+            const dateEnd = `${finalClosing.end}-${monthSubmit}`
+            
+            // LEVEL 1 & 2: Reminder cuma di start atau end
+            if (level === '1' || level === '2') {
+                const dateReminder = localStorage.getItem('dateReminder')
+                const typeReminder = localStorage.getItem('typeReminder')
+                if (today === dateStart) {
+                    const statModal = dateReminder === dateStart && typeReminder === 'start'
+                    this.setState({ 
+                        dataClossing: { ...finalClosing, typeStock: 'start' }, 
+                        modalStock: statModal ? false : true 
+                    })
+                } else if (today === dateEnd) {
+                    const statModal = dateReminder === dateStart && typeReminder === 'end'
+                    this.setState({ 
+                        dataClossing: { ...finalClosing, typeStock: 'end' }, 
+                        modalStock: statModal ? false : true 
+                    })
+                }
+            }
+            
+            // LEVEL 5 & 9: Warning sampai submit (dari start sampai actualEndDate)
+            else if (level === '5' || level === '9') {
+                const isInPeriod = today >= dateStart && (!actualEndDate || today < actualEndDate)
+                
+                if (isInPeriod) {
+                    // Cek udah submit belum (cuma bandingin bulan-tahun aja biar aman kalo ada perubahan setting)
+                    const periodeMonth = moment(finalClosing.periode).format('MM-YYYY')
+                    const hasSubmitted = dataStock && dataStock.length > 0 && dataStock.some(stock => {
+                        const stockPeriodeMonth = moment(stock.periode_stock).format('MM-YYYY')
+                        return stockPeriodeMonth === periodeMonth
+                    })
+                    
+                    // Kalo belum submit, munculin modal
+                    if (!hasSubmitted) {
+                        let typeStock = 'ongoing'
+                        if (today === dateStart) {
+                            typeStock = 'start'
+                        } else if (today === dateEnd) {
+                            typeStock = 'end'
+                        } else if (actualEndDate && today >= dateEnd && today < actualEndDate) {
+                            typeStock = 'late'
+                        }
+                        
+                        this.setState({ 
+                            dataClossing: { ...finalClosing, typeStock }, 
+                            modalStock: true 
+                        })
+                    }
+                }
+            }
+        }
+        
+        this.setState({ loading: false });
+    }
+
+    sendReminderEmail = async () => {
+        const token = localStorage.getItem('token')
+        const { dataClossing } = this.state
+        const sendMail = {
+            typeEmail: 'reminder opname'
+        }
+        const data = {
+            type: dataClossing.typeStock,
+            date: moment(dataClossing.periode).format('DD-MM-YYYY')
+        }
+        await this.props.sendEmail(token, sendMail)
+        localStorage.setItem('dateReminder', moment(dataClossing.periode).format('DD-MM-YYYY'))
+        localStorage.setItem('typeReminder', dataClossing.typeStock)
+        this.props.setReminder(data)
+        this.setState({modalStock: false})
     }
 
     openModalStock = () => {
@@ -1167,7 +1306,7 @@ class Home extends Component {
                 <RemainderEmail 
                     isOpen={this.state.modalStock}
                     toggle={this.openModalStock}
-                    onNavigate={() => this.goRoute('cartstock')}
+                    onSendEmail={() => this.sendReminderEmail()}
                     dataClossing={this.state.dataClossing}
                 />
             )}
@@ -1183,6 +1322,16 @@ class Home extends Component {
                     </div>
                 </ModalBody>
             </Modal>
+            <Modal isOpen={this.props.stock.isLoading || this.props.clossing.isLoading || this.props.tempmail.isLoading || this.state.loading} size="sm">
+                <ModalBody>
+                <div>
+                    <div className={style.cekUpdate}>
+                        <Spinner />
+                        <div sucUpdate>Waiting....</div>
+                    </div>
+                </div>
+                </ModalBody>
+            </Modal>
         </>
         )
     }
@@ -1194,7 +1343,8 @@ const mapStateToProps = state => ({
     notif: state.notif,
     dashboard: state.dashboard,
     clossing: state.clossing,
-    stock: state.stock
+    stock: state.stock,
+    tempmail: state.tempmail
 })
 
 const mapDispatchToProps = {
@@ -1207,6 +1357,8 @@ const mapDispatchToProps = {
     getDashboard: dashboard.getDashboard,
     getClossing: clossing.getClossing,
     getStockAll: stock.getStockAll,
+    sendEmail: tempmail.sendEmail,
+    setReminder: stock.setReminder
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Home)

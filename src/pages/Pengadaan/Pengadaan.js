@@ -50,6 +50,14 @@ import Select from 'react-select/creatable';
 import FormIo from '../../components/Pengadaan/FormIo'
 const { REACT_APP_BACKEND_URL } = process.env
 
+const approveSchema = Yup.object().shape({
+    jabatan: Yup.string().required(),
+    jenis: Yup.string().required(),
+    sebagai: Yup.string().required(),
+    id_user: Yup.string().required(),
+    kategori: Yup.string(),
+});
+
 const disposalSchema = Yup.object().shape({
     merk: Yup.string().validateSync(""),
     keterangan: Yup.string().required('must be filled'),
@@ -84,8 +92,6 @@ class Pengadaan extends Component {
             value: '',
             onChange: new Date(),
             sidebarOpen: false,
-            modalAdd: false,
-            modalEdit: false,
             modalUpload: false,
             modalDownload: false,
             modalConfirm: false,
@@ -163,7 +169,12 @@ class Pengadaan extends Component {
             detailData: [],
             totalPriceDetail: 0,
             valueIo: '',
-            typeProfit: ''
+            typeProfit: '',
+            modalTempApp: false,
+            listSwitch: [],
+            modalAdd: false,
+            modalEdit: false,
+            detailTtd: {},
         }
         this.onSetOpen = this.onSetOpen.bind(this)
         this.menuButtonClick = this.menuButtonClick.bind(this)
@@ -1648,18 +1659,132 @@ class Pengadaan extends Component {
         this.setState({openCost: !this.state.openCost})
     }
 
+    prosesModalApprove = async (val) => {
+        const token = localStorage.getItem('token')
+        await this.props.getUser(token, 'all', '', 1, 'all', 'username', 'asc', 'master')
+        await this.props.getRole(token)
+        this.openModalTempApp()
+    }
+
+    openModalTempApp = () => {
+        this.setState({modalTempApp: !this.state.modalTempApp})
+    }
+
+    switchApp = async (val) => {
+        const { listSwitch } = this.state
+        const { noIo } = this.props.pengadaan
+        const dataUp = listSwitch
+        const token = localStorage.getItem("token")
+        dataUp.push(val)
+        console.log(listSwitch)
+        const { rawApp } = this.props.pengadaan
+        if (dataUp.length === 2) {
+            for (let i = 0; i < dataUp.length; i++) {
+                const values = rawApp.find(item => item.id === dataUp[i === 0 ? 1 : 0])
+                const data = {
+                    jabatan: values.jabatan,
+                    jenis: values.jenis,
+                    sebagai: values.sebagai,
+                    kategori: !values.kategori ? 'all' : values.kategori,
+                    no_doc: noIo,
+                    struktur: !values.struktur ? 'all' : values.struktur,
+                    way_app: !values.way_app ? 'web' : values.way_app,
+                    id_role: values.id_role,
+                    status_view: !values.status_view ? 'visible' : values.status_view,
+                    id_user: values.id_user
+                }
+                await this.props.makeApproval(token, dataUp[i], data, 'switch') 
+            }
+            await this.props.getApproveIo(token, noIo)
+            this.setState({listSwitch: []})
+        } else {
+            console.log('masuk else listSwitch')
+            this.setState({listSwitch: dataUp})
+        }
+    }
+
+    switchRej = (val) => {
+        const { listSwitch } = this.state
+        const data = []
+        for (let i = 0; i < listSwitch.length; i++) {
+            if (listSwitch[i] === val) {
+                data.push()
+            } else {
+                data.push(listSwitch[i])
+            }
+        }
+        this.setState({listSwitch: data})
+    }
+
+    openModalAdd = () => {
+        this.setState({modalAdd: !this.state.modalAdd})
+    }
+
+    openModalEdit = () => {
+        this.setState({modalEdit: !this.state.modalEdit})
+    }
+
+    prosesMakeApproval = async (val, id) => {
+        const token = localStorage.getItem('token')
+        const { noIo } = this.props.pengadaan
+        const { dataRole } = this.props.user
+        const data = {
+            jabatan: val.jabatan,
+            jenis: val.jenis,
+            sebagai: val.sebagai,
+            kategori: !val.kategori ? 'all' : val.kategori,
+            struktur: !val.struktur ? 'all' : val.struktur,
+            way_app: !val.way_app ? 'web' : val.way_app,
+            status_view: !val.status_view ? 'visible' : val.status_view,
+            id_user: val.id_user,
+            no_doc: noIo,
+            id_role: dataRole.find(item => item.name === val.jabatan).nomor
+        }
+        await this.props.makeApproval(token, id || 'false', data)
+        await this.props.getApproveIo(token, noIo)
+        if (id) {
+            this.openModalEdit()
+        } else {
+            this.openModalAdd()
+        }
+    }
+
+    deleteDataApprove = async (val) => {
+        const token = localStorage.getItem('token')
+        const { noIo } = this.props.pengadaan
+        await this.props.deleteApproval(token, val.id)
+        await this.props.getApproveIo(token, noIo)
+    }
+
+    cekProsesSubmit = async () => {
+        const { dataCart, dataApp } = this.props.pengadaan
+        console.log(dataApp.pembuat)
+        console.log(dataApp.pemeriksa)
+        console.log(dataApp.penyetuju)
+        if ((dataCart[0].alasan === '' || dataCart[0].alasan === null || dataCart[0].alasan === '-')) {
+            this.setState({ confirm: 'reason' })
+            this.openConfirm()
+        } else if ((!dataApp.pembuat || dataApp.pembuat.length < 1) || (!dataApp.pemeriksa || dataApp.pemeriksa.length < 1) || (!dataApp.penyetuju || dataApp.penyetuju.length < 1)) {
+            this.setState({ confirm: 'appFailed' })
+            this.openConfirm()
+        } else {
+            this.prepSendEmail()
+        }
+    }
+
     render() {
-        const { total, listMut, newIo, listStat, fileName, url, detailTrack, sidebarOpen, tipeEmail, typeCost, listCost, detailData, totalPriceDetail, typeProfit } = this.state
+        const { total, listMut, newIo, listStat, fileName, detailTtd, detailTrack, listSwitch, tipeEmail, typeCost, listCost, detailData, totalPriceDetail, typeProfit } = this.state
         const { dataAsset, alertM, alertMsg, alertUpload, page } = this.props.asset
         const { menuRole } = this.props.user
         const pages = this.props.disposal.page
-        const { dataPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataDocCart, dataTemp, infoApp } = this.props.pengadaan
+        const { dataPeng, isLoading, isError, dataApp, dataDoc, detailIo, dataDocCart, dataTemp, infoApp, rawApp } = this.props.pengadaan
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
         const dataNotif = this.props.notif.data
         const role = localStorage.getItem('role')
         const idUser = localStorage.getItem('id')
         const { dataDepo } = this.props.depo
+        const { dataRole, dataUser } = this.props.user
 
         const splitApp = infoApp.info ? infoApp.info.split(']') : []
         const pembuatApp = splitApp.length > 0 ? splitApp[0] : ''
@@ -1901,7 +2026,7 @@ class Pengadaan extends Component {
                                                 <th>Price/unit</th>
                                                 <th>Total Amount</th>
                                                 {/* <th>OPSI</th> */}
-                                                {level === '2' && (
+                                                {level === '2' && this.state.filter === 'available' && (
                                                     <th><text className='red star'>*</text> Asset</th>
                                                 )}
                                                 <th>Status IT</th>
@@ -1934,7 +2059,7 @@ class Pengadaan extends Component {
                                                             <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                             <td>Rp {(parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                             {/* <td><Button onClick={() => this.openModalRinci()}>Detail</Button></td> */}
-                                                            {level === '2' && (
+                                                            {level === '2' && this.state.filter === 'available' && (
                                                                 <td className='colTable'>
                                                                     <div className='mb-1'>
                                                                         <Input
@@ -2123,9 +2248,21 @@ class Pengadaan extends Component {
                             </Formik>
                             <Row className="rowModal mt-4">
                                 <Col md={12} lg={12}>
-                                    {detailIo[0] === undefined ? '' : `${detailIo[0].area}, ${moment(detailIo[0].tglIo).format('DD MMMM YYYY')}`}
+                                    {!detailIo[0] ? '' : `${detailIo[0].area}, ${moment(detailIo[0].tglIo).format('DD MMMM YYYY')}`}
                                 </Col>
                             </Row>
+                            {level === '2' && this.state.filter === 'available' && detailIo[0].kode_plant === 'HO' && (
+                                <Row className="rowModal mt-4">
+                                    <Col md={12} lg={12}>
+                                        <Button 
+                                            color='warning' 
+                                            onClick={() => this.prosesModalApprove()}
+                                        >
+                                            Setting Approval
+                                        </Button>
+                                    </Col>
+                                </Row>
+                            )}
                             <Table bordered responsive className="tabPreview mt-4">
                                 <thead>
                                     <tr>
@@ -2235,6 +2372,481 @@ class Pengadaan extends Component {
                         )}
                     </div>
                 </Modal>
+
+                <Modal size="xl" className='xl' toggle={this.openModalTempApp} isOpen={this.state.modalTempApp}>
+                    <ModalHeader>
+                        Detail Approval
+                    </ModalHeader>
+                    <ModalBody>
+                        <div className={style.headEmail}>
+                            <Button color="success" size="lg" className="mb-4" onClick={this.openModalAdd}>Add</Button>
+                        </div>
+                        <Table striped bordered responsive className={style.tab}>
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Jabatan</th>
+                                    <th>Jenis</th>
+                                    <th>Sebagai</th>
+                                    <th>Kategori</th>
+                                    <th>Struktur User</th>
+                                    <th>Cara Approve</th>
+                                    <th>View</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {rawApp && rawApp.map(item => {
+                                    return (
+                                        <tr className={listSwitch.find(x => x === item.id) && 'note'}>
+                                            <td>{rawApp.indexOf(item) + 1}</td>
+                                            <td>{item.jabatan}</td>
+                                            <td>{item.jenis}</td>
+                                            <td>{item.sebagai}</td>
+                                            <td>{item.kategori}</td>
+                                            <td>{item.struktur === null ? 'all' : item.struktur}</td>
+                                            <td>{item.way_app === null || item.way_app === 'web' ? 'approve web' : 'upload file'}</td>
+                                            <td>{item.status_view ? item.status_view : 'visible'}</td>
+                                            <td>
+                                                <Button className='mt-1' color="success" onClick={() => this.openModalEdit(this.setState({detailTtd: item}))}>Update</Button>
+                                                <Button 
+                                                    className='mt-1 ml-1' 
+                                                    color="info" 
+                                                    onClick={listSwitch.find(e => e === item.id) === undefined ? () => this.switchApp(item.id) : () => this.switchRej(item.id)}
+                                                >
+                                                    Switch
+                                                </Button>
+                                                <Button className='mt-1 ml-1' color="danger" onClick={() => this.deleteDataApprove(item)}>Delete</Button>
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </Table>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button onClick={this.openModalTempApp} color="secondary" size="lg">Close</Button>
+                    </ModalFooter>
+                </Modal>
+                <Modal toggle={this.openModalAdd} isOpen={this.state.modalAdd} size="lg">
+                    <ModalHeader toggle={this.openModalAdd}>Add Approval</ModalHeader>
+                    <Formik
+                    initialValues={{
+                        jabatan: "",
+                        jenis: "all",
+                        sebagai: "",
+                        kategori: "all",
+                        struktur: "all",
+                        way_app: "web",
+                        status_view: "visible",
+                        id_user: null
+                    }}
+                    validationSchema={approveSchema}
+                    onSubmit={(values) => {this.prosesMakeApproval(values)}}
+                    >
+                    {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                    <ModalBody>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                Jabatan
+                            </text>
+                            <div className="col-md-9">
+                                <Input
+                                type="select" 
+                                name="select"
+                                value={values.jabatan}
+                                onChange={handleChange("jabatan")}
+                                onBlur={handleBlur("jabatan")}
+                                >
+                                    <option>-Pilih Jabatan-</option>
+                                    {dataRole.length !== 0 && dataRole.map(item => {
+                                        return (
+                                            <option value={item.name}>{item.name}</option>
+                                        )
+                                    })}
+                                </Input>
+                                {errors.jabatan ? (
+                                    <text className={style.txtError}>{errors.jabatan}</text>
+                                ) : null}
+                            </div>
+                        </div>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                User
+                            </text>
+                            <div className="col-md-9">
+                                <Input
+                                type="select" 
+                                name="id_user"
+                                value={values.id_user}
+                                onChange={handleChange("id_user")}
+                                onBlur={handleBlur("id_user")}
+                                >
+                                    <option>-Pilih User-</option>
+                                    {dataUser.length !== 0 && dataUser.filter(x => x.user_level === (dataRole.find(item => item.name === values.jabatan)?.nomor)).map(item => {
+                                        return (
+                                            <option value={item.id}>{item.fullname}</option>
+                                        )
+                                    })}
+                                </Input>
+                                {errors.id_user ? (
+                                    <text className={style.txtError}>{errors.id_user}</text>
+                                ) : null}
+                            </div>
+                        </div>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                Jenis
+                            </text>
+                            <div className="col-md-9">
+                                <Input 
+                                type="select" 
+                                name="select"
+                                value={values.jenis}
+                                onChange={handleChange("jenis")}
+                                onBlur={handleBlur("jenis")}
+                                >
+                                    <option>-Pilih Jenis-</option>
+                                    <option value="it">IT</option>
+                                    <option value="non-it">Non IT</option>
+                                    <option value="all">All</option>
+                                </Input>
+                                {errors.jenis ? (
+                                        <text className={style.txtError}>{errors.jenis}</text>
+                                    ) : null}
+                            </div>
+                        </div>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                Sebagai
+                            </text>
+                            <div className="col-md-9">
+                                <Input 
+                                type="select" 
+                                name="select"
+                                value={values.sebagai}
+                                onChange={handleChange("sebagai")}
+                                onBlur={handleBlur("sebagai")}
+                                >
+                                    <option>-Pilih Sebagai-</option>
+                                    <option value="pembuat">Pembuat</option>
+                                    <option value="pemeriksa">Pemeriksa</option>
+                                    <option value="penyetuju">Menyetujui</option>
+                                </Input>
+                                {errors.sebagai ? (
+                                        <text className={style.txtError}>{errors.sebagai}</text>
+                                    ) : null}
+                            </div>
+                        </div>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                Kategori
+                            </text>
+                            <div className="col-md-9">
+                                <Input 
+                                type="select" 
+                                name="select"
+                                value={values.kategori}
+                                onChange={handleChange("kategori")}
+                                onBlur={handleBlur("kategori")}
+                                >
+                                    <option>-Pilih Kategori-</option>
+                                    <option value="budget">Budget</option>
+                                    <option value="non-budget">Non Budget</option>
+                                    <option value="return">Return</option>
+                                    <option value="all">All</option>
+                                </Input>
+                                {errors.kategori ? (
+                                        <text className={style.txtError}>{errors.kategori}</text>
+                                    ) : null}
+                            </div>
+                        </div>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                Struktur User
+                            </text>
+                            <div className="col-md-9">
+                                <Input 
+                                type="select" 
+                                name="select"
+                                value={values.struktur}
+                                onChange={handleChange("struktur")}
+                                onBlur={handleBlur("struktur")}
+                                >
+                                    <option>-Pilih-</option>
+                                    <option value="pengirim">Pengirim</option>
+                                    <option value="penerima">Penerima</option>
+                                    <option value="all">All</option>
+                                </Input>
+                                {errors.struktur ? (
+                                    <text className={style.txtError}>{errors.struktur}</text>
+                                ) : null}
+                            </div>
+                        </div>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                Cara Approve
+                            </text>
+                            <div className="col-md-9">
+                                <Input 
+                                type="select" 
+                                name="select"
+                                value={values.way_app}
+                                onChange={handleChange("way_app")}
+                                onBlur={handleBlur("way_app")}
+                                >
+                                    <option>-Pilih-</option>
+                                    <option value="web">Approve web</option>
+                                    <option value="upload">Upload file</option>
+                                </Input>
+                                {errors.way_app ? (
+                                    <text className={style.txtError}>{errors.way_app}</text>
+                                ) : null}
+                            </div>
+                        </div>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                Status View
+                            </text>
+                            <div className="col-md-9">
+                                <Input 
+                                type="select" 
+                                name="select"
+                                value={values.status_view}
+                                onChange={handleChange("status_view")}
+                                onBlur={handleBlur("status_view")}
+                                >
+                                    <option>-Pilih-</option>
+                                    <option value="visible">Visible</option>
+                                    <option value="hidden">Hidden</option>
+                                </Input>
+                                {errors.status_view ? (
+                                    <text className={style.txtError}>{errors.status_view}</text>
+                                ) : null}
+                            </div>
+                        </div>
+                        <hr/>
+                        <div className={style.foot}>
+                            <div></div>
+                            <div>
+                                <Button className="mr-2" onClick={handleSubmit} color="primary">Save</Button>
+                                <Button className="mr-5" onClick={this.openModalAdd}>Cancel</Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                    )}
+                    </Formik>
+                </Modal>
+                <Modal toggle={this.openModalEdit} isOpen={this.state.modalEdit} size="lg">
+                    <ModalHeader>Edit Approval</ModalHeader>
+                    <Formik
+                    initialValues={{
+                        jenis: detailTtd.jenis,
+                        jabatan: detailTtd.jabatan,
+                        sebagai: detailTtd.sebagai,
+                        kategori: detailTtd.kategori,
+                        struktur: detailTtd.struktur,
+                        way_app: detailTtd.way_app,
+                        status_view: detailTtd.status_view,
+                        id_user: null
+                    }}
+                    validationSchema={approveSchema}
+                    onSubmit={(values) => {this.prosesMakeApproval(values, detailTtd.id)}}
+                    >
+                    {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                    <ModalBody>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                Jabatan
+                            </text>
+                            <div className="col-md-9">
+                                <Input
+                                type="select" 
+                                name="select"
+                                value={values.jabatan}
+                                onChange={handleChange("jabatan")}
+                                onBlur={handleBlur("jabatan")}
+                                >
+                                    <option>-Pilih Jabatan-</option>
+                                    {dataRole.length !== 0 && dataRole.map(item => {
+                                        return (
+                                            <option value={item.name}>{item.name}</option>
+                                        )
+                                    })}
+                                </Input>
+                                {errors.jabatan ? (
+                                    <text className={style.txtError}>{errors.jabatan}</text>
+                                ) : null}
+                            </div>
+                        </div>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                User
+                            </text>
+                            <div className="col-md-9">
+                                <Input
+                                type="select" 
+                                name="id_user"
+                                value={values.id_user}
+                                onChange={handleChange("id_user")}
+                                onBlur={handleBlur("id_user")}
+                                >
+                                    <option>-Pilih User-</option>
+                                    {dataUser.length !== 0 && dataUser.filter(x => x.user_level === (dataRole.find(item => item.name === values.jabatan)?.nomor)).map(item => {
+                                        return (
+                                            <option value={item.id}>{item.fullname}</option>
+                                        )
+                                    })}
+                                </Input>
+                                {errors.id_user ? (
+                                    <text className={style.txtError}>{errors.id_user}</text>
+                                ) : null}
+                            </div>
+                        </div>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                Jenis
+                            </text>
+                            <div className="col-md-9">
+                                <Input 
+                                type="select" 
+                                name="select"
+                                value={values.jenis}
+                                onChange={handleChange("jenis")}
+                                onBlur={handleBlur("jenis")}
+                                >
+                                    <option>-Pilih Jenis-</option>
+                                    <option value="it">IT</option>
+                                    <option value="non-it">Non IT</option>
+                                    <option value="all">All</option>
+                                </Input>
+                                {errors.jenis ? (
+                                        <text className={style.txtError}>{errors.jenis}</text>
+                                    ) : null}
+                            </div>
+                        </div>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                Sebagai
+                            </text>
+                            <div className="col-md-9">
+                                <Input 
+                                type="select" 
+                                name="select"
+                                value={values.sebagai}
+                                onChange={handleChange("sebagai")}
+                                onBlur={handleBlur("sebagai")}
+                                >
+                                    <option>-Pilih Sebagai-</option>
+                                    <option value="pembuat">Pembuat</option>
+                                    <option value="pemeriksa">Pemeriksa</option>
+                                    <option value="penyetuju">Menyetujui</option>
+                                </Input>
+                                {errors.sebagai ? (
+                                        <text className={style.txtError}>{errors.sebagai}</text>
+                                    ) : null}
+                            </div>
+                        </div>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                Kategori
+                            </text>
+                            <div className="col-md-9">
+                                <Input 
+                                type="select" 
+                                name="select"
+                                value={values.kategori}
+                                onChange={handleChange("kategori")}
+                                onBlur={handleBlur("kategori")}
+                                >
+                                    <option>-Pilih Kategori-</option>
+                                    <option value="budget">Budget</option>
+                                    <option value="non-budget">Non Budget</option>
+                                    <option value="return">Return</option>
+                                    <option value="all">All</option>
+                                </Input>
+                                {errors.kategori ? (
+                                        <text className={style.txtError}>{errors.kategori}</text>
+                                    ) : null}
+                            </div>
+                        </div>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                Struktur User
+                            </text>
+                            <div className="col-md-9">
+                                <Input 
+                                type="select" 
+                                name="select"
+                                value={values.struktur}
+                                onChange={handleChange("struktur")}
+                                onBlur={handleBlur("struktur")}
+                                >
+                                    <option>-Pilih-</option>
+                                    <option value="pengirim">Pengirim</option>
+                                    <option value="penerima">Penerima</option>
+                                    <option value="all">All</option>
+                                </Input>
+                                {errors.struktur ? (
+                                    <text className={style.txtError}>{errors.struktur}</text>
+                                ) : null}
+                            </div>
+                        </div>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                Cara Approve
+                            </text>
+                            <div className="col-md-9">
+                                <Input 
+                                type="select" 
+                                name="select"
+                                value={values.way_app}
+                                onChange={handleChange("way_app")}
+                                onBlur={handleBlur("way_app")}
+                                >
+                                    <option>-Pilih-</option>
+                                    <option value="web">Approve web</option>
+                                    <option value="upload">Upload file</option>
+                                </Input>
+                                {errors.way_app ? (
+                                    <text className={style.txtError}>{errors.way_app}</text>
+                                ) : null}
+                            </div>
+                        </div>
+                        <div className={style.addModalDepo}>
+                            <text className="col-md-3">
+                                Status View
+                            </text>
+                            <div className="col-md-9">
+                                <Input 
+                                type="select" 
+                                name="select"
+                                value={values.status_view}
+                                onChange={handleChange("status_view")}
+                                onBlur={handleBlur("status_view")}
+                                >
+                                    <option>-Pilih-</option>
+                                    <option value="visible">Visible</option>
+                                    <option value="hidden">Hidden</option>
+                                </Input>
+                                {errors.status_view ? (
+                                    <text className={style.txtError}>{errors.status_view}</text>
+                                ) : null}
+                            </div>
+                        </div>
+                        <hr/>
+                        <div className={style.foot}>
+                            <div></div>
+                            <div>
+                                <Button className="mr-2" onClick={handleSubmit} color="primary">Save</Button>
+                                <Button className="mr-5" onClick={this.openModalEdit}>Cancel</Button>
+                            </div>
+                        </div>
+                    </ModalBody>
+                    )}
+                    </Formik>
+                </Modal>
+
                 <Modal size="xl" isOpen={this.state.preview} toggle={this.openPreview} className='large'>
                     <ModalHeader toggle={this.openPreview}>{detailData.length > 0 && detailData[0].no_pengadaan}</ModalHeader>
                     <ModalBody className="mb-5">
@@ -3451,12 +4063,16 @@ const mapDispatchToProps = {
     getTempAsset: pengadaan.getTempAsset,
     podsSend: pengadaan.podsSend,
     addNewNotif: newnotif.addNewNotif,
-    getRole: user.getRole,
     getDetailUser: user.getDetailUser,
     getDepo: depo.getDepo,
     searchIo: pengadaan.searchIo,
     getRoleMenu: user.getRoleMenu,
-    getDetailItem: pengadaan.getDetailItem
+    getDetailItem: pengadaan.getDetailItem,
+    getUser: user.getUser,
+    getRole: user.getRole,
+    makeApproval: pengadaan.makeApproval,
+    deleteApproval: pengadaan.deleteApproval,
+    saveApproval: pengadaan.saveApproval
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Pengadaan)

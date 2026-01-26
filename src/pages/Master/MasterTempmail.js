@@ -654,7 +654,7 @@ class MasterEmail extends Component {
                         </div>
                     </div>
                 </div>
-                <Modal toggle={this.openModalAdd} isOpen={this.state.modalAdd}>
+                <Modal toggle={this.openModalAdd} isOpen={this.state.modalAdd} size='lg'>
                     <ModalHeader toggle={this.openModalAdd}>Add Master Email</ModalHeader>
                     <Formik
                         initialValues={{
@@ -847,7 +847,7 @@ class MasterEmail extends Component {
                         )}
                     </Formik>
                 </Modal>
-                <Modal toggle={this.openModalEdit} isOpen={this.state.modalEdit}>
+                <Modal toggle={this.openModalEdit} isOpen={this.state.modalEdit} size='lg'>
                     <ModalHeader toggle={this.openModalEdit}>Edit Master Email</ModalHeader>
                     <Formik
                         initialValues={{

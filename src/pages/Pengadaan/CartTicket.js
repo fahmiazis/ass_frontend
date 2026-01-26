@@ -837,7 +837,7 @@ class CartMutasi extends Component {
                     way_app: !values.way_app ? 'web' : values.way_app,
                     id_role: values.id_role,
                     status_view: !values.status_view ? 'visible' : values.status_view,
-                    id_user: ''
+                    id_user: values.id_user
                 }
                 await this.props.makeApproval(token, dataUp[i], data, 'switch') 
             }

@@ -111,6 +111,10 @@ export default {
         type: 'UPLOAD_DRAFTSTOCK',
         payload: http(token).post(`/stock/draft-upload`, data)
     }),
+    setReminder: (data) => ({
+        type: 'SET_REMINDER',
+        payload: data
+    }),
     resetStock: () => ({
         type: 'RESET_STOCK'
     })
