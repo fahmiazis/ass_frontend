@@ -9,7 +9,7 @@ import { Form } from 'react-bootstrap'
 import { CiWarning } from "react-icons/ci"
 import SidebarContent from "../../components/sidebar_content"
 import Sidebar from "../../components/Header"
-import {AiOutlineCheck, AiOutlineClose, AiFillCheckCircle, AiOutlineInbox} from 'react-icons/ai'
+import {AiOutlineCheck, AiOutlineClose, AiFillCheckCircle, AiOutlineInbox, AiOutlineFileExcel} from 'react-icons/ai'
 import { IoDocumentTextOutline } from "react-icons/io5";
 import {BsCircle} from 'react-icons/bs'
 import MaterialTitlePanel from "../../components/material_title_panel"
@@ -40,6 +40,9 @@ import Email from '../../components/Pengadaan/Email'
 import NumberInput from '../../components/NumberInput'
 import styleHome from '../../assets/css/Home.module.css'
 import terbilang from '@develoka/angka-terbilang-js'
+import readXlsxFile from 'read-excel-file'
+import fs from "file-saver";
+import ExcelJS from "exceljs";
 const {REACT_APP_BACKEND_URL} = process.env
 
 const alasanSchema = Yup.object().shape({
@@ -117,6 +120,8 @@ class CartMutasi extends Component {
             modalAdd: false,
             modalEdit: false,
             detailTtd: {},
+            fileUpload: '',
+            duplikat: [],
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -317,6 +322,223 @@ class CartMutasi extends Component {
                 }
             }
         }
+    }
+
+    onChangeHandler = e => {
+        const {size, type} = e.target.files[0]
+        if (size >= 5120000) {
+            this.setState({errMsg: "Maximum upload size 5 MB"})
+            this.uploadAlert()
+        } else if (type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && type !== 'application/vnd.ms-excel' ){
+            this.setState({errMsg: 'Invalid file type. Only excel files are allowed.'})
+            this.uploadAlert()
+        } else {
+            this.setState({fileUpload: e.target.files[0]})
+        }
+    }
+
+    uploadDetailCostCenter = async (val) => {
+        const { dataItem, fileUpload, modalEdit } = this.state
+        const { idOps } = this.props.ops
+        const token = localStorage.getItem('token')
+        const dataTemp = []
+        const rows = await readXlsxFile(fileUpload)
+        const dataCek = []
+        const count = []
+        const parcek = [
+            'Cost Center / Plant',
+            'Qty'
+        ]
+        const valid = rows[0]
+        for (let i = 0; i < parcek.length; i++) {
+            if (valid[i] === parcek[i]) {
+                count.push(1)
+            }
+        }
+        if (count.length === parcek.length) {
+            rows.shift()
+            const noIdent = []
+            const result = []
+            for (let i = 0; i < rows.length; i++) {
+                const dataCost = rows[i]
+                const noid = `Cost Center / Plant : ${dataCost[0]}`
+                noIdent.push(noid)
+            }
+
+            const obj = {}
+
+            noIdent.forEach(item => {
+                if (!obj[item]) { obj[item] = 0 }
+                obj[item] += 1
+            })
+
+            for (const prop in obj) {
+                if (obj[prop] >= 2) {
+                    result.push(prop)
+                }
+            }
+            if (result.length > 0) {
+                this.setState({ confirm: 'dupUpload', duplikat: result })
+                this.openConfirm()
+            } else {
+                for (let i = 0; i < rows.length; i++) {
+                    const dataOps = rows[i]
+                    const data = {
+                        no_pol: dataOps[0],
+                        liter: dataOps[1] ,
+                        km: dataOps[2],
+                        nominal: dataOps[3],
+                        date_bbm: dataOps[4],
+                    }
+
+                    const noPol = dataOps[0]
+                    const liter = dataOps[1]
+                    const km = dataOps[2]
+                    const nominal = dataOps[3]
+                    const dateBbm = dataOps[4]
+
+                    const dataNominal = nominal === null || (nominal.toString().split('').filter((item) => item !== '.' && item !== ',' && isNaN(parseFloat(item))).length > 0)
+                        ? { no_transaksi: `Row ke ${i + 2}`, mess: 'Pastikan Nominal Diisi dengan Sesuai' }
+                        : null
+                    const dataLiter = liter === null || (liter.toString().split('').filter((item) => item !== '.' && item !== ',' && isNaN(parseFloat(item))).length > 0)
+                        ? { no_transaksi: `Row ke ${i + 2}`, mess: 'Pastikan Data Liter Diisi dengan Sesuai' }
+                        : null
+                    const dataKm = km === null || (km.toString().split('').filter((item) => item !== '.' && item !== ',' && isNaN(parseFloat(item))).length > 0)
+                        ? { no_transaksi: `Row ke ${i + 2}`, mess: 'Pastikan Data KM Diisi dengan Sesuai' }
+                        : null
+                    const cekDate = dateBbm === null || dateBbm === '' || dateBbm.length === 0
+                        ? { no_transaksi: `Row ke ${i + 2}`, mess: `Pastikan Tgl Pengisian Bbm Diisi dengan Sesuai` }
+                        : null
+                    const cekNopol = noPol === null || noPol === '' || noPol.length === 0
+                        ? { no_transaksi: `Row ke ${i + 2}`, mess: `Pastikan No Pol Diisi dengan Sesuai` }
+                        : null
+
+                    if (dataLiter !== null || dataKm !== null || dataNominal !== null || cekDate !== null || cekNopol !== null) {
+                        const mesTemp = [dataLiter, dataKm, dataNominal, cekDate, cekNopol]
+                        dataCek.push(mesTemp)
+                    } else {
+                        // const cek = dataItem.find(({ no_pol }) => (data.no_pol !== '' && no_pol === data.no_pol))
+                        const cek = dataItem.find((item) => (data.no_pol !== '' && item.no_pol === data.no_pol && parseFloat(item.km) === parseFloat(data.km)))
+                        console.log(cek)
+                        if (cek !== undefined) {
+                            console.log('masuk not undefined BBM')
+                            cek.liter = data.liter
+                            cek.nominal = data.nominal
+                        } else {
+                            console.log('masuk undefined BBM')
+                            dataTemp.push(data)
+                        }
+                    }
+                }
+                console.log(dataCek)
+                console.log(dataTemp)
+                if (dataCek.length > 0 || rows.length === 0) {
+                    console.log('masuk failed king')
+
+                    this.setState({ messUpload: dataCek })
+                    this.openUpBbm()
+                    this.setState({ confirm: 'failUpload' })
+                    this.openConfirm()
+                } else {
+                    console.log('masuk success king')
+                    if (modalEdit === true) {
+                        const comb = [...dataItem, ...dataTemp]
+                        console.log(comb)
+                        const send = {
+                            id: idOps.id,
+                            list: comb
+                        }
+                        await this.props.uploadBbm(token, send)
+                        await this.props.getBbm(token, idOps.id)
+                        const { opsBbm } = this.props.ops
+                        this.setState({ dataItem: opsBbm })
+                       
+                        const valBbm = opsBbm.reduce((accumulator, object) => {
+                            return accumulator + parseFloat(object.nominal);
+                        }, 0)
+                        this.setState({nilai_ajuan: valBbm})
+                        setTimeout(() => {
+                            this.formulaTax()
+                        }, 100)
+                        
+                        this.openUpBbm()
+                        await this.editCartOps(idOps)
+                        this.setState({ confirm: 'upload' })
+                        this.openConfirm()
+                    } else {
+                        const comb = [...dataItem, ...dataTemp]
+                        this.setState({ dataItem: comb })
+                        
+                        const valBbm = comb.reduce((accumulator, object) => {
+                            return accumulator + parseFloat(object.nominal);
+                        }, 0)
+                        this.setState({nilai_ajuan: valBbm})
+                        setTimeout(() => {
+                            this.formulaTax()
+                        }, 100)
+
+                        this.openUpBbm()
+                        this.setState({ confirm: 'upload' })
+                        this.openConfirm()
+                    }
+                }
+            }
+        } else {
+            this.openUpBbm()
+            this.setState({ confirm: 'falseUpload' })
+            this.openConfirm()
+        }
+    }
+
+    downloadDetailCostCenter = () => {
+        const { dataItem } = this.state
+
+        const workbook = new ExcelJS.Workbook();
+        const ws = workbook.addWorksheet('data bbm')
+
+        // await ws.protect('F1n4NcePm4')
+
+        const borderStyles = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+        }
+
+
+        ws.columns = [
+            { header: 'Cost Center / Plant', key: 'c1' },
+            { header: 'Qty', key: 'c2' }
+        ]
+
+        dataItem.map((item, index) => {
+            return (ws.addRow(
+                {
+                    c1: item.cost_center,
+                    c2: item.qty
+                }
+            )
+            )
+        })
+
+        ws.eachRow({ includeEmpty: true }, function (row, rowNumber) {
+            row.eachCell({ includeEmpty: true }, function (cell, colNumber) {
+                cell.border = borderStyles;
+            })
+        })
+
+        ws.columns.forEach(column => {
+            const lengths = column.values.map(v => v.toString().length)
+            const maxLength = Math.max(...lengths.filter(v => typeof v === 'number'))
+            column.width = maxLength + 5
+        })
+
+        workbook.xlsx.writeBuffer().then(function (buffer) {
+            fs.saveAs(
+                new Blob([buffer], { type: "application/octet-stream" }),
+                `Data Detail Cost Center ${moment().format('DD MMMM YYYY')}.xlsx`
+            )
+        })
     }
 
     prosesSidebar = (val) => {
@@ -922,7 +1144,7 @@ class CartMutasi extends Component {
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
         const {dataCart, dataDocCart, dataDetail, noIo, dataApp, rawApp } = this.props.pengadaan
-        const {dataRinci, dataItem, valCart, total, typeCost, typeProfit, listSwitch, detailTtd} = this.state
+        const {dataRinci, dataItem, valCart, total, typeCost, typeProfit, listSwitch, detailTtd, duplikat} = this.state
         const { dataDepo } = this.props.depo
         const { dataRole, dataUser } = this.props.user
         const listType = ['single', 'multiple']
@@ -1529,19 +1751,23 @@ class CartMutasi extends Component {
                                                     <tr>
                                                         <td>{index + 1}</td>
                                                         <td>
-                                                            <Input 
-                                                                type="select"
-                                                                name="cost_center"
-                                                                value={item.cost_center}
-                                                                onChange={e => this.updateItem({...item, cost_center: e.target.value}, index)}
-                                                            >
-                                                                <option value="">---Pilih---</option>
-                                                                {dataDepo.length > 0 && dataDepo.map(item => {
-                                                                    return (
-                                                                        <option value={`${item.place_asset}-${item.cost_center}`}>{item.place_asset}-{item.cost_center}</option>
-                                                                    )
-                                                                })}
-                                                            </Input>
+                                                            <Select
+                                                                options={
+                                                                    dataDepo.length > 0 && dataDepo.map(item => {
+                                                                        return (
+                                                                            ({value: `${item.place_asset}-${item.cost_center}`, label: `${item.place_asset}-${item.cost_center}`})
+                                                                        )
+                                                                    })
+                                                                }
+                                                                onChange={e => this.updateItem({...item, cost_center: e.value}, index)}
+                                                                isSearchable
+                                                                components={
+                                                                    {
+                                                                        DropdownIndicator: () => null,
+                                                                    }
+                                                                }
+                                                                value={{value: item.cost_center, label: item.cost_center}}
+                                                            />
                                                         </td>
                                                         {dataRinci.type_ajuan === 'single' && (
                                                             <td>
@@ -1588,19 +1814,23 @@ class CartMutasi extends Component {
                                                 <tr>
                                                     <td>{dataItem.length + 1}</td>
                                                     <td>
-                                                        <Input 
-                                                            type="select"
-                                                            name="cost_center"
-                                                            value={this.state.cost}
-                                                            onChange={e => this.setState({cost: e.target.value})}
-                                                        >
-                                                            <option value="">---Pilih---</option>
-                                                            {dataDepo.length > 0 && dataDepo.map(item => {
-                                                                return (
-                                                                    <option value={`${item.place_asset}-${item.cost_center}`}>{item.place_asset}-{item.cost_center}</option>
-                                                                )
-                                                            })}
-                                                        </Input>
+                                                        <Select
+                                                            options={
+                                                                dataDepo.length > 0 && dataDepo.map(item => {
+                                                                    return (
+                                                                        ({value: `${item.place_asset}-${item.cost_center}`, label: `${item.place_asset}-${item.cost_center}`})
+                                                                    )
+                                                                })
+                                                            }
+                                                            onChange={e => this.setState({cost: e.value})}
+                                                            isSearchable
+                                                            components={
+                                                                {
+                                                                    DropdownIndicator: () => null,
+                                                                }
+                                                            }
+                                                            value={{value: this.state.cost, label: this.state.cost}}
+                                                        />
                                                     </td>
                                                     {dataRinci.type_ajuan === 'single' && (
                                                         <td>
@@ -1850,19 +2080,23 @@ class CartMutasi extends Component {
                                     <tr>
                                         <td>{index + 1}</td>
                                         <td>
-                                            <Input 
-                                                type="select"
-                                                name="cost_center"
-                                                value={item.cost_center}
-                                                onChange={e => this.updateItem({...item, cost_center: e.target.value}, index)}
-                                            >
-                                                <option value="">---Pilih---</option>
-                                                {dataDepo.length > 0 && dataDepo.map(item => {
-                                                    return (
-                                                        <option value={`${item.place_asset}-${item.cost_center}`}>{item.place_asset}-{item.cost_center}</option>
-                                                    )
-                                                })}
-                                            </Input>
+                                            <Select
+                                                options={
+                                                    dataDepo.length > 0 && dataDepo.map(item => {
+                                                        return (
+                                                            ({value: `${item.place_asset}-${item.cost_center}`, label: `${item.place_asset}-${item.cost_center}`})
+                                                        )
+                                                    })
+                                                }
+                                                onChange={e => this.updateItem({...item, cost_center: e.value}, index)}
+                                                isSearchable
+                                                components={
+                                                    {
+                                                        DropdownIndicator: () => null,
+                                                    }
+                                                }
+                                                value={{value: item.cost_center, label: item.cost_center}}
+                                            />
                                         </td>
                                         {this.state.typeCost === 'single' && (
                                             <td>
@@ -1908,19 +2142,23 @@ class CartMutasi extends Component {
                                 <tr>
                                     <td>{dataItem.length + 1}</td>
                                     <td>
-                                        <Input 
-                                            type="select"
-                                            name="cost_center"
-                                            value={this.state.cost}
-                                            onChange={e => this.setState({cost: e.target.value})}
-                                        >
-                                            <option value="">---Pilih---</option>
-                                            {dataDepo.length > 0 && dataDepo.map(item => {
-                                                return (
-                                                    <option value={`${item.place_asset}-${item.cost_center}`}>{item.place_asset}-{item.cost_center}</option>
-                                                )
-                                            })}
-                                        </Input>
+                                        <Select
+                                            options={
+                                                dataDepo.length > 0 && dataDepo.map(item => {
+                                                    return (
+                                                        ({value: `${item.place_asset}-${item.cost_center}`, label: `${item.place_asset}-${item.cost_center}`})
+                                                    )
+                                                })
+                                            }
+                                            onChange={e => this.setState({cost: e.value})}
+                                            isSearchable
+                                            components={
+                                                {
+                                                    DropdownIndicator: () => null,
+                                                }
+                                            }
+                                            value={{value: this.state.cost, label: this.state.cost}}
+                                        />
                                     </td>
                                     {this.state.typeCost === 'single' && (
                                         <td>
@@ -2764,6 +3002,29 @@ class CartMutasi extends Component {
                 )}
                 </Formik>
             </Modal>
+            <Modal toggle={this.openModalUpload} isOpen={this.state.modalUpload} >
+                <ModalHeader>Upload Detail Cost Center</ModalHeader>
+                <ModalBody className={style.modalUpload}>
+                    <div className={style.titleModalUpload}>
+                        <text>Upload File: </text>
+                        <div className={style.uploadFileInput}>
+                            <AiOutlineFileExcel size={35} />
+                            <div className="ml-3">
+                                <Input
+                                type="file"
+                                name="file"
+                                accept=".xls,.xlsx"
+                                onChange={this.onChangeHandler}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div className={style.btnUpload}>
+                        <Button color="primary" disabled={this.state.fileUpload === "" ? true : false } onClick={this.uploadMaster}>Upload</Button>
+                        <Button onClick={this.openModalUpload}>Cancel</Button>
+                    </div>
+                </ModalBody>
+                </Modal>
             <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="md">
                 <ModalBody>
                     {this.state.confirm === 'submit' ? (
@@ -2864,6 +3125,21 @@ class CartMutasi extends Component {
                             <div className={style.cekUpdate}>
                                 <AiFillCheckCircle size={80} className={style.green} />
                                 <div className={[style.sucUpdate, style.green]}>Berhasil Update Alasan</div>
+                            </div>
+                        </div>
+                    ) : this.state.confirm === 'dupUpload' ? (
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green, style.mb4]}>Gagal Upload</div>
+                                <div className={[style.sucUpdate, style.green, style.mb4]}>Terdapat Duplikasi Pada Data Berikut</div>
+                                {duplikat.length > 0 ? duplikat.map(item => {
+                                    return (
+                                        <div className={[style.sucUpdate, style.green, style.mb3]}>{item}</div>
+                                    )
+                                }) : (
+                                    <div></div>
+                                )}
                             </div>
                         </div>
                     ) : (

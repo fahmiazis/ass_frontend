@@ -592,6 +592,15 @@ class Stock extends Component {
         const level = localStorage.getItem('level')
         const token = localStorage.getItem("token")
         const id = localStorage.getItem('id')
+        const day = moment().format('DD') >= 26
+        const subtime1 = moment().subtract(1, 'month').startOf('month').format('YYYY-MM-26')
+        const curtime1 = moment().startOf('month').format('YYYY-MM-26')
+        const subtime2 = moment().endOf('month').format('YYYY-MM-25')
+        const curtime2 = moment().add(1, 'month').endOf('month').format('YYYY-MM-25')
+        this.setState({
+            time1: day ? curtime1 : subtime1,
+            time2: day ? curtime2 : subtime2
+        })
         await this.props.getDepo(token, 1000, '')
         await this.props.getDetailUser(token, id)
         await this.props.getRole(token)
