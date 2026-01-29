@@ -207,6 +207,29 @@ export default (state=depoState, action) => {
                     alertUpload: action.payload.response.data.result
                 };
             }
+
+            case 'UPLOAD_KODEDIST_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting....'
+                };
+            }
+            case 'UPLOAD_KODEDIST_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isUpload: true,
+                    alertMsg: 'upload master Succesfully'
+                };
+            }
+            case 'UPLOAD_KODEDIST_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isUpload: false,
+                };
+            }
             case 'RESET': {
                 return {
                     ...state,

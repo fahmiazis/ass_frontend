@@ -80,7 +80,8 @@ class MasterDepo extends Component {
             search: '',
             listDepo: [],
             tipeModal: 'add',
-            modalDelete: false
+            modalDelete: false,
+            typeUpload: ''
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -355,6 +356,12 @@ class MasterDepo extends Component {
     openModalEdit = () => {
         this.setState({modalEdit: !this.state.modalEdit})
     }
+
+    prosesModalUpload = (val) => {
+        this.setState({typeUpload: val})
+        this.openModalUpload()
+    }
+
     openModalUpload = () => {
         this.setState({modalUpload: !this.state.modalUpload})
     }
@@ -400,10 +407,15 @@ class MasterDepo extends Component {
     }
 
     uploadMaster = async () => {
+        const { typeUpload } = this.state
         const token = localStorage.getItem('token')
         const data = new FormData()
         data.append('master', this.state.fileUpload)
-        await this.props.uploadMaster(token, data)
+        if (typeUpload === 'kode_dist') {
+            await this.props.uploadKodeDist(token, data)
+        } else {
+            await this.props.uploadMaster(token, data)
+        }
     }
 
     editDepo = async (values, id) => {
@@ -569,7 +581,8 @@ class MasterDepo extends Component {
                             <div className='rowCenter'>
                                 <Button onClick={() => this.prosesOpen('add')} color="primary" size="lg" className='mr-1'>Add</Button>
                                 <Button className='mr-1' disabled={listDepo.length === 0 ? true : false} onClick={this.openModalDelete} color="danger" size="lg">Delete</Button>
-                                <Button onClick={this.openModalUpload} color="warning" size="lg" className='mr-1'>Upload</Button>
+                                <Button onClick={() => this.prosesModalUpload('master')} color="warning" size="lg" className='mr-1'>Upload</Button>
+                                <Button onClick={() => this.prosesModalUpload('kode_dist')} color="info" size="lg" className='mr-1'>Upload Kode Dist</Button>
                                 <Button color="success" size="lg" onClick={this.downloadData}>Download</Button>
                             </div>
                             <div className={style.searchEmail2}>
@@ -607,6 +620,7 @@ class MasterDepo extends Component {
                                     <th>Status Depo</th>
                                     <th>Profit Center</th>
                                     <th>Cost Center</th>
+                                    <th>Kode Dist</th>
                                     <th>Kode SAP 1</th>
                                     <th>Kode SAP 2</th>
                                     <th>Nama AOS</th>
@@ -651,6 +665,7 @@ class MasterDepo extends Component {
                                             <td>{item.status_area}</td>
                                             <td>{item.profit_center}</td>
                                             <td>{item.cost_center}</td>
+                                            <td>{item.kode_dist}</td>
                                             <td>{item.kode_sap_1}</td>
                                             <td>{item.kode_sap_2}</td>
                                             <td>{item.nama_aos}</td>
@@ -1284,6 +1299,7 @@ const mapDispatchToProps = {
     getDepo: depo.getDepo,
     resetError: depo.resetError,
     uploadMaster: depo.uploadMaster,
+    uploadKodeDist: depo.uploadKodeDist,
     nextPage: depo.nextPage,
     exportMaster: depo.exportMaster,
     deleteDepo: depo.deleteDepo

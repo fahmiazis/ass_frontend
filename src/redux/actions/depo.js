@@ -19,6 +19,10 @@ export default {
         type: 'UPLOAD_MASTER',
         payload: http(token).post(`/depo/master`, data)
     }),
+    uploadKodeDist: (token, data) => ({
+        type: 'UPLOAD_KODEDIST',
+        payload: http(token).post(`/depo/kode-dist`, data)
+    }),
     getDetailDepo: (token, id) => ({
         type: 'GET_DETAIL_DEPO',
         payload: http(token).get(`/depo/detail/${id}`)

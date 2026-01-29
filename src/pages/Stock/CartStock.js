@@ -713,9 +713,8 @@ class Stock extends Component {
     getDataAsset = async (value) => {
         const token = localStorage.getItem("token")
         const { page } = this.props.asset
-        const {asetPart} = this.state
+        const {asetPart, search} = this.state
         const area = value === undefined ? asetPart : value.asetPart === undefined ? asetPart : value.asetPart
-        const search = value === undefined ? '' : value.search === undefined ? '' : value.search
         const limit = value === undefined ? this.state.limit :  value.limit === undefined ? this.state.limit : value.limit
         await this.props.getDepo(token, 1000, '')
         await this.props.getAssetAll(token, limit, search, page.currentPage, 'asset', area)

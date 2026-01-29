@@ -2251,7 +2251,7 @@ class Pengadaan extends Component {
                                     {!detailIo[0] ? '' : `${detailIo[0].area}, ${moment(detailIo[0].tglIo).format('DD MMMM YYYY')}`}
                                 </Col>
                             </Row>
-                            {level === '2' && this.state.filter === 'available' && detailIo[0].kode_plant === 'HO' && (
+                            {level === '2' && this.state.filter === 'available' && detailIo[0]?.kode_plant === 'HO' && (
                                 <Row className="rowModal mt-4">
                                     <Col md={12} lg={12}>
                                         <Button 

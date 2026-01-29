@@ -122,6 +122,8 @@ class CartMutasi extends Component {
             detailTtd: {},
             fileUpload: '',
             duplikat: [],
+            modalUpload: false,
+            failCost: []
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -337,16 +339,20 @@ class CartMutasi extends Component {
         }
     }
 
-    uploadDetailCostCenter = async (val) => {
-        const { dataItem, fileUpload, modalEdit } = this.state
-        const { idOps } = this.props.ops
+    openModalUpload = () => {
+        this.setState({ modalUpload: !this.state.modalUpload })
+    }
+
+    uploadDetailCostCenter = async () => {
+        const { fileUpload, valCart } = this.state
+        const { dataDepo } = this.props.depo
         const token = localStorage.getItem('token')
         const dataTemp = []
         const rows = await readXlsxFile(fileUpload)
         const dataCek = []
         const count = []
         const parcek = [
-            'Cost Center / Plant',
+            'Cost Center',
             'Qty'
         ]
         const valid = rows[0]
@@ -359,10 +365,12 @@ class CartMutasi extends Component {
             rows.shift()
             const noIdent = []
             const result = []
+            let total = 0
             for (let i = 0; i < rows.length; i++) {
                 const dataCost = rows[i]
-                const noid = `Cost Center / Plant : ${dataCost[0]}`
+                const noid = `Cost Center: ${dataCost[0]}`
                 noIdent.push(noid)
+                total += parseInt(dataCost[1])
             }
 
             const obj = {}
@@ -380,111 +388,38 @@ class CartMutasi extends Component {
             if (result.length > 0) {
                 this.setState({ confirm: 'dupUpload', duplikat: result })
                 this.openConfirm()
+            } else if (total !== parseInt(valCart.qty)) {
+                this.setState({confirm: 'falseQty'})
+                this.openConfirm()
             } else {
+                const dataGood = []
+                const dataFail = []
                 for (let i = 0; i < rows.length; i++) {
-                    const dataOps = rows[i]
+                    const dataUpload = rows[i]
+                    const dataCost = dataDepo.find(item => item.cost_center === dataUpload[0])
                     const data = {
-                        no_pol: dataOps[0],
-                        liter: dataOps[1] ,
-                        km: dataOps[2],
-                        nominal: dataOps[3],
-                        date_bbm: dataOps[4],
+                        cost_center: dataCost ? `${dataCost.place_asset}-${dataCost.cost_center}` : '',
+                        qty: dataUpload[1]
                     }
-
-                    const noPol = dataOps[0]
-                    const liter = dataOps[1]
-                    const km = dataOps[2]
-                    const nominal = dataOps[3]
-                    const dateBbm = dataOps[4]
-
-                    const dataNominal = nominal === null || (nominal.toString().split('').filter((item) => item !== '.' && item !== ',' && isNaN(parseFloat(item))).length > 0)
-                        ? { no_transaksi: `Row ke ${i + 2}`, mess: 'Pastikan Nominal Diisi dengan Sesuai' }
-                        : null
-                    const dataLiter = liter === null || (liter.toString().split('').filter((item) => item !== '.' && item !== ',' && isNaN(parseFloat(item))).length > 0)
-                        ? { no_transaksi: `Row ke ${i + 2}`, mess: 'Pastikan Data Liter Diisi dengan Sesuai' }
-                        : null
-                    const dataKm = km === null || (km.toString().split('').filter((item) => item !== '.' && item !== ',' && isNaN(parseFloat(item))).length > 0)
-                        ? { no_transaksi: `Row ke ${i + 2}`, mess: 'Pastikan Data KM Diisi dengan Sesuai' }
-                        : null
-                    const cekDate = dateBbm === null || dateBbm === '' || dateBbm.length === 0
-                        ? { no_transaksi: `Row ke ${i + 2}`, mess: `Pastikan Tgl Pengisian Bbm Diisi dengan Sesuai` }
-                        : null
-                    const cekNopol = noPol === null || noPol === '' || noPol.length === 0
-                        ? { no_transaksi: `Row ke ${i + 2}`, mess: `Pastikan No Pol Diisi dengan Sesuai` }
-                        : null
-
-                    if (dataLiter !== null || dataKm !== null || dataNominal !== null || cekDate !== null || cekNopol !== null) {
-                        const mesTemp = [dataLiter, dataKm, dataNominal, cekDate, cekNopol]
-                        dataCek.push(mesTemp)
+                    if (!dataCost) {
+                        dataFail.push(dataUpload[0])
                     } else {
-                        // const cek = dataItem.find(({ no_pol }) => (data.no_pol !== '' && no_pol === data.no_pol))
-                        const cek = dataItem.find((item) => (data.no_pol !== '' && item.no_pol === data.no_pol && parseFloat(item.km) === parseFloat(data.km)))
-                        console.log(cek)
-                        if (cek !== undefined) {
-                            console.log('masuk not undefined BBM')
-                            cek.liter = data.liter
-                            cek.nominal = data.nominal
-                        } else {
-                            console.log('masuk undefined BBM')
-                            dataTemp.push(data)
-                        }
+                        dataGood.push(data)
                     }
                 }
-                console.log(dataCek)
-                console.log(dataTemp)
-                if (dataCek.length > 0 || rows.length === 0) {
-                    console.log('masuk failed king')
-
-                    this.setState({ messUpload: dataCek })
-                    this.openUpBbm()
-                    this.setState({ confirm: 'failUpload' })
+                if (dataFail.length > 0) {
+                    this.setState({failCost: dataFail})
+                    this.setState({ confirm: 'failCost' })
                     this.openConfirm()
                 } else {
-                    console.log('masuk success king')
-                    if (modalEdit === true) {
-                        const comb = [...dataItem, ...dataTemp]
-                        console.log(comb)
-                        const send = {
-                            id: idOps.id,
-                            list: comb
-                        }
-                        await this.props.uploadBbm(token, send)
-                        await this.props.getBbm(token, idOps.id)
-                        const { opsBbm } = this.props.ops
-                        this.setState({ dataItem: opsBbm })
-                       
-                        const valBbm = opsBbm.reduce((accumulator, object) => {
-                            return accumulator + parseFloat(object.nominal);
-                        }, 0)
-                        this.setState({nilai_ajuan: valBbm})
-                        setTimeout(() => {
-                            this.formulaTax()
-                        }, 100)
-                        
-                        this.openUpBbm()
-                        await this.editCartOps(idOps)
-                        this.setState({ confirm: 'upload' })
-                        this.openConfirm()
-                    } else {
-                        const comb = [...dataItem, ...dataTemp]
-                        this.setState({ dataItem: comb })
-                        
-                        const valBbm = comb.reduce((accumulator, object) => {
-                            return accumulator + parseFloat(object.nominal);
-                        }, 0)
-                        this.setState({nilai_ajuan: valBbm})
-                        setTimeout(() => {
-                            this.formulaTax()
-                        }, 100)
-
-                        this.openUpBbm()
-                        this.setState({ confirm: 'upload' })
-                        this.openConfirm()
-                    }
+                    this.setState({dataItem: dataGood})
+                    this.setState({ confirm: 'successUpload' })
+                    this.openConfirm()
+                    this.openModalUpload()
                 }
+                
             }
         } else {
-            this.openUpBbm()
             this.setState({ confirm: 'falseUpload' })
             this.openConfirm()
         }
@@ -492,11 +427,12 @@ class CartMutasi extends Component {
 
     downloadDetailCostCenter = () => {
         const { dataItem } = this.state
+        const { dataDepo } = this.props.depo
 
         const workbook = new ExcelJS.Workbook();
-        const ws = workbook.addWorksheet('data bbm')
-
-        // await ws.protect('F1n4NcePm4')
+        
+        // Sheet 1: Data Cost Center
+        const ws = workbook.addWorksheet('data cost center')
 
         const borderStyles = {
             top: { style: 'thin' },
@@ -505,9 +441,8 @@ class CartMutasi extends Component {
             right: { style: 'thin' }
         }
 
-
         ws.columns = [
-            { header: 'Cost Center / Plant', key: 'c1' },
+            { header: 'Cost Center', key: 'c1' },
             { header: 'Qty', key: 'c2' }
         ]
 
@@ -517,8 +452,7 @@ class CartMutasi extends Component {
                     c1: item.cost_center,
                     c2: item.qty
                 }
-            )
-            )
+            ))
         })
 
         ws.eachRow({ includeEmpty: true }, function (row, rowNumber) {
@@ -533,6 +467,40 @@ class CartMutasi extends Component {
             column.width = maxLength + 5
         })
 
+        // Sheet 2: Data Depo
+        const wsDepo = workbook.addWorksheet('data depo')
+        
+        wsDepo.columns = [
+            { header: 'Nama Area', key: 'd1' },
+            { header: 'Kode Plant', key: 'd2' },
+            { header: 'Cost Center', key: 'd3' },
+            { header: 'Kode Dist', key: 'd4' },
+        ]
+
+        dataDepo.map((item, index) => {
+            return (wsDepo.addRow(
+                {
+                    d1: item.place_asset,
+                    d2: item.kode_plant,
+                    d3: item.cost_center,
+                    d4: item.kode_dist 
+                }
+            ))
+        })
+
+        wsDepo.eachRow({ includeEmpty: true }, function (row, rowNumber) {
+            row.eachCell({ includeEmpty: true }, function (cell, colNumber) {
+                cell.border = borderStyles;
+            })
+        })
+
+        wsDepo.columns.forEach(column => {
+            const lengths = column.values.map(v => v.toString().length)
+            const maxLength = Math.max(...lengths.filter(v => typeof v === 'number'))
+            column.width = maxLength + 5
+        })
+
+        // Generate file
         workbook.xlsx.writeBuffer().then(function (buffer) {
             fs.saveAs(
                 new Blob([buffer], { type: "application/octet-stream" }),
@@ -1144,7 +1112,7 @@ class CartMutasi extends Component {
         const level = localStorage.getItem('level')
         const names = localStorage.getItem('name')
         const {dataCart, dataDocCart, dataDetail, noIo, dataApp, rawApp } = this.props.pengadaan
-        const {dataRinci, dataItem, valCart, total, typeCost, typeProfit, listSwitch, detailTtd, duplikat} = this.state
+        const {dataRinci, dataItem, valCart, total, typeCost, typeProfit, listSwitch, detailTtd, duplikat, failCost} = this.state
         const { dataDepo } = this.props.depo
         const { dataRole, dataUser } = this.props.user
         const listType = ['single', 'multiple']
@@ -2062,6 +2030,9 @@ class CartMutasi extends Component {
             <Modal size='xl' isOpen={this.state.openCost}>
                 <ModalHeader>Detail Cost Center</ModalHeader>
                 <ModalBody>
+                    <Button onClick={this.openModalUpload} className='mb-2' color='primary'>
+                        Upload Data
+                    </Button>
                     <Table>
                         <thead>
                             <tr>
@@ -3020,7 +2991,10 @@ class CartMutasi extends Component {
                         </div>
                     </div>
                     <div className={style.btnUpload}>
-                        <Button color="primary" disabled={this.state.fileUpload === "" ? true : false } onClick={this.uploadMaster}>Upload</Button>
+                        <Button color="info" onClick={this.downloadDetailCostCenter}>Download Template</Button>
+                        <Button color="primary" disabled={this.state.fileUpload === "" ? true : false } onClick={this.uploadDetailCostCenter}>
+                            Upload
+                        </Button>
                         <Button onClick={this.openModalUpload}>Cancel</Button>
                     </div>
                 </ModalBody>
@@ -3032,6 +3006,13 @@ class CartMutasi extends Component {
                             <div className={style.cekUpdate}>
                             <AiFillCheckCircle size={80} className={style.green} />
                             <div className={[style.sucUpdate, style.green]}>Berhasil Submit</div>
+                        </div>
+                        </div>
+                    ) : this.state.confirm === 'successUpload' ? (
+                        <div>
+                            <div className={style.cekUpdate}>
+                            <AiFillCheckCircle size={80} className={style.green} />
+                            <div className={[style.sucUpdate, style.green]}>Berhasil Upload</div>
                         </div>
                         </div>
                     ) : this.state.confirm === 'rejSubmit' ? (
@@ -3082,6 +3063,14 @@ class CartMutasi extends Component {
                             <div className="errApprove mt-2">Cost center telah terdaftar</div>
                         </div>
                         </div>
+                    ) : this.state.confirm === 'falseUpload' ? (
+                        <div>
+                            <div className={style.cekUpdate}>
+                            <AiOutlineClose size={80} className={style.red} />
+                            <div className={[style.sucUpdate, style.green]}>Gagal Upload</div>
+                            <div className="errApprove mt-2">Pastikan upload menggunakan template yg terdaftar</div>
+                        </div>
+                        </div>
                     ) : this.state.confirm === 'falseQty' ? (
                         <div>
                             <div className={style.cekUpdate}>
@@ -3125,6 +3114,21 @@ class CartMutasi extends Component {
                             <div className={style.cekUpdate}>
                                 <AiFillCheckCircle size={80} className={style.green} />
                                 <div className={[style.sucUpdate, style.green]}>Berhasil Update Alasan</div>
+                            </div>
+                        </div>
+                    ) : this.state.confirm === 'failCost' ? (
+                        <div>
+                            <div className={style.cekUpdate}>
+                                <AiOutlineClose size={80} className={style.red} />
+                                <div className={[style.sucUpdate, style.green, style.mb4]}>Gagal Upload</div>
+                                <div className={[style.sucUpdate, style.green, style.mb4]}>Terdapat Cost Center yg tidak sesuai pada data berikut</div>
+                                {failCost.length > 0 ? failCost.map(item => {
+                                    return (
+                                        <div className={[style.sucUpdate, style.green, style.mb3]}>{item}</div>
+                                    )
+                                }) : (
+                                    <div></div>
+                                )}
                             </div>
                         </div>
                     ) : this.state.confirm === 'dupUpload' ? (
