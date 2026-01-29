@@ -75,9 +75,9 @@ export default {
         type: 'SUBMIT_REVISI',
         payload: http(token).patch(`/ticket/subrev`, qs.stringify(data))
     }),
-    approveIo: (token, no) => ({
+    approveIo: (token, data) => ({
         type: 'APPROVE_IO',
-        payload: http(token).patch(`/ticket/app`, qs.stringify({no: no}))
+        payload: http(token).patch(`/ticket/app`, data)
     }),
     rejectIo: (token, no, data) => ({
         type: 'REJECT_IO',

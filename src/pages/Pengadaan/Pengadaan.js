@@ -175,6 +175,7 @@ class Pengadaan extends Component {
             modalAdd: false,
             modalEdit: false,
             detailTtd: {},
+            arrApp: []
         }
         this.onSetOpen = this.onSetOpen.bind(this)
         this.menuButtonClick = this.menuButtonClick.bind(this)
@@ -632,17 +633,75 @@ class Pengadaan extends Component {
 
     approveIo = async () => {
         const token = localStorage.getItem('token')
+        const level = localStorage.getItem('level')
         const { detailIo } = this.props.pengadaan
+        const { detailUser, dataRole } = this.props.user
         const app = detailIo[0].appForm
         const tempApp = []
+
+
         app.map(item => {
             return (
                 item.status === 1 && tempApp.push(item)
             )
         })
+
         const tipe = tempApp.length === app.length - 1 ? 'full approve' : 'approve'
+
+        const arrRole = detailUser.detail_role
+        const listRole = []
+        
+        for (let i = 0; i < arrRole.length + 1; i++) {
+            if (detailUser.user_level === 1) {
+                const data = {fullname: 'admin', name: 'admin', nomor: '1', type: 'all'}
+                listRole.push(data)
+            } else if (i === arrRole.length) {
+                const cek = dataRole.find(item => parseInt(item.nomor) === detailUser.user_level)
+                if (cek !== undefined) {
+                    listRole.push(cek)
+                }
+            } else {
+                const cek = dataRole.find(item => parseInt(item.nomor) === arrRole[i].id_role)
+                if (cek !== undefined) {
+                    listRole.push(cek)
+                }
+            }
+        }
+
+        const index = []
+        console.log(app.indexOf(app.find(item => (item.jabatan === listRole[0].name))))
+        console.log(app.indexOf(app.find(item => (item.jabatan === listRole[1].name))))
+        console.log(listRole)
+        for (let i = 0; i < listRole.length; i++) {
+            const app =  detailIo[0].appForm === undefined ? [] :  detailIo[0].appForm
+            const cekApp = app.find(item => (item.jabatan === listRole[i].name))
+            const find = app.indexOf(cekApp)
+            if (find !== -1) {
+                if ((app[find].status === null || app[find].status === '0') && (level !== '5')) {
+                    index.push(find)
+                } 
+                // else if ((app[find].status === null || app[find].status === '0') && (level !== '5' && app[find + 1].status !== undefined && listRole.find(x => x.name === app[find + 1].jabatan))) {
+                //     index.push(find)
+                // }
+            }
+        }
+
+        const processedIndex = index.length > 0 ? (() => {
+            const sorted = [...index].sort((a, b) => b - a) // Besar ke kecil
+            const isSequential = sorted.every((val, i) => i === 0 || val === sorted[i - 1] - 1) // Cek berurutan turun
+            return isSequential ? sorted : [Math.max(...sorted)] // Ambil terbesar jika tidak berurutan
+        })() : []
+
+
+        const tempno = {
+            no: detailIo[0].no_pengadaan,
+            indexApp: processedIndex
+        }
+
+        console.log(tempno)
+
+        await this.props.approveIo(token, tempno)
         this.prosesSendEmail(tipe)
-        await this.props.approveIo(token, detailIo[0].no_pengadaan)
         this.prosesModalIo()
         this.getDataAsset()
         this.setState({ confirm: 'approve' })
@@ -1826,7 +1885,7 @@ class Pengadaan extends Component {
                     <NewNavbar handleSidebar={this.prosesSidebar} handleRoute={this.goRoute} />
 
                     <div className={`${styleTrans.mainContent} ${this.state.sidebarOpen ? styleTrans.collapsedContent : ''}`}>
-                        <h2 className={styleTrans.pageTitle}>{level === '2' ? 'Verifikasi Asset' : level === '8' ? 'Verifikasi Budget' : 'Pengadaan Asset'}</h2>
+                        <h2 className={styleTrans.pageTitle}>king{level === '2' ? 'Verifikasi Asset' : level === '8' ? 'Verifikasi Budget' : 'Pengadaan Asset'}</h2>
                         <div className={styleTrans.searchContainer}>
                             {(menuRole.find(x => x.menu_id === 1)) ? (
                                 <Button size="lg" color='primary' onClick={this.goCartTicket}>Create</Button>
