@@ -1163,6 +1163,7 @@ class EksekusiDisposal extends Component {
                     <ModalDokumen
                         parDoc={{ noDoc: this.state.noDoc, noTrans: this.state.noTrans, tipe: 'eksekusi disposal', filter: this.state.filter, detailForm: this.state.valdoc }}
                         dataDoc={dataDoc}
+                        onClose={() => this.closeProsesModalDoc()}
                     />
                 </Modal>
                 <Modal size="xl" 

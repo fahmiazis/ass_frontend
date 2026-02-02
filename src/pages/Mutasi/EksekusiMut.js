@@ -1293,6 +1293,7 @@ class EksekusiMut extends Component {
                     <ModalDokumen
                         parDoc={{ noDoc: this.state.noDoc, noTrans: this.state.noTrans, tipe: 'mutasi', filter: this.state.filter }}
                         dataDoc={dataDoc}
+                        onClose={() => this.openModalDoc()}
                     />
                 </Modal>
                 <Modal size="xl"

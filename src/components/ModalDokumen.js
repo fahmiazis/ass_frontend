@@ -355,6 +355,8 @@ class ModalDokumen extends Component {
             //     this.collDoc(val.id)
             // }
         }
+
+        this.props.onClose()
         
         // this.setState({confirm: 'isAppDoc'})
         // this.openConfirm()

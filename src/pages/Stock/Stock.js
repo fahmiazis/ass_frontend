@@ -1589,6 +1589,19 @@ class Stock extends Component {
         }
     }
 
+    updateClear = async (val) => {
+         const token = localStorage.getItem("token")
+         const { listMut } = this.state
+         const data = {
+            listId: listMut,
+            type: val
+         }
+         const { detailStock } = this.props.stock
+         await this.props.updateClear(token, data)
+         await this.props.getDetailStock(token, detailStock[0].no_stock)
+         this.setState({listMut: []})
+    }
+
     updateAsset = async (value) => {
         const token = localStorage.getItem("token")
         const { dataRinci } = this.state
@@ -2247,12 +2260,6 @@ class Stock extends Component {
                                     <th>Kode Area</th>
                                     <th>Area</th>
                                     <th>Tanggal Stock Opname</th>
-                                    {level === '2' && (
-                                        <>
-                                            {/* <th>Status Approve</th> */}
-                                            <th>Dokumentasi Aset</th>
-                                        </>
-                                    )}
                                     <th>Nama ROM</th>
                                     <th>Nama BM</th>
                                     <th>APPROVED BY</th>
@@ -2271,12 +2278,6 @@ class Stock extends Component {
                                             <td className='tdPlant'>{item.kode_plant}</td>
                                             <td className='tdArea'>{item.depo === null ? '' : item.area === null ? `${item.depo.nama_area} ${item.depo.channel}` : item.area}</td>
                                             <td className='tdTime'>{moment(item.tanggalStock).format('DD MMMM YYYY')}</td>
-                                            {level === '2' && (
-                                                <>
-                                                    {/* <td>{parseInt(item.status_form) > 1 ? 'Full Approve' : item.history !== null && item.history.split(',').reverse()[0]}</td> */}
-                                                    <td>{'-'}</td>
-                                                </>
-                                            )}
                                             <td className='tdPlant'>{item.depo === null ? '-' :  `${item.depo.nama_om}`}</td>
                                             <td className='tdPlant'>{item.depo === null ? '-' :  `${item.depo.nama_bm}`}</td>
                                             <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? item.appForm.find(item => item.status === 1).nama + ` (${item.appForm.find(item => item.status === 1).jabatan === 'area' ? 'AOS' : item.appForm.find(item => item.status === 1).jabatan})` : '-' }</td>
@@ -2729,7 +2730,7 @@ class Stock extends Component {
                 <Modal isOpen={this.state.modalRinci} toggle={this.openModalRinci} size="xl" className='xl'>
                     <ModalBody>
                         <div>
-                            <div className="stockTitle">kertas kerja opname aset kantor</div>
+                            <div className="stockTitle">kertas kerja opname aset kantor um</div>
                             <div className="ptStock">pt. pinus merah abadi</div>
                             <Row className="ptStock inputStock">
                                 <Col md={3} xl={3} sm={3}>kantor pusat/cabang</Col>
@@ -2744,34 +2745,7 @@ class Stock extends Component {
                                 <Col md={4} xl={4} sm={4} className="inputStock">:<Input disabled className="ml-3" value={detailStock.length > 0 ? moment(detailStock[0].tanggalStock).format('DD MMMM YYYY') : ''} /></Col>
                             </Row>
                         </div>
-                        {this.props.asset.stockDetail === false ? (
-                            <div className={style.tableDashboard}>
-                                <Table bordered responsive hover className={style.tab}>
-                                    <thead>
-                                        <tr>
-                                            <th>No</th>
-                                            <th>NO. ASET</th>
-                                            <th>DESKRIPSI</th>
-                                            <th>MERK</th>
-                                            <th>SATUAN</th>
-                                            <th>UNIT</th>
-                                            <th>KONDISI</th>
-                                            <th>LOKASI</th>
-                                            <th>GROUPING</th>
-                                            <th>KETERANGAN</th>
-                                        </tr>
-                                    </thead>
-                                </Table>
-                                <div className={style.spin}>
-                                        <Spinner type="grow" color="primary"/>
-                                        <Spinner type="grow" className="mr-3 ml-3" color="success"/>
-                                        <Spinner type="grow" color="warning"/>
-                                        <Spinner type="grow" className="mr-3 ml-3" color="danger"/>
-                                        <Spinner type="grow" color="info"/>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className={style.tableDashboard}>
+                        <div className={style.tableDashboard}>
                             <Table bordered responsive hover className={style.tab}>
                                 <thead>
                                     <tr>
@@ -2787,6 +2761,7 @@ class Stock extends Component {
                                             Select All
                                         </th>
                                         <th>No</th>
+                                        <th>Status Clear</th>
                                         <th>NO. ASET</th>
                                         <th>DESKRIPSI</th>
                                         <th>MERK</th>
@@ -2817,7 +2792,8 @@ class Stock extends Component {
                                                         onClick={listMut.find(element => element === item.id) === undefined ? () => this.chekApp(item.id) : () => this.chekRej(item.id)}
                                                     />
                                                 </td>
-                                                <td onClick={() => this.getRinciStock(item)} scope="row">{index + 1}</td>
+                                                <td onClick={() => this.getRinciStock(item)} >{index + 1}</td>
+                                                <td onClick={() => this.getRinciStock(item)} >{item.clear_flag}</td>
                                                 <td onClick={() => this.getRinciStock(item)} >{item.no_asset}</td>
                                                 <td onClick={() => this.getRinciStock(item)} >{item.deskripsi}</td>
                                                 <td onClick={() => this.getRinciStock(item)} >{item.merk}</td>
@@ -2853,7 +2829,6 @@ class Stock extends Component {
                                 </tbody>
                             </Table>
                         </div>
-                        )}
                         {detailStock.length !== 0 && detailStock.find(({status_doc}) => status_doc === 1) !== undefined && (
                             <>
                                 <h3>Asset tambahan</h3>
@@ -2863,6 +2838,7 @@ class Stock extends Component {
                                             <tr>
                                                 <th>Select</th>
                                                 <th>No</th>
+                                                <th>Status Clear</th>
                                                 <th>NO. ASET</th>
                                                 <th>DESKRIPSI</th>
                                                 <th>MERK</th>
@@ -2891,7 +2867,8 @@ class Stock extends Component {
                                                                 onClick={listMut.find(element => element === item.id) === undefined ? () => this.chekApp(item.id) : () => this.chekRej(item.id)}
                                                             />
                                                         </td>
-                                                        <td onClick={() => this.getRinciStock(item)} scope="row">{index + 1}</td>
+                                                        <td onClick={() => this.getRinciStock(item)} >{index + 1}</td>
+                                                        <td onClick={() => this.getRinciStock(item)} >{item.clear_flag}</td>
                                                         <td onClick={() => this.getRinciStock(item)} >{item.no_asset}</td>
                                                         <td onClick={() => this.getRinciStock(item)} >{item.deskripsi}</td>
                                                         <td onClick={() => this.getRinciStock(item)} >{item.merk}</td>
@@ -2930,6 +2907,25 @@ class Stock extends Component {
                             </>
                         )}
                     </ModalBody>
+                    {level === '2' && (
+                        <div className="modalFoot ml-3">
+                            <div className='rowGeneral'>
+                                <Button 
+                                    disabled={this.state.filter !== 'available' ? true : listMut.length === 0 ? true : false} color="info" 
+                                    onClick={() => this.updateClear('clear')}
+                                >
+                                    Clear
+                                </Button>
+                                <Button 
+                                    className="ml-2" 
+                                    disabled={this.state.filter !== 'available' ? true : listMut.length === 0 ? true : false} color="danger" 
+                                    onClick={() => this.updateClear('unclear')}
+                                >
+                                    Unclear
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                     <div className="modalFoot ml-3">
                         <div className='rowGeneral'>
                             <Button color="primary"  onClick={() => this.openPreview(dataItem)}>Download Kertas Kerja</Button>
@@ -3944,7 +3940,8 @@ const mapDispatchToProps = {
     sendEmail: tempmail.sendEmail,
     notifStock: notif.notifStock,
     addNewNotif: newnotif.addNewNotif,
-    searchStock: stock.searchStock
+    searchStock: stock.searchStock,
+    updateClear: stock.updateClear
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Stock)

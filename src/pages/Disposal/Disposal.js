@@ -1975,6 +1975,7 @@ class Disposal extends Component {
                     <ModalDokumen
                         parDoc={{ noDoc: this.state.noDoc, noTrans: this.state.noTrans, tipe: 'disposal', filter: this.state.filter, detailForm: this.state.valdoc }}
                         dataDoc={dataDoc}
+                        onClose={() => this.closeProsesModalDoc()}
                     />
                 </Modal>
                 <Modal 

@@ -111,6 +111,10 @@ export default {
         type: 'UPLOAD_DRAFTSTOCK',
         payload: http(token).post(`/stock/draft-upload`, data)
     }),
+    updateClear: (token, data) => ({
+        type: 'UPDATE_CLEARSTOCK',
+        payload: http(token).post(`/stock/update-clear`, data)
+    }),
     setReminder: (data) => ({
         type: 'SET_REMINDER',
         payload: data

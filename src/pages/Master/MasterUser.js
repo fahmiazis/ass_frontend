@@ -1218,7 +1218,7 @@ class MasterUser extends Component {
                             ? ((detail.request_level == '5' || detail.request_level == '9') ? detail.request_kode : '')
                             : ((detail.user_level == '5' || detail.user_level == '9') ? detail.kode_plant : ''),
                         user_level: detail.status_request === 1 ? detail.request_level : detail.user_level === null ? '' : detail.user_level, 
-                        status: 'active',
+                        status: detail.status === null ? '' : detail.status,
                         email: detail.email === null ? '' : detail.email,
                         fullname: detail.fullname === null ? '' : detail.fullname,
                         status_it: detail.status_it === null ? '' : detail.status_it,
@@ -1377,7 +1377,7 @@ class MasterUser extends Component {
                                 ) : null}
                             </div>
                         </div>
-                        {/* <div className={style.addModalDepo}>
+                        <div className={style.addModalDepo}>
                             <text className="col-md-3">
                                 Status
                             </text>
@@ -1397,7 +1397,7 @@ class MasterUser extends Component {
                                     <text className={style.txtError}>{errors.status}</text>
                                 ) : null}
                             </div>
-                        </div> */}
+                        </div>
                         {(detail.user_level == '9' || detail.user_level == '41') && (
                             <div className={style.addModalDepo}>
                                 <text className="col-md-3">

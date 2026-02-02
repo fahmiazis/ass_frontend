@@ -16,7 +16,7 @@ import MaterialTitlePanel from "../../components/material_title_panel"
 import SidebarContent from "../../components/sidebar_content"
 import style from '../../assets/css/input.module.css'
 import placeholder from  "../../assets/img/placeholder.png"
-import asset from '../../redux/actions/asset'
+import asset_stock from '../../redux/actions/asset_stock'
 import report from '../../redux/actions/report'
 import b from "../../assets/img/b.jpg"
 import pengadaan from '../../redux/actions/pengadaan'
@@ -413,7 +413,7 @@ class Stock extends Component {
 
     cekStock = async () => {
         const token = localStorage.getItem('token')
-        const dataAsset = this.props.asset.assetAll
+        const dataAsset = this.props.asset_stock.assetAll
         const cekRusak = dataAsset.filter(item => item.kondisi === 'rusak')
         const time1 = moment().subtract(2, 'month').startOf('month').format('YYYY-MM-DD')
         const time2 = moment().endOf('month').format('YYYY-MM-DD')
@@ -501,14 +501,14 @@ class Stock extends Component {
     }
 
     next = async () => {
-        const { page } = this.props.asset
+        const { page } = this.props.asset_stock
         const token = localStorage.getItem('token')
         await this.props.resetData()
         await this.props.nextPage(token, page.nextLink)
     }
 
     prev = async () => {
-        const { page } = this.props.asset
+        const { page } = this.props.asset_stock
         const token = localStorage.getItem('token')
         await this.props.resetData()
         await this.props.nextPage(token, page.prevLink)
@@ -603,7 +603,7 @@ class Stock extends Component {
     async componentDidUpdate() {
         const {isUpload, isError, isApprove, isReject, rejReject, rejApprove, isImage, isSubmit, isSubaset, isUpdateStock, isDocStock} = this.props.stock
         const {dataRinci, dataId, dataItem} = this.state
-        const { isUpdateNew, detailAsset } = this.props.asset
+        const { isUpdateNew, detailAsset } = this.props.asset_stock
         const token = localStorage.getItem('token')
 
         if (this.tableContainer && this.topScrollContent) {
@@ -682,7 +682,7 @@ class Stock extends Component {
         if (this.state.dropOp === false) {
             const token = localStorage.getItem("token")
             await this.props.getDetailAsset(token, val.id)
-            const { detailAsset } = this.props.asset
+            const { detailAsset } = this.props.asset_stock
             if (detailAsset !== undefined) {
                 this.setState({stat: detailAsset.grouping})
                 if (detailAsset.kondisi === null && detailAsset.status_fisik === null) {
@@ -712,7 +712,7 @@ class Stock extends Component {
 
     getDataAsset = async (value) => {
         const token = localStorage.getItem("token")
-        const { page } = this.props.asset
+        const { page } = this.props.asset_stock
         const {asetPart, search} = this.state
         const area = value === undefined ? asetPart : value.asetPart === undefined ? asetPart : value.asetPart
         const limit = value === undefined ? this.state.limit :  value.limit === undefined ? this.state.limit : value.limit
@@ -762,7 +762,7 @@ class Stock extends Component {
 
     addStock = async (val) => {
         const token = localStorage.getItem("token")
-        const dataAsset = this.props.asset.assetAll
+        const dataAsset = this.props.asset_stock.assetAll
         const { detailDepo } = this.props.depo
         const { kondisi, fisik } = this.state
         const data = {
@@ -844,7 +844,7 @@ class Stock extends Component {
         const {asetPart} = this.state
         const area = asetPart
         await this.props.getAssetAll(token, 1000, '', 1, 'asset', area)
-        const dataAsset = this.props.asset.assetAll
+        const dataAsset = this.props.asset_stock.assetAll
         const upPict = []
         const oldPict = []
         for (let i = 0; i < dataAsset.length; i++) {
@@ -885,7 +885,7 @@ class Stock extends Component {
     updateAsset = async (value) => {
         const token = localStorage.getItem("token")
         const { dataRinci, fisik, kondisi } = this.state
-        const { detailAsset } = this.props.asset
+        const { detailAsset } = this.props.asset_stock
         const data = {
             no_asset: value.no_asset,
             deskripsi: value.deskripsi,
@@ -970,7 +970,7 @@ class Stock extends Component {
 
     updateStatus = async (val) => {
         const token = localStorage.getItem('token')
-        const { detailAsset } = this.props.asset
+        const { detailAsset } = this.props.asset_stock
         const { stat } = this.state
         const data = {
             grouping: stat === 'null' ? null : stat
@@ -994,7 +994,7 @@ class Stock extends Component {
         const data = {
             [val.tipe]: val.val
         }
-        const {detailAsset} = this.props.asset
+        const {detailAsset} = this.props.asset_stock
         await this.props.updateAsset(token, detailAsset.id, data)
         this.getDataAsset()
     }
@@ -1002,7 +1002,7 @@ class Stock extends Component {
     listStatus = async (val) => {
         const token = localStorage.getItem("token")
         await this.props.getDetailAsset(token, val.id)
-        const { detailAsset } = this.props.asset
+        const { detailAsset } = this.props.asset_stock
         if (detailAsset !== undefined) {
             this.setState({stat: detailAsset.grouping})
             if (detailAsset.kondisi === null && detailAsset.status_fisik === null) {
@@ -1031,14 +1031,14 @@ class Stock extends Component {
 
     openProsesModalDoc = async () => {
         const token = localStorage.getItem("token")
-        const { detailAsset } = this.props.asset
+        const { detailAsset } = this.props.asset_stock
         await this.props.getDocument(token, detailAsset.no_asset)
         this.openModalDoc()
     }
 
     cekStatus = async (val) => {
         const token = localStorage.getItem("token")
-        const { detailAsset } = this.props.asset
+        const { detailAsset } = this.props.asset_stock
         if (val === 'DIPINJAM SEMENTARA') {
             await this.props.cekDokumen(token, detailAsset.no_asset)
         }
@@ -1138,8 +1138,8 @@ class Stock extends Component {
         const names = localStorage.getItem('name')
         const {dataRinci, dropApp, dataItem, listMut, oldPict, upPict, crashAsset} = this.state
         const { detailDepo, dataDepo } = this.props.depo
-        const { alertUpload, page, detailAsset} = this.props.asset
-        const dataAsset = this.props.asset.assetAll
+        const { alertUpload, page, detailAsset} = this.props.asset_stock
+        const dataAsset = this.props.asset_stock.assetAll
         const detRinci = this.props.stock.detailAsset
         const { dataStock, detailStock, stockApp, dataStatus, alertM, alertMsg, dataDoc, stockArea } = this.props.stock
         const pages = this.props.depo.page
@@ -2137,7 +2137,7 @@ class Stock extends Component {
                                 <Col md={4} xl={4} sm={4} className="inputStock">:<Input disabled className="ml-3" value={detailStock.length > 0 ? moment(detailStock[0].tanggalStock).format('DD MMMM YYYY') : ''} /></Col>
                             </Row>
                         </div>
-                        {this.props.asset.stockDetail === false ? (
+                        {this.props.asset_stock.stockDetail === false ? (
                             <div className={style.tableDashboard}>
                                 <Table bordered responsive hover className={style.tab}>
                                     <thead>
@@ -2326,7 +2326,7 @@ class Stock extends Component {
                                 <Col md={4} xl={4} sm={4} className="inputStock">:<Input disabled className="ml-3" value={detailStock.length > 0 ? moment(detailStock[0].tanggalStock).format('DD MMMM YYYY') : ''} /></Col>
                             </Row>
                         </div>
-                        {this.props.asset.stockDetail === false ? (
+                        {this.props.asset_stock.stockDetail === false ? (
                             <div className={style.tableDashboard}>
                                 <Table bordered responsive hover className={style.tab}>
                                     <thead>
@@ -2535,7 +2535,7 @@ class Stock extends Component {
                         </Formik>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.props.stock.isLoading || this.props.depo.isLoading || this.props.asset.isLoading || this.props.tempmail.isLoading ? true: false} size="sm">
+                <Modal isOpen={this.props.stock.isLoading || this.props.depo.isLoading || this.props.asset_stock.isLoading || this.props.tempmail.isLoading ? true: false} size="sm">
                         <ModalBody>
                         <div>
                             <div className={style.cekUpdate}>
@@ -3185,7 +3185,7 @@ class Stock extends Component {
 }
 
 const mapStateToProps = state => ({
-    asset: state.asset,
+    asset_stock: state.asset_stock,
     disposal: state.disposal,
     approve: state.approve,
     pengadaan: state.pengadaan,
@@ -3200,14 +3200,14 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = {
     logout: auth.logout,
-    getAsset: asset.getAsset,
-    getAssetAll: asset.getAssetAll,
-    updateAsset: asset.updateAsset,
-    updateAssetNew: asset.updateAssetNew,
-    resetError: asset.resetError,
-    nextPage: asset.nextPage,
-    resetData: asset.resetData,
-    getDetailAsset: asset.getDetailAsset,
+    getAsset: asset_stock.getAsset,
+    getAssetAll: asset_stock.getAssetAll,
+    updateAsset: asset_stock.updateAsset,
+    updateAssetNew: asset_stock.updateAssetNew,
+    resetError: asset_stock.resetError,
+    nextPage: asset_stock.nextPage,
+    resetData: asset_stock.resetData,
+    getDetailAsset: asset_stock.getDetailAsset,
     uploadDocument: stock.uploadDocument,
     getNameApprove: approve.getNameApprove,
     getDetailDepo: depo.getDetailDepo,

@@ -2116,6 +2116,7 @@ class EksekusiTicket extends Component {
                     <ModalDokumen  
                         parDoc={{noDoc: this.state.noDoc, noTrans: this.state.noTrans, tipe: 'pengadaan', filter: this.state.filter}} 
                         dataDoc={detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? dataDocCart : dataDoc } 
+                        onClose={() => this.closeProsesModalDoc()}
                     />
                 </Modal>
                 <Modal size="xl">

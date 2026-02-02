@@ -55,6 +55,7 @@ const stockState = {
     isUploadDraft: null,
     typeReminder: null,
     dateReminder: null,
+    isUpdateClear: null
 };
 
 export default (state=stockState, action) => {
@@ -734,6 +735,31 @@ export default (state=stockState, action) => {
                 alertMsg: 'Unable connect to server',
             };
         }
+
+        case 'UPDATE_CLEARSTOCK_PENDING': {
+            return {
+                ...state,
+                isLoading: true,
+                alertMsg: 'Waiting ...',
+            };
+            }
+        case 'UPDATE_CLEARSTOCK_FULFILLED': {
+            return {
+                ...state,
+                isLoading: false,
+                isUpdateClear: true,
+                alertMsg: 'delete stock Succesfully',
+            };
+        }
+        case 'UPDATE_CLEARSTOCK_REJECTED': {
+            return {
+                ...state,
+                isLoading: false,
+                isUpdateClear: false,
+                alertMsg: 'Unable connect to server',
+            };
+        }
+        
         case 'RESET_STOCK': {
             return {
                 ...state,
@@ -755,7 +781,8 @@ export default (state=stockState, action) => {
                 isImage: false,
                 isSubmit: null,
                 isSubaset: false,
-                isDocStock: null
+                isDocStock: null,
+                isUpdateClear: null
             }
         }
         default: {

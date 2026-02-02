@@ -1259,6 +1259,7 @@ class TaxFinDisposal extends Component {
                             detailForm: this.state.valdoc 
                         }}
                         dataDoc={dataDoc}
+                        onClose={() => this.modalDocEks()}
                     />
                 </Modal>
                 <Modal size="xl" isOpen={this.state.openModalDoc} toggle={this.closeProsesModalDoc}>
