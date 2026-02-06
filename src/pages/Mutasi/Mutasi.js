@@ -961,6 +961,17 @@ class Mutasi extends Component {
         this.openDraftEmail()
     }
 
+    downloadTemplate = async () => {
+        const url = `${REACT_APP_BACKEND_URL}/masters/FRM-HCD-044_REV_00_BA_SERAH_TERIMA_MUTASI.xlsx`;
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "FRM-HCD-044_REV_00_BA_SERAH_TERIMA_MUTASI.xlsx";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
+
     openDraftEmail = () => {
         this.setState({ openDraft: !this.state.openDraft })
     }
@@ -1877,45 +1888,46 @@ class Mutasi extends Component {
                         <Container>
                             {dataDoc !== undefined && dataDoc.map(x => {
                                 return (
-                                    <Row className="mt-3 mb-4">
-                                        <Col md={6} lg={6} >
-                                            <text>{x.nama_dokumen}</text>
-                                        </Col>
-                                        {x.path !== null ? (
-                                            <Col md={6} lg={6} >
-                                                {x.status === 0 ? (
-                                                    <AiOutlineClose size={20} />
-                                                ) : x.status === 3 ? (
-                                                    <AiOutlineCheck size={20} />
-                                                ) : (
-                                                    <BsCircle size={20} />
-                                                )}
-                                                <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.desc}</button>
-                                                <div>
-                                                    <input
-                                                        className="ml-4"
-                                                        type="file"
-                                                        onClick={() => this.setState({ detail: x })}
-                                                        onChange={this.onChangeUpload}
-                                                    />
-                                                </div>
-                                            </Col>
-                                        ) : (
-                                            <Col md={6} lg={6} >
+                                    <div >
+                                        <text>{x.nama_dokumen}</text>
+                                        <div>
+                                            {x.path !== null ? (
+                                                <>
+                                                    {x.status === 0 ? (
+                                                        <AiOutlineClose size={20} />
+                                                    ) : x.status === 3 ? (
+                                                        <AiOutlineCheck size={20} />
+                                                    ) : (
+                                                        <BsCircle size={20} />
+                                                    )}
+                                                    <button className="btnDocIo" onClick={() => this.showDokumen(x)} >{x.desc}</button>
+                                                    <div>
+                                                        <input
+                                                            className="mt-2"
+                                                            type="file"
+                                                            onClick={() => this.setState({ detail: x })}
+                                                            onChange={this.onChangeUpload}
+                                                        />
+                                                    </div>
+                                                </>
+                                            ) : (
                                                 <input
-                                                    className="ml-4"
+                                                    className="mt-2"
                                                     type="file"
                                                     onClick={() => this.setState({ detail: x })}
                                                     onChange={this.onChangeUpload}
                                                 />
-                                            </Col>
-                                        )}
-                                    </Row>
+                                            )}
+                                        </div>
+                                    </div>
                                 )
                             })}
                         </Container>
                     </ModalBody>
                     <ModalFooter>
+                        <Button color="success" onClick={this.downloadTemplate}>
+                            Download Template BAST
+                        </Button>
                         <Button className="mr-2" color="secondary" onClick={this.openModalDokumen}>
                             Close
                         </Button>

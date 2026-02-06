@@ -51,6 +51,11 @@ const dokumenState = {
     isDeleteName: null,
     idName: {},
     isTempName: null,
+    isAddDocTemp: null,
+    isUpdateDocTemp: null,
+    isUploadDocTemp: null,
+    isDeleteDocTemp: null,
+    dataDocTemp: []
 };
 
 export default (state=dokumenState, action) => {
@@ -482,6 +487,127 @@ export default (state=dokumenState, action) => {
                     alertMsg: "Unable connect to server"
                 };
             }
+
+            // Document Template
+            case 'ADD_DOCTEMP_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'ADD_DOCTEMP_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isAddDocTemp: true,
+                    alertMsg: 'delete approve Succesfully',
+                };
+            }
+            case 'ADD_DOCTEMP_REJECTED': {
+                return {
+                    ...state,
+                    isAddDocTemp: false,
+                    isLoading: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+
+            case 'UPDATE_DOCTEMP_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'UPDATE_DOCTEMP_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isUpdateDocTemp: true,
+                    alertMsg: 'delete approve Succesfully',
+                };
+            }
+            case 'UPDATE_DOCTEMP_REJECTED': {
+                return {
+                    ...state,
+                    isUpdateDocTemp: false,
+                    isLoading: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+
+            case 'UPLOAD_DOCTEMP_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'UPLOAD_DOCTEMP_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isUploadDocTemp: true,
+                    alertMsg: 'delete approve Succesfully',
+                };
+            }
+            case 'UPLOAD_DOCTEMP_REJECTED': {
+                return {
+                    ...state,
+                    isUploadDocTemp: false,
+                    isLoading: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+
+            case 'DELETE_DOCTEMP_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'DELETE_DOCTEMP_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    isDeleteDocTemp: true,
+                    alertMsg: 'delete approve Succesfully',
+                };
+            }
+            case 'DELETE_DOCTEMP_REJECTED': {
+                return {
+                    ...state,
+                    isDeleteDocTemp: false,
+                    isLoading: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+
+            case 'GET_DOCTEMP_PENDING': {
+                return {
+                    ...state,
+                    isLoading: true,
+                    alertMsg: 'Waiting ...'
+                };
+            }
+            case 'GET_DOCTEMP_FULFILLED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    dataDocTemp: action.payload.data.result,
+                    alertMsg: 'delete approve Succesfully',
+                };
+            }
+            case 'GET_DOCTEMP_REJECTED': {
+                return {
+                    ...state,
+                    isLoading: false,
+                    alertMsg: "Unable connect to server"
+                };
+            }
+
             case 'RESET': {
                 return {
                     ...state,

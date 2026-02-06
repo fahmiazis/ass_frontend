@@ -81,6 +81,28 @@ export default {
         payload: http(token).get(`/dokumen/detail/${id}`)
     }),
 
+    // Document template
+    addDocumentTemplate: (token, data) => ({
+        type: 'ADD_DOCTEMP',
+        payload: http(token).post(`/dokumen/doc-template/add`, qs.stringify(data))
+    }),
+    updateDocumentTemplate: (token, id, data) => ({
+        type: 'UPDATE_DOCTEMP',
+        payload: http(token).update(`/dokumen/doc-template/update/${id}`, qs.stringify(data))
+    }),
+    uploadDocumentTemplate: (token, id, data) => ({
+        type: 'UPLOAD_DOCTEMP',
+        payload: http(token).post(`/dokumen/doc-template/upload/${id}`, data)
+    }),
+    deleteDocumentTemplate: (token, data) => ({
+        type: 'DELETE_DOCTEMP',
+        payload: http(token).patch(`/dokumen/doc-template/delete`, data)
+    }),
+    getDocumentTemplate: (token, data) => ({
+        type: 'GET_DOCTEMP',
+        payload: http(token).get(`/dokumen/doc-template/get?menu=${data}`)
+    }),
+
     resetError: () => ({
         type: 'RESET'
     })

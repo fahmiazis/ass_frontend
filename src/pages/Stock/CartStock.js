@@ -43,6 +43,8 @@ import styleStock from '../../assets/css/stock.module.css'
 import NewNavbar from '../../components/NewNavbar'
 import Email from '../../components/Stock/Email'
 import EXIF from 'exif-js'
+import ExcelJS from "exceljs";
+import fs from "file-saver";
 const {REACT_APP_BACKEND_URL} = process.env
 const exclude = ['bandung', 'P01H140020']
 const accessBtn = ['P01H080002', 'P01H070001']
@@ -1132,6 +1134,110 @@ class Stock extends Component {
         }
     }
 
+    downloadTemplate = async () => {
+        const dataAsset = this.props.asset_stock.assetAll
+        const token = localStorage.getItem("token")
+        await this.props.getStatusAll(token)
+        
+        const { dataAll } = this.props.stock
+        console.log(dataAll)
+        const workbook = new ExcelJS.Workbook();
+        const ws = workbook.addWorksheet('data aset')
+
+        // await ws.protect('F1n4NcePm4')
+
+        const borderStyles = {
+            top: {style:'thin'},
+            left: {style:'thin'},
+            bottom: {style:'thin'},
+            right: {style:'thin'}
+        }
+
+        ws.columns = [
+            {header: 'KD COST CENTER', key: 'c1'},
+            {header: 'CABANG/DEPO/CP', key: 'c2'},
+            {header: 'NO. ASET', key: 'c3'},
+            {header: 'DESKRIPSI', key: 'c4'},
+            {header: 'MERK', key: 'c5'},
+            {header: 'SATUAN', key: 'c6'},
+            {header: 'UNIT', key: 'c7'},
+            {header: 'KATEGORI', key: 'c8'},
+            {header: 'STATUS FISIK', key: 'c9'},
+            {header: 'KONDISI', key: 'c10'},
+            {header: 'STATUS ASET', key: 'c11'},
+            {header: 'LOKASI', key: 'c12'},
+            {header: 'KETERANGAN', key: 'c13'},
+        ]
+
+        dataAsset.map((item, index) => { return ( ws.addRow(
+            {
+                c1: item.cost_center,
+                c2: item.area,
+                c3: item.no_asset,
+                c4: item.nama_asset,
+                c5: item.merk,
+                c6: item.satuan,
+                c7: item.unit,
+                c8: item.kategori,
+                c9: item.status_fisik,
+                c10: item.kondisi,
+                c11: item.grouping,
+                c12: item.lokasi,
+                c13: item.keterangan,
+            }
+        )
+        ) })
+
+        ws.eachRow({ includeEmpty: true }, function(row, rowNumber) {
+            row.eachCell({ includeEmpty: true }, function(cell, colNumber) {
+              cell.border = borderStyles;
+            })
+        })
+
+        ws.columns.forEach(column => {
+            const lengths = column.values.map(v => v.toString().length)
+            const maxLength = Math.max(...lengths.filter(v => typeof v === 'number'))
+            column.width = maxLength + 5
+        })
+
+        const wsStatus = workbook.addWorksheet('data status')
+        
+        wsStatus.columns = [
+            { header: 'STATUS FISIK', key: 'd1' },
+            { header: 'KONDISI', key: 'd2' },
+            { header: 'STATUS ASET', key: 'd3' },
+        ]
+
+        dataAll.map((item, index) => {
+            return (wsStatus.addRow(
+                {
+                    d1: item.fisik,
+                    d2: item.kondisi,
+                    d3: item.status
+                }
+            ))
+        })
+
+        wsStatus.eachRow({ includeEmpty: true }, function (row, rowNumber) {
+            row.eachCell({ includeEmpty: true }, function (cell, colNumber) {
+                cell.border = borderStyles;
+            })
+        })
+
+        wsStatus.columns.forEach(column => {
+            const lengths = column.values.map(v => v.toString().length)
+            const maxLength = Math.max(...lengths.filter(v => typeof v === 'number'))
+            column.width = maxLength + 5
+        })
+
+        workbook.xlsx.writeBuffer().then(function(buffer) {
+            fs.saveAs(
+              new Blob([buffer], { type: "application/octet-stream" }),
+              `Template Upload Draft Stock Opname ${moment().format('DD MMMM YYYY')}.xlsx`
+            );
+        });
+    }
+
     render() {
         const level = localStorage.getItem('level')
         const kode = localStorage.getItem('kode')
@@ -1141,7 +1247,7 @@ class Stock extends Component {
         const { alertUpload, page, detailAsset} = this.props.asset_stock
         const dataAsset = this.props.asset_stock.assetAll
         const detRinci = this.props.stock.detailAsset
-        const { dataStock, detailStock, stockApp, dataStatus, alertM, alertMsg, dataDoc, stockArea } = this.props.stock
+        const { dataStock, detailStock, stockApp, dataStatus, alertM, alertMsg, dataDoc, stockArea, dataFail } = this.props.stock
         const pages = this.props.depo.page
         const {dataExp} = this.props.report
 
@@ -1231,9 +1337,10 @@ class Stock extends Component {
                         <div className={styleTrans.searchContainer}>
                             <div className='rowGeneral'>
                                 <Button size="lg" color='primary' onClick={this.prosesSubmitPre}>Submit</Button>
-                                {accessBtn.find(x => x === kode) && (
+                                {/* {accessBtn.find(x => x === kode) && (
                                     <Button onClick={this.openUploadStock} size='lg' color='success' className='ml-2'>Upload Stock</Button>
-                                )}
+                                )} */}
+                                <Button onClick={this.openUploadStock} size='lg' color='success' className='ml-2'>Upload Stock</Button>
                             </div>
                             <input
                                 type="text"
@@ -1244,7 +1351,7 @@ class Stock extends Component {
                                 className={styleTrans.searchInput}
                             />
                         </div>
-                       <div 
+                       {/* <div 
                             className={styleStock.scrollHelper}
                             onScroll={(e) => {
                                 const container = this.tableContainer;
@@ -1258,7 +1365,7 @@ class Stock extends Component {
                                 className={styleStock.scrollHelperContent}
                                 ref={el => this.topScrollContent = el}
                             />
-                        </div>
+                        </div> */}
 
                         <div className={styleStock.tableWrapper}>
                             <div 
@@ -1439,6 +1546,22 @@ class Stock extends Component {
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+
+                        <div 
+                            className={styleStock.scrollHelper}
+                            onScroll={(e) => {
+                                const container = this.tableContainer;
+                                if (container) {
+                                    container.scrollLeft = e.target.scrollLeft;
+                                }
+                            }}
+                            ref={el => this.topScroll = el}
+                        >
+                            <div 
+                                className={styleStock.scrollHelperContent}
+                                ref={el => this.topScrollContent = el}
+                            />
                         </div>
                         {dataAsset.length === 0 && (
                             <div className={style.spinCol}>
@@ -2939,18 +3062,22 @@ class Stock extends Component {
                             </div>
                         </div>
                         <div className="selfCenter mt-4 mb-4">
+                            <Button color="info" onClick={this.downloadTemplate}>
+                                Download Template
+                            </Button>
                             <Button 
-                                color="primary mr-2" 
+                                color="primary" 
+                                className='ml-2'
                                 disabled={this.state.fileUpload === "" ? true : false } 
                                 onClick={this.prosesUploadDraftStock}
                             >
                                 Upload
                             </Button>
-                            <Button onClick={this.openUploadStock}>Cancel</Button>
+                            <Button className='ml-2' onClick={this.openUploadStock}>Cancel</Button>
                         </div>
                     </ModalBody>
                 </Modal>
-                <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="md">
+                <Modal isOpen={this.state.modalConfirm} toggle={this.openConfirm} size="lg">
                 <ModalBody>
                     {this.state.confirm === 'approve' ? (
                         <div>
@@ -3032,6 +3159,16 @@ class Stock extends Component {
                             <div className={style.cekUpdate}>
                                 <AiFillCheckCircle size={80} className={style.green} />
                                 <div className={[style.sucUpdate, style.green]}>Berhasil Upload Draft Stock</div>
+                                {dataFail.length > 0 && (
+                                    <div className={[style.sucUpdate, style.green, 'mt-2 mb-2']}>Terdapat data dengan status fisik, kondisi, dan status asset yang tidak sesuai</div>
+                                )}
+                                {dataFail.length > 0 ? dataFail.map(item => {
+                                    return (
+                                        <div className={[style.sucUpdate, style.green, style.mb3]}>no asset {item.no_asset} status fisik {item.status_fisik} kondisi {item.kondisi} status aset {item.grouping}</div>
+                                    )
+                                }) : (
+                                    <div></div>
+                                )}
                             </div>
                         </div>
                     ) : this.state.confirm === 'submit' ? (

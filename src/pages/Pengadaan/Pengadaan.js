@@ -58,6 +58,18 @@ const approveSchema = Yup.object().shape({
     kategori: Yup.string(),
 });
 
+const cartSchema = Yup.object().shape({
+    nama: Yup.string().required(),
+    qty: Yup.string().required(),
+    price: Yup.string().required(),
+    kategori: Yup.string().required(),
+    tipe: Yup.string().required(),
+    jenis: Yup.string().required(),
+    akta: Yup.string().nullable(true),
+    start: Yup.date().nullable(true),
+    end: Yup.date().nullable(true)
+});
+
 const disposalSchema = Yup.object().shape({
     merk: Yup.string().validateSync(""),
     keterangan: Yup.string().required('must be filled'),
@@ -175,7 +187,9 @@ class Pengadaan extends Component {
             modalAdd: false,
             modalEdit: false,
             detailTtd: {},
-            arrApp: []
+            arrApp: [],
+            modalUpdate: false,
+            detailCart: {}
         }
         this.onSetOpen = this.onSetOpen.bind(this)
         this.menuButtonClick = this.menuButtonClick.bind(this)
@@ -669,15 +683,15 @@ class Pengadaan extends Component {
         }
 
         const index = []
-        console.log(app.indexOf(app.find(item => (item.jabatan === listRole[0].name))))
-        console.log(app.indexOf(app.find(item => (item.jabatan === listRole[1].name))))
+        // console.log(app.indexOf(app.find(item => (item.jabatan === listRole[0].name))))
+        // console.log(app.indexOf(app.find(item => (item.jabatan === listRole[1].name))))
         console.log(listRole)
         for (let i = 0; i < listRole.length; i++) {
             const app =  detailIo[0].appForm === undefined ? [] :  detailIo[0].appForm
             const cekApp = app.find(item => (item.jabatan === listRole[i].name))
             const find = app.indexOf(cekApp)
             if (find !== -1) {
-                if ((app[find].status === null || app[find].status === '0') && (level !== '5')) {
+                if ((app[find].status === null || app[find].status === '0')) {
                     index.push(find)
                 } 
                 // else if ((app[find].status === null || app[find].status === '0') && (level !== '5' && app[find + 1].status !== undefined && listRole.find(x => x.name === app[find + 1].jabatan))) {
@@ -1384,6 +1398,42 @@ class Pengadaan extends Component {
         this.props.history.push('/revtick')
     }
 
+    openModalUpdate = async (val) => {
+        this.setState({detailCart: val})
+        this.openUpdate()
+    }
+
+    openUpdate = () => {
+        this.setState({modalUpdate: !this.state.modalUpdate})
+    }
+
+    editCart = async (val) => {
+        const token = localStorage.getItem('token')
+        const {detailIo} = this.props.pengadaan
+        const {detailCart} = this.state
+        const cek = []
+        for (let i = 0; i < detailIo.length; i++) {
+            if ((detailIo[i].kategori !== val.kategori || detailIo[i].tipe !== val.tipe) && detailIo.length > 1) {
+                cek.push(1)
+            }
+        }
+        if (cek.length > 0) {
+            this.setState({confirm: 'falseAdd'})
+            this.openConfirm()
+        } else {
+            const data = {
+                ...val,
+                type_ajuan: detailCart.type_ajuan,
+                no_ref: detailCart.no_ref
+            }
+            await this.props.updateCart(token, detailCart.id, data)
+            await this.props.getDetail(token, detailIo[0].no_pengadaan)
+            this.openUpdate()
+            this.setState({confirm: 'update'})
+            this.openConfirm()
+        }
+    }
+
     async componentDidMount() {
         // this.getNotif()
         const token = localStorage.getItem("token")
@@ -1832,7 +1882,7 @@ class Pengadaan extends Component {
     }
 
     render() {
-        const { total, listMut, newIo, listStat, fileName, detailTtd, detailTrack, listSwitch, tipeEmail, typeCost, listCost, detailData, totalPriceDetail, typeProfit } = this.state
+        const { total, listMut, newIo, listStat, fileName, detailTtd, detailTrack, listSwitch, tipeEmail, typeCost, listCost, detailData, totalPriceDetail, typeProfit, detailCart } = this.state
         const { dataAsset, alertM, alertMsg, alertUpload, page } = this.props.asset
         const { menuRole } = this.props.user
         const pages = this.props.disposal.page
@@ -2089,6 +2139,9 @@ class Pengadaan extends Component {
                                                     <th><text className='red star'>*</text> Asset</th>
                                                 )}
                                                 <th>Status IT</th>
+                                                {level === '2' && this.state.filter === 'available' && (
+                                                    <th>Opsi</th>
+                                                )}
                                                 {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
                                                     <th>Dokumen</th>
                                                 ) : (
@@ -2147,6 +2200,13 @@ class Pengadaan extends Component {
                                                             <td>
                                                                 {item.jenis === 'it' ? 'IT' : item.jenis === 'non-it' ? 'NON IT' : '-'}
                                                             </td>
+                                                            {level === '2' && this.state.filter === 'available' && (
+                                                                <td>
+                                                                    <Button color='warning' onClick={() => this.openModalUpdate(item)}>
+                                                                        Update
+                                                                    </Button>
+                                                                </td>
+                                                            )}
                                                             {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
                                                                 <td>
                                                                     <Button color='success' size='sm' onClick={() => this.prosesModalDoc(item)}>Show Dokumen</Button>
@@ -2430,6 +2490,194 @@ class Pengadaan extends Component {
                             )
                         )}
                     </div>
+                </Modal>
+
+                <Modal isOpen={this.state.modalUpdate} toggle={this.openUpdate} size='lg'>
+                    <ModalHeader toggle={this.openUpdate}>Rincian item</ModalHeader>
+                    <Formik
+                    initialValues={{
+                        nama: detailCart.nama,
+                        price: detailCart.price,
+                        qty: detailCart.qty,
+                        kategori: detailCart.kategori,
+                        tipe: detailCart.tipe,
+                        jenis: detailCart.jenis,
+                        akta: detailCart.akta,
+                        start: detailCart.start === null || detailCart.start === undefined ? '' : detailCart.start.slice(0, 10),
+                        end: detailCart.end === null || detailCart.end === undefined ? '' : detailCart.end.slice(0, 10)
+                    }}
+                    validationSchema={cartSchema}
+                    onSubmit={(values) => {this.editCart(values)}}
+                    >
+                        {({ handleChange, handleBlur, handleSubmit, values, errors, touched,}) => (
+                        <ModalBody>
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Deskripsi
+                                </text>
+                                <div className="col-md-9">
+                                    <Input 
+                                    type="name" 
+                                    name="nama"
+                                    value={values.nama}
+                                    onBlur={handleBlur("nama")}
+                                    onChange={handleChange("nama")}
+                                    />
+                                    {errors.nama ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                            </div>
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Tipe
+                                </text>
+                                <div className="col-md-9">
+                                <Input 
+                                    type="select"
+                                    name="select"
+                                    disabled
+                                    value={values.tipe}
+                                    onChange={handleChange("tipe")}
+                                    onBlur={handleBlur("tipe")}
+                                    >   
+                                        <option value="">-Pilih Tipe-</option>
+                                        {/* <option value="gudang">Sewa Gudang</option> */}
+                                        <option value="barang">Barang</option>
+                                    </Input>
+                                    {errors.tipe ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                            </div>
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Jenis IT / NON IT
+                                </text>
+                                <div className="col-md-9">
+                                <Input 
+                                    type="select"
+                                    name="select"
+                                    disabled
+                                    value={values.jenis}
+                                    onChange={handleChange("jenis")}
+                                    onBlur={handleBlur("jenis")}
+                                    >   
+                                        <option value="">---Pilih---</option>
+                                        <option value="it">IT</option>
+                                        <option value="non-it">NON IT</option>
+                                    </Input>
+                                    {errors.jenis ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                            </div>
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Price
+                                </text>
+                                <div className="col-md-9">
+                                    <Input 
+                                    type="name" 
+                                    name="price"
+                                    disabled
+                                    value={values.price}
+                                    onBlur={handleBlur("price")}
+                                    onChange={handleChange("price")}
+                                    />
+                                    {errors.price ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                            </div>
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Qty
+                                </text>
+                                <div className="col-md-9">
+                                    <Input 
+                                    type="name" 
+                                    name="qty"
+                                    disabled
+                                    value={values.qty}
+                                    onBlur={handleBlur("qty")}
+                                    onChange={handleChange("qty")}
+                                    />
+                                    {errors.qty ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                            </div>
+                            <div className={style.addModalDepo}>
+                                <text className="col-md-3">
+                                    Kategori
+                                </text>
+                                <div className="col-md-9">
+                                <Input 
+                                    type="select"
+                                    name="select"
+                                    disabled
+                                    value={values.kategori}
+                                    onChange={handleChange("kategori")}
+                                    onBlur={handleBlur("kategori")}
+                                    >   
+                                        <option value="">-Pilih Kategori-</option>
+                                        <option value="budget">Budget</option>
+                                        <option value="non-budget">Non Budget</option>
+                                        <option value="return">Return</option>
+                                    </Input>
+                                    {errors.kategori ? (
+                                        <text className={style.txtError}>Must be filled</text>
+                                    ) : null}
+                                </div>
+                            </div>
+                            {values.kategori === 'return' && (
+                                <div className={style.addModalDepo}>
+                                    <text className="col-md-3">
+                                        No Ajuan Return
+                                    </text>
+                                    <div className="col-md-9">
+                                        {/* <Input 
+                                        type="name" 
+                                        name="no_ref"
+                                        value={values.no_ref}
+                                        onBlur={handleBlur("no_ref")}
+                                        onChange={handleChange("no_ref")}
+                                        /> */}
+                                        <Select
+                                            // className="inputRinci2"
+                                            options={this.state.showOptions ? this.state.listNoIo : []}
+                                            onChange={e => this.selectNoIo({val: e, type: 'noIo'})}
+                                            onInputChange={e => this.inputNoIo(e)}
+                                            isSearchable
+                                            components={
+                                                {
+                                                    DropdownIndicator: () => null,
+                                                }
+                                            }
+                                            value={(values.kategori === 'return') ? {value: this.state.noAjuan, label: this.state.noAjuan} : { value: '', label: '' } }
+                                        />
+                                        {this.state.noAjuan === '' && values.kategori === 'return' ? (
+                                            <text className={style.txtError}>Must be filled</text>
+                                        ) : null}
+                                    </div>
+                                </div>
+                            )}
+                            <hr/>
+                            <div className={style.foot}>
+                                <div>
+                                    <Button 
+                                        className="mr-2" 
+                                        onClick={handleSubmit} color="primary"
+                                    >
+                                        Save
+                                    </Button>
+                                    <Button className="mr-3" onClick={this.openUpdate}>Cancel</Button>
+                                </div>
+                            </div>
+                        </ModalBody>
+                        )}
+                    </Formik>
                 </Modal>
 
                 <Modal size="xl" className='xl' toggle={this.openModalTempApp} isOpen={this.state.modalTempApp}>
@@ -3859,6 +4107,13 @@ class Pengadaan extends Component {
                                     <div className={[style.sucUpdate, style.green]}>Berhasil Approve</div>
                                 </div>
                             </div>
+                        ) : this.state.confirm === 'update' ? (
+                            <div>
+                                <div className={style.cekUpdate}>
+                                    <AiFillCheckCircle size={80} className={style.green} />
+                                    <div className={[style.sucUpdate, style.green]}>Berhasil Update</div>
+                                </div>
+                            </div>
                         ) : this.state.confirm === 'upreason' ? (
                             <div>
                                 <div className={style.cekUpdate}>
@@ -4132,7 +4387,8 @@ const mapDispatchToProps = {
     getRole: user.getRole,
     makeApproval: pengadaan.makeApproval,
     deleteApproval: pengadaan.deleteApproval,
-    saveApproval: pengadaan.saveApproval
+    saveApproval: pengadaan.saveApproval,
+    updateCart: pengadaan.updateCart,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Pengadaan)

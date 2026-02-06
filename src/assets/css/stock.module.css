@@ -11,7 +11,7 @@
 
 /* Wrapper untuk scroll vertical */
 .tableWrapper {
-  max-height: 600px;
+  max-height: 60%;
   overflow-y: auto;
   overflow-x: visible;
   position: relative;
@@ -198,7 +198,7 @@
 
 /* PENTING: Hapus display: block dari tableFull */
 .tableFull {
-  max-height: 600px;
+  max-height: 60%;
   overflow-y: auto;
 }
 

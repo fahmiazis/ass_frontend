@@ -1150,6 +1150,7 @@ class EditTicket extends Component {
                                                 <th>Description</th>
                                                 <th>Price/unit</th>
                                                 <th>Total Amount</th>
+                                                <th>Status IT</th>
                                                 {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
                                                     <th>Dokumen</th>
                                                 ) : (
@@ -1176,6 +1177,9 @@ class EditTicket extends Component {
                                                             <td>{item.nama}</td>
                                                             <td>Rp {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
                                                             <td>Rp {(parseInt(item.price) * parseInt(item.qty)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</td>
+                                                            <td>
+                                                                {item.jenis === 'it' ? 'IT' : item.jenis === 'non-it' ? 'NON IT' : '-'}
+                                                            </td>
                                                             {detailIo !== undefined && detailIo.length > 0 && detailIo[0].asset_token === null ? (
                                                                 <td>
                                                                     <Button color='success' size='sm' onClick={() => this.prosesModalDoc(item)}>Show Dokumen</Button>

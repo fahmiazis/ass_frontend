@@ -136,7 +136,6 @@ class Disposal extends Component {
             menuRev: '',
             tipeEmail: '',
             dataRej: {},
-            loading: false,
             noDoc: '',
             noTrans: '',
             valdoc: {},
@@ -145,7 +144,9 @@ class Disposal extends Component {
             newSubmit: [],
             modalSubmit: false,
             openDoc: false,
-            options: []
+            options: [],
+            dataDocCek: [],
+            isLoading: false
         }
         this.onSetOpen = this.onSetOpen.bind(this);
         this.menuButtonClick = this.menuButtonClick.bind(this);
@@ -307,6 +308,47 @@ class Disposal extends Component {
     goCartDispos = () => {
         this.props.history.push('/cart')
     }
+
+    prosesAfterClose = async () => {
+        this.setState({isLoading: true})
+        const token = localStorage.getItem('token')
+        const level = localStorage.getItem('level')
+        const { dataRinci, dataDocCek } = this.state
+        const data = {
+            noId: dataRinci.id,
+            noAsset: dataRinci.no_asset
+        }
+        await this.props.getDocumentDis(token, data, 'disposal', 'pengajuan')
+        const {dataDoc} = this.props.disposal
+        const tempdoc = []
+        const arrDoc = []
+        for (let j = 0; j < dataDoc.length; j++) { 
+            if (dataDoc[j].path !== null) {
+                const arr = dataDoc[j]
+                const stat = arr.status_dokumen
+                const cekLevel = stat !== null && stat !== '1' ? stat.split(',').reverse()[0].split(';')[0] : ''
+                const cekStat = stat !== null && stat !== '1' ? stat.split(',').reverse()[0].split(';')[1] : ''
+                if (cekLevel === ` level ${level}` && cekStat === ` status approve`) {
+                    tempdoc.push(arr)
+                } else {
+                    arrDoc.push(arr)
+                }
+            }
+        }
+        const send = {
+            no_asset: dataRinci.no_asset,
+            status_doc: arrDoc.length > 0 ? `${arrDoc.length} Dokumen Pending` : 'Done'
+        }
+
+        const newDataDocCek = dataDocCek.map(item =>
+            item.no_asset === send.no_asset
+                ? { ...item, ...send }
+                : item
+            );
+        
+        this.setState({dataDocCek: newDataDocCek, isLoading: false})
+        this.closeProsesModalDoc()
+    } 
 
     closeProsesModalDoc = () => {
         this.setState({openModalDoc: !this.state.openModalDoc})
@@ -685,13 +727,51 @@ class Disposal extends Component {
     }
 
     prosesOpenDisposal = async (val) => {
+        this.setState({isLoading: true})
         const token = localStorage.getItem('token')
+        const level = localStorage.getItem('level')
         const cekApp = {
             nama: val.kode_plant.split('').length === 4 ? 'disposal pengajuan' :  'disposal pengajuan HO',
             no: val.no_disposal
         }
+
+        const { detailUser } = this.props.user
         await this.props.getApproveDisposal(token, cekApp.no, cekApp.nama)
         await this.props.getDetailDisposal(token, val.no_disposal, 'pengajuan')
+        const dataCek = []
+        if (this.state.filter === 'available') {
+            const { detailDis } = this.props.disposal
+            for (let i = 0; i < detailDis.length; i++) {
+                const tempdoc = []
+                const arrDoc = []
+                const data = {
+                    noId: detailDis[i].id,
+                    noAsset: detailDis[i].no_asset
+                }
+                console.log(`masuk perulangan ${i}`)
+                await this.props.getDocumentDis(token, data, 'disposal', 'pengajuan')
+                const {dataDoc} = this.props.disposal
+                for (let j = 0; j < dataDoc.length; j++) { 
+                    if (dataDoc[j].path !== null) {
+                        const arr = dataDoc[j]
+                        const stat = arr.status_dokumen
+                        const cekLevel = stat !== null && stat !== '1' ? stat.split(',').reverse()[0].split(';')[0] : ''
+                        const cekStat = stat !== null && stat !== '1' ? stat.split(',').reverse()[0].split(';')[1] : ''
+                        if (cekLevel === ` level ${level}` && cekStat === ` status approve`) {
+                            tempdoc.push(arr)
+                        } else {
+                            arrDoc.push(arr)
+                        }
+                    }
+                }
+                const send = {
+                    no_asset: detailDis[i].no_asset,
+                    status_doc: arrDoc.length > 0 ? `${arrDoc.length} Dokumen Pending` : 'Done'
+                }
+                dataCek.push(send)
+            }
+        }
+        this.setState({dataDocCek: dataCek, isLoading: false})
         this.openModalDis()
     }
 
@@ -1248,7 +1328,7 @@ class Disposal extends Component {
     }
 
     render() {
-        const {alert, upload, errMsg, app, find, fileName, listMut, listStat, listDis, newSubmit} = this.state
+        const {alert, upload, errMsg, app, find, fileName, listMut, listStat, listDis, newSubmit, dataDocCek} = this.state
         const {dataAsset, alertM, alertMsg, alertUpload, page} = this.props.asset
         const pages = this.props.disposal.page 
         const { dataDis, noDis, dataDoc, disApp, dataSubmit, detailDis, infoApp } = this.props.disposal
@@ -1477,6 +1557,7 @@ class Disposal extends Component {
                     this.props.newnotif.isLoading ||
                     this.props.user.isLoading ||
                     this.props.depo.isLoading ||
+                    this.state.isLoading ||
                     this.props.tempmail.isLoading ? true: false
                 } 
                     size="sm">
@@ -1552,6 +1633,9 @@ class Disposal extends Component {
                                         <th>Nilai Jual</th>
                                         <th>Keterangan</th>
                                         <th>{this.state.filter === 'submit' ? 'Opsi' : 'Dokumen'}</th>
+                                        {this.state.filter === 'available' && (
+                                            <th>Status Dokumen</th>
+                                        )} 
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1588,6 +1672,9 @@ class Disposal extends Component {
                                                         </>
                                                     )}
                                                 </td>
+                                                {this.state.filter === 'available' && (
+                                                    <td>{dataDocCek.find(x => x.no_asset === item.no_asset)?.status_doc}</td>
+                                                )}
                                             </tr>
                                         )
                                     })}
@@ -1971,11 +2058,11 @@ class Disposal extends Component {
                         </div>
                     </ModalBody>
                 </Modal>
-                <Modal size="xl" isOpen={this.state.openModalDoc} toggle={this.closeProsesModalDoc}>
+                <Modal size="xl" isOpen={this.state.openModalDoc} toggle={this.prosesAfterClose}>
                     <ModalDokumen
                         parDoc={{ noDoc: this.state.noDoc, noTrans: this.state.noTrans, tipe: 'disposal', filter: this.state.filter, detailForm: this.state.valdoc }}
                         dataDoc={dataDoc}
-                        onClose={() => this.closeProsesModalDoc()}
+                        onClose={() => this.prosesAfterClose()}
                     />
                 </Modal>
                 <Modal 
@@ -2585,7 +2672,6 @@ const mapStateToProps = state => ({
     setuju: state.setuju,
     approve: state.approve,
     pengadaan: state.pengadaan,
-    setuju: state.setuju,
     notif: state.notif,
     auth: state.auth,
     user: state.user,
@@ -2615,7 +2701,6 @@ const mapDispatchToProps = {
     approveDocDis: disposal.approveDocDis,
     rejectDocDis: disposal.rejectDocDis,
     showDokumen: pengadaan.showDokumen,
-    resetDis: disposal.reset,
     submitSetDisposal: setuju.submitSetDisposal,
     addSell: disposal.addSell,
     resAppRej: disposal.resAppRej,

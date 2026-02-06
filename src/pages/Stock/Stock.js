@@ -881,6 +881,13 @@ class Stock extends Component {
             ws.getCell(`S${headerRow}`).alignment = { ...tbStyle }
             ws.getCell(`S${headerRow}`).border = { ...borderStyles }
             ws.getCell(`S${headerRow}`).font = { ...boldStyle }
+
+            // STATUS CLEAR
+            ws.mergeCells(`V${headerRow}:W${headerRow}`)
+            ws.getCell(`V${headerRow}`).value = 'STATUS CLEAR'
+            ws.getCell(`V${headerRow}`).alignment = { ...tbStyle }
+            ws.getCell(`V${headerRow}`).border = { ...borderStyles }
+            ws.getCell(`V${headerRow}`).font = { ...boldStyle }
         }
 
         // === HELPER FUNCTION: Create data row ===
@@ -945,6 +952,12 @@ class Stock extends Component {
             ws.getCell(`S${dataRow}`).value = item.keterangan || ''
             ws.getCell(`S${dataRow}`).alignment = { ...tbStyle }
             ws.getCell(`S${dataRow}`).border = { ...borderStyles }
+
+            // STATUS CLEAR
+            ws.mergeCells(`V${dataRow}:W${dataRow}`)
+            ws.getCell(`V${dataRow}`).value = item.clear_flag || ''
+            ws.getCell(`V${dataRow}`).alignment = { ...tbStyle }
+            ws.getCell(`V${dataRow}`).border = { ...borderStyles }
         }
 
         // === TABLE dengan DIFFERENT LIMIT per PAGE ===
@@ -2256,6 +2269,7 @@ class Stock extends Component {
                             <thead>
                                 <tr>
                                     <th>No</th>
+                                    <th>OPSI</th>
                                     <th>No Stock Opname</th>
                                     <th>Kode Area</th>
                                     <th>Area</th>
@@ -2266,7 +2280,6 @@ class Stock extends Component {
                                     <th>TGL APPROVED</th>
                                     <th>STATUS WAKTU</th>
                                     <th>LAST STATUS</th>
-                                    <th>OPSI</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -2274,6 +2287,15 @@ class Stock extends Component {
                                     return (
                                         <tr className={item.status_form === 0 ? 'fail' : item.status_form === 8 ? 'success' : item.status_reject === 0 ? 'note' : item.status_reject === 1 && 'bad'}>
                                             <td>{newStock.indexOf(item) + 1}</td>
+                                            <td className='tdOpsi'>
+                                                <Button 
+                                                color='primary' 
+                                                className='mr-1 mt-1'
+                                                onClick={item.status_reject === 1 && item.status_form !== 0 && level === '5' ? this.goRevisi : () => this.getDetailStock(item)}>
+                                                    {this.state.filter === 'available' ? 'Proses' : item.status_reject === 1 && item.status_form !== 0 && level === '5' ? 'Revisi' : 'Detail'}
+                                                </Button>
+                                                <Button className='mt-1' color='warning' onClick={() => this.getDetailTrack(item)}>Tracking</Button>
+                                            </td>
                                             <td>{item.no_stock}</td>
                                             <td className='tdPlant'>{item.kode_plant}</td>
                                             <td className='tdArea'>{item.depo === null ? '' : item.area === null ? `${item.depo.nama_area} ${item.depo.channel}` : item.area}</td>
@@ -2284,21 +2306,7 @@ class Stock extends Component {
                                             <td>{item.appForm !== null && item.appForm.length > 0 && item.appForm.find(item => item.status === 1) !== undefined ? moment(item.appForm.find(item => item.status === 1).updatedAt).format('DD/MM/YYYY HH:mm:ss') : '-' }</td>
                                             <td>{moment(item.tanggalStock).format('DD') > item.end_stock && moment(item.tanggalStock).format('DD') < item.start_stock ? 'TELAT' : 'Tepat Waktu'}</td>
                                             <td>{item.history !== null ? item.history.split(',').reverse()[0] : '-'}</td>
-                                            <td className='tdOpsi'>
-                                                {/* <Button 
-                                                color='primary' 
-                                                className='mr-1 mb-1' 
-                                                onClick={item.status_reject === 1 && item.status_form !== 0 && level === '5' ? this.goRevisi : () => this.openForm(item)}>
-                                                    {this.state.filter === 'available' ? 'Proses' : item.status_reject === 1 && item.status_form !== 0 && level === '5' ? 'Revisi' : 'Detail'}
-                                                </Button> */}
-                                                <Button 
-                                                color='primary' 
-                                                className='mr-1 mt-1'
-                                                onClick={item.status_reject === 1 && item.status_form !== 0 && level === '5' ? this.goRevisi : () => this.getDetailStock(item)}>
-                                                    {this.state.filter === 'available' ? 'Proses' : item.status_reject === 1 && item.status_form !== 0 && level === '5' ? 'Revisi' : 'Detail'}
-                                                </Button>
-                                                <Button className='mt-1' color='warning' onClick={() => this.getDetailTrack(item)}>Tracking</Button>
-                                            </td>
+                                            
                                         </tr>
                                     )
                                 })}
@@ -2730,7 +2738,7 @@ class Stock extends Component {
                 <Modal isOpen={this.state.modalRinci} toggle={this.openModalRinci} size="xl" className='xl'>
                     <ModalBody>
                         <div>
-                            <div className="stockTitle">kertas kerja opname aset kantor um</div>
+                            <div className="stockTitle">kertas kerja opname aset kantor</div>
                             <div className="ptStock">pt. pinus merah abadi</div>
                             <Row className="ptStock inputStock">
                                 <Col md={3} xl={3} sm={3}>kantor pusat/cabang</Col>
@@ -2758,7 +2766,7 @@ class Stock extends Component {
                                                 checked={listMut.length === detailStock.length ? true : false}
                                                 onClick={listMut.length === detailStock.length ? () => this.chekRej('all') : () => this.chekApp('all')}
                                             />
-                                            Select All
+                                            {/* Select All */}
                                         </th>
                                         <th>No</th>
                                         <th>Status Clear</th>
@@ -2971,34 +2979,7 @@ class Stock extends Component {
                                 <Col md={4} xl={4} sm={4} className="inputStock">:<Input disabled className="ml-3" value={detailStock.length > 0 ? moment(detailStock[0].tanggalStock).format('DD MMMM YYYY') : ''} /></Col>
                             </Row>
                         </div>
-                        {this.props.asset.stockDetail === false ? (
-                            <div className={style.tableDashboard}>
-                                <Table bordered responsive hover className={style.tab}>
-                                    <thead>
-                                        <tr>
-                                            <th>No</th>
-                                            <th>NO. ASET</th>
-                                            <th>DESKRIPSI</th>
-                                            <th>MERK</th>
-                                            <th>SATUAN</th>
-                                            <th>UNIT</th>
-                                            <th>KONDISI</th>
-                                            <th>LOKASI</th>
-                                            <th>GROUPING</th>
-                                            <th>KETERANGAN</th>
-                                        </tr>
-                                    </thead>
-                                </Table>
-                                <div className={style.spin}>
-                                        <Spinner type="grow" color="primary"/>
-                                        <Spinner type="grow" className="mr-3 ml-3" color="success"/>
-                                        <Spinner type="grow" color="warning"/>
-                                        <Spinner type="grow" className="mr-3 ml-3" color="danger"/>
-                                        <Spinner type="grow" color="info"/>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className={style.tableDashboard}>
+                        <div className={style.tableDashboard}>
                             <Table bordered responsive hover className={style.tab}>
                                 <thead>
                                     <tr>
@@ -3033,7 +3014,6 @@ class Stock extends Component {
                                 </tbody>
                             </Table>
                         </div>
-                        )}
                         <Table bordered responsive className="tabPreview">
                             <thead>
                                 <tr>

@@ -196,13 +196,21 @@ class ModalDokumen extends Component {
 
     approveDoc = async (val) => {
         const token = localStorage.getItem('token')
+        const level = localStorage.getItem('level')
         const {noDoc, tipe, noTrans, filter, detailForm} = this.props.parDoc
         const {idDoc} = this.state
         const tempno = {
             no: noDoc,
             jenis: tipe
         }
-        await this.props.approveDokumen(token, val.id)
+        const x = val.data
+        const cekApp = (x.status_dokumen !== null && x.status_dokumen !== '1' && x.status_dokumen.split(',').reverse()[0].split(';')[0] === ` level ${level}` &&
+                    x.status_dokumen.split(',').reverse()[0].split(';')[1] === ` status approve`)
+        if (cekApp) {
+            this.setState({confirm: 'isAppDoc'})
+            this.openConfirm()
+        } else {
+            await this.props.approveDokumen(token, val.id)
         await this.props.getDokumen(token, tempno)
         if (noDoc === noTrans && tipe === 'pengadaan') {
             await this.props.getDocumentIo(token, noDoc)
@@ -287,7 +295,7 @@ class ModalDokumen extends Component {
             }
             
         }
-        
+        }
         // this.setState({confirm: 'isAppDoc'})
         // this.openConfirm()
         // this.openModalAppDoc()
@@ -598,9 +606,9 @@ class ModalDokumen extends Component {
                 )}
                 {dataDoc.length !== 0 && dataDoc.map(x => {
                     return (
-                        x.path !== null &&
+                        (x.path !== null || (x.path === null && tipe === 'pengadaan' && filter === 'revisi')) &&
                         <Row className="mt-3 mb-4">
-                            {x.path !== null && (
+                            {(x.path !== null || (x.path === null && tipe === 'pengadaan' && filter === 'revisi')) && (
                                 <Col md={12} lg={12} className='mb-2' >
                                     <div className="btnDocIo1 mb-2 ml-4 rowCenter1" >
                                         <Input 
@@ -683,7 +691,7 @@ class ModalDokumen extends Component {
                                     {/* NEW FORMAT */}
 
                                     <div className='rowCenter'>
-                                        {(x.status_dokumen === null && (level !== '5' && level !== '9')) ? (
+                                        {(x.status_dokumen === null) ? (
                                             <BsCircle size={25} />
                                         ) : (x.status_dokumen !== null && x.status_dokumen !== '1' && x.status_dokumen.split(',').reverse()[0].split(';')[0] === ` level ${level}` &&
                                         x.status_dokumen.split(',').reverse()[0].split(';')[1] === ` status approve`) || ((level === '5' || level === '9') && x.status === 3) ? <AiOutlineCheck size={25} color="success" className='blue' /> 
@@ -693,14 +701,14 @@ class ModalDokumen extends Component {
                                             <BsCircle size={25} />
                                         )}
                                         <button 
-                                        className={`btnDocIo fzDoc ${(x.status_dokumen === null && (level !== '5' && level !== '9')) ? 'black' : (x.status_dokumen !== null && x.status_dokumen !== '1' && x.status_dokumen.split(',').reverse()[0].split(';')[0] === ` level ${level}` &&
+                                        className={`btnDocIo fzDoc ${(x.status_dokumen === null) ? 'black' : (x.status_dokumen !== null && x.status_dokumen !== '1' && x.status_dokumen.split(',').reverse()[0].split(';')[0] === ` level ${level}` &&
                                         x.status_dokumen.split(',').reverse()[0].split(';')[1] === ` status approve`) || ((level === '5' || level === '9') && x.status === 3) ? 'blue'
                                         : (x.status_dokumen !== null && x.status_dokumen !== '1' && x.status_dokumen.split(',').reverse()[0].split(';')[0] === ` level ${level}` &&
                                         x.status_dokumen.split(',').reverse()[0].split(';')[1] === ` status reject`) || ((level === '5' || level === '9') && x.status === 0) ?  'red'
                                         : 'black'}`}
                                         // onClick={() => this.showDokumen(x)} 
                                         >
-                                            {`${x.desc === null ? 'Lampiran' : x.desc} ${(x.status_dokumen === null && (level !== '5' && level !== '9')) ? '' : (x.status_dokumen !== null && x.status_dokumen !== '1' && x.status_dokumen.split(',').reverse()[0].split(';')[0] === ` level ${level}` &&
+                                            {`${x.desc === null ? 'Lampiran' : x.desc} ${(x.status_dokumen === null) ? '' : (x.status_dokumen !== null && x.status_dokumen !== '1' && x.status_dokumen.split(',').reverse()[0].split(';')[0] === ` level ${level}` &&
                                             x.status_dokumen.split(',').reverse()[0].split(';')[1] === ` status approve`) ? ' (APPROVED)' : 
                                             (x.status_dokumen !== '1' && x.status_dokumen.split(',').reverse()[0].split(';')[0] === ` level ${level}` &&
                                             x.status_dokumen.split(',').reverse()[0].split(';')[1] === ` status reject`) ?  ' (REJECTED)' : 
@@ -714,7 +722,9 @@ class ModalDokumen extends Component {
                                             <div>
                                                 <Button 
                                                 color="success"
-                                                onClick={() => {this.setState({idDoc: x.id}); this.approveDoc({type: 'direct', id: x.id})}}
+                                                disabled={(x.status_dokumen !== null && x.status_dokumen !== '1' && x.status_dokumen.split(',').reverse()[0].split(';')[0] === ` level ${level}` &&
+                                                    x.status_dokumen.split(',').reverse()[0].split(';')[1] === ` status approve`)}
+                                                onClick={() => {this.setState({idDoc: x.id}); this.approveDoc({type: 'direct', id: x.id, data: x})}}
                                                 >
                                                     Approve
                                                 </Button>
@@ -763,10 +773,10 @@ class ModalDokumen extends Component {
                                     {/* Show PDF */}
 
                                     <div className='colCenter borderGen'>
-                                        {dataColl.find(e => e === x.id) === undefined ? (
+                                        {x.path !== null && dataColl.find(e => e === x.id) === undefined ? (
                                             <Pdf pdf={`${REACT_APP_BACKEND_URL}/show/doc/${x.id}`} noTrans={noTrans} noDoc={noDoc} dataFile={x} detailForm={detailForm} tipe={tipe} />
                                         ) : (
-                                            <div></div>
+                                            <div>Please Upload Document</div>
                                         )}
                                     </div>
                                 </Col>
@@ -965,7 +975,7 @@ class ModalDokumen extends Component {
                     <div>
                         <div className={style.cekUpdate}>
                             <AiFillCheckCircle size={80} className={style.green} />
-                            <div className={[style.sucUpdate, style.green]}>Berhasil Approve</div>
+                            <div className={[style.sucUpdate, style.green]}>Dokumen telah di-approve</div>
                         </div>
                     </div>
                 ) : this.state.confirm === 'isRejDoc' ? (

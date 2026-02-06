@@ -15,6 +15,7 @@ import {Formik} from 'formik'
 import user from '../redux/actions/user'
 import notif from '../redux/actions/notif'
 import stock from '../redux/actions/stock'
+import depo from '../redux/actions/depo'
 import * as Yup from 'yup'
 import {VscAccount} from 'react-icons/vsc'
 import '../assets/css/style.css'
@@ -55,6 +56,12 @@ import {
 } from 'chart.js';
 import ReminderOpname from '../components/ReminderOpname'
 import RemainderEmail from '../components/ReminderEmail'
+import {
+  buildListRole,
+  checkAvailableApproval,
+  checkAvailableApprovalMutasi,
+  checkAvailablePengadaanArea
+} from '../helpers/filterApproval'
 
 ChartJS.register(ArcElement, Tooltip, Legend, DoughnutController);
 
@@ -245,7 +252,12 @@ class Home extends Component {
         openAset: false,
         typeStock: '',
         modalStock: false,
-        dataClossing: {}
+        dataClossing: {},
+        countPengadaan: 0,
+        countDisposal: 0,
+        countStock: 0,
+        countMutasi: 0,
+        isProcessing: false
     }
 
     menuItems = [
@@ -398,13 +410,23 @@ class Home extends Component {
         }
     }
 
-    componentDidMount() {
+    componentDidMount = async () => {
         const email = localStorage.getItem('email')
         const fullname = localStorage.getItem('fullname')
         const id = localStorage.getItem('id')
         const level = localStorage.getItem('level')
         document.addEventListener('mousedown', this.closeSidebar)
         this.getDataDashboard();
+        const token = localStorage.getItem('token')
+        
+        // Fetch dependencies
+        await this.props.getRole(token)
+        await this.props.getDepo(token, 'all', 1000)
+        
+        // Fetch & process count
+        await this.props.getCountTransaction(token)
+        this.processAvailableCount()
+
         this.getNotif()
         if (email === 'null' || email === '' || fullname === 'null' || fullname === '') {
             if (id !== null && level !== '5') {
@@ -419,73 +441,77 @@ class Home extends Component {
         }
     }
 
-    getDataDashboardOld = async () => {
-        this.setState({ loading: true });
-        const token = localStorage.getItem("token")
-        const level = localStorage.getItem("level")
-        await this.props.getDashboard(token);
-        await this.props.getClossing(token, 'all', '', 1)
+    processAvailableCount = () => {
+        const { dataCount } = this.props.dashboard
+        const { dataRole } = this.props.user
+        const { dataDepo } = this.props.depo
 
-        const cekTime1 = moment().startOf('month').format('YYYY-MM-DD')
-        const cekTime2 = moment().endOf('month').format('YYYY-MM-DD')
-
-        if (level === '5' || level === '9') {
-            await this.props.getStockAll(token, '', 100, 1, '', 'all', cekTime1, cekTime2)
+        console.log(dataCount)
+        
+        if (!dataCount || !dataRole || !dataDepo) return
+        
+        this.setState({ isProcessing: true })
+        
+        const level = localStorage.getItem('level')
+        const kode = localStorage.getItem('kode')
+        
+        // Build listRole
+        const listRole = buildListRole(dataCount.user, dataRole)
+        
+        // Process Pengadaan Count
+        let countPengadaan = 0
+        if (level === '2' || level === '8') {
+        // Simple count for level 2 & 8
+        countPengadaan = dataCount.pengadaan?.filter(item => {
+            const cekBudget = item.status_form === '3'
+            const cekAsset = item.status_form === '1'
+            return ((level === '8' && cekBudget) || (level === '2' && cekAsset)) && item.status_reject !== 1
+        }).length
+        } else {
+        // Complex approval check
+        countPengadaan = dataCount.pengadaan?.filter(item => {
+            return checkAvailablePengadaanArea(item, listRole, dataDepo, dataCount.user, level)
+        }).length
         }
-
-        const { dataClossing } = this.props.clossing
-        const { dataStock } = this.props.stock
-
-        const today = moment().format('DD-MM-YYYY')
-        const monthSubmit = moment().format('MM-YYYY')
-        const findClosing = dataClossing.filter(x => x.type_clossing === 'periode')
-        const findAllClosing = dataClossing.find(x => x.type_clossing === 'all')
-        let finalClosing = null
-
-        for (let i = 0; i < findClosing.length; i++) {
-            const monthClose = moment(findClosing[i].periode).format('MM-YYYY')
-            if (monthSubmit === monthClose) {
-                const dateStart = `${findClosing[i].start}-${monthClose}`
-                const dateEnd = `${findClosing[i].end}-${monthClose}`
-                console.log(today)
-                console.log(dateStart)
-                if (today === dateStart) {
-                    finalClosing = {
-                        ...findClosing[i],
-                        typeStock: 'start'
-                    }
-                } else if (today === dateEnd) {
-                    finalClosing = {
-                        ...findClosing[i],
-                        typeStock: 'end'
-                    }
-                }
-            }
+        
+        // Process Disposal Count
+        let countDisposal = 0
+        if (level === '5' || level === '9' || level === '2' || level === '8') {
+        // Level 5,9 tidak perlu filtering kompleks untuk disposal
+        countDisposal = dataCount.disposal?.filter(item => item.status_reject !== 1).length
+        } else {
+        // Complex approval check
+        countDisposal = dataCount.disposal?.filter(item => {
+            return checkAvailableApproval(item, listRole, dataDepo, dataCount.user, level, kode)
+        }).length
         }
-
-        if (!finalClosing) {
-            const monthClose = moment().format('MM-YYYY')
-            if (monthSubmit === monthClose) {
-                const dateStart = `${findAllClosing.start}-${monthClose}`
-                const dateEnd = `${findAllClosing.end}-${monthClose}`
-                if (today === dateStart) {
-                    finalClosing = {
-                        ...findAllClosing,
-                        typeStock: 'start'
-                    }
-                } else if (today === dateEnd) {
-                    finalClosing = {
-                        ...findAllClosing,
-                        typeStock: 'end'
-                    }
-                }
-            }
+        
+        // Process Stock Count
+        let countStock = 0
+        if (level === '2') {
+        // Level 2: filter available
+        countStock = dataCount.stock?.filter(item => {
+            return item.status_reject !== 1 && item.status_form === 9
+        }).length
+        } else {
+        // Complex approval check
+        countStock = dataCount.stock?.filter(item => {
+            return checkAvailableApproval(item, listRole, dataDepo, dataCount.user, level, kode)
+        }).length
         }
-
-        if (finalClosing) {
-            this.setState({ dataClossing: finalClosing, modalStock: true })
-        }
-        this.setState({ loading: false });
+        
+        // Process Mutasi Count
+        const countMutasi = dataCount.mutasi?.filter(item => {
+        return checkAvailableApprovalMutasi(item, listRole, dataDepo, dataCount.user, level, kode)
+        }).length
+        
+        this.setState({
+        countPengadaan,
+        countDisposal,
+        countStock,
+        countMutasi,
+        isProcessing: false
+        })
     }
 
     getDataDashboard = async () => {
@@ -718,6 +744,7 @@ class Home extends Component {
         const {dataNull} = this.state
         const id = localStorage.getItem('id')
         const { alertM, alertMsg } = this.props.user
+        const { countPengadaan, countDisposal, countStock, countMutasi, isProcessing } = this.state
         const dataNotif = this.props.notif.data
         const allowSet = ['1','17','20', '21', '22', '23', '24', '25', '32']
         const disposalRoute = level === '6' ? 'purchdis' : level === '3' || level === '4' ? 'taxfin-disposal' : 'disposal'
@@ -1071,38 +1098,67 @@ class Home extends Component {
                         <div className={`${styleHome.assetContainer} row`}>
                             <div 
                             onClick={() => this.goRoute('pengadaan')} 
-                            className="col-12 col-md-6 col-lg-3 mb-4">
-                                <div className={styleHome.assetCard}>
-                                    <img className='mt-4' src={pengadaanIm} alt="Pengadaan Aset"  />
-                                    <p className='mt-4'>Pengadaan Aset</p>
-                                </div>
+                            className="col-12 col-md-6 col-lg-3 mb-4"
+                            >
+                            <div className={styleHome.assetCard}>
+                                {/* ⭐ Badge Count di Pojok Kanan Atas */}
+                                {(isProcessing) ? (
+                                <div className={styleHome.badgeLoading}>...</div>
+                                ) : (
+                                <div className={styleHome.badge}>{countPengadaan}</div>
+                                )}
+                                
+                                <img className='mt-4' src={pengadaanIm} alt="Pengadaan Aset" />
+                                <p className='mt-4'>Pengadaan Aset</p>
+                            </div>
                             </div>
 
                             <div 
-                            onClick={() => this.goRoute(disposalRoute)} 
-                            className="col-12 col-md-6 col-lg-3 mb-4">
-                                <div className={styleHome.assetCard}>
-                                    <img className='mt-4' src={disposalIm} alt="Disposal Aset"  />
-                                    <p className='mt-4'>Disposal Aset</p>
-                                </div>
+                            onClick={() => this.goRoute('disposal')} 
+                            className="col-12 col-md-6 col-lg-3 mb-4"
+                            >
+                            <div className={styleHome.assetCard}>
+                                {(isProcessing) ? (
+                                <div className={styleHome.badgeLoading}>...</div>
+                                ) : (
+                                <div className={styleHome.badge}>{countDisposal}</div>
+                                )}
+                                
+                                <img className='mt-4' src={disposalIm} alt="Disposal Aset" />
+                                <p className='mt-4'>Disposal Aset</p>
+                            </div>
                             </div>
 
                             <div 
                             onClick={() => this.goRoute('stock')} 
-                            className="col-12 col-md-6 col-lg-3 mb-4">
-                                <div className={styleHome.assetCard}>
-                                    <img className='mt-4' src={opnameIm}alt="Stock Opname Aset"  />
-                                    <p className='mt-4'>Stock Opname Aset</p>
-                                </div>
+                            className="col-12 col-md-6 col-lg-3 mb-4"
+                            >
+                            <div className={styleHome.assetCard}>
+                                {(isProcessing) ? (
+                                <div className={styleHome.badgeLoading}>...</div>
+                                ) : (
+                                <div className={styleHome.badge}>{countStock}</div>
+                                )}
+                                
+                                <img className='mt-4' src={opnameIm} alt="Stock Opname Aset" />
+                                <p className='mt-4'>Stock Opname Aset</p>
+                            </div>
                             </div>
 
                             <div 
-                            onClick={() => this.goRoute(mutasiRoute)} 
-                            className="col-12 col-md-6 col-lg-3 mb-4">
-                                <div className={styleHome.assetCard}>
-                                    <img className='mt-4' src={mutasiIm} alt="Mutasi Aset"  />
-                                    <p className='mt-4'>Mutasi Aset</p>
-                                </div>
+                            onClick={() => this.goRoute('mutasi')} 
+                            className="col-12 col-md-6 col-lg-3 mb-4"
+                            >
+                            <div className={styleHome.assetCard}>
+                                {(isProcessing) ? (
+                                <div className={styleHome.badgeLoading}>...</div>
+                                ) : (
+                                <div className={styleHome.badge}>{countMutasi}</div>
+                                )}
+                                
+                                <img className='mt-4' src={mutasiIm} alt="Mutasi Aset" />
+                                <p className='mt-4'>Mutasi Aset</p>
+                            </div>
                             </div>
                         </div>
                         </main>
@@ -1322,7 +1378,7 @@ class Home extends Component {
                     </div>
                 </ModalBody>
             </Modal>
-            <Modal isOpen={this.props.stock.isLoading || this.props.clossing.isLoading || this.props.tempmail.isLoading || this.state.loading} size="sm">
+            <Modal isOpen={this.props.dashboard.isLoading || this.props.stock.isLoading || this.props.clossing.isLoading || this.props.tempmail.isLoading || this.state.loading} size="sm">
                 <ModalBody>
                 <div>
                     <div className={style.cekUpdate}>
@@ -1344,7 +1400,8 @@ const mapStateToProps = state => ({
     dashboard: state.dashboard,
     clossing: state.clossing,
     stock: state.stock,
-    tempmail: state.tempmail
+    tempmail: state.tempmail,
+    depo: state.depo
 })
 
 const mapDispatchToProps = {
@@ -1355,10 +1412,13 @@ const mapDispatchToProps = {
     getNotif: notif.getNotif,
     upNotif: notif.upNotif,
     getDashboard: dashboard.getDashboard,
+    getCountTransaction: dashboard.getCountTransaction,
     getClossing: clossing.getClossing,
     getStockAll: stock.getStockAll,
     sendEmail: tempmail.sendEmail,
-    setReminder: stock.setReminder
+    setReminder: stock.setReminder,
+    getDepo: depo.getDepo,
+    getRole: user.getRole
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Home)

@@ -173,6 +173,7 @@
 }
 
 .assetCard {
+  position: relative; /* ⭐ PENTING untuk positioning badge */
   background: rgba(255, 255, 255, 0.85);
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -196,6 +197,102 @@
   max-width: 100%;
   height: 200px;
   margin-bottom: 0.5rem;
+}
+
+/* ⭐ Badge Styling */
+.badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: linear-gradient(135deg, #ff4757 0%, #ff6348 100%);
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 20px;
+  min-width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(255, 71, 87, 0.4);
+  animation: badge-pulse 2s infinite;
+  z-index: 10;
+}
+
+/* Badge saat loading */
+.badgeLoading {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: #ddd;
+  color: #999;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 20px;
+  min-width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: loading-pulse 1.5s infinite;
+  z-index: 10;
+}
+
+/* Animation badge pulse */
+@keyframes badge-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(255, 71, 87, 0.4);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(255, 71, 87, 0.6);
+  }
+}
+
+/* Animation loading pulse */
+@keyframes loading-pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Badge tetap visible saat card hover */
+.assetCard:hover .badge {
+  background: white;
+  color: #ff4757;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4);
+}
+
+.assetCard:hover .badgeLoading {
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+/* Responsive untuk mobile */
+@media (max-width: 768px) {
+  .badge,
+  .badgeLoading {
+    top: 10px;
+    right: 10px;
+    font-size: 12px;
+    padding: 6px 10px;
+    min-width: 28px;
+    height: 28px;
+  }
+  
+  .assetCard {
+    height: 300px;
+  }
+  
+  .assetCard img {
+    height: 150px;
+  }
 }
 
 .assetCard1 {

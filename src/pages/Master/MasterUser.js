@@ -621,7 +621,7 @@ class MasterUser extends Component {
               new Blob([buffer], { type: "application/octet-stream" }),
               `Master User ${moment().format('DD MMMM YYYY')}.xlsx`
             );
-          });
+        });
     }
 
     prepSendEmail = async (val) => {

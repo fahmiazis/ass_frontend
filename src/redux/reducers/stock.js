@@ -55,7 +55,8 @@ const stockState = {
     isUploadDraft: null,
     typeReminder: null,
     dateReminder: null,
-    isUpdateClear: null
+    isUpdateClear: null,
+    dataFail: []
 };
 
 export default (state=stockState, action) => {
@@ -724,6 +725,7 @@ export default (state=stockState, action) => {
                 ...state,
                 isLoading: false,
                 isUploadDraft: true,
+                dataFail: action.payload.data.failData,
                 alertMsg: 'delete stock Succesfully',
             };
         }
